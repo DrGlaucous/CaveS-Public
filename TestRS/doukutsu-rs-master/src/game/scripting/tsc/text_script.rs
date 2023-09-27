@@ -207,6 +207,8 @@ impl Scripts {
 }
 
 impl TextScriptVM {
+
+    //constructor statement
     pub fn new() -> Self {
         Self {
             scripts: Rc::new(RefCell::new(Scripts {
@@ -304,7 +306,7 @@ impl TextScriptVM {
     pub fn start_script(&mut self, event_num: u16) {
         self.reset();
         self.reset_invicibility = true;
-        self.state = TextScriptExecutionState::Running(event_num, 0);
+        self.state = TextScriptExecutionState::Running(event_num, 0); //run event number called with ip? of 0
 
         log::info!("Started script: #{:04}", event_num);
     }
@@ -314,16 +316,23 @@ impl TextScriptVM {
         let scripts = scripts_ref.borrow();
         let mut cached_event: Option<(u16, &Vec<u8>)> = None;
 
+        //will run until the suspend state is true
         loop {
             if state.textscript_vm.suspend {
                 break;
             }
 
+            //switch statement, different TSC states
+
             match state.textscript_vm.state {
+                
+                
                 TextScriptExecutionState::Ended => {
-                    state.control_flags.set_interactions_disabled(false);
-                    break;
+                    state.control_flags.set_interactions_disabled(false); //allow other interractions to happen: this one is over
+                    break; //breaks out of whole thing, match statement doesn't use breaks? (you can label your breaks now...)
                 }
+
+                //what is ip?
                 TextScriptExecutionState::Running(event, ip) => {
                     state.control_flags.set_interactions_disabled(true);
 
@@ -349,6 +358,7 @@ impl TextScriptVM {
                         state.textscript_vm.reset();
                     }
                 }
+                //showing a textbox?
                 TextScriptExecutionState::Msg(event, ip, remaining, counter) => {
                     if counter > 0 {
                         state.textscript_vm.state = TextScriptExecutionState::Msg(event, ip, remaining, counter - 1);

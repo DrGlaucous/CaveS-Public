@@ -284,11 +284,16 @@ fn from_csplus_stagetbl(s: &[u8], is_switch: bool) -> String {
 }
 
 impl StageData {
+
+    //is this called only one time at the beginning, or each time the stage is changed?
     pub fn load_stage_table(ctx: &mut Context, roots: &Vec<String>, is_switch: bool) -> GameResult<Vec<Self>> {
         let stage_tbl_path = "/stage.tbl";
         let stage_sect_path = "/stage.sect";
         let mrmap_bin_path = "/mrmap.bin";
         let stage_dat_path = "/stage.dat";
+
+        //prioritizes stage.tbl file, then stage.sect, then mrmap.bin, finally, stage.dat
+        //then why does dkRS make the stage.sect file over the other types?
 
         if filesystem::exists_find(ctx, roots, stage_tbl_path) {
             // Cave Story+ stage table.

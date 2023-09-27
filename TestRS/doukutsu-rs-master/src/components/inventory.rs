@@ -136,32 +136,47 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
 
         let count_x = state.constants.textscript.inventory_item_count_x as u16;
 
+        //switch statement, depending on what our focus is, run one of these (enum: none, weapons, items)
         match self.focus {
+
+            //in null state, we will run the weapon TSC every tick... should this happen?
             InventoryFocus::None => {
                 self.focus = InventoryFocus::Weapons;
                 state.control_flags.set_ok_button_disabled(false);
                 state.textscript_vm.start_script(self.get_weapon_event_number(inventory));
             }
+
+            //example of an inline "if" statement, we can put this on the same line as the enum...
             InventoryFocus::Weapons if state.control_flags.control_enabled() => {
-                if player.controller.trigger_left() {
-                    state.sound_manager.play_sfx(4);
-                    inventory.prev_weapon();
-                    state.control_flags.set_ok_button_disabled(false);
-                    state.textscript_vm.start_script(self.get_weapon_event_number(inventory));
+
+                //note: if we have no weapons, we don't want the TSC even to be run each time the left or right key is pressed.
+                //we need to check if we have weapons
+
+                if self.weapon_count > 0
+                {
+                    if player.controller.trigger_left() {
+                        state.sound_manager.play_sfx(4);
+                        inventory.prev_weapon();
+                        state.control_flags.set_ok_button_disabled(false);
+                        state.textscript_vm.start_script(self.get_weapon_event_number(inventory));
+                    }
+    
+                    if player.controller.trigger_right() {
+                        state.sound_manager.play_sfx(4);
+                        inventory.next_weapon();
+                        state.control_flags.set_ok_button_disabled(false);
+                        state.textscript_vm.start_script(self.get_weapon_event_number(inventory));
+                    }
                 }
 
-                if player.controller.trigger_right() {
-                    state.sound_manager.play_sfx(4);
-                    inventory.next_weapon();
-                    state.control_flags.set_ok_button_disabled(false);
-                    state.textscript_vm.start_script(self.get_weapon_event_number(inventory));
-                }
-
-                if player.controller.trigger_up() || player.controller.trigger_down() {
+                //we don't want to be able to move into the items mode if we have no items (vanilla-like behavior)
+                if (player.controller.trigger_up() || player.controller.trigger_down()) && self.item_count > 0 {
                     self.focus = InventoryFocus::Items;
                     state.control_flags.set_ok_button_disabled(false);
                     state.textscript_vm.start_script(self.get_item_event_number(inventory));
                 }
+
+                
             }
             InventoryFocus::Items if self.item_count != 0 && state.control_flags.control_enabled() => {
                 let mut moved_cursor = false;
