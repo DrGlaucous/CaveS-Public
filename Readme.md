@@ -9,3 +9,11 @@ Here it is.
 
 
 
+Notes about issues with the rust engine:
+
+stage.change_tile() doesn't generate smoke
+
+
+Fixed:
+inventory selector blinks too fast
+inventory runs TSC more than once when left/right is pressed
