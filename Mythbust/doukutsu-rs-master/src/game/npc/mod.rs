@@ -637,6 +637,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             369 => self.tick_n369_gclone_curly_clone(state, players, npc_list),
             370 => self.tick_n370_second_quote(state, players, npc_list),
             371..=375 => self.tick_n371_thru_n375(state, players),
+            376 => self.tickt_n376_mini_buster(state, players),
             _ => Ok(()),
         }?;
 

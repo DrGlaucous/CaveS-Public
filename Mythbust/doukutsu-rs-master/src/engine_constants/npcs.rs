@@ -1155,6 +1155,9 @@ pub struct NPCConsts {
     #[serde(default = "default_n371_adam")]
     pub n371_adam: SafeNPCRect<6>,
 
+    #[serde(default = "default_n376_mini_buster")]
+    pub n376_mini_buster: SafeNPCRect<6>,
+
     /////////////////////
     //BOSSES
     /////////////////////
@@ -4979,7 +4982,24 @@ fn default_n371_adam() -> SafeNPCRect<6>{
     )
 }
 
+//mini buster
+fn default_n376_mini_buster() -> SafeNPCRect<6>{
 
+    //return is not needed, but I like it becase "C"
+    return SafeNPCRect(
+        [
+            //left facing
+            Rect { left: 0, top: 0, right: 16, bottom: 32 }, //stand
+            Rect { left: 16, top: 0, right: 32, bottom: 32 }, //talk1
+            Rect { left: 32, top: 0, right: 48, bottom: 32 }, //talk2
+
+            //right facing
+            Rect { left: 48, top: 0, right: 64, bottom: 32 },
+            Rect { left: 64, top: 0, right: 80, bottom: 32 },
+            Rect { left: 80, top: 0, right: 96, bottom: 32 },
+        ]
+    )
+}
 
 
 /////////////////////

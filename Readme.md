@@ -12,6 +12,9 @@ Here it is.
 Notes about issues with the rust engine:
 
 stage.change_tile() doesn't generate smoke
+toroko NPC is broken (bubble thing, fixed by someone else, my build is out of date)
+ironhead fastScroll jitters
+
 
 
 Fixed:
