@@ -48,7 +48,10 @@ pub enum TimingMode {
 impl TimingMode {
     pub fn get_delta(self) -> usize {
         match self {
-            TimingMode::_50Hz => 1000000000 / 50,
+
+            //test: slow execution waaaay down
+            TimingMode::_50Hz => 1000000000 / 50, //(1000000000 / 50) * 10,//1000000000 / 50,
+            
             TimingMode::_60Hz => 1000000000 / 60,
             TimingMode::FrameSynchronized => 0,
         }

@@ -154,12 +154,12 @@ impl NPC {
         }
 
         //determine agro mode
-        if (player.x - self.x).abs() < 0x200 * 16 * 8
+        if (player.x - self.x).abs() < 0x200 * 16 * 4
             && (player.y - self.y).abs() < 0x200 * 16 * 4
         {
-            self.action_num = 10;
-    
+            if self.action_num < 10 {self.action_num = 10} //only init this if we're not already in it
         }
+        else if self.action_num > 3 {self.action_num = 0} //only set back if we haven't already done it
 
         //switch actions
         match self.action_num
@@ -194,8 +194,15 @@ impl NPC {
             {
                 if self.action_num == 2
                 {
+                    //init starting direction
                     self.action_num = 3;
                     self.direction = if (self.rng.range(0..9) % 2) != 0 {Direction::Left} else {Direction::Right}
+                }
+
+                //wall bump
+                if self.flags.hit_left_wall() || self.flags.hit_right_wall()
+                {
+                    self.direction = self.direction.opposite();
                 }
 
                 //animate walk
@@ -214,7 +221,7 @@ impl NPC {
                 //apply velocity
                 self.vel_x = self.direction.vector_x() * 0x200;
 
-                //why doesn't rust let me increment?
+
                 self.action_counter += 1;
                 if self.action_counter > 32
                 {
@@ -257,14 +264,16 @@ impl NPC {
 
 
                 //jump if we're touching a wall to get over it.
-                if self.flags.hit_bottom_wall() && (self.flags.hit_right_wall() || self.flags.hit_right_wall())
+                if self.flags.hit_bottom_wall() //note: this does not account for slopes
+                    && (self.flags.hit_right_wall() || self.flags.hit_right_wall() //touching wall
+                )
                 {
                     self.vel_y -= 0x200;
                 }
 
             }
 
-            _ =>{/*do nothign*/}
+            _ =>{/*do nothing*/}
 
         }
 

@@ -143,6 +143,7 @@ impl GameEntity<&Player> for NikumaruCounter {
         ];
         const PRIME: Rect<u16> = Rect { left: 128, top: 104, right: 160, bottom: 112 };
 
+        //set these vars to the proper tick time (for the timer) so that it counts in realtime regardless of FPS
         let (one_tenth, second, minute) = match state.settings.timing_mode {
             TimingMode::_60Hz => (6, 60, 3600),
             _ => (5, 50, 3000),

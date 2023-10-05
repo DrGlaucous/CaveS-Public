@@ -73,6 +73,7 @@ impl Game {
         Ok(s)
     }
 
+    //update the game at the proper FPS
     pub(crate) fn update(&mut self, ctx: &mut Context) -> GameResult {
         if let Some(scene) = &mut self.scene {
             let state_ref = unsafe { &mut *self.state.get() };
@@ -88,6 +89,7 @@ impl Game {
                 TimingMode::_50Hz | TimingMode::_60Hz => {
                     let last_tick = self.next_tick;
 
+                    //
                     while self.start_time.elapsed().as_nanos() >= self.next_tick && self.loops < 10 {
                         if (speed - 1.0).abs() < 0.01 {
                             self.next_tick += state_ref.settings.timing_mode.get_delta() as u128;
@@ -105,6 +107,7 @@ impl Game {
                         self.loops = 0;
                     }
 
+                    //
                     if self.loops != 0 {
                         scene.draw_tick(state_ref)?;
                         self.last_tick = last_tick;

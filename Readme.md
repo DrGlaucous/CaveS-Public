@@ -9,6 +9,11 @@ Here it is.
 
 
 
+to slow the game down for debugging, increase the wait value in shared_game_state.rs:
+(impl TimingMode {})
+
+
+
 Notes about issues with the rust engine:
 
 stage.change_tile() doesn't generate smoke
