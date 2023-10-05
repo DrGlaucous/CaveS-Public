@@ -375,8 +375,9 @@
 #368	g	clone	gclone 	0:352:96:366	gclone 	CE:Misc ;
 #369	gclone	curly	gclone curly 	0:352:96:366	gclone curly 	CE:Misc ;
 #370	quote	2	quote 2	48:48:64:64	quote 2 (for rust)	;
-#371	Adam	Savage	Adam	48:48:64:64	Mythbusters Crew	;
-#372	NEW	NPC	New Entity	48:48:64:64	This entity has not yet been defined	;
-#373	NEW	NPC	New Entity	48:48:64:64	This entity has not yet been defined	;
-#374	NEW	NPC	New Entity	48:48:64:64	This entity has not yet been defined	;
-#375	NEW	NPC	New Entity	48:48:64:64	This entity has not yet been defined	;
+#371	Adam	Savage	Adam	0:0:32:64	Mythbusters Crew	;
+#372	Jamie	Hyneman	Jamie	0:0:32:64	Mythbusters Crew	;
+#373	Kari	Byron	Kari	0:0:32:64	Mythbusters Crew	;
+#374	Grant	Imahara	Grant	0:0:32:64	Mythbusters Crew	;
+#375	Tory	Belleci	Tory	0:0:32:64	Mythbusters Crew	;
+#376	Mini	Buster	Mini Buster	192:0:224:64	Runs at the player	ALL:ALL ;

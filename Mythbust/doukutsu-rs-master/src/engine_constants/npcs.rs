@@ -1156,7 +1156,7 @@ pub struct NPCConsts {
     pub n371_adam: SafeNPCRect<6>,
 
     #[serde(default = "default_n376_mini_buster")]
-    pub n376_mini_buster: SafeNPCRect<6>,
+    pub n376_mini_buster: SafeNPCRect<18>,
 
     /////////////////////
     //BOSSES
@@ -4983,20 +4983,33 @@ fn default_n371_adam() -> SafeNPCRect<6>{
 }
 
 //mini buster
-fn default_n376_mini_buster() -> SafeNPCRect<6>{
+fn default_n376_mini_buster() -> SafeNPCRect<18>{
 
-    //return is not needed, but I like it becase "C"
-    return SafeNPCRect(
+
+    SafeNPCRect
+    (
         [
             //left facing
-            Rect { left: 0, top: 0, right: 16, bottom: 32 }, //stand
-            Rect { left: 16, top: 0, right: 32, bottom: 32 }, //talk1
-            Rect { left: 32, top: 0, right: 48, bottom: 32 }, //talk2
+            Rect { left: 96, top: 0, right: 112, bottom: 32 }, //stand 0
+            Rect { left: 112, top: 0, right: 128, bottom: 32 }, //run1 1
+            Rect { left: 96, top: 0, right: 112, bottom: 32 }, //stand 2
+            Rect { left: 128, top: 0, right: 144, bottom: 32 }, //run2 3
+            Rect { left: 96, top: 0, right: 112, bottom: 32 }, //stand 4
+            Rect { left: 144, top: 0, right: 160, bottom: 32 }, //walk1 5
+            Rect { left: 96, top: 0, right: 112, bottom: 32 }, //stand 6
+            Rect { left: 160, top: 0, right: 176, bottom: 32 }, //walk2 7
+            Rect { left: 96, top: 0, right: 112, bottom: 32 }, //stand 8
 
             //right facing
-            Rect { left: 48, top: 0, right: 64, bottom: 32 },
-            Rect { left: 64, top: 0, right: 80, bottom: 32 },
-            Rect { left: 80, top: 0, right: 96, bottom: 32 },
+            Rect { left: 96, top: 32, right: 112, bottom: 64 }, //stand
+            Rect { left: 112, top: 32, right: 128, bottom: 64 }, //run1
+            Rect { left: 96, top: 32, right: 112, bottom: 64 }, //stand
+            Rect { left: 128, top: 32, right: 144, bottom: 64 }, //run2
+            Rect { left: 96, top: 32, right: 112, bottom: 64 }, //stand
+            Rect { left: 144, top: 32, right: 160, bottom: 64 }, //walk1
+            Rect { left: 96, top: 32, right: 112, bottom: 64 }, //stand
+            Rect { left: 160, top: 32, right: 176, bottom: 64 }, //walk2
+            Rect { left: 96, top: 32, right: 112, bottom: 64 }, //stand
         ]
     )
 }

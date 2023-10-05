@@ -125,7 +125,7 @@ impl NPC {
     }
 
     //runs and tries to hit the player
-    pub fn tickt_n376_mini_buster
+    pub fn tick_n376_mini_buster
     (
         &mut self, //self-refrence
         state: &mut SharedGameState, //global game state
@@ -133,21 +133,156 @@ impl NPC {
         //npc_list: &NPCList,
     ) ->GameResult
     {
+
+
+
+        //will walk randomly until player is within range
+        //will try to run to player's location
+        //if player is on the same level, will try to lunge towards player
+        //if player is above or below, will walk to player X and stand
+
         let player = self.get_closest_player_ref(&players);
+
+        //stop if OOB, snap to standing animation (widescreen-proof)
+        if !(self.x <= player.x + 0x28000
+            && self.x >= player.x - 0x28000
+            && self.y <= player.y + 0x1E000
+            && self.y >= player.y - 0x1E000)
+        {
+            self.anim_rect = state.constants.npc.n371_adam[0];
+            return Ok(());
+        }
+
+        //determine agro mode
+        if (player.x - self.x).abs() < 0x200 * 16 * 8
+            && (player.y - self.y).abs() < 0x200 * 16 * 4
+        {
+            self.action_num = 10;
+    
+        }
 
         //switch actions
         match self.action_num
         {
-            0 =>
+
+            0 | 1 => //init/walk random or check for player
             {
-                self.direction = if player.x < self.x {Direction::Left} else {Direction::Right};
+
+                if self.action_num == 0
+                {
+                    self.action_counter = 0;
+                    self.anim_counter = 0;
+                    self.anim_num = 0;
+                    self.action_num = 1;
+                    self.vel_x = 0;
+                }
+
+                else
+                {
+                    //1 in 30 chance to walk somewhere
+                    if self.rng.range(0..60) == 1
+                    {
+                        self.action_num = 2;
+                        self.anim_num = 5;
+                        self.anim_counter = 0;
+                        self.action_counter = 0;
+                    }
+                }
 
             }
-            _ =>{}
-        }
- 
+            2 | 3 => //walking
+            {
+                if self.action_num == 2
+                {
+                    self.action_num = 3;
+                    self.direction = if (self.rng.range(0..9) % 2) != 0 {Direction::Left} else {Direction::Right}
+                }
 
-        self.anim_rect = state.constants.npc.n371_adam[self.anim_num as usize];
+                //animate walk
+                self.anim_counter += 1;
+                if self.anim_counter > 4
+                {
+                    self.anim_counter = 0;
+                    self.anim_num += 1;
+
+                    if self.anim_num > 8
+                    {
+                        self.anim_num = 5;
+                    }
+                }
+
+                //apply velocity
+                self.vel_x = self.direction.vector_x() * 0x200;
+
+                //why doesn't rust let me increment?
+                self.action_counter += 1;
+                if self.action_counter > 32
+                {
+                    self.action_num = 0; //back to checking for walking
+                }
+
+
+
+            }
+
+
+            10 | 11=> //run to player (init)/go
+            {
+
+                //when starting out, snap to correct animation frame
+                if self.action_num == 10 && (self.anim_num < 1 ||  self.anim_num < 4)
+                {
+                    self.anim_num = 1;
+                    self.action_num = 11;
+                }
+
+                //animate run
+                self.anim_counter += 1;
+                if self.anim_counter > 4
+                {
+                    self.anim_counter = 0;
+                    self.anim_num += 1;
+
+                    if self.anim_num > 4
+                    {
+                        self.anim_num = 1;
+                    }
+                }
+
+                //evaluate direction
+                if player.x < self.x {self.direction = Direction::Left} else {self.direction = Direction::Right}
+
+                //run to player
+                self.vel_x += self.direction.vector_x() * 0x20;
+
+
+                //jump if we're touching a wall to get over it.
+                if self.flags.hit_bottom_wall() && (self.flags.hit_right_wall() || self.flags.hit_right_wall())
+                {
+                    self.vel_y -= 0x200;
+                }
+
+            }
+
+            _ =>{/*do nothign*/}
+
+        }
+
+ 
+        //grav
+        self.vel_y += 0x20;
+
+        //speed limits
+        if self.vel_y > 0x50C {self.vel_y = 0x50C} else if self.vel_y < -0x50C {self.vel_y = -0x50C}
+        if self.vel_x > 0x400 {self.vel_x = 0x400} else if self.vel_x < -0x400 {self.vel_x = -0x400}
+
+        self.y += self.vel_y;
+        self.x += self.vel_x;
+
+
+        self.anim_rect = state.constants.npc.n376_mini_buster[
+            (if self.direction != Direction::Left {self.anim_num + 9} else {self.anim_num}) as usize //right facing rects
+        ];
 
         return Ok(())
     }
