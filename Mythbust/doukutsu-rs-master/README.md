@@ -1,5 +1,15 @@
 ![doukutsu-rs](./res/cool_crab_banner_github.png)
 
+#### What is this fork?
+*They don't just tell the myths, they put them to the test!*
+
+This is a mod designed for me to test out the basic functions of the D-RS engine. I've added things like small bugfixes, layers support, sprite rotation, and custom NPCs/Bosses/TSC commands.
+
+The rest of this readme is unchanged.
+
+--- 
+
+
 A fully playable re-implementation of Cave Story (Doukutsu Monogatari) engine written
 in [Rust](https://www.rust-lang.org/).
 

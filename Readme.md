@@ -8,6 +8,8 @@ There is a CS engine written in rust that *hasn't* been DMCA'd, so I *can* share
 Here it is.
 
 
+---
+# Personal Notes:
 
 to slow the game down for debugging, increase the wait value in shared_game_state.rs:
 (impl TimingMode {})
@@ -19,12 +21,11 @@ player_hit contains collision code for the PC only
 
 
 
-Notes about issues with the rust engine:
+## Notes about issues with the rust engine:
 
 stage.change_tile() doesn't generate smoke
 toroko NPC is broken (bubble thing, fixed by someone else, my build is out of date)
 ironhead fastScroll jitters
-
 
 
 Fixed:
