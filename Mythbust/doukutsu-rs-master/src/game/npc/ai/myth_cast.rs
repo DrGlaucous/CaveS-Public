@@ -27,20 +27,34 @@ impl NPC {
 
 
         //test flipping
-        let now;// = 0;
-        match  std::time::SystemTime::now().duration_since( std::time::SystemTime::UNIX_EPOCH)
-        {
-            Ok(n) => 
-            {
-                now = n.as_millis();
-            }
-            Err(_) => panic!("SystemTime before UNIX EPOCH!")
-        }
-        self.angle = core::f32::consts::PI * (((now % 100000) as f32)/ 1000.0); 
+        // let now;// = 0;
+        // match  std::time::SystemTime::now().duration_since( std::time::SystemTime::UNIX_EPOCH)
+        // {
+        //     Ok(n) => 
+        //     {
+        //         now = n.as_millis();
+        //     }
+        //     Err(_) => panic!("SystemTime before UNIX EPOCH!")
+        // }
+        // self.angle = core::f32::consts::PI * (((now % 100000) as f32)/ 1000.0); 
+
+        // self.action_counter += 1;
+        // if self.action_counter > 50
+        // {
+        //     self.action_counter = 0;
+        //     if (self.angle - core::f32::consts::PI / 2.0).abs() < 0.001
+        //     {
+        //         self.angle = 0.0;
+        //     }
+        //     else
+        //     {
+        //         self.angle = core::f32::consts::PI / 2.0;
+        //     }
+        // }
 
         //anchor on NPC center
-        self.anchor_x = ((self.anim_rect.right - self.anim_rect.left) / 2) as f32;
-        self.anchor_y = ((self.anim_rect.bottom - self.anim_rect.top) / 2) as f32;
+        self.anchor_x = (self.display_bounds.left / 0x200) as f32;//((self.display_bounds.left) / 2) as f32;
+        self.anchor_y = (self.display_bounds.top / 0x200) as f32;//((self.anim_rect.bottom - self.anim_rect.top) / 2) as f32;
 
         //end test
 
@@ -154,7 +168,7 @@ impl NPC {
         }
 
         //determine agro mode
-        if (player.x - self.x).abs() < 0x200 * 16 * 4
+        if (player.x - self.x).abs() < 0x200 * 16 * 8
             && (player.y - self.y).abs() < 0x200 * 16 * 4
         {
             if self.action_num < 10 {self.action_num = 10} //only init this if we're not already in it

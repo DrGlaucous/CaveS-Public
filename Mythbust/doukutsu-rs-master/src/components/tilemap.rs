@@ -47,6 +47,7 @@ impl Tilemap {
             return Ok(());
         }
 
+        //tileset texture to use when drawing
         let tex = match layer {
             TileLayer::Snack => "Npc/NpcSym",
             TileLayer::Background => &textures.tileset_bg,
@@ -54,6 +55,8 @@ impl Tilemap {
             TileLayer::Foreground => &textures.tileset_fg,
         };
 
+        //if pxpack data exists, load in width and height from corresponding layer
+        //if not, load it from default map size
         let (layer_offset, layer_width, layer_height, uses_layers) = if let Some(pxpack_data) = &stage.data.pxpack_data
         {
             match layer {
@@ -69,10 +72,12 @@ impl Tilemap {
             (0, stage.map.width, stage.map.height, false)
         };
 
+        //do not draw mid-ground tiles if layers are not turned on
         if !uses_layers && layer == TileLayer::Middleground {
             return Ok(());
         }
 
+        //for integer and floating point camera positioning, respectively
         let tile_size = state.tile_size.as_int();
         let tile_sizef = state.tile_size.as_float();
         let halft = tile_size / 2;
@@ -82,6 +87,7 @@ impl Tilemap {
         let mut rect = Rect::new(0, 0, tile_size as u16, tile_size as u16);
         let (mut frame_x, mut frame_y) = frame.xy_interpolated(state.frame_time);
 
+        //what is PxPackScroll?
         if let Some(pxpack_data) = &stage.data.pxpack_data {
             let (fx, fy) = match layer {
                 TileLayer::Background => pxpack_data.scroll_bg.transform_camera_pos(frame_x, frame_y),
@@ -100,10 +106,12 @@ impl Tilemap {
         let tile_end_y = ((frame_y as i32 + halft + state.canvas_size.1 as i32) / tile_size + 1)
             .clamp(0, layer_height as i32) as usize;
 
+        //set rect to snack tile
         if layer == TileLayer::Snack {
             rect = state.constants.world.snack_rect;
         }
 
+        //choose what to draw where
         for y in tile_start_y..tile_end_y {
             for x in tile_start_x..tile_end_x {
                 let tile = *stage.map.tiles.get((y * layer_width as usize) + x + layer_offset).unwrap();

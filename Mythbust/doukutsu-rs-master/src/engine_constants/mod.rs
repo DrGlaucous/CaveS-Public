@@ -397,8 +397,8 @@ impl EngineConstants {
             supports_two_player: cfg!(not(target_os = "android")),
             //change these to change where the game enters
             game: GameConsts {
-                intro_stage: 72,
-                intro_event: 100,
+                intro_stage: 13,//72,
+                intro_event: 0,//100,
                 intro_player_pos: (3, 3),
                 new_game_stage: 13,
                 new_game_event: 200,

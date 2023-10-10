@@ -400,6 +400,18 @@ pub fn get_timestamp() -> u64 {
     now.duration_since(UNIX_EPOCH).unwrap().as_secs() as u64
 }
 
+//new: rotation function: rotate this vector at a given angle
+pub fn angle_rotate(x: f32, y: f32, angle: f32) -> (f32, f32)
+{
+    let sindeg = angle.sin();
+    let cosdeg = angle.cos();
+
+    let nux = (x * cosdeg - y * sindeg) as f32;
+    let nuy = (y * cosdeg + x * sindeg) as f32;
+    return(nux, nuy);
+}
+
+
 /// A RGBA color in the `sRGB` color space represented as `f32`'s in the range `[0.0-1.0]`
 ///
 /// For convenience, [`WHITE`](constant.WHITE.html) and [`BLACK`](constant.BLACK.html) are provided.

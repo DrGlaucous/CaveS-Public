@@ -1189,6 +1189,9 @@ pub struct NPCConsts {
 
     #[serde(default = "default_b09_ballos")]
     pub b09_ballos: SafeNPCRect<14>,
+
+    #[serde(default = "default_b10_buster")]
+    pub b10_buster: SafeNPCRect<23>,
 }
 
 fn default_n001_experience() -> SafeNPCRect<6> {
@@ -5218,4 +5221,48 @@ fn default_b09_ballos() -> SafeNPCRect<14> {
         Rect { left: 0, top: 0, right: 0, bottom: 0 },
         Rect { left: 240, top: 32, right: 264, bottom: 48 },
     ])
+}
+
+fn default_b10_buster() -> SafeNPCRect<23> {
+    SafeNPCRect([
+
+        //SHOCKABLE ITEMS
+        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //head left 0
+        Rect { left: 32, top: 0, right: 64, bottom: 32 }, //head right 1
+
+        Rect { left: 112, top: 0, right: 168, bottom: 80 }, //torso 2
+
+        Rect { left: 64, top: 0, right: 80, bottom: 40 }, //right(rel to buster) forearm 3
+
+        Rect { left: 64, top: 40, right: 80, bottom: 80 }, //left(rel to buster) forearm 4
+
+        Rect { left: 0, top: 64, right: 16, bottom: 136 }, //saw 1 5
+        Rect { left: 16, top: 64, right: 32, bottom: 136 }, //saw 2 6
+
+        Rect { left: 64, top: 80, right: 96, bottom: 128 }, //gun 1 7
+        Rect { left: 96, top: 80, right: 128, bottom: 128 }, //gun 2 8
+
+        //SHOCK DUPLICATES
+        Rect { left: 0, top: 32, right: 32, bottom: 64 }, //shock head left 9
+        Rect { left: 32, top: 32, right: 64, bottom: 64 }, //shock head right 10
+        Rect { left: 168, top: 0, right: 224, bottom: 80 }, //shock torso 11
+        Rect { left: 80, top: 0, right: 96, bottom: 40 }, //r forearm shock 12
+        Rect { left: 80, top: 40, right: 96, bottom: 80 }, //l forearm shock 13
+        Rect { left: 32, top: 64, right: 48, bottom: 136 }, //saw 1 shock 14
+        Rect { left: 48, top: 64, right: 64, bottom: 136 }, //saw 2 shock 15
+        Rect { left: 128, top: 80, right: 160, bottom: 128 }, //gun shock 16
+        Rect { left: 128, top: 80, right: 160, bottom: 128 }, //gun2 shock (duplicate) 17
+
+        //TREADS
+        Rect { left: 160, top: 80, right: 256, bottom: 104 }, //tread 1 18
+        Rect { left: 160, top: 104, right: 256, bottom: 128 }, //tread 2 19
+
+        //DESTROYED RECTs
+        Rect { left: 224, top: 0, right: 272, bottom: 80 }, //destroyed torso 20
+        Rect { left: 96, top: 0, right: 112, bottom: 40 }, //r forearm destroyed 21
+        Rect { left: 96, top: 40, right: 112, bottom: 80 }, //l forearm destroyed 22
+
+
+    ])
+
 }

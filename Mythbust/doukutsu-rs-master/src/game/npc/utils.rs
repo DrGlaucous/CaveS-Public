@@ -184,6 +184,26 @@ impl NPC {
 
     /// Returns true if the [NPC] collides with a [Bullet].
     pub fn collides_with_bullet(&self, bullet: &Bullet) -> bool {
+
+
+        //if invulnerable, bullet uses map collision
+        //else, bullet uses enemy collision
+
+
+        if self.angle.abs() > 0.001
+        {
+
+            if self.npc_flags.shootable()
+            {
+                let bul_rect = Rect{left: bullet.enemy_hit_width, top: bullet.enemy_hit_height, right: bullet.enemy_hit_width, bottom: bullet.enemy_hit_height};
+                return self.tilted_collide(&bul_rect, bullet.x, bullet.y);
+            }
+            else if self.npc_flags.invulnerable()
+            {
+                return self.tilted_collide(&bullet.hit_bounds, bullet.x, bullet.y);
+            }
+        }
+
         (self.npc_flags.shootable()
             && (self.x - self.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
             && (self.x + self.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)
@@ -194,6 +214,9 @@ impl NPC {
             && (self.x + self.hit_bounds.right as i32) > (bullet.x - bullet.hit_bounds.left as i32)
             && (self.y - self.hit_bounds.top as i32) < (bullet.y + bullet.hit_bounds.bottom as i32)
             && (self.y + self.hit_bounds.bottom as i32) > (bullet.y - bullet.hit_bounds.top as i32))
+
+
+
     }
 
     /// Creates experience drop for this NPC.

@@ -119,7 +119,7 @@ impl GameScene {
         let mut water_renderer = WaterRenderer::new();
         let mut tilemap = Tilemap::new();
 
-        //special water stuff if original textures are disabled
+        //special water stuff if original textures are disabled (cave story switch feature)
         if !state.settings.original_textures {
             if let Ok(water_param_file) = filesystem::open_find(
                 ctx,
@@ -1181,7 +1181,7 @@ impl GameScene {
         }
     }
 
-    //iterate through all bullets for all NPCs, check if they touch and process the results
+    //iterate through all bullets for all NPCs, check if they touch bullets and process the results
     fn tick_npc_bullet_collissions(&mut self, state: &mut SharedGameState) {
         for npc in self.npc_list.iter_alive() {
             if npc.npc_flags.shootable() && npc.npc_flags.interactable() {
@@ -1267,6 +1267,7 @@ impl GameScene {
             }
         }
 
+        //boss collisions
         for i in 0..self.boss.parts.len() {
             let mut idx = i;
             let mut npc = unsafe { self.boss.parts.get_unchecked_mut(i) };
@@ -1279,16 +1280,20 @@ impl GameScene {
                     continue;
                 }
 
-                let hit = (npc.npc_flags.shootable()
-                    && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
-                    && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)
-                    && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.enemy_hit_height as i32)
-                    && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.enemy_hit_height as i32))
-                    || (npc.npc_flags.invulnerable()
-                        && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.hit_bounds.right as i32)
-                        && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.hit_bounds.left as i32)
-                        && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.hit_bounds.bottom as i32)
-                        && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.hit_bounds.top as i32));
+
+                let hit = npc.collides_with_bullet(bullet);
+
+                //why is it written this way? NPCs have a function to handle this...
+                // let hit = (npc.npc_flags.shootable()
+                //     && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
+                //     && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)
+                //     && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.enemy_hit_height as i32)
+                //     && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.enemy_hit_height as i32))
+                //     || (npc.npc_flags.invulnerable()
+                //         && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.hit_bounds.right as i32)
+                //         && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.hit_bounds.left as i32)
+                //         && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.hit_bounds.bottom as i32)
+                //         && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.hit_bounds.top as i32));
 
                 if !hit {
                     continue;
@@ -1356,6 +1361,10 @@ impl GameScene {
                 }
             }
         }
+    
+    
+    
+    
     }
 
     //run all the backend processes for all game objects, the function above is called in here
@@ -1963,7 +1972,7 @@ impl Scene for GameScene {
         Ok(())
     }
 
-    //draw process
+    //draw process (update deltas for smooth?)
     fn draw_tick(&mut self, state: &mut SharedGameState) -> GameResult {
         self.frame.prev_x = self.frame.x;
         self.frame.prev_y = self.frame.y;
@@ -2235,6 +2244,20 @@ impl Scene for GameScene {
         self.falling_island.draw(state, ctx, &self.frame)?;
         self.text_boxes.draw(state, ctx, &self.frame)?;
 
+        //draw watermark ;)
+        {
+            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "TextBox")?;
+            let watermark_rect = Rect{left: 160, top: 96, right:184, bottom:112};
+            batch.add_rect_tinted(state.canvas_size.0 - 2.0 - (watermark_rect.right - watermark_rect.left) as f32,
+                state.canvas_size.1 - 2.0 - (watermark_rect.bottom - watermark_rect.top) as f32,
+                (0xFF, 0xFF, 0xFF, 0xA0), &watermark_rect);
+
+            batch.draw(ctx)?;
+
+        }
+
+
+        //UI alerts
         if self.skip_counter > 1 || state.tutorial_counter > 0 {
             let key = {
                 if state.settings.touch_controls {

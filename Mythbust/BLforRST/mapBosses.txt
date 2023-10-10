@@ -8,3 +8,4 @@
 7 - Undead Core
 8 - Heavy Press
 9 - Ballos Ball
+10 - Buster

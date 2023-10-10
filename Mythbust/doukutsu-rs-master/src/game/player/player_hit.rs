@@ -248,16 +248,26 @@ impl Player {
         let hit_right =
             if npc.direction == Direction::Left { npc.hit_bounds.right } else { npc.hit_bounds.left } as i32;
 
-        if self.x + 0x400 > npc.x - hit_left
-            && self.x - 0x400 < npc.x + hit_right
-            && self.y + 0x400 > npc.y - npc.hit_bounds.top as i32
-            && self.y - 0x400 < npc.y + npc.hit_bounds.bottom as i32
+        
+        //if the NPC angle is at default (or close enough), use the normal comparison
+        if npc.angle.abs() < 0.01
         {
-            flags.set_hit_left_wall(true);
+            if self.x + 0x400 > npc.x - hit_left
+                && self.x - 0x400 < npc.x + hit_right
+                && self.y + 0x400 > npc.y - npc.hit_bounds.top as i32
+                && self.y - 0x400 < npc.y + npc.hit_bounds.bottom as i32
+            {
+                flags.set_hit_left_wall(true);
+            }
+        }
+        else //use rotation comparison
+        {
+            if npc.tilted_collide(self.hit_bounds(), self.x, self.y) {flags.set_hit_left_wall(true)};
         }
 
         flags
     }
+
 
     fn tick_npc_collision(
         &mut self,
@@ -387,4 +397,6 @@ impl Player {
             state.create_caret(self.x, self.y, CaretType::QuestionMark, Direction::Left);
         }
     }
+
+
 }

@@ -13,6 +13,11 @@ to slow the game down for debugging, increase the wait value in shared_game_stat
 (impl TimingMode {})
 
 
+common.rs contains typedefs for common items
+
+player_hit contains collision code for the PC only
+
+
 
 Notes about issues with the rust engine:
 

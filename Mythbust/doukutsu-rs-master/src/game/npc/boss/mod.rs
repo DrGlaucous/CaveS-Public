@@ -14,6 +14,7 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::Stage;
 use crate::game::weapon::bullet::BulletManager;
 
+//include the other files
 pub mod balfrog;
 pub mod ballos;
 pub mod core;
@@ -23,6 +24,9 @@ pub mod monster_x;
 pub mod omega;
 pub mod sisters;
 pub mod undead_core;
+//nuevo
+pub mod buster;
+
 
 pub struct BossNPC {
     pub boss_type: u16, //ID to run the correct boss
@@ -97,6 +101,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &BulletManager, &mut Fl
             7 => self.tick_b07_undead_core(state, npc_list, stage, flash),
             8 => self.tick_b08_heavy_press(state, npc_list, stage),
             9 => self.tick_b09_ballos(state, players, npc_list, flash),
+            10 => self.tick_b10_buster(state, players, npc_list),
             _ => {}
         }
 
@@ -121,10 +126,15 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &BulletManager, &mut Fl
             &state.npc_table.stage_textures.deref().borrow().npc2,
         )?;
 
+        //boss sprites are drawn in backwards order (slot 19 is lowest)
         for npc in self.parts.iter().rev() {
             if !npc.cond.alive() || npc.cond.hidden() {
                 continue;
             }
+
+            //why don't we just use:
+            // npc.draw();?
+            //probably because we want them to all be drawn in one go
 
             let off_x =
                 if npc.direction == Direction::Left { npc.display_bounds.left } else { npc.display_bounds.right }
@@ -132,15 +142,38 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &BulletManager, &mut Fl
             let shock = if npc.shock > 0 { (2 * ((npc.shock as i32 / 2) & 1) - 1) as f32 } else { 0.0 };
             let (frame_x, frame_y) = frame.xy_interpolated(state.frame_time);
 
-            batch.add_rect(
-                interpolate_fix9_scale(npc.prev_x - off_x, npc.x - off_x, state.frame_time) + shock - frame_x,
-                interpolate_fix9_scale(
-                    npc.prev_y - npc.display_bounds.top as i32,
-                    npc.y - npc.display_bounds.top as i32,
-                    state.frame_time,
-                ) - frame_y,
-                &npc.anim_rect,
-            );
+            //batch.add_rect(
+            //    interpolate_fix9_scale(npc.prev_x - off_x, npc.x - off_x, state.frame_time) + shock - frame_x,
+            //    interpolate_fix9_scale(
+            //        npc.prev_y - npc.display_bounds.top as i32,
+            //        npc.y - npc.display_bounds.top as i32,
+            //        state.frame_time,
+            //    ) - frame_y,
+            //    &npc.anim_rect,
+            //);
+
+            let final_x = interpolate_fix9_scale(npc.prev_x - off_x, npc.x - off_x, state.frame_time) + shock - frame_x;
+            let final_y = interpolate_fix9_scale(
+                npc.prev_y - npc.display_bounds.top as i32,
+                npc.y - npc.display_bounds.top as i32,
+                state.frame_time,
+                ) - frame_y;
+
+
+
+            batch.add_rect_flip_scaled_tinted_rotated(
+                final_x,
+                final_y, 
+                false, 
+                false, 
+                npc.angle as f64,
+                npc.anchor_x, 
+                npc.anchor_y,
+                (255,255,255,255),
+                1.0, 
+                1.0,
+                &npc.anim_rect);
+
         }
 
         batch.draw(ctx)?;

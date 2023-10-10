@@ -1,4 +1,5 @@
 use std::io::{Cursor, Read};
+
 use std::str::from_utf8;
 
 use byteorder::LE;
@@ -180,6 +181,7 @@ impl PxPackScroll {
     }
 }
 
+//pxpack formatted stage data (things that are pxpack-exclusive)
 #[derive(Debug, Clone)]
 pub struct PxPackStageData {
     pub tileset_fg: String,
@@ -194,6 +196,7 @@ pub struct PxPackStageData {
     pub offset_mg: u32,
     pub offset_bg: u32,
 }
+
 
 #[derive(Debug)]
 pub struct StageData {
@@ -552,15 +555,20 @@ pub struct Stage {
 
 impl Stage {
     pub fn load(roots: &Vec<String>, data: &StageData, ctx: &mut Context) -> GameResult<Self> {
+        //create a local copy to alter
         let mut data = data.clone();
 
+        //check for KeroBlaster-type pxpack before trying to open a PXM
         if let Ok(pxpack_file) = filesystem::open_find(ctx, roots, ["Stage/", &data.map, ".pxpack"].join("")) {
             let map = Map::load_pxpack(pxpack_file, roots, &mut data, ctx)?;
             let stage = Self { map, data };
 
             return Ok(stage);
         } else if let Ok(map_file) = filesystem::open_find(ctx, roots, ["Stage/", &data.map, ".pxm"].join("")) {
+            
+            //if loading the pxm was successful, try to find the tile solidity file
             let attrib_file = filesystem::open_find(ctx, roots, ["Stage/", &data.tileset.name, ".pxa"].join(""))?;
+
 
             let map = Map::load_pxm(map_file, attrib_file)?;
 
@@ -592,7 +600,7 @@ impl Stage {
     }
 
     /// Returns map tile from foreground layer.
-    pub fn tile_at(&self, x: usize, y: usize) -> u8 {
+    pub fn tile_at(&self, x: usize, y: usize) -> u16 {//u8 {
         if let Some(&tile) = self.map.tiles.get(y.wrapping_mul(self.map.width as usize).wrapping_add(x)) {
             tile
         } else {
@@ -600,8 +608,8 @@ impl Stage {
         }
     }
 
-    /// Changes map tile on foreground layer. Returns true if smoke should be emitted
-    pub fn change_tile(&mut self, x: usize, y: usize, tile_type: u8) -> bool {
+    /// Changes map tile on foreground layer. Returns true if smoke should be emitted (tile_type: u8)
+    pub fn change_tile(&mut self, x: usize, y: usize, tile_type: u16) -> bool {
         if let Some(ptr) = self.map.tiles.get_mut(y.wrapping_mul(self.map.width as usize).wrapping_add(x)) {
             if *ptr != tile_type {
                 *ptr = tile_type;

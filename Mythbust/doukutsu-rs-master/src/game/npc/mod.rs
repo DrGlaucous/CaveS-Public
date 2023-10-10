@@ -3,6 +3,7 @@ use std::io;
 use std::io::Cursor;
 use std::ops::Deref;
 use std::rc::Rc;
+use crate::common::angle_rotate;
 
 use byteorder::{LE, ReadBytesExt};
 
@@ -230,6 +231,194 @@ impl NPC {
 
         Ok(())
     }
+
+
+    //fancy rotating collision function (non-hard only)
+
+    fn poly_line_collide(
+        poly: [[f32;2];4],
+        line: [[f32;2];2],
+    ) -> bool
+    {
+
+        //no for loops, we must do this:
+        let mut i = 0;
+        while i < poly.len()
+        {
+            let next = if i < poly.len() - 1 {i + 1} else {0};
+            
+            //for readability:
+            let x_1 = line[0][0];
+            let y_1 = line[0][1];
+            let x_2 = line[1][0];
+            let y_2 = line[1][1];
+            let x_3 = poly[i][0];
+            let y_3 = poly[i][1];
+            let x_4 = poly[next][0];
+            let y_4 = poly[next][1];
+
+            let u_a = ((x_4-x_3)*(y_1-y_3) - (y_4-y_3)*(x_1-x_3)) / ((y_4-y_3)*(x_2-x_1) - (x_4-x_3)*(y_2-y_1));
+            let u_b = ((x_2-x_1)*(y_1-y_3) - (y_2-y_1)*(x_1-x_3)) / ((y_4-y_3)*(x_2-x_1) - (x_4-x_3)*(y_2-y_1));
+
+            if u_a >= 0.0 && u_a <= 1.0 && u_b >= 0.0 && u_b <= 1.0
+            {
+                return true;
+            }
+
+
+            i += 1;
+        }
+        return false;
+
+    }
+
+
+    fn poly_point_collide(
+        poly: [[f32;2];4],
+        point: [f32;2],
+    ) -> bool
+    {
+        let mut collision = false;
+
+        let mut i = 0;
+        while i < poly.len()
+        {
+            let next = if i < poly.len() - 1 {i + 1} else {0};
+
+            //mathy stuff I got off the online!
+            if ((poly[i][1] > point[1] && poly[next][1] < point[1])
+                    || (poly[i][1] < point[1] && poly[next][1] > point[1]))
+                    && (point[0] < (poly[next][0]-poly[i][0]) * (point[1]-poly[i][1]) / (poly[next][1]-poly[i][1]) + poly[i][0]) 
+            {
+                collision = !collision;
+            }
+
+
+            i += 1;
+
+        }
+
+        return collision;
+
+    }
+
+    //pass RECT and angle into the function (x2), assumes center of RECT is the pivot point
+    //returns boolean if the hit was successful
+    fn transformed_poly_collide(
+        rect1: &Rect<f32>, //note: I need to make this function accept all types of Rect, but I don't know how yet
+        angle1: &f32,
+        coord1: [f32;2],
+        rect2: &Rect<f32>,
+        angle2: &f32,
+        coord2: [f32;2],
+
+    ) -> bool
+    {
+
+        //coords 1,2,3,4
+        let mut tangle_1: [[f32;2];4] = [[0.0;2];4];
+        let mut tangle_2: [[f32;2];4] = [[0.0;2];4];
+
+        //translate first set of points
+        {
+            //rotate
+            (tangle_1[0][0], tangle_1[0][1]) = angle_rotate(rect1.left as f32, rect1.top as f32, *angle1);
+            (tangle_1[1][0], tangle_1[1][1]) = angle_rotate(rect1.right as f32, rect1.top as f32, *angle1);
+            (tangle_1[2][0], tangle_1[2][1]) = angle_rotate(rect1.left as f32, rect1.top as f32, *angle1);
+            (tangle_1[3][0], tangle_1[3][1]) = angle_rotate(rect1.right as f32, rect1.bottom as f32, *angle1);
+        
+            //translate
+            for i in tangle_1.iter_mut()
+            {
+                i[0] += coord1[0];
+                i[1] += coord1[1];
+
+            }
+
+
+        }
+        //second set
+        {
+            //rotate
+            (tangle_2[0][0], tangle_2[0][1]) = angle_rotate(rect2.left as f32, rect2.top as f32, *angle2);
+            (tangle_2[1][0], tangle_2[1][1]) = angle_rotate(rect2.right as f32, rect2.top as f32, *angle2);
+            (tangle_2[2][0], tangle_2[2][1]) = angle_rotate(rect2.left as f32, rect2.top as f32, *angle2);
+            (tangle_2[3][0], tangle_2[3][1]) = angle_rotate(rect2.right as f32, rect2.bottom as f32, *angle2);
+
+            //translate
+            for i in tangle_2.iter_mut()
+            {
+                i[0] += coord2[0];
+                i[1] += coord2[1];
+
+            }
+        }
+
+        //check if sets overlap
+        {
+
+            let mut i = 0;
+            while i < tangle_2.len()
+            {
+                let next = if i < tangle_2.len() - 1 {i + 1} else {0};
+
+                //for each vertice, check if it collides with rectangle 1
+                if Self::poly_line_collide(tangle_1, [tangle_2[i], tangle_2[next]]){return true}
+
+                i += 1;
+
+            }
+
+            //check interior collision (note: i can be any point on the polygon)
+            if Self::poly_point_collide(tangle_1, tangle_2[0]){return true}
+
+        }
+
+
+        return false;
+
+    }
+
+    //give this coordiantes in subpixel notation
+    pub fn tilted_collide(
+        &self,
+        rect1: &Rect<u32>,
+        loc_x: i32,
+        loc_y: i32,
+    ) -> bool
+    {
+
+        //can't translate hit RECTs until after we move them
+
+        //external
+        let rect_1_tra = Rect
+        {   left: -(rect1.left as f32),
+            top: -(rect1.top as f32),
+            right: (rect1.right as f32),
+            bottom: (rect1.bottom as f32)
+        };
+
+        //internal
+        let rect_2_tra = Rect
+        {   left: -(self.hit_bounds.left as f32),
+            top: -(self.hit_bounds.top as f32),
+            right: (self.hit_bounds.right as f32),
+            bottom: (self.hit_bounds.bottom as f32)
+        };
+
+
+        return Self::transformed_poly_collide(
+            &rect_1_tra,
+            &0.00,
+            [loc_x as f32, loc_y as f32],
+            &rect_2_tra,
+            &self.angle,
+            [self.x as f32, self.y as f32],
+        );
+
+    }
+    //end
+
 
     fn is_sue(&self) -> bool {
         [42, 92, 280, 284].contains(&self.npc_type)
