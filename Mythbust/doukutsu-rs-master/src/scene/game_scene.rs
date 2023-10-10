@@ -2072,6 +2072,7 @@ impl Scene for GameScene {
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
+        self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?; //nuevo
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front)?;
 
         self.draw_carets(state, ctx)?;

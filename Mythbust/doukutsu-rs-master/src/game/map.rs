@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader, Cursor, Read};
 use std::sync::Arc;
 
 use byteorder::{LE, ReadBytesExt};
-use cpal::FromSample;
+//use cpal::FromSample;
 
 use crate::common::{Color, Rect};
 use crate::framework::context::Context;
@@ -86,15 +86,35 @@ impl Map {
         //layered file
         if fsize == ((width * height) as u64 * std::mem::size_of::<u16>() as u64 * 4 + 8)
         {
-            //set vector to hold all incoming tile data
-            tiles_u16.resize((width * height) as usize * 4, 0);
-            
-            //do some casting to get our size to where read_exact will take it
-            let byte_size = 2 *tiles_u16.len();
+            //layer order in file:
+            //0 far back
+            //1 back
+            //2 foreground
+            //3 far front
+
+            //needed layer order in memory:
+            //0 foreground
+            //1 far back
+            //2 back
+            //3 far front
+
+            let layer_size = (width * height) as usize;
+
+            //temp vector to pull slices from, we will read the entire file into it
+            let mut tiles = vec![0u16; layer_size * 4];
+            let byte_size = 2 *tiles.len();
             let u8_pointer = unsafe{
-                std::slice::from_raw_parts_mut(tiles_u16.as_mut_ptr().cast::<u8>(), byte_size)
+                std::slice::from_raw_parts_mut(tiles.as_mut_ptr().cast::<u8>(), byte_size)
             };
+
             map_data.read_exact(u8_pointer)?;
+
+            //foreground
+            tiles_u16.extend_from_slice(&tiles[(layer_size * 2)..(layer_size * 3)]);
+            //backgrounds 'far' and 'mid'
+            tiles_u16.extend_from_slice(&tiles[(layer_size * 0)..(layer_size * 2)]);
+            //far foreground
+            tiles_u16.extend_from_slice(&tiles[(layer_size * 3)..(layer_size * 4)]);
 
         }
         //normal file
@@ -114,8 +134,6 @@ impl Map {
         if attrib_data.read_exact(&mut attrib).is_err() {
             log::warn!("Map attribute data is shorter than 256 bytes!");
         }
-        //TEMP
-        //let aarg = Vec::<u8>::new();
 
         Ok(Map { width, height, tiles: tiles_u16, attrib, tile_size: TileSize::Tile16x16 })
     }
@@ -357,7 +375,10 @@ impl Map {
             return 0;
         }
 
-        self.attrib[*self.tiles.get(self.width as usize * y + x).unwrap_or(&0u16) as usize] //0u8
+        //internally, we change the collision tiles so they are first in the list. this results in greater overall
+        //compatability with all other parts of the game that need to get this part of the tileset
+
+        return self.attrib[*self.tiles.get(self.width as usize * y + x).unwrap_or(&0u16) as usize]; //0u8
     }
 
     pub fn find_water_regions(&self, water_params: &WaterParams) -> Vec<(WaterRegionType, Rect<u16>, u16)> {//u8)> {

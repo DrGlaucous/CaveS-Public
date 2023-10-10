@@ -16,6 +16,7 @@ pub enum TileLayer {
     Background,
     Middleground,
     Foreground,
+    FarForeground,
     Snack,
 }
 
@@ -53,6 +54,7 @@ impl Tilemap {
             TileLayer::Background => &textures.tileset_bg,
             TileLayer::Middleground => &textures.tileset_mg,
             TileLayer::Foreground => &textures.tileset_fg,
+            _ => &textures.tileset_fg, //this will only be used with the PXM type, so this string won't matter anyway
         };
 
         //if pxpack data exists, load in width and height from corresponding layer
@@ -66,14 +68,32 @@ impl Tilemap {
                 TileLayer::Middleground => {
                     (pxpack_data.offset_mg as usize, pxpack_data.size_mg.0, pxpack_data.size_mg.1, true)
                 }
-                _ => (0, pxpack_data.size_fg.0, pxpack_data.size_fg.1, true),
+                TileLayer::FarForeground =>{
+                    return Ok(()); //do not attempt to draw the far foreground if our layers are from a pxpack
+                }
+                _ => (0, pxpack_data.size_fg.0, pxpack_data.size_fg.1, true), //foreground or snack
             }
+        } else if stage.map.tiles.len() > (stage.map.width * stage.map.height) as usize //PXM layer mode detection
+            {
+                //layer order:
+                //0 foreground
+                //1 far back
+                //2 back
+                //3 far front
+                match layer {
+                    TileLayer::Background =>(1 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                    TileLayer::Middleground =>(2 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                    TileLayer::Foreground =>(0 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                    TileLayer::FarForeground =>(3 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                    TileLayer::Snack =>(0 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, false), //do this so we bypass the first draw-all section of the match statement below
+                }
+
         } else {
             (0, stage.map.width, stage.map.height, false)
         };
 
         //do not draw mid-ground tiles if layers are not turned on
-        if !uses_layers && layer == TileLayer::Middleground {
+        if !uses_layers && (layer == TileLayer::Middleground || layer == TileLayer::FarForeground) {
             return Ok(());
         }
 
@@ -99,6 +119,7 @@ impl Tilemap {
             frame_y = fy;
         }
 
+        //set up picker bounds for just the tiles that are within the seen frame
         let tile_start_x = (frame_x as i32 / tile_size).clamp(0, layer_width as i32) as usize;
         let tile_start_y = (frame_y as i32 / tile_size).clamp(0, layer_height as i32) as usize;
         let tile_end_x =
@@ -111,11 +132,12 @@ impl Tilemap {
             rect = state.constants.world.snack_rect;
         }
 
-        //choose what to draw where
+        //choose what to draw where (for each column in each row in the viewed screen)
         for y in tile_start_y..tile_end_y {
             for x in tile_start_x..tile_end_x {
                 let tile = *stage.map.tiles.get((y * layer_width as usize) + x + layer_offset).unwrap();
                 match layer {
+                    //all cases first check if we are using layers. If so, we ignore the attribute hardcode and draw everything except NULL tiles
                     _ if uses_layers => {
                         if tile == 0 {
                             continue;

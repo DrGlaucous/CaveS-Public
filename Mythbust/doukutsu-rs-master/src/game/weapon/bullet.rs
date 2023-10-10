@@ -1935,6 +1935,7 @@ impl PhysicalEntity for Bullet {
                 0x41 | 0x44 | 0x61 | 0x64 => {
                     self.test_block_hit(state, x + ox, y + oy);
                 }
+                //SNAK
                 0x43 => {
                     let old_hit = self.flags;
                     self.flags.0 = 0;
