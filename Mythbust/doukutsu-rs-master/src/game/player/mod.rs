@@ -193,6 +193,7 @@ impl Player {
         self.hit_bounds = self.skin.get_hit_bounds();
     }
 
+    //normalstate behavior
     fn tick_normal(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
         if !state.control_flags.interactions_disabled() && state.control_flags.control_enabled() {
             if self.equip.has_air_tank() {
@@ -742,18 +743,25 @@ impl Player {
             return;
         }
 
+        //if on ground
         if self.flags.hit_bottom_wall() {
+
+            //if in interacting mode (checks if we're already in it, not if we are going into it)
             if self.cond.interacted() {
-                self.skin.set_state(PlayerAnimationState::Examining);
                 self.anim_num = 11;
                 self.anim_counter = 0;
-            } else if state.control_flags.control_enabled()
+                self.skin.set_state(PlayerAnimationState::Examining, self.anim_counter);
+            } else if state.control_flags.control_enabled() //horizontal movement, looking up
                 && (self.controller.move_up() || self.strafe_up)
                 && (self.controller.move_left() || self.controller.move_right())
             {
                 self.cond.set_fallen(true);
-                self.skin.set_state(PlayerAnimationState::WalkingUp);
 
+                //with this, the bug is less common, but something off is still happening when the counter rolls over
+                //(we have a chance to jump instantly to the next non-0 frame instead of waiting a full 5 ticks)
+                self.skin.set_state(PlayerAnimationState::WalkingUp, self.anim_counter);
+
+                //BUG: anim_counter is not reset here when state changes, but is always reset in PlayerAnimationState
                 self.anim_counter += 1;
                 if self.anim_counter > 4 {
                     self.anim_counter = 0;
@@ -764,6 +772,7 @@ impl Player {
                     }
                 }
 
+                //set to inital frame if out of range (happens as soon as we arrive)
                 if self.anim_num > 9 || self.anim_num < 6 {
                     self.anim_num = 6;
                 }
@@ -771,7 +780,7 @@ impl Player {
                 && (self.controller.move_left() || self.controller.move_right())
             {
                 self.cond.set_fallen(true);
-                self.skin.set_state(PlayerAnimationState::Walking);
+                self.skin.set_state(PlayerAnimationState::Walking, self.anim_counter);
 
                 self.anim_counter += 1;
                 if self.anim_counter > 4 {
@@ -792,7 +801,7 @@ impl Player {
                 }
 
                 self.cond.set_fallen(false);
-                self.skin.set_state(PlayerAnimationState::LookingUp);
+                self.skin.set_state(PlayerAnimationState::LookingUp, self.anim_counter);
                 self.anim_num = 5;
                 self.anim_counter = 0;
             } else {
@@ -801,24 +810,24 @@ impl Player {
                 }
 
                 self.cond.set_fallen(false);
-                self.skin.set_state(PlayerAnimationState::Idle);
+                self.skin.set_state(PlayerAnimationState::Idle, self.anim_counter);
                 self.anim_num = 0;
                 self.anim_counter = 0;
             }
         } else if self.up {
-            self.skin.set_state(PlayerAnimationState::FallingLookingUp);
+            self.skin.set_state(PlayerAnimationState::FallingLookingUp, self.anim_counter);
             self.anim_num = 6;
             self.anim_counter = 0;
         } else if self.down {
-            self.skin.set_state(PlayerAnimationState::FallingLookingDown);
+            self.skin.set_state(PlayerAnimationState::FallingLookingDown, self.anim_counter);
             self.anim_num = 10;
             self.anim_counter = 0;
         } else {
             if self.vel_y > 0 {
-                self.skin.set_state(PlayerAnimationState::Falling);
+                self.skin.set_state(PlayerAnimationState::Falling, self.anim_counter);
                 self.anim_num = 1;
             } else {
-                self.skin.set_state(PlayerAnimationState::Jumping);
+                self.skin.set_state(PlayerAnimationState::Jumping, self.anim_counter);
                 self.anim_num = 3;
             }
             self.anim_counter = 0;
@@ -845,6 +854,7 @@ impl Player {
             self.weapon_rect.bottom += 64;
         }
 
+        //bounce gun rect up and down (currently, this is bugged)
         if self.anim_num == 1 || self.anim_num == 3 || self.anim_num == 6 || self.anim_num == 8 {
             self.weapon_rect.top += 1;
         }
@@ -859,7 +869,7 @@ impl Player {
 
         if state.constants.is_switch && self.air == 0 && self.flags.in_water() && !state.get_flag(4000) {
             self.skin.set_appearance(PlayerAppearanceState::Default);
-            self.skin.set_state(PlayerAnimationState::Drowned);
+            self.skin.set_state(PlayerAnimationState::Drowned, self.anim_counter);
         }
 
         self.anim_rect = self.skin.animation_frame();
@@ -1032,12 +1042,16 @@ impl GameEntity<&NPCList> for Player {
             }
         }
 
+        //invis frames
         if self.shock_counter / 2 % 2 != 0 {
             return Ok(());
         }
 
+        //draw gun
         if self.current_weapon != 0 {
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Arms")?;
+
+            //where to draw gun relative to player (default: 0,0)
             let (gun_off_x, gun_off_y) = self.skin.get_gun_offset();
 
             batch.add_rect(
@@ -1051,7 +1065,7 @@ impl GameEntity<&NPCList> for Player {
                     self.prev_y - self.display_bounds.top as i32,
                     self.y - self.display_bounds.top as i32,
                     state.frame_time,
-                ) + self.weapon_offset_y as f32
+                ) + self.weapon_offset_y as f32 //for looking up/down
                     + gun_off_y as f32
                     - frame_y,
                 &self.weapon_rect,

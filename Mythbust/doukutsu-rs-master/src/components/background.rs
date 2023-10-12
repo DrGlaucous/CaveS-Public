@@ -167,6 +167,54 @@ impl Background {
                     batch.add_rect(x as f32, offset_y + 176.0, &Rect::new_size(0, 176, 320, 64));
                 }
             }
+
+            BackgroundType::Hangar =>
+            {
+                //remove all old data in the buffer
+                graphics::clear(ctx, stage.data.background_color);
+
+                //halve width because we have 2 layers we want to draw here
+                let (bk_width, bk_height) = ((batch.width() / 2) as i32, batch.height() as i32);
+
+
+                //get the number of times we need to copy the background to the screen (re-used for both layers),
+                //+2 because it slides and we need the extra buffer
+                let count_x = state.canvas_size.0 as i32 / bk_width + 2;
+                let count_y = state.canvas_size.1 as i32 / bk_height + 2;
+
+                //batch.add_rect(x as f32, offset_y, &Rect::new_size(start, 0, 100, 88));
+
+                //determine where the initial background tile will be placed (this does scrolling)
+                let (mut off_x, off_y) = {
+                    (
+                    ((frame_x / 2.5 * scale).floor() / scale) % (bk_width as f32), //1/4 speed
+                    ((frame_y / 2.0 * scale).floor() / scale) % (bk_height as f32), //1/2 speed
+                    )
+                };
+
+                //add all the background segments to the screen, first layer
+                for y in -1..count_y {
+                    for x in -1..count_x {
+                        batch.add_rect((x * bk_width) as f32 - off_x, (y * bk_height) as f32 - off_y, &Rect::new_size(0, 0, bk_width as u16, bk_height as u16));
+                    }
+                }
+
+                //determine where the second bk layer will be placed (just X needs changed)
+                off_x = ((frame_x / 2.0 * scale).floor() / scale) % (bk_width as f32); //1/2 speed
+
+                //add all the background segments to the screen, second layer
+                for y in -1..count_y {
+                   for x in -1..count_x {
+                       //batch.add_rect((x * bk_width) as f32 - off_x, (y * bk_height) as f32 - off_y, &Rect::new_size(bk_width as u16, 0, batch.width() as u16, bk_height as u16));
+                       batch.add_rect((x * bk_width) as f32 - off_x, (y * bk_height) as f32 - off_y, &Rect{left: bk_width as u16, top: 0, right: batch.width() as u16, bottom: bk_height as u16});
+                   }
+                }
+
+
+
+
+            }
+
         }
 
         batch.draw(ctx)?;

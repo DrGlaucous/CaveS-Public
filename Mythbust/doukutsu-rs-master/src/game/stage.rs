@@ -109,6 +109,9 @@ pub enum BackgroundType {
     OutsideUnknown,
     /// Used by CS+KAGE in waterway, it's just TiledParallax with bkCircle2 drawn behind water
     Waterway,
+
+    //multi-layered scroll, parralax only horizontal, otherwise slow
+    Hangar,
 }
 
 impl From<u8> for BackgroundType {
@@ -124,6 +127,7 @@ impl From<u8> for BackgroundType {
             7 => Self::Outside,
             8 => Self::OutsideUnknown,
             9 => Self::Waterway,
+            10 => Self::Hangar,
             _ => {
                 // log::warn!("Unknown background type: {}", val);
                 Self::Black

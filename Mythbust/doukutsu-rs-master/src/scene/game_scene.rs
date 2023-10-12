@@ -97,9 +97,10 @@ pub struct GameScene {
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum LightingMode {
-    None,
-    BackgroundOnly,
-    Ambient,
+    None, //like classic CS
+    BackgroundOnly, //background dark, foreground light
+    ForegroundOnly, //foreground dark background light
+    Ambient, //background and foreground dark
 }
 
 const P2_OFFSCREEN_TEXT: &'static str = "P2";
@@ -391,7 +392,7 @@ impl GameScene {
     //draw radial lights, or just circular lights? Ans: just circular lights
     fn draw_light(&self, x: f32, y: f32, size: f32, color: (u8, u8, u8), batch: &mut Box<dyn SpriteBatch>) {
         //grab the circle rect from the builtin resource, scale it by the size argument, and tint it accordingly
-        //Note: alpha here is full, so is white-ness converted to alpha on resource load? (like with my CSE2 lightmaps?)
+        //Note: alpha here is full, so is white-ness converted to alpha on resource load? (like with my CSE2 lightmaps? ans: blendmode is in "Add" mode)
         //also note: batch is the spritesheet this is drawn from, defined outside this function
         batch.add_rect_scaled_tinted(
             x - size * 32.0,
@@ -403,7 +404,7 @@ impl GameScene {
         )
     }
 
-    //I think this is the radial light draw function
+    //I think this is the radial light draw function (based on block attribute)
     fn draw_light_raycast(
         &self,
         tile_size: TileSize,
@@ -443,6 +444,9 @@ impl GameScene {
                 y += dy;
 
                 const ARR: [(i32, i32); 4] = [(0, 0), (0, 1), (1, 0), (1, 1)];
+
+                //note: this radial light is on a per-block bases. It does not regard individual pixels
+                //(you could probably get better raycast shaders by looking at the code for fancy water)
                 for (ox, oy) in ARR.iter() {
                     let bx = (x as i32).wrapping_div(ti).wrapping_add(*ox);
                     let by = (y as i32).wrapping_div(ti).wrapping_add(*oy);
@@ -522,7 +526,9 @@ impl GameScene {
         }
     }
 
-    //another light drawing function, maybe just lights the tiles? this one uses the other two, it lights NPCs
+    //draws player lightcone and NPC light points,
+    //if called before NPCs are drawn, it will put this behind the foreground stuff, only affecting the background
+    //if called after, the entire map will be shaded
     fn draw_light_map(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         {
             let maybe_canvas = state.lightmap_canvas.as_ref();
@@ -534,10 +540,14 @@ impl GameScene {
             }
         }
 
+        //set blendmode to the "transparency" mode
         graphics::set_blend_mode(ctx, BlendMode::Add)?;
 
+        //clear all data from the context, add dark blue tint
         graphics::clear(ctx, Color::from_rgb(100, 100, 110));
 
+        //go through NPCs and draw their lightpoints if onscreen (hardcoded to screen edge + 128 pixels)
+        //what does this do that the function below doesn't?
         for npc in self.npc_list.iter_alive() {
             if npc.x < (self.frame.x - 128 * 0x200 - npc.display_bounds.width() as i32 * 0x200)
                 || npc.x
@@ -615,7 +625,8 @@ impl GameScene {
             }
 
             //various NPC type lights
-
+            //colored points from the NPCs
+            
             for bullet in self.bullet_manager.bullets.iter() {
                 self.draw_light(
                     interpolate_fix9_scale(
@@ -2055,6 +2066,7 @@ impl Scene for GameScene {
         self.draw_npc_layer(state, ctx, NPCLayer::Background)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Middleground, stage_textures_ref, &self.stage)?;
 
+        //shaders enabled and lighting mode is set to "background"
         if state.settings.shader_effects && self.lighting_mode == LightingMode::BackgroundOnly {
             self.draw_light_map(state, ctx)?;
         }
@@ -2083,6 +2095,7 @@ impl Scene for GameScene {
         self.draw_npc_popup(state, ctx)?;
         self.draw_boss_popup(state, ctx)?;
 
+        //if NOT credits and shaders enabled and lighting mode is ambient
         if !state.control_flags.credits_running()
             && state.settings.shader_effects
             && self.lighting_mode == LightingMode::Ambient

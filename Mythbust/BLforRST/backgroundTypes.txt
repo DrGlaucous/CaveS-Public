@@ -6,3 +6,6 @@
 5 - Scroll Fast Left
 6 - Parallax, Items fall left
 7 - Parallax scroll (clouds)
+8 - Outside (clone)
+9 - Waterway
+10 - Split layered parallax (Hangar)
