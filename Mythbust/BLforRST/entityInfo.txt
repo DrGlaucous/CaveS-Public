@@ -381,3 +381,4 @@
 #374	Grant	Imahara	Grant	0:0:32:64	Mythbusters Crew	;
 #375	Tory	Belleci	Tory	0:0:32:64	Mythbusters Crew	;
 #376	Mini	Buster	Mini Buster	192:0:224:64	Runs at the player	ALL:ALL ;
+#377	Light	Source	Light Source	0:0:32:32	Use flag number to set direction of light cone	ALL:ALL ;

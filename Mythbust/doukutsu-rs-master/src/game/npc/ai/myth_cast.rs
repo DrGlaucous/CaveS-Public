@@ -53,8 +53,8 @@ impl NPC {
         // }
 
         //anchor on NPC center
-        self.anchor_x = (self.display_bounds.left / 0x200) as f32;//((self.display_bounds.left) / 2) as f32;
-        self.anchor_y = (self.display_bounds.top / 0x200) as f32;//((self.anim_rect.bottom - self.anim_rect.top) / 2) as f32;
+        //self.anchor_x = (self.display_bounds.left / 0x200) as f32;//((self.display_bounds.left) / 2) as f32;
+        //self.anchor_y = (self.display_bounds.top / 0x200) as f32;//((self.anim_rect.bottom - self.anim_rect.top) / 2) as f32;
 
         //end test
 
@@ -310,6 +310,12 @@ impl NPC {
         return Ok(())
     }
 
+    //run NULL program code (set in mod.rs)
+    // pub fn tick_n377_light
+    // (&mut self)
+    // {
+    //     self.tick_n000_null();
+    // }
 
 
 }

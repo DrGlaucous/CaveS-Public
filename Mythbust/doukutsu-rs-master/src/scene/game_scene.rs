@@ -407,13 +407,13 @@ impl GameScene {
     //I think this is the radial light draw function (based on block attribute)
     fn draw_light_raycast(
         &self,
-        tile_size: TileSize,
-        world_point_x: i32,
+        tile_size: TileSize, //map's tile size
+        world_point_x: i32, //pixel location on map
         world_point_y: i32,
-        (br, bg, bb): (u8, u8, u8),
-        att: f32,
-        angle: Range<i32>,
-        batch: &mut Box<dyn SpriteBatch>,
+        (br, bg, bb): (u8, u8, u8), //color
+        att: f32, //light distance (power)
+        angle: Range<i32>, //width of beam (degrees)
+        batch: &mut Box<dyn SpriteBatch>, //pointer to surface to draw to
     ) {
         let px = world_point_x as f32 / 512.0;
         let py = world_point_y as f32 / 512.0;
@@ -549,6 +549,8 @@ impl GameScene {
         //go through NPCs and draw their lightpoints if onscreen (hardcoded to screen edge + 128 pixels)
         //what does this do that the function below doesn't?
         for npc in self.npc_list.iter_alive() {
+
+            //skip offscreen NPCs
             if npc.x < (self.frame.x - 128 * 0x200 - npc.display_bounds.width() as i32 * 0x200)
                 || npc.x
                     > (self.frame.x
@@ -563,6 +565,7 @@ impl GameScene {
                 continue;
             }
 
+            //don't think this will ever draw anything in it's current state, but it might put a top-layer lightmask over an NPC if it *did* work
             npc.draw_lightmap(state, ctx, &self.frame)?;
         }
 
@@ -669,20 +672,29 @@ impl GameScene {
             }
 
             for npc in self.npc_list.iter_alive() {
+
+
+                //the light source NPC demands a wider valid range because of the light cone
+                let edge_margin = if npc.npc_type == 377 {256} else {128};
+
+
+                //(hidden OR in frame) and NOT NPC 377 (raycast light NPC)
                 if npc.cond.hidden()
-                    || (npc.x < (self.frame.x - 128 * 0x200 - npc.display_bounds.width() as i32 * 0x200)
+                    || (npc.x < (self.frame.x - edge_margin * 0x200 - npc.display_bounds.width() as i32 * 0x200)
                         || npc.x
                             > (self.frame.x
-                                + 128 * 0x200
+                                + edge_margin * 0x200
                                 + (state.canvas_size.0 as i32 + npc.display_bounds.width() as i32) * 0x200)
-                            && npc.y < (self.frame.y - 128 * 0x200 - npc.display_bounds.height() as i32 * 0x200)
+                            && npc.y < (self.frame.y - edge_margin * 0x200 - npc.display_bounds.height() as i32 * 0x200)
                         || npc.y
                             > (self.frame.y
-                                + 128 * 0x200
+                                + edge_margin * 0x200
                                 + (state.canvas_size.1 as i32 + npc.display_bounds.height() as i32) * 0x200))
                 {
                     continue;
                 }
+
+
 
                 // NPC lighting
                 match npc.npc_type {
@@ -1038,6 +1050,7 @@ impl GameScene {
                             batch,
                         )
                     }
+                    //curly AI
                     180 => {
                         if state.settings.light_cone {
                             // Curly's looking upward frames
@@ -1064,6 +1077,7 @@ impl GameScene {
                             );
                         }
                     }
+                    //carried curly
                     320 => {
                         if state.settings.light_cone {
                             let range = match npc.direction() {
@@ -1085,11 +1099,13 @@ impl GameScene {
                             );
                         }
                     }
+                    //deleet (rays expand out as it counts down)
                     322 => {
                         let scale = 0.004 * (npc.action_counter as f32);
 
                         self.draw_light_raycast(state.tile_size, npc.x, npc.y, (255, 0, 0), scale, 0..360, batch)
                     }
+                    //heavy press projectile
                     325 => {
                         let size = 0.5 * (npc.anim_num as f32 + 1.0);
                         self.draw_light(
@@ -1107,6 +1123,13 @@ impl GameScene {
                             (255, 255, 255),
                             batch,
                         )
+                    }
+                    //light source NPC
+                    377 =>
+                    {                           
+                        let origin_look = (npc.flag_num % 360) as i32;
+                        let cone_range= (origin_look - 40)..(origin_look + 40);
+                        self.draw_light_raycast(state.tile_size, npc.x, npc.y, (255, 255, 150), 0.90, cone_range, batch);
                     }
                     _ => {}
                 }
@@ -2098,7 +2121,7 @@ impl Scene for GameScene {
         //if NOT credits and shaders enabled and lighting mode is ambient
         if !state.control_flags.credits_running()
             && state.settings.shader_effects
-            && self.lighting_mode == LightingMode::Ambient
+            && self.lighting_mode == LightingMode::Ambient //determined by background type
         {
             self.draw_light_map(state, ctx)?;
         }

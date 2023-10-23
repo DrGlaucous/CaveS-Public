@@ -201,13 +201,19 @@ impl NPC {
         Ok(())
     }
 
+    //don't belive this does anything at the moment
     pub fn draw_lightmap(&self, state: &mut SharedGameState, ctx: &mut Context, frame: &Frame) -> GameResult {
+
+        //skip NPCs
         if !self.cond.alive() || self.cond.hidden() {
             return Ok(());
         }
 
+        //load texture from correct NPC spritesheet
         let texture = &*state.npc_table.get_texture_ref(self.spritesheet_id);
 
+        //not sure what the .glow() condition does, it always returns nothing, regardless of the input
+        //of this were implemented, it would load in a texture for glowing and draw it to the screen
         if let Some(batch) = state.texture_set.get_or_load_batch(ctx, &state.constants, texture)?.glow() {
             let off_x =
                 if self.direction == Direction::Left { self.display_bounds.left } else { self.display_bounds.right }
@@ -827,6 +833,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             370 => self.tick_n370_second_quote(state, players, npc_list),
             371..=375 => self.tick_n371_thru_n375(state, players),
             376 => self.tick_n376_mini_buster(state, players),
+            377 => self.tick_n000_null(),
             _ => Ok(()),
         }?;
 
