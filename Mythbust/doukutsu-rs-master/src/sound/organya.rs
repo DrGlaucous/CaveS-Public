@@ -1,3 +1,5 @@
+//this file is responsible for defining the structure of ORG files and loading them into memory
+
 use std::io;
 
 use byteorder::{LE, ReadBytesExt};
@@ -82,16 +84,19 @@ pub struct Song {
 }
 
 impl Clone for Song {
+    //song data
     fn clone(&self) -> Song {
         Song {
-            version: self.version,
-            time: self.time,
-            tracks: self.tracks.clone(),
+            version: self.version, //version
+            time: self.time, //tempo?
+            tracks: self.tracks.clone(), //array of 16 tracks, each containing the componets of the notes
         }
     }
 }
 
 impl Song {
+
+    //initialize a NULL song
     pub fn empty() -> Song {
         Song {
             version: Version::Main,
@@ -117,6 +122,7 @@ impl Song {
         }
     }
 
+    //load a song from a file
     pub fn load_from<R: io::Read>(mut f: R) -> GameResult<Song> {
         let mut magic = [0; 6];
 

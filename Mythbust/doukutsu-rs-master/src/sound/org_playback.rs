@@ -61,7 +61,10 @@ impl Clone for SavedOrganyaPlaybackState {
     }
 }
 
+//implement the struct created above
 impl OrgPlaybackEngine {
+
+    //initialize buffers and settings
     pub fn new() -> Self {
         let mut buffers: [MaybeUninit<RenderBuffer>; 136] = unsafe { MaybeUninit::uninit().assume_init() };
 
@@ -85,6 +88,7 @@ impl OrgPlaybackEngine {
         }
     }
 
+    //is this changing tempo?
     pub fn set_sample_rate(&mut self, sample_rate: usize) {
         self.frames_this_tick =
             (self.frames_this_tick as f32 * (self.output_format.sample_rate as f32 / sample_rate as f32)) as usize;
@@ -96,6 +100,7 @@ impl OrgPlaybackEngine {
         }
     }
 
+    //pause and play reader
     pub fn get_state(&self) -> SavedOrganyaPlaybackState {
         SavedOrganyaPlaybackState { song: self.song.clone(), play_pos: self.play_pos }
     }
@@ -105,6 +110,7 @@ impl OrgPlaybackEngine {
         self.play_pos = state.play_pos;
     }
 
+    //play song from beginning
     pub fn start_song(&mut self, song: Organya, samples: &SoundBank) {
         for i in 0..8 {
             let sound_index = song.tracks[i].inst.inst as usize;
@@ -156,6 +162,8 @@ impl OrgPlaybackEngine {
     }
 
     fn update_play_state(&mut self) {
+
+        //for all notse
         for track in 0..8 {
             if let Some(note) = self.song.tracks[track].notes.iter().find(|x| x.pos == self.play_pos) {
                 // New note
@@ -253,6 +261,7 @@ impl OrgPlaybackEngine {
             self.lengths[track] = self.lengths[track].saturating_sub(1);
         }
 
+        //for all drums
         for i in 8..16 {
             let j = i + 120;
 
@@ -590,6 +599,8 @@ pub fn centibel_to_scale(a: i32) -> f32 {
     f32::powf(10.0, a as f32 / 2000.0)
 }
 
+//notes dump the "currently playing" info into this class.
+//the audio backend takes this and makes vibrations with it.
 #[derive(Clone)]
 pub struct RenderBuffer {
     pub position: f64,
@@ -609,6 +620,8 @@ pub struct RenderBuffer {
 }
 
 impl RenderBuffer {
+
+    //construct
     pub fn new(sample: WavSample) -> RenderBuffer {
         let bytes_per_sample = sample.format.channels as usize * if sample.format.bit_depth == 16 { 2 } else { 1 };
         RenderBuffer {
@@ -627,7 +640,7 @@ impl RenderBuffer {
             pan_cent: (0.0, 0.0),
         }
     }
-
+    //make empty note (fill with the sound of silence)
     pub fn empty() -> RenderBuffer {
         RenderBuffer {
             position: 0.0,
@@ -646,6 +659,7 @@ impl RenderBuffer {
         }
     }
 
+    //this constructs a wave?
     pub fn new_organya(mut sample: WavSample) -> RenderBuffer {
         let wave = sample.data.clone();
         sample.data.clear();
@@ -669,8 +683,8 @@ impl RenderBuffer {
 
     #[inline]
     pub fn organya_select_octave(&mut self, octave: usize, pipi: bool) {
-        const OFFS: &[usize] = &[0x000, 0x100, 0x200, 0x280, 0x300, 0x340, 0x360, 0x370];
-        const LENS: &[usize] = &[256_usize, 256, 128, 128, 64, 32, 16, 8];
+        const OFFS: &[usize] = &[0x000, 0x100, 0x200, 0x280, 0x300, 0x340, 0x360, 0x370]; //offset
+        const LENS: &[usize] = &[256_usize, 256, 128, 128, 64, 32, 16, 8]; //lengths
         self.base_pos = OFFS[octave];
         self.len = LENS[octave];
         self.position %= self.len as f64;

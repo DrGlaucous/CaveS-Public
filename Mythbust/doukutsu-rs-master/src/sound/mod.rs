@@ -16,8 +16,10 @@ use crate::framework::error::GameError::{AudioError, InvalidValue};
 use crate::framework::filesystem;
 use crate::framework::filesystem::File;
 use crate::game::settings::Settings;
+//use OGG if defined in the configuration
 #[cfg(feature = "ogg-playback")]
 use crate::sound::ogg_playback::{OggPlaybackEngine, SavedOggPlaybackState};
+//this will be used either way
 use crate::sound::org_playback::{OrgPlaybackEngine, SavedOrganyaPlaybackState};
 use crate::sound::organya::Song;
 use crate::sound::pixtone::{PixToneParameters, PixTonePlayback};
@@ -591,9 +593,10 @@ impl Default for PlaybackStateType {
     }
 }
 
+//runs an audio bgm server
 fn run<T>(
-    rx: Receiver<PlaybackMessage>,
-    bank: SoundBank,
+    rx: Receiver<PlaybackMessage>, //gets this from the game
+    bank: SoundBank, //sounds to use
     device: cpal::Device,
     config: cpal::StreamConfig,
 ) -> GameResult<cpal::Stream>
