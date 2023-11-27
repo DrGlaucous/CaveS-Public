@@ -187,6 +187,8 @@ impl BackendEventLoop for GlutinEventLoop {
         let (game, ctx): (&'static mut Game, &'static mut Context) =
             unsafe { (std::mem::transmute(game), std::mem::transmute(ctx)) };
 
+        log::info!("WowieZowie!");
+        
         event_loop.run(move |event, _, control_flow| {
             *control_flow = ControlFlow::Wait;
 
@@ -309,6 +311,7 @@ impl BackendEventLoop for GlutinEventLoop {
                     request_android_redraw();
                 }
                 Event::MainEventsCleared => {
+
                     if state_ref.shutdown {
                         log::info!("Shutting down...");
                         *control_flow = ControlFlow::Exit;
@@ -333,6 +336,7 @@ impl BackendEventLoop for GlutinEventLoop {
                         }
                     }
 
+                    //mainloop
                     game.update(ctx).unwrap();
 
                     #[cfg(target_os = "android")]
@@ -361,7 +365,15 @@ impl BackendEventLoop for GlutinEventLoop {
                 }
                 _ => (),
             }
+
+
+
         });
+
+
+
+
+        
     }
 
     fn new_renderer(&self, ctx: *mut Context) -> GameResult<Box<dyn BackendRenderer>> {

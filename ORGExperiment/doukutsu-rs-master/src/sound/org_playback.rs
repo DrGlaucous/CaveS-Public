@@ -91,6 +91,7 @@ impl OrgPlaybackEngine {
     }
 
     //is this changing tempo?
+    //ans: yes. also, this is the resolution of the rendered audio to feed to the backend
     pub fn set_sample_rate(&mut self, sample_rate: usize) {
         self.frames_this_tick =
             (self.frames_this_tick as f32 * (self.output_format.sample_rate as f32 / sample_rate as f32)) as usize;
@@ -114,6 +115,8 @@ impl OrgPlaybackEngine {
 
     //play song from beginning
     pub fn start_song(&mut self, song: Organya, samples: &SoundBank) {
+        
+        //for the first 8 tracks, copy the corresponding insturment from the wave table to the insturment buffer (self.track_buffers)
         for i in 0..8 {
             let sound_index = song.tracks[i].inst.inst as usize;
             let sound = samples.get_wave(sound_index).iter().map(|&x| x ^ 128).collect();
@@ -129,6 +132,7 @@ impl OrgPlaybackEngine {
             }
         }
 
+        //initialize drums
         for (idx, (track, buf)) in song.tracks[8..].iter().zip(self.track_buffers[128..].iter_mut()).enumerate() {
             if self.song.version == Version::Extended {
                 *buf = RenderBuffer::new(samples.samples[track.inst.inst as usize].clone());
@@ -163,6 +167,7 @@ impl OrgPlaybackEngine {
         self.frames_per_tick as u32 * ticks_total as u32
     }
 
+    //advances the tracker head
     fn update_play_state(&mut self) {
 
         //for all notes
@@ -298,6 +303,45 @@ impl OrgPlaybackEngine {
         }
     }
 
+    //just like render_to, but does not bother writing to an audio buffer
+    pub fn track_only(&mut self)
+    {
+
+        //self.frames_this_tick = 0;
+
+        //advance player position by resolution
+        let mut i = 0;
+        while i < 480//self.frames_per_tick
+        {
+            if self.frames_this_tick == 0 {
+                self.update_play_state()
+            }
+    
+            self.frames_this_tick += 1;
+    
+            if self.frames_this_tick == self.frames_per_tick {
+                self.play_pos += 1;
+    
+                if self.play_pos == self.song.time.loop_range.end {
+                    self.play_pos = self.song.time.loop_range.start;
+    
+                    //loop count for the song
+                    //if self.loops == 0 {
+                    //    return;// i + 2;
+                    //}
+    
+                    //self.loops -= 1;
+                }
+    
+                self.frames_this_tick = 0;
+            }
+            i += 1;
+        }
+
+
+
+    }
+
     //take array of currently playing notes and generate WAVES for output
     pub fn render_to(&mut self, buf: &mut [u16]) -> usize {
         let mut i = 0;
@@ -317,6 +361,7 @@ impl OrgPlaybackEngine {
             }
         }
 
+        //loop through the buffer count/2. the buffer is composed of stereo frames ordered like LRLRLR...
         while let (Some(frame_l), Some(frame_r)) = (iter.next(), iter.next()) {
             if self.frames_this_tick == 0 {
                 self.update_play_state()
@@ -598,18 +643,39 @@ impl OrgPlaybackEngine {
             i += 2;
         }
 
+
+
         buf.len()
     }
 
     //new: put current track status into a track structure so other things can see what it's doing
-    //each time it's read, the buffer is emptied
     pub fn get_latest_track_state(&mut self) ->CurrentOrgState
     {
         //probably a better way to do this...
         let mut out_state = CurrentOrgState::new();
+
+        //note infos
         out_state.lengths.clone_from(&self.lengths);
         out_state.keys.clone_from(&self.keys);
         out_state.swaps.clone_from(&self.swaps);
+
+        //drum infos (we can't know how long a drum note lasts: length is not maintained)
+        for i in 0..8
+        {
+            //in the designated drum buffers, find the ones that are active
+            let j = i + 128;
+            if self.track_buffers[j].playing
+            {
+                //it's a challenge to unravel the frequency of the note, so we just do this for now
+                //drums as a whole are unnecessary for my applications, but I'll have them anyway
+                out_state.drums[i] = 0x50;
+            }
+            else
+            {
+                out_state.drums[i] = 0xFF;
+            }
+
+        }
 
         return out_state;
 

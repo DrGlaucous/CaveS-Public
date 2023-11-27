@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "doukutsu-rs-master"
+		}
+	],
+	"settings": {
+		"rust-analyzer.linkedProjects": [
+			".\\Cargo.toml",
+			".\\Cargo.toml",
+			".\\Cargo.toml",
+			".\\Cargo.toml",
+			".\\Cargo.toml",
+			".\\Cargo.toml"
+		]
+	}
+}

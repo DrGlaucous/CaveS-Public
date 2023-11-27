@@ -229,7 +229,12 @@ impl BackendEventLoop for SDL2EventLoop {
             let _ = state.handle_resize(ctx);
         }
 
+        //this entire loop is halted when the top of the window is grabbed
         loop {
+
+            //log::info!("Made it here");
+
+
             #[cfg(target_os = "macos")]
             unsafe {
                 use objc::*;
@@ -382,6 +387,7 @@ impl BackendEventLoop for SDL2EventLoop {
                 break;
             }
 
+
             {
                 let mutex = GAME_SUSPENDED.lock().unwrap();
                 if *mutex {
@@ -389,6 +395,7 @@ impl BackendEventLoop for SDL2EventLoop {
                     continue;
                 }
             }
+            //this is as far as the thread goes when focus is lost
 
             {
                 if state.settings.window_mode.get_sdl2_fullscreen_type() != self.refs.borrow().fullscreen_type {

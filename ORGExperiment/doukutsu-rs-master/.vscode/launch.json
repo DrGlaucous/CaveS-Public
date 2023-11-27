@@ -26,10 +26,29 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'doukutsu-rs'",
+            "name": "Debug executable 'doukutsu-rs' with SDL",
             "cargo": {
                 "args": [
                     "build",
+                    "--bin=doukutsu-rs",
+                    "--package=doukutsu-rs"
+                ],
+                "filter": {
+                    "name": "doukutsu-rs",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'doukutsu-rs' with Glutin",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--features=backend-glutin",
                     "--bin=doukutsu-rs",
                     "--package=doukutsu-rs"
                 ],

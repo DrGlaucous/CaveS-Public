@@ -25,6 +25,8 @@ use crate::sound::organya::Song;
 use crate::sound::pixtone::{PixToneParameters, PixTonePlayback};
 use crate::sound::wave_bank::SoundBank;
 
+use self::wav::WavSample;
+
 mod fir;
 #[cfg(feature = "ogg-playback")]
 mod ogg_playback;
@@ -45,13 +47,31 @@ pub struct CurrentOrgState
 
     pub keys: [u8; 8], //notes currently being played ("keys" being pressed)
 
+    pub drums: [u8; 8], //drums currently being played
+
 }
 impl CurrentOrgState
 {
     pub fn new() -> CurrentOrgState
     {
-        return CurrentOrgState {lengths: [0; 8],swaps: [0; 8],keys: [255; 8]};
-    }    
+        return CurrentOrgState
+        {
+            lengths: [0; 8],
+            swaps: [0; 8],
+            keys: [255; 8],
+            drums: [0; 8],
+        };
+    } 
+  
+
+    pub fn copy_from(&mut self, other: &Self)
+    {
+        self.keys.clone_from(&other.keys);
+        self.lengths.clone_from(&other.lengths);
+        self.swaps.clone_from(&other.swaps);
+        self.drums.clone_from(&other.drums);
+    }
+
 }
 
 //this is what's exposed to the main game code.
@@ -162,6 +182,7 @@ impl SoundManager {
 
         let config = config_result.unwrap();
 
+        //start async task to render audio, depending on sample format
         let res = match config.sample_format() {
             cpal::SampleFormat::I8 => run::<i8>(rx, state_tx, soundbank.to_owned(), device, config.into()),
             cpal::SampleFormat::I16 => run::<i16>(rx, state_tx, soundbank.to_owned(), device, config.into()),
@@ -175,6 +196,8 @@ impl SoundManager {
             cpal::SampleFormat::F64 => run::<f64>(rx, state_tx, soundbank.to_owned(), device, config.into()),
             _ => Err(AudioError("Unsupported sample format.".to_owned())),
         };
+
+
 
         if let Err(res) = &res {
             log::error!("Error initializing audio: {}", res);
@@ -266,6 +289,11 @@ impl SoundManager {
             return;
         }
         self.send(PlaybackMessage::SetOrgInterpolation(interpolation)).unwrap();
+
+        //TEST
+        self.send(PlaybackMessage::SetCommanderInterpolation(interpolation)).unwrap();
+
+
     }
 
     pub fn set_song_volume(&mut self, volume: f32) {
@@ -322,6 +350,11 @@ impl SoundManager {
             self.send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation)).unwrap();
             self.send(PlaybackMessage::SaveState).unwrap();
 
+            //TEST
+            self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
+            self.send(PlaybackMessage::SaveCommanderState).unwrap();
+
+
             if fadeout {
                 self.send(PlaybackMessage::FadeoutSong).unwrap();
             } else {
@@ -370,7 +403,12 @@ impl SoundManager {
                                         .send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation))
                                         .unwrap();
                                     self.send(PlaybackMessage::SaveState).unwrap();
-                                    self.send(PlaybackMessage::PlayOrganyaSong(Box::new(org))).unwrap();
+                                    self.send(PlaybackMessage::PlayOrganyaSong(Box::new(org.clone()))).unwrap();
+
+                                    //TEST
+                                    self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
+                                    self.send(PlaybackMessage::SaveCommanderState).unwrap();
+                                    self.send(PlaybackMessage::PlayCommanderSong(Box::new(org))).unwrap();
 
                                     return Ok(());
                                 }
@@ -467,6 +505,8 @@ impl SoundManager {
         self.send(PlaybackMessage::RestoreState).unwrap();
         self.current_song_id = self.prev_song_id;
 
+        self.send(PlaybackMessage::RestoreCommanderState).unwrap();
+
         Ok(())
     }
 
@@ -480,6 +520,9 @@ impl SoundManager {
         }
 
         self.send(PlaybackMessage::SetSpeed(speed)).unwrap();
+
+        //TEST
+        self.send(PlaybackMessage::SetCommanderSpeed(speed)).unwrap();
 
         Ok(())
     }
@@ -598,30 +641,28 @@ impl SoundManager {
     {
         //note: this could probably be a one-liner in Rust. Oh well...
 
-        //only update if we get a successful reception. otherwise, use old values
-        match self.state_rx.try_recv()
-        {
-            Ok(state) =>
-            {
-                self.note_state.keys.clone_from(&state.keys);
-                self.note_state.lengths.clone_from(&state.lengths);
-                self.note_state.swaps.clone_from(&state.swaps);
-            }
-            Err(_) =>
-            {
-                //do nothing
-            }
+        //with this function, we pick the most recent entry in the buffer
+        let rx_iterator = self.state_rx.try_iter();
 
+        //if there are entries in there, update the local state
+        //if not, keep the local state as-is
+        let lastt = rx_iterator.last();
+        if !(lastt.is_none())
+        {
+            let unwr = lastt.unwrap();
+            self.note_state.copy_from(&unwr);
         }
 
+
         let mut return_state = CurrentOrgState::new();
-        return_state.keys.clone_from(&self.note_state.keys);
-        return_state.lengths.clone_from(&self.note_state.lengths);
-        return_state.swaps.clone_from(&self.note_state.swaps);
+        return_state.copy_from(&self.note_state);
         return return_state;
 
 
     }
+
+
+
 
 
 }
@@ -646,6 +687,18 @@ pub(in crate::sound) enum PlaybackMessage {
     SetSampleParams(u8, PixToneParameters),
     SetOrgInterpolation(InterpolationMode),
     SetSampleData(u8, Vec<i16>),
+
+    
+    //commander-related commands
+    PlayCommanderSong(Box<Song>),
+    SetCommanderSpeed(f32),
+    SaveCommanderState,
+    RestoreCommanderState,
+    SetCommanderInterpolation(InterpolationMode),
+    
+    
+
+
 }
 
 #[derive(PartialEq, Eq)]
@@ -669,6 +722,116 @@ impl Default for PlaybackStateType {
     }
 }
 
+
+//simplified ORG runner to be embedded inside run<>
+//will run alongside whatever audio engine is playing. It will not be rendered to the audio buffer
+struct OrgTelemCommander
+{
+    state: PlaybackState,
+    saved_state: PlaybackStateType,
+    speed: f32,
+    org_engine: Box<OrgPlaybackEngine>,
+    bank: SoundBank, //sounds to use (for initialization simplicity, they will not actually be played)
+    //here for simplicity, but will not be able to be changed
+    sample_rate: f32,
+}
+impl OrgTelemCommander
+{
+    pub fn new(config: cpal::StreamConfig, sndbnk: SoundBank) -> OrgTelemCommander
+    {
+        let mut org_engine = Box::new(OrgPlaybackEngine::new());
+        org_engine.set_sample_rate(config.sample_rate.0 as usize);
+
+        OrgTelemCommander
+        {
+            state: PlaybackState::Stopped,
+            saved_state: PlaybackStateType::None,
+            speed: 1.0,
+            org_engine: org_engine,
+            sample_rate: config.sample_rate.0 as f32,
+            bank: sndbnk,//SoundBank { wave100: Box::new([0; 25600]), samples: vec![WavSample { format: (), data: () }; 16] },
+
+        }
+    }
+
+    pub fn run(&mut self)
+    {
+        self.org_engine.track_only();
+    }
+
+    pub fn get_state(&mut self) -> CurrentOrgState
+    {
+        self.org_engine.get_latest_track_state()
+    }
+
+    pub fn set(&mut self, message: PlaybackMessage)
+    {
+        match message
+        {
+
+            PlaybackMessage::PlayOrganyaSong(song)=> {
+                if self.state == PlaybackState::Stopped {
+                    self.saved_state = PlaybackStateType::None;
+                }
+
+                self.org_engine.start_song(*song, &self.bank);
+
+                //let _ = self.org_engine.render_to(&mut bgm_buf);
+                self.org_engine.track_only();
+
+                self.state = PlaybackState::PlayingOrg;
+
+            }
+            PlaybackMessage::SetSpeed(new_speed) => {
+                assert!(new_speed > 0.0);
+                    self.speed = new_speed;
+                self.org_engine.set_sample_rate((self.sample_rate / new_speed) as usize);
+            }
+            PlaybackMessage::SaveState => {
+
+                //save the main music state
+                self.saved_state = match self.state {
+                    PlaybackState::PlayingOrg => PlaybackStateType::Organya(self.org_engine.get_state()),
+                    _ => PlaybackStateType::None,
+                };
+            }
+            PlaybackMessage::RestoreState => {
+
+                let saved_state_loc = std::mem::take(&mut self.saved_state);
+                //restore the correct audio backend
+                match saved_state_loc {
+                    PlaybackStateType::Organya(playback_state) => {
+                        self.org_engine.set_state(playback_state, &self.bank);
+
+                        if self.state == PlaybackState::Stopped {
+                            self.org_engine.rewind();
+                        }
+
+                        //let _ = self.org_engine.render_to(&mut bgm_buf);
+                        self.org_engine.track_only();
+
+                        self.state = PlaybackState::PlayingOrg;
+                    }
+                    _ => {
+                        self.state = PlaybackState::Stopped;
+                    }
+
+                }
+            }
+            PlaybackMessage::SetOrgInterpolation(interpolation) => {
+                self.org_engine.interpolation = interpolation;
+            }
+            _ => {
+                //do nothing
+            }
+
+        }
+    }
+
+
+}
+
+
 //runs an audio bgm server/thread
 fn run<T>(
     rx: Receiver<PlaybackMessage>, //gets this from the game
@@ -686,7 +849,15 @@ fn run<T>(
     let mut state = PlaybackState::Stopped;
     let mut saved_state: PlaybackStateType = PlaybackStateType::None;
     let mut speed = 1.0;
+    //create an org engine to do ORG stuff
     let mut org_engine = Box::new(OrgPlaybackEngine::new());
+
+
+    //create silent tracker
+    let mut tracker_engine = OrgTelemCommander::new(config.clone(), bank.clone());
+
+
+    //if OGG, create an OGG engine to do playback as well
     #[cfg(feature = "ogg-playback")]
     let mut ogg_engine = Box::new(OggPlaybackEngine::new());
     let mut pixtone = Box::new(PixTonePlayback::new());
@@ -696,7 +867,9 @@ fn run<T>(
     org_engine.set_sample_rate(sample_rate as usize);
     #[cfg(feature = "ogg-playback")]
     {
+        //what does this do to the ORG engine?
         org_engine.loops = usize::MAX;
+        //setup OGG sample rate
         ogg_engine.set_sample_rate(sample_rate as usize);
     }
 
@@ -717,6 +890,9 @@ fn run<T>(
     let stream_result = device.build_output_stream(
         &config,
         move |data: &mut [T], _: &cpal::OutputCallbackInfo| {
+
+            //check for new commands
+            //will run until the recieve buffer is empty
             loop {
                 if bgm_fadeout && bgm_vol > 0.0 {
                     bgm_vol -= 0.02;
@@ -834,16 +1010,20 @@ fn run<T>(
                         bgm_vol_saved = bgm_vol;
                     }
                     Ok(PlaybackMessage::SaveState) => {
+                        
+                        //save the main music state
                         saved_state = match state {
                             PlaybackState::Stopped => PlaybackStateType::None,
                             PlaybackState::PlayingOrg => PlaybackStateType::Organya(org_engine.get_state()),
                             #[cfg(feature = "ogg-playback")]
                             PlaybackState::PlayingOgg => PlaybackStateType::Ogg(ogg_engine.get_state()),
                         };
+                        
                     }
                     Ok(PlaybackMessage::RestoreState) => {
-                        let saved_state_loc = std::mem::take(&mut saved_state);
 
+                        let saved_state_loc = std::mem::take(&mut saved_state);
+                        //restore the correct audio backend
                         match saved_state_loc {
                             PlaybackStateType::None => {
                                 state = PlaybackState::Stopped;
@@ -890,6 +1070,7 @@ fn run<T>(
                                 state = PlaybackState::PlayingOgg;
                             }
                         }
+                    
                     }
                     Ok(PlaybackMessage::SetSampleParams(id, params)) => {
                         pixtone.set_sample_parameters(id, params);
@@ -900,20 +1081,33 @@ fn run<T>(
                     Ok(PlaybackMessage::SetSampleData(id, data)) => {
                         pixtone.set_sample_data(id, data);
                     }
+ 
+                    //nuevo
+                    Ok(PlaybackMessage::PlayCommanderSong(song)) => {
+                        tracker_engine.set(PlaybackMessage::PlayOrganyaSong(song));
+                    }
+                    Ok(PlaybackMessage::SetCommanderSpeed(speed)) => {
+                        tracker_engine.set(PlaybackMessage::SetSpeed(speed));
+                    }
+                    Ok(PlaybackMessage::RestoreCommanderState) => {
+                        tracker_engine.set(PlaybackMessage::RestoreState);
+                    }
+                    Ok(PlaybackMessage::SetCommanderInterpolation(interpolation)) => {
+                        tracker_engine.set(PlaybackMessage::SetOrgInterpolation(interpolation));
+                    }
+
+
+
+                    Ok(_)=>{}
+                    
                     Err(_) => {
                         break;
                     }
                 }
             
-                //send the game back its current state
-                //let _ = tx.send(org_engine.get_latest_track_state());
-            
             }
 
-            //test putting this in here
-            //send the game back its current state
-            let _ = tx.send(org_engine.get_latest_track_state());
-
+            //send audio frames to backend
             for frame in data.chunks_mut(channels) {
                 let (bgm_sample_l, bgm_sample_r): (u16, u16) = {
                     if state == PlaybackState::Stopped {
@@ -927,6 +1121,9 @@ fn run<T>(
                             *i = 0x8000
                         }
 
+                        //new: run the tracker engine in lockstep with the main music player
+                        tracker_engine.run();
+                        
                         match state {
                             PlaybackState::PlayingOrg => {
                                 samples = org_engine.render_to(&mut bgm_buf);
@@ -983,6 +1180,13 @@ fn run<T>(
                     frame[0] = T::from_sample(sample);
                 }
             }
+
+
+            //test putting this in here
+            //send the game back its current state
+            let _ = tx.send(tracker_engine.get_state());
+
+
         },
         err_fn,
         None
@@ -997,3 +1201,13 @@ fn run<T>(
 
     Ok(stream)
 }
+
+
+
+//principle of operation:
+//should the commander be completely separate from the main audio
+//I think yes.
+
+//a series of commands will be used to start and stop main song playback, and another set will be used to start, stop, and rewind the commander
+//do we need save and reload for the commander?
+//might as well, we already have it.
