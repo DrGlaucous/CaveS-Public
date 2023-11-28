@@ -75,7 +75,7 @@ impl Game {
 
     pub(crate) fn update(&mut self, ctx: &mut Context) -> GameResult {
 
-        log::warn!("Made it here!");
+        //log::warn!("Made it here!");
 
         if let Some(scene) = &mut self.scene {
             let state_ref = unsafe { &mut *self.state.get() };
