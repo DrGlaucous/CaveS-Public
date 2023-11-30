@@ -182,7 +182,11 @@ impl TitleScene {
             self.compact_jukebox.change_song(song_id, state, ctx)?;
         } else {
             if song_id != state.sound_manager.current_song() {
+                //pause and resume needed so that both are started regardless of loading time
+                state.sound_manager.pause();
                 state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
+                state.sound_manager.play_commander(song_id, &state.constants, &state.settings, ctx)?;
+                state.sound_manager.resume();
             }
         }
 

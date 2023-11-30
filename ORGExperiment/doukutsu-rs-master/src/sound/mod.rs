@@ -85,7 +85,10 @@ pub struct SoundManager {
     no_audio: bool,
     load_failed: bool,
     stream: Option<cpal::Stream>,
-    note_state: CurrentOrgState,
+    note_state: CurrentOrgState, //back-telemetry from the commander
+    //duplicate vars for the commander state
+    prev_commander_id: usize,
+    current_commander_id: usize,
 }
 
 enum SongFormat {
@@ -129,6 +132,8 @@ impl SoundManager {
                 load_failed: false,
                 stream: None,
                 note_state: CurrentOrgState::new(), 
+                prev_commander_id: 0,
+                current_commander_id: 0,
             });
         }
 
@@ -157,6 +162,9 @@ impl SoundManager {
             load_failed: false,
             stream: None,
             note_state: CurrentOrgState::new(), 
+
+            prev_commander_id: 0,
+            current_commander_id: 0,
         };
 
         let host = cpal::default_host();
@@ -227,6 +235,7 @@ impl SoundManager {
         Ok(())
     }
 
+    //send raw commands to the player
     fn send(&mut self, message: PlaybackMessage) -> GameResult<()> {
         if self.no_audio {
             return Ok(());
@@ -290,10 +299,6 @@ impl SoundManager {
         }
         self.send(PlaybackMessage::SetOrgInterpolation(interpolation)).unwrap();
 
-        //TEST
-        self.send(PlaybackMessage::SetCommanderInterpolation(interpolation)).unwrap();
-
-
     }
 
     pub fn set_song_volume(&mut self, volume: f32) {
@@ -350,9 +355,6 @@ impl SoundManager {
             self.send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation)).unwrap();
             self.send(PlaybackMessage::SaveState).unwrap();
 
-            //TEST
-            self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
-            self.send(PlaybackMessage::SaveCommanderState).unwrap();
 
 
             if fadeout {
@@ -404,11 +406,6 @@ impl SoundManager {
                                         .unwrap();
                                     self.send(PlaybackMessage::SaveState).unwrap();
                                     self.send(PlaybackMessage::PlayOrganyaSong(Box::new(org.clone()))).unwrap();
-
-                                    //TEST
-                                    self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
-                                    self.send(PlaybackMessage::SaveCommanderState).unwrap();
-                                    self.send(PlaybackMessage::PlayCommanderSong(Box::new(org))).unwrap();
 
                                     return Ok(());
                                 }
@@ -505,8 +502,6 @@ impl SoundManager {
         self.send(PlaybackMessage::RestoreState).unwrap();
         self.current_song_id = self.prev_song_id;
 
-        self.send(PlaybackMessage::RestoreCommanderState).unwrap();
-
         Ok(())
     }
 
@@ -520,9 +515,6 @@ impl SoundManager {
         }
 
         self.send(PlaybackMessage::SetSpeed(speed)).unwrap();
-
-        //TEST
-        self.send(PlaybackMessage::SetCommanderSpeed(speed)).unwrap();
 
         Ok(())
     }
@@ -661,12 +653,116 @@ impl SoundManager {
 
     }
 
+    //tracker controller functions
 
+    //actually don't think we need this: it has to do with audio smoothing, which isn't needed becuase *there's no sound*
+    pub fn set_commander_interpolation(&mut self, interpolation: InterpolationMode) {
+        //do I need this
+        if self.no_audio {
+            return;
+        }
 
+        self.send(PlaybackMessage::SetCommanderInterpolation(interpolation)).unwrap();
+    }
 
+    pub fn play_commander(
+        &mut self,
+        song_id: usize,
+        constants: &EngineConstants,
+        settings: &Settings,
+        ctx: &mut Context,
+    ) -> GameResult {
+        if self.current_commander_id == song_id || self.no_audio {
+            return Ok(());
+        }
+
+        if song_id == 0 {
+            log::info!("Stopping Tracker");
+
+            self.prev_commander_id = self.current_commander_id;
+            self.current_commander_id = 0;
+
+            self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
+            self.send(PlaybackMessage::SaveCommanderState).unwrap();
+
+        }
+        else if let Some(song_name) = constants.music_table.get(song_id) {
+            let mut paths = constants.organya_paths.clone();
+
+            paths.insert(0, "/Soundtracks/".to_owned() + &settings.soundtrack + "/");
+
+            if let Some(soundtrack) =
+            constants.soundtracks.iter().find(|s| s.available && s.name == settings.soundtrack)
+            {
+                paths.insert(0, soundtrack.path.clone());
+            }
+
+            //different places and search formats for the song to load in
+            let songs_paths = paths.iter().map(|prefix| {
+                [
+                    (SongFormat::Organya, vec![format!("{}{}.org", prefix, song_name)]),
+                ]
+            });
+
+            //load in a song
+            for songs in songs_paths {
+                for (format, paths) in
+                songs.iter().filter(|(_, paths)| paths.iter().all(|path| filesystem::exists(ctx, path)))
+                {
+                    match format {
+                        SongFormat::Organya => {
+                            // we're sure that there's one element
+                            let path = unsafe { paths.get_unchecked(0) };
+
+                            match filesystem::open(ctx, path).map(organya::Song::load_from) {
+                                Ok(Ok(org)) => {
+                                    log::info!("Tracking from Organya File: {} {}", song_id, path);
+
+                                    self.prev_commander_id = self.current_commander_id;
+                                    self.current_commander_id = song_id;
+
+                                    self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
+                                    self.send(PlaybackMessage::SaveCommanderState).unwrap();
+                                    self.send(PlaybackMessage::PlayCommanderSong(Box::new(org))).unwrap();
+
+                                    return Ok(());
+                                }
+                                Ok(Err(err)) | Err(err) => {
+                                    log::warn!("Failed to load Trackerfile {}: {}", song_id, err);
+                                }
+                            }
+                        }
+                        _ =>{}
+
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn set_commander_speed(&mut self, speed: f32) -> GameResult {
+        if self.no_audio {
+            return Ok(());
+        }
+
+        if speed <= 0.0 {
+            return Err(InvalidValue("Speed must be bigger than 0.0!".to_owned()));
+        }
+
+        self.send(PlaybackMessage::SetCommanderSpeed(speed)).unwrap();
+
+        Ok(())
+    }
+
+    pub fn current_commander_song(&self) -> usize {
+        self.current_commander_id
+    }
 
 }
 
+//everyone gets it now
 pub(in crate::sound) enum PlaybackMessage {
     Stop,
     PlayOrganyaSong(Box<Song>),
@@ -687,9 +783,11 @@ pub(in crate::sound) enum PlaybackMessage {
     SetSampleParams(u8, PixToneParameters),
     SetOrgInterpolation(InterpolationMode),
     SetSampleData(u8, Vec<i16>),
+    //Rewind,
 
     
     //commander-related commands
+    StopCommander,
     PlayCommanderSong(Box<Song>),
     SetCommanderSpeed(f32),
     SaveCommanderState,
@@ -739,6 +837,8 @@ impl OrgTelemCommander
 {
     pub fn new(config: cpal::StreamConfig, sndbnk: SoundBank) -> OrgTelemCommander
     {
+        //the sample rate is how many frames the org engine renders at a single time
+        //if we set this to 1, 
         let mut org_engine = Box::new(OrgPlaybackEngine::new());
         org_engine.set_sample_rate(config.sample_rate.0 as usize);
 
@@ -756,7 +856,10 @@ impl OrgTelemCommander
 
     pub fn run(&mut self)
     {
-        self.org_engine.track_only();
+        if self.state != PlaybackState::Stopped //stop/go
+        {
+            self.org_engine.track_only();
+        }
     }
 
     pub fn get_state(&mut self) -> CurrentOrgState
@@ -819,8 +922,22 @@ impl OrgTelemCommander
                 }
             }
             PlaybackMessage::SetOrgInterpolation(interpolation) => {
+                //this is useless because we don't actually make sound
                 self.org_engine.interpolation = interpolation;
             }
+
+            PlaybackMessage::Stop =>
+            {
+                if self.state == PlaybackState::Stopped {
+                    self.saved_state = PlaybackStateType::None;
+                }
+
+                self.state = PlaybackState::Stopped;
+            }
+
+
+
+
             _ => {
                 //do nothing
             }
@@ -831,6 +948,8 @@ impl OrgTelemCommander
 
 }
 
+//need commands:
+//restart file
 
 //runs an audio bgm server/thread
 fn run<T>(
@@ -855,7 +974,7 @@ fn run<T>(
 
     //create silent tracker
     let mut tracker_engine = OrgTelemCommander::new(config.clone(), bank.clone());
-
+    let mut tracker_ticker = 0; //used to run in sync with the sample rate
 
     //if OGG, create an OGG engine to do playback as well
     #[cfg(feature = "ogg-playback")]
@@ -1081,6 +1200,8 @@ fn run<T>(
                     Ok(PlaybackMessage::SetSampleData(id, data)) => {
                         pixtone.set_sample_data(id, data);
                     }
+
+
  
                     //nuevo
                     Ok(PlaybackMessage::PlayCommanderSong(song)) => {
@@ -1095,6 +1216,9 @@ fn run<T>(
                     Ok(PlaybackMessage::SetCommanderInterpolation(interpolation)) => {
                         tracker_engine.set(PlaybackMessage::SetOrgInterpolation(interpolation));
                     }
+                    Ok(PlaybackMessage::StopCommander) => {
+                        tracker_engine.set(PlaybackMessage::Stop);
+                    }
 
 
 
@@ -1107,25 +1231,39 @@ fn run<T>(
             
             }
 
-            //send audio frames to backend
+
+
+            //send audio frames to backend, dols out audio data evenly between frames
             for frame in data.chunks_mut(channels) {
                 let (bgm_sample_l, bgm_sample_r): (u16, u16) = {
+                    //fill left and right buffers with static value
                     if state == PlaybackState::Stopped {
+
                         (0x8000, 0x8000)
-                    } else if bgm_index < samples {
+                    }
+                    else if bgm_index < samples //empty out the buffer 2 samples at a time
+                    {
                         let samples = (bgm_buf[bgm_index], bgm_buf[bgm_index + 1]);
-                        bgm_index += 2;
+                        bgm_index += 2; //increment by l/r?
                         samples
-                    } else {
+                    }
+                    else //re-fill the buffer with more fresh data and reset the read head
+                    {
+                        //initialize only the part of the buffer we're going to use
                         for i in &mut bgm_buf[0..samples] {
                             *i = 0x8000
                         }
 
-                        //new: run the tracker engine in lockstep with the main music player
-                        tracker_engine.run();
+                        //new: run the tracker engine in lockstep with the main music player,
+                        //moved outside for the sake of pausing seprately
+                        tracker_ticker += 1;
+                        //tracker_engine.run();
+
+                        //fill the initialized buffer
                         
                         match state {
                             PlaybackState::PlayingOrg => {
+                                //give it a vector, it returns the number of slots it filled
                                 samples = org_engine.render_to(&mut bgm_buf);
                             }
                             #[cfg(feature = "ogg-playback")]
@@ -1137,6 +1275,7 @@ fn run<T>(
                         bgm_index = 2;
                         (bgm_buf[0], bgm_buf[1])
                     }
+
                 };
 
                 let pxt_sample: u16 = pxt_buf[pxt_index];
@@ -1182,9 +1321,19 @@ fn run<T>(
             }
 
 
-            //test putting this in here
-            //send the game back its current state
+
+            //we *technically* can do this, but it results in possible desync from the parent
+            //this should keep it matched up, but only while the actual audio is playing:
+            if tracker_ticker < 1 {tracker_ticker = 1}
+
+            for _i in 0..tracker_ticker
+            {
+                tracker_engine.run();
+            }
+            tracker_ticker = 0;
             let _ = tx.send(tracker_engine.get_state());
+
+
 
 
         },

@@ -309,9 +309,34 @@ impl OrgPlaybackEngine {
 
         //self.frames_this_tick = 0;
 
-        //advance player position by resolution
+        //advance player position by resolution of sample rate / 2 (L/R stereo)
         let mut i = 0;
-        while i < 480//self.frames_per_tick
+
+        //simplified version where we only wait "self.song.time.wait"
+        //we can't use this because we now can't change tempo
+        /*
+        {
+            if self.frames_this_tick == 0 {
+                self.update_play_state()
+            }
+
+            self.frames_this_tick += 1;
+
+            //advance when needed
+            if self.frames_this_tick == self.song.time.wait as usize
+            {
+                self.play_pos += 1;
+                if self.play_pos == self.song.time.loop_range.end {
+                    self.play_pos = self.song.time.loop_range.start;
+    
+                }
+            }
+
+        }
+        */
+
+        //the while loop moves forward in time be 480 ticks, the other logic divides this up into the corresponding ORG frames
+        while i < (self.output_format.sample_rate / 100)
         {
             if self.frames_this_tick == 0 {
                 self.update_play_state()
@@ -319,6 +344,7 @@ impl OrgPlaybackEngine {
     
             self.frames_this_tick += 1;
     
+            //if we advanced the correct number of frames
             if self.frames_this_tick == self.frames_per_tick {
                 self.play_pos += 1;
     
@@ -360,6 +386,8 @@ impl OrgPlaybackEngine {
                 buf.fir.ensure_initialized();
             }
         }
+
+        //updates the actual tracker 1x, then takes the change in state and fills the buffer with the resulting wave
 
         //loop through the buffer count/2. the buffer is composed of stereo frames ordered like LRLRLR...
         while let (Some(frame_l), Some(frame_r)) = (iter.next(), iter.next()) {
