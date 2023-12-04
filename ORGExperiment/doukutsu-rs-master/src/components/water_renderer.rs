@@ -248,7 +248,7 @@ impl WaterRenderer {
         graphics::set_blend_mode(ctx, BlendMode::None)?;
 
         let (o_x, o_y) = frame.xy_interpolated(state.frame_time);
-        let uv = (0.0, 0.0);
+        let uv = (0.0, 0.0, 1.0);
         let t = *self.t.borrow_mut() as f32 + state.frame_time as f32;
         let shader = BackendShader::WaterFill(state.scale, t, (o_x, o_y));
         let mut vertices = Vec::new();

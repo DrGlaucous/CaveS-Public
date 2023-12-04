@@ -54,6 +54,8 @@ use crate::scene::title_scene::TitleScene;
 use crate::scene::Scene;
 use crate::util::rng::RNG;
 
+use crate::game::guitar;
+
 pub struct GameScene {
     pub tick: u32,
     pub stage: Stage,

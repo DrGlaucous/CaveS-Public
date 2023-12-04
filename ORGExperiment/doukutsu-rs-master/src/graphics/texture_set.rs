@@ -497,6 +497,7 @@ impl TextureSet {
         }
     }
 
+    //puts an image into a backend texture
     fn load_image(&self, ctx: &mut Context, roots: &Vec<String>, path: &str) -> GameResult<Box<dyn BackendTexture>> {
         let img = {
             let mut buf = [0u8; 8];
@@ -516,6 +517,7 @@ impl TextureSet {
         create_texture(ctx, width as u16, height as u16, &img)
     }
 
+    //goes through valid paths and extensions looking for an image with the required name
     pub fn find_texture(&self, ctx: &mut Context, roots: &Vec<String>, name: &str) -> Option<String> {
         FILE_TYPES.iter().map(|ext| [name, ext].join("")).find(|path| filesystem::exists_find(ctx, roots, path))
     }
@@ -526,14 +528,18 @@ impl TextureSet {
         constants: &EngineConstants,
         name: &str,
     ) -> GameResult<Box<dyn SpriteBatch>> {
+
+        //validate texture path
         let path = self
             .find_texture(ctx, &constants.base_paths, name)
             .ok_or_else(|| GameError::ResourceLoadError(format!("Texture \"{}\" is missing.", name)))?;
 
+        //glow file? is this for switch lighting?
         let glow_path = self.find_texture(ctx, &constants.base_paths, &[name, ".glow"].join(""));
 
         info!("Loading texture: {} -> {}", name, path);
 
+        //construct the texture
         fn make_batch(name: &str, constants: &EngineConstants, batch: Box<dyn BackendTexture>) -> SubBatch {
             let size = batch.dimensions();
 
@@ -576,6 +582,7 @@ impl TextureSet {
         Ok(Box::new(CombinedBatch { main_batch, glow_batch }))
     }
 
+    //looks for loaded textures in tex_map, returning it if found or loading it in if not
     pub fn get_or_load_batch(
         &mut self,
         ctx: &mut Context,

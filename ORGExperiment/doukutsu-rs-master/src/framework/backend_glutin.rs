@@ -7,6 +7,9 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::vec::Vec;
 
+//for non-android
+use std::time::{Duration, Instant};
+
 //from SDL backend
 //use imgui::internal::RawWrapper;
 //use imgui::sys::{ImGuiKey_Backspace, ImGuiKey_Delete, ImGuiKey_Enter};
@@ -397,12 +400,27 @@ impl BackendEventLoop for GlutinEventLoop {
                         return;
                     }
 
+
+                    //use thread sleeping to conserve processing power
+                    //android device doesn't have focus loss, so it doesn't need this
+                    #[cfg(not(target_os = "android"))]
+                    {
+                        let mutex = GAME_SUSPENDED.lock().unwrap();
+                        if *mutex {
+                            std::thread::sleep(Duration::from_millis(10));
+                            return;
+                        }
+                    }
+                    #[cfg(target_os = "android")]
                     {
                         let mutex = GAME_SUSPENDED.lock().unwrap();
                         if *mutex {
                             return;
                         }
                     }
+
+
+
 
                     #[cfg(not(any(target_os = "android", target_os = "horizon")))]
                     {
@@ -444,7 +462,6 @@ impl BackendEventLoop for GlutinEventLoop {
                 }
                 _ => (),
             }
-
 
 
         });

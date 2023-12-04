@@ -1,0 +1,200 @@
+'use strict';
+
+/* global twgl, m4, requestAnimationFrame, document */
+
+const m4 = twgl.m4;
+const gl = document.querySelector('canvas').getContext('webgl');
+
+// //vertex
+// const vs = `
+
+// //vertex pos [X, Y, 0, 0]
+// attribute vec4 position;
+// //texture pos [X, Y]
+// attribute vec2 texcoord;
+
+// //static for all, is rotation
+// uniform mat4 u_matrix;
+
+// //passed into fragment, is texture coord, X, Y, Q
+// varying vec3 v_texcoord;
+
+// void main() {
+//   gl_Position = vec4(position.xy, 0.0, 0.0);
+//   v_texcoord = vec3(texcoord.xy, 1) * abs(position.x);
+// }
+// `;
+
+// //fragmet
+// const fs = `
+// precision highp float;
+
+// varying vec3 v_texcoord;
+
+// uniform sampler2D tex;
+
+// void main() {
+//   gl_FragColor = texture2DProj(tex, v_texcoord);
+// }
+// `;
+
+
+//vertex
+const vs = `
+precision mediump float;
+
+attribute vec3 Position;
+attribute vec3 UV;
+
+varying vec3 Frag_UV;
+
+void main()
+{
+    Frag_UV = vec3(UV.xy, Position.z);
+    gl_Position = vec4(Position.xy, 0.0, 3);
+}
+
+
+`;
+
+//fragmet
+const fs = `
+
+precision mediump float;
+
+uniform sampler2D Texture;
+
+varying vec3 Frag_UV;
+varying vec4 Frag_Color;
+
+void main()
+{
+
+    //gl_FragColor = texture2DProj(Texture, Frag_UV);
+    gl_FragColor = texture2D(Texture, Frag_UV.xy/Frag_UV.z);
+    //gl_FragColor = texture2D(Texture, Frag_UV.xy);
+
+}
+
+`;
+
+
+
+
+
+
+// compile shader, link, look up locations
+const programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+
+
+
+
+function distance(x1, y1, x2, y2)
+{
+  var deltx = x2 - x1;
+  var delty = y2 - y1;
+  return Math.sqrt(Math.pow(deltx, 2) + Math.pow(delty, 2));
+}
+
+//our test points
+const aa = [-1, -1]; //BL
+const bb = [3, -1]; //BR
+const cc = [-1.8, 2.2]; //TL
+const dd = [1, 1]; //TR
+function make_lengths(a, b, c, d)
+{
+    //line equations
+    var slope_ad = (d[1] - a[1])/(d[0] - a[0]); //a
+    var slope_cb = (b[1] - c[1])/(b[0] - c[0]); //c
+
+    var ad_intercept = (a[1])-(slope_ad * a[0]); //b
+    var cb_intercept = (b[1])-(slope_cb * b[0]); //d
+
+    //(d-b)/(a-c)
+    var intersect_point_x = (cb_intercept - ad_intercept)/(slope_ad - slope_cb);
+    var intersect_point_y = slope_ad * intersect_point_x + ad_intercept;
+    var cntr = [intersect_point_x, intersect_point_y];
+
+    var d_ac = distance(a[0], a[1], cntr[0], cntr[1]);
+    var d_bc = distance(b[0], b[1], cntr[0], cntr[1]);
+    var d_cc = distance(c[0], c[1], cntr[0], cntr[1]);
+    var d_dc = distance(d[0], d[1], cntr[0], cntr[1]);
+
+    var q_a = (d_ac + d_dc) / d_dc;
+    var q_b = (d_bc + d_cc) / d_cc;
+    var q_c = (d_cc + d_bc) / d_bc;
+    var q_d = (d_dc + d_ac) / d_ac;
+
+    return [q_a, q_b, q_c, q_d];
+}
+
+
+const lens = make_lengths(aa, bb, cc, dd)
+
+// make some vertex data
+const W0 = 1;
+const W1 = 0.5;
+const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
+  Position: {
+    numComponents: 3,
+    data: [
+      aa[0], aa[1], lens[0], //BL
+      bb[0], bb[1], lens[1], //BR
+      cc[0], cc[1], lens[2], //TL
+       
+      bb[0], bb[1], lens[1], //BR
+      dd[0], dd[1], lens[3], //TR
+      cc[0], cc[1], lens[2], //TL
+    ],
+  },
+
+  UV: [
+     0,  0,  
+     1 * lens[1],  0,
+     0,  1 * lens[2],
+
+     1 * lens[1],  0,
+     1 * lens[3],  1 * lens[3],
+     0,  1 * lens[2],
+  ],
+});
+
+const tex = twgl.createTexture(gl, {
+  src: [
+    0xC0, 0x80, 0xC0, 0x80,
+    0x80, 0xC0, 0x80, 0xC0,
+    0xC0, 0x80, 0xC0, 0x80,
+    0x80, 0xC0, 0x80, 0xC0,
+  ],
+  format: gl.LUMINANCE,
+  minMag: gl.NEAREST,
+});
+
+
+
+function render(time) {
+  time *= 0.001;
+  
+
+  //console.log("wee! ", lens);
+
+  
+
+  gl.useProgram(programInfo.program);
+
+  // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
+  twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+
+  // calls gl.activeTexture, gl.bindTexture, gl.uniformXXX
+  twgl.setUniforms(programInfo, {
+    u_matrix: m4.rotationZ(0.0),
+  });  
+
+  // calls gl.drawArrays or gl.drawElements
+  twgl.drawBufferInfo(gl, bufferInfo);
+  
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+
+

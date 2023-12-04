@@ -21,6 +21,11 @@ use crate::menu::{Menu, MenuEntry, MenuSelectionResult};
 use crate::scene::jukebox_scene::JukeboxScene;
 use crate::scene::Scene;
 
+use crate::game::guitar::Guitar;
+use crate::sound::CurrentOrgState;
+
+
+
 #[derive(PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
 #[allow(unused)]
@@ -92,6 +97,10 @@ pub struct TitleScene {
     compact_jukebox: CompactJukebox,
     stage: Stage,
     textures: StageTexturePaths,
+
+    //TEST
+    aaaa: Guitar,
+
 }
 
 impl TitleScene {
@@ -134,6 +143,8 @@ impl TitleScene {
             compact_jukebox: CompactJukebox::new(),
             stage: fake_stage,
             textures,
+            //TEST
+            aaaa: Guitar::new(),
         }
     }
 
@@ -484,9 +495,13 @@ impl Scene for TitleScene {
 
         self.tick += 1;
 
+        //TEST
+        self.aaaa.update(state, ctx)?;
+
         Ok(())
     }
 
+    //TEST MUT
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage)?;
 
@@ -547,40 +562,43 @@ impl Scene for TitleScene {
         }
 
         //TEST visualize active ORG things
-        let notess = state.sound_manager.get_latest_track_state();
+        // let notess = CurrentOrgState::new();//state.sound_manager.get_latest_track_state();
         
     
-        state.font.builder().center(state.canvas_size.0).y(15.0).shadow(true).draw(
-            &format!("CHANNEL: 1:{} 2:{} 3:{} 4:{} 5:{} 6:{} 7:{} 8:{}",
-                notess.keys[0],
-                notess.keys[1],
-                notess.keys[2],
-                notess.keys[3],
-                notess.keys[4],
-                notess.keys[5],
-                notess.keys[6],
-                notess.keys[7]),
-            ctx,
-            &state.constants,
-            &mut state.texture_set,
-        )?;
-        static mut TICKER_TS: i32 = 0;
-        unsafe
-        {
-            TICKER_TS = TICKER_TS + 1;
+        // state.font.builder().center(state.canvas_size.0).y(15.0).shadow(true).draw(
+        //     &format!("CHANNEL: 1:{} 2:{} 3:{} 4:{} 5:{} 6:{} 7:{} 8:{}",
+        //         notess.keys[0],
+        //         notess.keys[1],
+        //         notess.keys[2],
+        //         notess.keys[3],
+        //         notess.keys[4],
+        //         notess.keys[5],
+        //         notess.keys[6],
+        //         notess.keys[7]),
+        //     ctx,
+        //     &state.constants,
+        //     &mut state.texture_set,
+        // )?;
+        // static mut TICKER_TS: i32 = 0;
+        // unsafe
+        // {
+        //     TICKER_TS = TICKER_TS + 1;
         
-            state.font.builder().center(state.canvas_size.0).y(25.0).shadow(true).draw(
-                &format!("TIME: {}",
-                TICKER_TS),
-                ctx,
-                &state.constants,
-                &mut state.texture_set,
-            )?;
-        }
+        //     state.font.builder().center(state.canvas_size.0).y(25.0).shadow(true).draw(
+        //         &format!("TIME: {}",
+        //         TICKER_TS),
+        //         ctx,
+        //         &state.constants,
+        //         &mut state.texture_set,
+        //     )?;
+        // }
         //draw a sprite with X coords relative to active notes
         //let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Npc/NpcRegu")?;
-        //batch.add_rect((count * 2) as f32, 32.0, &state.constants.title.cursor_sue[0]);
+        //batch.add_rect((notess.keys[1] * 2) as f32, 32.0, &state.constants.title.cursor_sue[0]);
         //batch.draw(ctx)?;
+
+        //let batch2 = state.texture_set.get_or_load_batch(ctx, &state.constants, "Npc/NpcRegu")?;
+        self.aaaa.draw(state, ctx)?;
 
 
 

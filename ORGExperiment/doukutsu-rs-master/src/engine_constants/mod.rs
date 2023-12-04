@@ -1613,10 +1613,11 @@ impl EngineConstants {
             font_path: "csfont.fnt".to_owned(),
             font_space_offset: 0.0,
             soundtracks: vec![
-                ExtraSoundtrack { name: "Remastered".to_owned(), path: "/base/Ogg11/".to_owned(), available: false },
-                ExtraSoundtrack { name: "New".to_owned(), path: "/base/Ogg/".to_owned(), available: false },
-                ExtraSoundtrack { name: "Famitracks".to_owned(), path: "/base/ogg17/".to_owned(), available: false },
-                ExtraSoundtrack { name: "Ridiculon".to_owned(), path: "/base/ogg_ridic/".to_owned(), available: false },
+                //replaced 'base' with 'Resource/music'
+                ExtraSoundtrack { name: "Remastered".to_owned(), path: "/Resource/music/Ogg11/".to_owned(), available: false },
+                ExtraSoundtrack { name: "New".to_owned(), path: "/Resource/music/Ogg/".to_owned(), available: false },
+                ExtraSoundtrack { name: "Famitracks".to_owned(), path: "/Resource/music/ogg17/".to_owned(), available: false },
+                ExtraSoundtrack { name: "Ridiculon".to_owned(), path: "/Resource/music/ogg_ridic/".to_owned(), available: false },
             ],
             music_table: vec![
                 "xxxx".to_owned(),
@@ -1639,7 +1640,7 @@ impl EngineConstants {
                 "dr".to_owned(),
                 "escape".to_owned(),
                 "jenka".to_owned(),
-                "maze".to_owned(),
+                "maze".to_owned(), //20
                 "access".to_owned(),
                 "ironh".to_owned(),
                 "grand".to_owned(),
@@ -1659,7 +1660,7 @@ impl EngineConstants {
                 "jenka2".to_owned(),
                 "marine".to_owned(),
                 "ballos".to_owned(),
-                "toroko".to_owned(),
+                "toroko".to_owned(), //40
                 "white".to_owned(),
                 "kaze".to_owned(),
                 "ika".to_owned(),

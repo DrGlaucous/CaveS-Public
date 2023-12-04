@@ -33,6 +33,8 @@ pub mod shared_game_state;
 pub mod stage;
 pub mod weapon;
 
+pub mod guitar;
+
 pub struct LaunchOptions {
     pub server_mode: bool,
     pub editor: bool,

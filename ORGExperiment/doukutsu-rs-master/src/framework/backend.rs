@@ -13,7 +13,7 @@ use crate::game::Game;
 pub struct VertexData {
     pub position: (f32, f32),
     pub color: (u8, u8, u8, u8),
-    pub uv: (f32, f32),
+    pub uv: (f32, f32, f32),
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -133,8 +133,12 @@ pub fn init_backend(headless: bool, size_hint: (u16, u16)) -> GameResult<Box<dyn
 }
 
 pub enum SpriteBatchCommand {
-    DrawRect(Rect<f32>, Rect<f32>),
-    DrawRectFlip(Rect<f32>, Rect<f32>, bool, bool),
-    DrawRectTinted(Rect<f32>, Rect<f32>, Color),
-    DrawRectFlipTinted(Rect<f32>, Rect<f32>, bool, bool, Color),
+    DrawRect(Rect<f32>, Rect<f32>), //src, dst
+    DrawRectFlip(Rect<f32>, Rect<f32>, bool, bool), //src, dst, hflip, vflip, RGBA
+    DrawRectTinted(Rect<f32>, Rect<f32>, Color), //src, dst, RGBA
+    DrawRectFlipTinted(Rect<f32>, Rect<f32>, bool, bool, Color), //src, dst, hflip, vflip, RGBA
+
+    //Nuevo
+    DrawRectSkewedTinted(Rect<f32>, (f32, f32), (f32, f32), (f32, f32), (f32, f32), Color), //src, [TL], [TR], [BL], [BR], RGBA
+
 }

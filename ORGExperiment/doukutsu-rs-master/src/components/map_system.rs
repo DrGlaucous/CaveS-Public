@@ -39,22 +39,28 @@ impl MapSystem {
             state: MapSystemState::Hidden,
         }
     }
-
+    //called 1x when the map is initially created
+    //it puts all the pixels on the surface to be drawn later
     fn render_map(&self, state: &mut SharedGameState, ctx: &mut Context, stage: &Stage) -> GameResult {
         if self.texture.borrow().is_none() {
             *self.has_map_data.borrow_mut() = false;
             return Ok(());
         }
 
+        //let the parent know that we've added map data now
         *self.has_map_data.borrow_mut() = true;
 
+        //set the draw target to the surface we made in the tick function
         graphics::set_render_target(ctx, self.texture.borrow().as_ref())?;
         graphics::clear(ctx, Color::new(0.0, 0.0, 0.0, 1.0));
 
+        //get the textbox tileset to draw from
         let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "TextBox")?;
 
+        //fill in all the correct pixels for the map
         for y in 0..stage.map.height {
             for x in 0..stage.map.width {
+                //the different map brightnesses
                 const RECTS: [Rect<u16>; 4] = [
                     Rect { left: 240, top: 24, right: 241, bottom: 25 },
                     Rect { left: 241, top: 24, right: 242, bottom: 25 },
@@ -64,6 +70,7 @@ impl MapSystem {
 
                 let attr = stage.map.get_attribute(x as _, y as _);
 
+                //assign it
                 let layer = match attr {
                     0 => 0,
                     0x01 | 0x02 | 0x40 | 0x44 | 0x51 | 0x52 | 0x55 | 0x56 | 0x60 | 0x71 | 0x72 | 0x75 | 0x76 | 0x80
@@ -72,11 +79,14 @@ impl MapSystem {
                     _ => 3,
                 };
 
+                //add it to the queue
                 batch.add_rect(x as _, y as _, &RECTS[layer]);
             }
         }
 
+        //blit the rects to the target
         batch.draw(ctx)?;
+        //set target back to main surface
         graphics::set_render_target(ctx, None)?;
 
         Ok(())
@@ -111,11 +121,12 @@ impl MapSystem {
 
         let width = (stage.map.width as f32 * state.scale) as u16;
         let height = (stage.map.height as f32 * state.scale) as u16;
-
+        
+        //if the map OR WINDOW changed in size, create a new texture to apply dots to
         if self.last_size != (width, height) {
             self.last_size = (width, height);
             *self.texture.borrow_mut() = graphics::create_texture_mutable(ctx, width, height).ok();
-            *self.has_map_data.borrow_mut() = false;
+            *self.has_map_data.borrow_mut() = false; //we need to re-draw the map on this new surface
         }
 
         match self.state {
@@ -181,6 +192,7 @@ impl MapSystem {
             return Ok(());
         }
 
+        //if we haven't created the map surface yet, create it now
         if !*self.has_map_data.borrow() {
             self.render_map(state, ctx, stage)?;
         }
@@ -211,6 +223,7 @@ impl MapSystem {
             &mut state.texture_set,
         )?;
 
+        //determine how much of the map to draw
         let mut map_rect = Rect::new(0.0, 0.0, self.last_size.0 as f32, self.last_size.1 as f32);
 
         match self.state {
@@ -247,6 +260,7 @@ impl MapSystem {
 
         graphics::draw_rect(ctx, rect, Color::new(0.0, 0.0, 0.0, 1.0))?;
 
+        //draw the main map that we created earlier
         if let Some(tex) = self.texture.borrow_mut().as_mut() {
             let width = state.scale * stage.map.width as f32;
             let height = state.scale * stage.map.height as f32;
@@ -259,6 +273,7 @@ impl MapSystem {
             tex.draw()?;
         }
 
+        //draw blinking player overtop the map
         if (self.tick & 8) != 0 {
             const PLAYER_RECT: Rect<u16> = Rect { left: 0, top: 57, right: 1, bottom: 58 };
 

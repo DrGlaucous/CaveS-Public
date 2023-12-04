@@ -46,7 +46,52 @@ impl BackendTexture for OpenGLTexture {
         (self.width, self.height)
     }
 
+
     fn add(&mut self, command: SpriteBatchCommand) {
+
+        fn distance(coord_a: (f32, f32), coord_b: (f32, f32)) -> f32
+        {
+            let delt_x = coord_b.0 - coord_a.0;
+            let delt_y = coord_b.1 - coord_a.1;
+            return (delt_x.powi(2) + delt_y.powi(2)).sqrt()
+        }
+        fn make_lengths(a: (f32, f32), b: (f32, f32), c: (f32, f32), d: (f32, f32)) -> (f32, f32, f32, f32)
+        {
+            //a = BL
+            //b = BR
+            //c = TL
+            //d = TR
+
+            //line equations
+            let slope_ad = (d.1 - a.1)/(d.0 - a.0); //a
+            let slope_cb = (b.1 - c.1)/(b.0 - c.0); //c
+
+            let ad_intercept = (a.1)-(slope_ad * a.0); //b
+            let cb_intercept = (b.1)-(slope_cb * b.0); //d
+
+            //(d-b)/(a-c)
+            let intersect_point_x = (cb_intercept - ad_intercept)/(slope_ad - slope_cb);
+            let intersect_point_y = slope_ad * intersect_point_x + ad_intercept;
+            let cntr = (intersect_point_x, intersect_point_y);
+
+            //distances between points
+            let d_ac = distance(a, cntr);
+            let d_bc = distance(b, cntr);
+            let d_cc = distance(c, cntr);
+            let d_dc = distance(d, cntr);
+
+            //computed q values
+            let q_a = (d_ac + d_dc) / d_dc;
+            let q_b = (d_bc + d_cc) / d_cc;
+            let q_c = (d_cc + d_bc) / d_bc;
+            let q_d = (d_dc + d_ac) / d_ac;
+
+
+            return (q_a, q_b, q_c, q_d);
+
+        }
+
+        //normalize the texture's coordinates
         let (tex_scale_x, tex_scale_y) = (1.0 / self.width as f32, 1.0 / self.height as f32);
 
         match command {
@@ -54,32 +99,32 @@ impl BackendTexture for OpenGLTexture {
                 let vertices = [
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.left, dest.top),
-                        uv: (src.left * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.right, dest.bottom),
-                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                 ];
@@ -97,32 +142,32 @@ impl BackendTexture for OpenGLTexture {
                 let vertices = [
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.left, dest.top),
-                        uv: (src.left * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                     VertexData {
                         position: (dest.right, dest.bottom),
-                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color: (255, 255, 255, 255),
                     },
                 ];
@@ -133,32 +178,32 @@ impl BackendTexture for OpenGLTexture {
                 let vertices = [
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.left, dest.top),
-                        uv: (src.left * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.right, dest.bottom),
-                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color,
                     },
                 ];
@@ -178,37 +223,97 @@ impl BackendTexture for OpenGLTexture {
                 let vertices = [
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.left, dest.top),
-                        uv: (src.left * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.left, dest.bottom),
-                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.left * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.right, dest.top),
-                        uv: (src.right * tex_scale_x, src.top * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.top * tex_scale_y, 1.0),
                         color,
                     },
                     VertexData {
                         position: (dest.right, dest.bottom),
-                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y),
+                        uv: (src.right * tex_scale_x, src.bottom * tex_scale_y, 1.0),
                         color,
                     },
                 ];
                 self.vertices.extend_from_slice(&vertices);
             }
+            SpriteBatchCommand::DrawRectSkewedTinted(src, top_left, top_right, bottom_left, bottom_right, color) =>
+            {
+
+                let lens = make_lengths(
+                    bottom_left,
+                    bottom_right,
+                    top_left,
+                    top_right,
+                    );
+
+                let color = color.to_rgba();
+                let vertices = [
+                    //slice 1 (left top corner triangle)
+
+                    //left bottom 0,1
+                    VertexData {
+                        position: bottom_left,
+                        uv: (src.left * tex_scale_x * lens.0, src.bottom * tex_scale_y * lens.0, lens.0),
+                        color,
+                    },
+                    //left top 0,0
+                    VertexData {
+                        position: top_left,
+                        uv: (src.left * tex_scale_x * lens.2, src.top * tex_scale_y * lens.2, lens.2),
+                        color,
+                    },
+                    //right top 1,0
+                    VertexData {
+                        position: top_right,
+                        uv: (src.right * tex_scale_x * lens.3, src.top * tex_scale_y * lens.3, lens.3),
+                        color,
+                    },
+
+                    //slice 2 (right bottom corner triangle)
+
+                    //left bottom 0,1
+                    VertexData {
+                        position: bottom_left,
+                        uv: (src.left * tex_scale_x * lens.0, src.bottom * tex_scale_y * lens.0, lens.0),
+                        color,
+                    },
+                    //right top 1,0
+                    VertexData {
+                        position: top_right,
+                        uv: (src.right * tex_scale_x * lens.3, src.top * tex_scale_y * lens.3, lens.3),
+                        color,
+                    },
+                    //right bottom 1,1
+                    VertexData {
+                        position: bottom_right,
+                        uv: (src.right * tex_scale_x * lens.1, src.bottom * tex_scale_y * lens.1, lens.1),
+                        color,
+                    },
+                ];
+                self.vertices.extend_from_slice(&vertices);
+            }
+
+
+
+
         }
     }
 
@@ -219,6 +324,7 @@ impl BackendTexture for OpenGLTexture {
     fn draw(&mut self) -> GameResult {
         unsafe {
             if let Some(gl) = &GL_PROC {
+                //ID of surface to draw to
                 if self.texture_id == 0 {
                     return Ok(());
                 }
@@ -231,9 +337,14 @@ impl BackendTexture for OpenGLTexture {
                 gl.gl.Enable(gl::BLEND);
                 gl.gl.Disable(gl::DEPTH_TEST);
 
+                
                 self.shader.bind_attrib_pointer(gl, self.vbo);
 
+                //set to the texture we want to draw
                 gl.gl.BindTexture(gl::TEXTURE_2D, self.texture_id);
+
+
+
                 gl.gl.BufferData(
                     gl::ARRAY_BUFFER,
                     (self.vertices.len() * mem::size_of::<VertexData>()) as _,
@@ -241,8 +352,10 @@ impl BackendTexture for OpenGLTexture {
                     gl::STREAM_DRAW,
                 );
 
+
                 gl.gl.DrawArrays(gl::TRIANGLES, 0, self.vertices.len() as _);
 
+                //return to null
                 gl.gl.BindTexture(gl::TEXTURE_2D, 0);
                 gl.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
 
@@ -421,7 +534,7 @@ impl RenderShader {
 
         gl.gl.VertexAttribPointer(
             self.uv,
-            2,
+            3,
             gl::FLOAT,
             gl::FALSE,
             mem::size_of::<VertexData>() as _,
@@ -480,6 +593,7 @@ impl RenderData {
         let fshdr_fill = if gles2_mode { FRAGMENT_SHADER_COLOR_GLES } else { FRAGMENT_SHADER_COLOR };
         let fshdr_fill_water = if gles2_mode { FRAGMENT_SHADER_COLOR_GLES } else { FRAGMENT_SHADER_WATER };
 
+        //compile shaders
         unsafe {
             self.tex_shader =
                 RenderShader::compile(gl, vshdr_basic, fshdr_tex).unwrap_or_else(|_| RenderShader::default());
@@ -659,12 +773,12 @@ impl BackendRenderer for OpenGLRenderer {
 
                 let color = (255, 255, 255, 255);
                 let vertices = [
-                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
-                    VertexData { position: (0.0, 0.0), uv: (0.0, 1.0), color },
-                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
-                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
-                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
-                    VertexData { position: (1.0, 1.0), uv: (1.0, 0.0), color },
+                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0, 1.0), color },
+                    VertexData { position: (0.0, 0.0), uv: (0.0, 1.0, 1.0), color },
+                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0, 1.0), color },
+                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0, 1.0), color },
+                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0, 1.0), color },
+                    VertexData { position: (1.0, 1.0), uv: (1.0, 0.0, 1.0), color },
                 ];
 
                 self.draw_arrays_tex_id(
@@ -991,7 +1105,7 @@ impl BackendRenderer for OpenGLRenderer {
         unsafe {
             if let Some(gl) = &GL_PROC {
                 let color = color.to_rgba();
-                let mut uv = self.render_data.font_tex_size;
+                let mut uv = (self.render_data.font_tex_size.0, self.render_data.font_tex_size.1, 1.0 as f32);
                 uv.0 = 0.0 / uv.0;
                 uv.1 = 0.0 / uv.1;
 

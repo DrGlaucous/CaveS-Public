@@ -1,12 +1,14 @@
 #version 100
-
+//handles corners, applied to all textures
 precision mediump float;
 
 uniform mat4 ProjMtx;
 attribute vec2 Position;
-attribute vec2 UV;
+attribute vec3 UV;
 attribute vec4 Color;
-varying vec2 Frag_UV;
+
+
+varying vec3 Frag_UV;
 varying vec4 Frag_Color;
 
 void main()
