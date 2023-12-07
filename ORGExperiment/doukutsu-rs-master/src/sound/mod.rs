@@ -25,6 +25,8 @@ use crate::sound::organya::Song;
 use crate::sound::pixtone::{PixToneParameters, PixTonePlayback};
 use crate::sound::wave_bank::SoundBank;
 
+use std::time::SystemTime;
+use self::organya::Timing;
 use self::wav::WavSample;
 
 mod fir;
@@ -43,11 +45,17 @@ pub struct CurrentOrgState
 {
     pub lengths: [u8; 8], //lengths of the notes currently being played
 
-    pub swaps: [usize; 8], //what is "swap"?
+    pub changed: [bool; 8], //has the note changed on this tick (only used by music portion)
+
+    pub offsets: [u16; 8], //how many ticks have gone by since the last note start (only used by game portion)
+
+    pub swaps: [usize; 8], //what is "swap"? (we may not need this...)
 
     pub keys: [u8; 8], //notes currently being played ("keys" being pressed)
 
     pub drums: [u8; 8], //drums currently being played
+
+    pub timestamp: SystemTime, //when was the packet made?
 
 }
 impl CurrentOrgState
@@ -57,9 +65,12 @@ impl CurrentOrgState
         return CurrentOrgState
         {
             lengths: [0; 8],
+            changed: [false; 8],
+            offsets: [0; 8],
             swaps: [0; 8],
             keys: [255; 8],
             drums: [0; 8],
+            timestamp: SystemTime::now(), //SystemTime::UNIX_EPOCH,
         };
     } 
   
@@ -89,6 +100,7 @@ pub struct SoundManager {
     //duplicate vars for the commander state
     prev_commander_id: usize,
     current_commander_id: usize,
+    commander_tempo: u16,
 }
 
 enum SongFormat {
@@ -134,6 +146,7 @@ impl SoundManager {
                 note_state: CurrentOrgState::new(), 
                 prev_commander_id: 0,
                 current_commander_id: 0,
+                commander_tempo: 0,
             });
         }
 
@@ -165,6 +178,7 @@ impl SoundManager {
 
             prev_commander_id: 0,
             current_commander_id: 0,
+            commander_tempo: 0,
         };
 
         let host = cpal::default_host();
@@ -631,23 +645,59 @@ impl SoundManager {
     //read the data from the backend and update local, readable variables from it
     pub fn get_latest_track_state(&mut self) ->CurrentOrgState
     {
-        //note: this could probably be a one-liner in Rust. Oh well...
+        //if a note changed between calls, this will add it, it's length, and its current offset to the return struct
+        //only if a note is being played (changing to 255 is discarded)
+        let mut return_state = CurrentOrgState::new();
 
-        //with this function, we pick the most recent entry in the buffer
         let rx_iterator = self.state_rx.try_iter();
 
-        //if there are entries in there, update the local state
-        //if not, keep the local state as-is
-        let lastt = rx_iterator.last();
-        if !(lastt.is_none())
+
+        let mut i = 0;
+        for note in rx_iterator
         {
-            let unwr = lastt.unwrap();
-            self.note_state.copy_from(&unwr);
+            for j in 0..8
+            {
+                //note started and there wasn't already a note start event found this frame
+                if note.changed[j] == true && note.keys[j] != 0xFF && return_state.changed[j] == false
+                {
+                    return_state.keys[j] = note.keys[j];
+                    return_state.lengths[j] = note.lengths[j];
+                    return_state.offsets[j] = i;
+                    return_state.changed[j] = true;
+                }
+            }
+            return_state.timestamp = note.timestamp;
+
+            i += 1;
+        }
+
+        //correct offsets (ticks from back of frame)
+        for j in 0..8
+        {
+            if return_state.changed[j]
+            {
+                return_state.offsets[j] = i - return_state.offsets[j];
+            }
         }
 
 
-        let mut return_state = CurrentOrgState::new();
-        return_state.copy_from(&self.note_state);
+
+        //there isn't a single tick where the note is considered "not" playing when same notes are placed back-to-back
+
+
+        //if there are entries in there, update the local state
+        //if not, keep the local state as-is
+        // let lastt = rx_iterator.last();
+        // if !(lastt.is_none())
+        // {
+        //     let unwr = lastt.unwrap();
+        //     self.note_state.copy_from(&unwr);
+        // }
+
+        //me might not need this anymore...
+        //self.note_state.copy_from(&return_state); //update note cache?
+
+
         return return_state;
 
 
@@ -720,6 +770,7 @@ impl SoundManager {
 
                                     self.prev_commander_id = self.current_commander_id;
                                     self.current_commander_id = song_id;
+                                    self.commander_tempo = org.time.wait;
 
                                     self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
                                     self.send(PlaybackMessage::SaveCommanderState).unwrap();
@@ -758,6 +809,11 @@ impl SoundManager {
 
     pub fn current_commander_song(&self) -> usize {
         self.current_commander_id
+    }
+
+    pub fn current_commander_tempo(&self) ->u16
+    {
+        return self.commander_tempo;
     }
 
 }
@@ -854,17 +910,20 @@ impl OrgTelemCommander
         }
     }
 
-    pub fn run(&mut self)
+    pub fn run(&mut self) -> bool
     {
         if self.state != PlaybackState::Stopped //stop/go
         {
-            self.org_engine.track_only();
+            return self.org_engine.track_only();
         }
+        return false;
     }
 
     pub fn get_state(&mut self) -> CurrentOrgState
     {
-        self.org_engine.get_latest_track_state()
+        let state = self.org_engine.get_latest_track_state();
+        //state.timestamp = SystemTime::now();
+        return state;
     }
 
     pub fn set(&mut self, message: PlaybackMessage)
@@ -1328,10 +1387,13 @@ fn run<T>(
 
             for _i in 0..tracker_ticker
             {
-                tracker_engine.run();
+                //send a telemetry packet when the ORG updates
+                if tracker_engine.run()
+                {}//{let _ = tx.send(tracker_engine.get_state());}
+                let _ = tx.send(tracker_engine.get_state());
+            
             }
             tracker_ticker = 0;
-            let _ = tx.send(tracker_engine.get_state());
 
 
 

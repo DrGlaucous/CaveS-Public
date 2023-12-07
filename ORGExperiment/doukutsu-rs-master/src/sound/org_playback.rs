@@ -34,6 +34,7 @@ pub(crate) struct OrgPlaybackEngine {
     song: Organya,
     lengths: [u8; 8],
     swaps: [usize; 8],
+    changed: [bool; 8],
     keys: [u8; 8],
     /// Octave 0 Track 0 Swap 0
     /// Octave 0 Track 1 Swap 0
@@ -80,6 +81,7 @@ impl OrgPlaybackEngine {
             lengths: [0; 8],
             swaps: [0; 8],
             keys: [255; 8],
+            changed: [false; 8],
             track_buffers: unsafe { std::mem::transmute(buffers) },
             play_pos: 0,
             output_format: WavFormat { channels: 2, sample_rate: 44100, bit_depth: 16 },
@@ -172,6 +174,11 @@ impl OrgPlaybackEngine {
 
         //for all notes
         for track in 0..8 {
+
+            //update changed state
+            self.changed[track] = false;
+
+            //if we find a note aligned with the play head
             if let Some(note) = self.song.tracks[track].notes.iter().find(|x| x.pos == self.play_pos) {
                 
                 // New note
@@ -199,7 +206,7 @@ impl OrgPlaybackEngine {
                         self.keys[track] = note.key;
                     } else if self.keys[track] == note.key {
                         // the last note was the same note
-                        //assert!(self.lengths[track] == 0);
+                        //assert!(self.lengths[track] == 0); //debug, make sure that there isn't any note left before starting anew
                         let octave = (self.keys[track] / 12) * 8;
                         let j = octave as usize + track + self.swaps[track];
                         if self.song.tracks[track].inst.pipi == 0 {
@@ -239,6 +246,7 @@ impl OrgPlaybackEngine {
                         self.keys[track] = note.key;
                     }
 
+                    self.changed[track] = true;
                     self.lengths[track] = note.len;
                 }
 
@@ -266,6 +274,7 @@ impl OrgPlaybackEngine {
                 if self.song.tracks[track].inst.pipi == 0 {
                     self.track_buffers[j].looping = false;
                 }
+                self.changed[track] = true;
                 self.keys[track] = 255;
             }
 
@@ -304,9 +313,11 @@ impl OrgPlaybackEngine {
     }
 
     //just like render_to, but does not bother writing to an audio buffer
-    pub fn track_only(&mut self)
+    //returns true if the play position advanced when this was called
+    pub fn track_only(&mut self) -> bool
     {
 
+        let mut has_advanced = false;
         //self.frames_this_tick = 0;
 
         //advance player position by resolution of sample rate / 2 (L/R stereo)
@@ -346,6 +357,7 @@ impl OrgPlaybackEngine {
     
             //if we advanced the correct number of frames
             if self.frames_this_tick == self.frames_per_tick {
+                has_advanced = true;
                 self.play_pos += 1;
     
                 if self.play_pos == self.song.time.loop_range.end {
@@ -364,7 +376,7 @@ impl OrgPlaybackEngine {
             i += 1;
         }
 
-
+        return has_advanced;
 
     }
 
@@ -682,10 +694,15 @@ impl OrgPlaybackEngine {
         //probably a better way to do this...
         let mut out_state = CurrentOrgState::new();
 
+
         //note infos
         out_state.lengths.clone_from(&self.lengths);
         out_state.keys.clone_from(&self.keys);
         out_state.swaps.clone_from(&self.swaps);
+        out_state.changed.clone_from(&self.changed);
+
+        //reset 'changed' state (no longer need to do this here, we only call this function when the playback head advances forward)
+        self.changed = [false; 8];//.clone_from(&[false; 8]);
 
         //drum infos (we can't know how long a drum note lasts: length is not maintained)
         for i in 0..8

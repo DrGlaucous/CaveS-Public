@@ -221,6 +221,7 @@ impl Scene for TitleScene {
             state.reload_resources(ctx)?;
         }
 
+        self.aaaa.controller = state.settings.create_player1_controller();
         self.controller.add(state.settings.create_player1_controller());
         self.controller.add(state.settings.create_player2_controller());
 
@@ -562,7 +563,8 @@ impl Scene for TitleScene {
         }
 
         //TEST visualize active ORG things
-        // let notess = CurrentOrgState::new();//state.sound_manager.get_latest_track_state();
+        //let notess = CurrentOrgState::new();//
+        // let notess = state.sound_manager.get_latest_track_state();
         
     
         // state.font.builder().center(state.canvas_size.0).y(15.0).shadow(true).draw(
@@ -575,6 +577,21 @@ impl Scene for TitleScene {
         //         notess.keys[5],
         //         notess.keys[6],
         //         notess.keys[7]),
+        //     ctx,
+        //     &state.constants,
+        //     &mut state.texture_set,
+        // )?;
+
+        // state.font.builder().center(state.canvas_size.0).y(25.0).shadow(true).draw(
+        //     &format!("TIME: 1:{} 2:{} 3:{} 4:{} 5:{} 6:{} 7:{} 8:{}",
+        //         notess.lengths[0],
+        //         notess.lengths[1],
+        //         notess.lengths[2],
+        //         notess.lengths[3],
+        //         notess.lengths[4],
+        //         notess.lengths[5],
+        //         notess.lengths[6],
+        //         notess.lengths[7]),
         //     ctx,
         //     &state.constants,
         //     &mut state.texture_set,
