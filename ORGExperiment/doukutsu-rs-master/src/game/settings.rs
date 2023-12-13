@@ -476,6 +476,11 @@ pub struct PlayerKeyMap {
     pub strafe: ScanCode,
     pub menu_ok: ScanCode,
     pub menu_back: ScanCode,
+
+    pub one: ScanCode,
+    pub two: ScanCode,
+    pub three: ScanCode,
+    pub four: ScanCode,
 }
 
 #[inline(always)]
@@ -495,6 +500,12 @@ pub fn p1_default_keymap() -> PlayerKeyMap {
         strafe: ScanCode::LShift,
         menu_ok: ScanCode::Z,
         menu_back: ScanCode::X,
+
+        one: ScanCode::Key1,
+        two: ScanCode::Key2,
+        three: ScanCode::Key3,
+        four: ScanCode::Key4,
+        
     }
 }
 
@@ -515,6 +526,11 @@ pub fn p2_default_keymap() -> PlayerKeyMap {
         strafe: ScanCode::RShift,
         menu_ok: ScanCode::B,
         menu_back: ScanCode::N,
+
+        one: ScanCode::Key7,
+        two: ScanCode::Key8,
+        three: ScanCode::Key9,
+        four: ScanCode::Key0,
     }
 }
 
@@ -540,6 +556,11 @@ pub struct PlayerControllerButtonMap {
     pub strafe: PlayerControllerInputType,
     pub menu_ok: PlayerControllerInputType,
     pub menu_back: PlayerControllerInputType,
+
+    pub one: PlayerControllerInputType,
+    pub two: PlayerControllerInputType,
+    pub three: PlayerControllerInputType,
+    pub four: PlayerControllerInputType,
 }
 
 #[inline(always)]
@@ -559,6 +580,11 @@ pub fn player_default_controller_button_map() -> PlayerControllerButtonMap {
         map: PlayerControllerInputType::ButtonInput(Button::North),
         menu_ok: PlayerControllerInputType::ButtonInput(Button::South),
         menu_back: PlayerControllerInputType::ButtonInput(Button::East),
+
+        one: PlayerControllerInputType::ButtonInput(Button::West),
+        two: PlayerControllerInputType::ButtonInput(Button::North),
+        three: PlayerControllerInputType::ButtonInput(Button::East),
+        four: PlayerControllerInputType::ButtonInput(Button::South),
     }
 }
 

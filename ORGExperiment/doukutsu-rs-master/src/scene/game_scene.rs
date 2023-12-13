@@ -54,7 +54,8 @@ use crate::scene::title_scene::TitleScene;
 use crate::scene::Scene;
 use crate::util::rng::RNG;
 
-use crate::game::guitar;
+use crate::game::guitar::Guitar;
+//crate::scene::game_scene::guitar::Guitar;
 
 pub struct GameScene {
     pub tick: u32,
@@ -93,6 +94,9 @@ pub struct GameScene {
     map_name_counter: u16,
     skip_counter: u16,
     inventory_dim: f32,
+
+    //nuevo
+    pub guitar_manager: Guitar,
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -185,6 +189,8 @@ impl GameScene {
             skip_counter: 0,
             inventory_dim: 0.0,
             replay: Replay::new(),
+
+            guitar_manager: Guitar::new(),
         })
     }
 
@@ -1670,6 +1676,7 @@ impl Scene for GameScene {
         #[cfg(feature = "scripting-lua")]
         state.lua.set_game_scene(self as *mut _);
 
+        self.guitar_manager.controller = state.settings.create_player1_controller();
         self.player1.controller = state.settings.create_player1_controller();
         self.player2.controller = state.settings.create_player2_controller();
 
@@ -1885,6 +1892,9 @@ impl Scene for GameScene {
             CreditScriptVM::run(state, ctx)?;
         }
 
+        //update guitar
+        self.guitar_manager.update(state, ctx)?;
+
         self.fade.tick(state, ())?;
         self.flash.tick(state, ())?;
         self.text_boxes.tick(state, ())?;
@@ -2044,6 +2054,7 @@ impl Scene for GameScene {
             graphics::draw_rect(ctx, rect, dim_color)?;
         }
 
+        //draw player, inventory, or other game elements
         match state.textscript_vm.mode {
             ScriptMode::Map | ScriptMode::Debug if state.control_flags.control_enabled() => {
                 self.hud_player1.draw(state, ctx, &self.frame)?;
@@ -2148,14 +2159,20 @@ impl Scene for GameScene {
             ScriptMode::Inventory => self.inventory_ui.draw(state, ctx, &self.frame)?,
             _ => {}
         }
+        //draw guitar
+        self.guitar_manager.draw(state, ctx)?;
 
+        //draw map system
         self.map_system.draw(state, ctx, &self.stage, [&self.player1, &self.player2])?;
         self.fade.draw(state, ctx, &self.frame)?;
 
+        //draw counter
         if state.textscript_vm.mode == ScriptMode::Map || state.textscript_vm.mode == ScriptMode::Debug {
             self.nikumaru.draw(state, ctx, &self.frame)?;
         }
 
+
+        //draw stage names
         if (state.textscript_vm.mode == ScriptMode::Map || state.textscript_vm.mode == ScriptMode::Debug)
             && state.textscript_vm.state != TextScriptExecutionState::MapSystem
             && self.map_name_counter > 0

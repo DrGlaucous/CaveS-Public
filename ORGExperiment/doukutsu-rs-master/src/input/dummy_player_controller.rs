@@ -20,6 +20,34 @@ impl PlayerController for DummyPlayerController {
 
     fn update_trigger(&mut self) {}
 
+    //nuevo
+    fn one(&self) -> bool {
+        false
+    }
+    fn two(&self) -> bool {
+        false
+    }
+    fn three(&self) -> bool {
+        false
+    }
+    fn four(&self) -> bool {
+        false
+    }
+    fn trigger_one(&self) -> bool {
+        false
+    }
+    fn trigger_two(&self) -> bool {
+        false
+    }
+    fn trigger_three(&self) -> bool {
+        false
+    }
+    fn trigger_four(&self) -> bool {
+        false
+    }
+    //end
+
+
     fn move_up(&self) -> bool {
         false
     }

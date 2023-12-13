@@ -19,22 +19,33 @@ impl TextScript {
         let mut iter = data.iter().copied().peekable();
         let mut last_event = 0;
 
+        //go through loaded TSC and perform actions:
         while let Some(&chr) = iter.peek() {
             match chr {
+                //new event found
                 b'#' => {
+                    //go past event delimiter and get the event number
                     iter.next();
                     let event_num = read_number(&mut iter)? as u16;
+
+                    //if the iterator still exists?
+                    //go until we hit a newline
                     if iter.peek().is_some() {
                         skip_until(b'\n', &mut iter)?;
                         iter.next();
                     }
+
                     last_event = event_num;
 
+                    //check for duplicate events,
                     if event_map.contains_key(&event_num) {
+
+                        // and complain if we find any (that is, if it is decompiled using the 'strict' modifier)
                         if strict {
                             return Err(ParseError(format!("Event {} has been defined twice.", event_num)));
                         }
 
+                        //skip over the event without complaint if not strict
                         match skip_until(b'#', &mut iter).ok() {
                             Some(_) => {
                                 continue;
@@ -45,13 +56,16 @@ impl TextScript {
                         }
                     }
 
+                    //generate the event's bytecode
                     let bytecode = TextScript::compile_event(&mut iter, strict, encoding)?;
                     log::info!("Successfully compiled event #{} ({} bytes generated).", event_num, bytecode.len());
                     event_map.insert(event_num, bytecode);
                 }
+                //keep going
                 b'\r' | b'\n' | b' ' | b'\t' => {
                     iter.next();
                 }
+                //handle other characters (which normally shouldn't happen)
                 n => {
                     // CS+ boss rush is the buggiest shit ever.
                     if !strict && last_event == 0 {
@@ -72,30 +86,44 @@ impl TextScript {
         strict: bool,
         encoding: TextScriptEncoding,
     ) -> GameResult<Vec<u8>> {
+
+        //this is returned
         let mut bytecode = Vec::new();
+        //holds stuff to be compiled
         let mut char_buf = Vec::with_capacity(16);
+
         let mut allow_next_event = true;
 
+        //raw data pointer in the form of an iterator
         while let Some(&chr) = iter.peek() {
             match chr {
+                //event start (end of previous event, this is the breakout case)
                 b'#' if allow_next_event => {
+                    //if there is stuff in the buffer
                     if !char_buf.is_empty() {
+                        
+                        //flag this chunk as a string
                         put_varint(TSCOpCode::_STR as i32, &mut bytecode);
+                        //encode the string with proper localization
                         put_string(&mut char_buf, &mut bytecode, encoding);
                     }
 
+                    //technically with this line here, <END is now irrelevant
                     // some events end without <END marker.
                     put_varint(TSCOpCode::_END as i32, &mut bytecode);
                     break;
                 }
+                //new command
                 b'<' => {
                     allow_next_event = false;
 
+                    //push back everything collected so far as a printable string
                     if !char_buf.is_empty() {
                         put_varint(TSCOpCode::_STR as i32, &mut bytecode);
                         put_string(&mut char_buf, &mut bytecode, encoding);
                     }
 
+                    //grab OPCode from next three chars
                     iter.next();
                     let n = iter
                         .next_tuple::<(u8, u8, u8)>()
@@ -106,15 +134,18 @@ impl TextScript {
 
                     TextScript::compile_code(&code, strict, iter, &mut bytecode)?;
                 }
+                //move reader forward
                 b'\r' => {
                     iter.next();
                 }
+                //newline, allow next event and push char to holding tank
                 b'\n' => {
                     allow_next_event = true;
                     char_buf.push(chr);
 
                     iter.next();
                 }
+                //add char to holding tank
                 _ => {
                     char_buf.push(chr);
 
@@ -123,6 +154,7 @@ impl TextScript {
             }
         }
 
+        //force <END
         // Some nicalis challenges are very broken
         if !strict {
             put_varint(TSCOpCode::_END as i32, &mut bytecode);
@@ -134,9 +166,10 @@ impl TextScript {
     fn compile_code<I: Iterator<Item=u8>>(
         code: &str,
         strict: bool,
-        iter: &mut Peekable<I>,
+        iter: &mut Peekable<I>, //raw TSC input
         out: &mut Vec<u8>,
     ) -> GameResult {
+        //the <CODE
         let instr = TSCOpCode::from_str(code).map_err(|_| ParseError(format!("Unknown opcode: {}", code)))?;
 
         match instr {
@@ -179,7 +212,14 @@ impl TextScript {
             | TSCOpCode::HM2
             | TSCOpCode::POP
             | TSCOpCode::KE2
-            | TSCOpCode::FR2 => {
+            | TSCOpCode::FR2
+            //nuevo
+            | TSCOpCode::PSM
+            | TSCOpCode::RSM
+            | TSCOpCode::SNH
+            | TSCOpCode::HNH
+            | TSCOpCode::LDT
+            => {
                 put_varint(instr as i32, out);
             }
             // One operand codes
@@ -221,7 +261,11 @@ impl TextScript {
             | TSCOpCode::ACH
             | TSCOpCode::S2MV
             | TSCOpCode::S2PJ
-            | TSCOpCode::PSH => {
+            | TSCOpCode::PSH
+            //nuevo
+            | TSCOpCode::STS
+            => {
+                //get the argument, then push the code + argument
                 let operand = read_number(iter)?;
                 put_varint(instr as i32, out);
                 put_varint(operand as i32, out);
@@ -303,6 +347,96 @@ impl TextScript {
                 put_varint(operand_c as i32, out);
                 put_varint(operand_d as i32, out);
             }
+
+            //custom codes
+            //cue music file
+            TSCOpCode::CMF =>
+            {
+
+                //get music type
+                let operand_a = read_number(iter)?;
+
+                //colon delimiter
+                if strict {
+                    expect_char(b':', iter)?;
+                } else {
+                    iter.next().ok_or_else(|| ParseError("Script unexpectedly ended.".to_owned()))?;
+                }
+                //stow opcode
+                put_varint(instr as i32, out);
+                put_varint(operand_a as i32, out);
+
+
+                //terminates with < or end of file
+
+                //holds directory string
+                let mut char_buf = Vec::with_capacity(64);
+                while let Some(&chr) = iter.peek() {
+                    match chr
+                    {
+                        //i give up on terminating with <CRF. Nasty iterators. just end at any command.
+                        b'<' | b'$' => {
+                            break;
+                        }
+                        //move reader forward
+                        b'\r' => {
+                            iter.next();
+                        }
+                        //add char to holding tank
+                        _ => {
+                            char_buf.push(chr);
+                            iter.next();
+                        }
+                    }
+                }
+                //TODO: make a fancy decoder for the fancy encoder
+                //stow the filepath string (starting with string count)
+                //put_string(&mut char_buf, out, TextScriptEncoding::UTF8);
+                
+                //don't use fancy encoding for now: the string goes directly into the compiled code
+                put_varint(char_buf.len() as i32, out);
+                out.append(&mut char_buf);
+
+
+            }
+            //cue tracker file
+            TSCOpCode::CTF =>
+            {
+
+                //stow opcode
+                put_varint(instr as i32, out);
+
+                //terminates with < or end of file
+
+                //holds directory string
+                let mut char_buf = Vec::with_capacity(64);
+                while let Some(&chr) = iter.peek() {
+                    match chr
+                    {
+                        //i give up on terminating with <CRF. Nasty iterators. just end at any command.
+                        b'<' | b'$' => {
+                            break;
+                        }
+                        //move reader forward
+                        b'\r' => {
+                            iter.next();
+                        }
+                        //add char to holding tank
+                        _ => {
+                            char_buf.push(chr);
+                            iter.next();
+                        }
+                    }
+                }                
+                //stow the filepath string (starting with string count)
+                //put_string(&mut char_buf, out, TextScriptEncoding::UTF8);
+
+                //don't use fancy encoding for now: the string goes directly into the compiled code
+                put_varint(char_buf.len() as  i32, out);
+                out.append(&mut char_buf);
+
+            }
+            
             TSCOpCode::_NOP | TSCOpCode::_UNI | TSCOpCode::_STR | TSCOpCode::_END => {
                 unreachable!()
             }

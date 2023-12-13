@@ -9,7 +9,7 @@ use crate::game::player::TargetPlayer;
 
 bitfield! {
   #[derive(Clone, Copy)]
-  pub struct KeyState(u16);
+  pub struct KeyState(u32);
   impl Debug;
 
   pub left, set_left: 0;
@@ -28,6 +28,12 @@ bitfield! {
   pub strafe, set_strafe: 13;
   pub menu_ok, set_menu_ok: 14;
   pub menu_back, set_menu_back: 15;
+
+  pub one, set_one: 16;
+  pub two, set_two: 17;
+  pub three, set_three: 18;
+  pub four, set_four: 19;
+
 }
 
 #[derive(Clone)]
@@ -68,6 +74,13 @@ impl PlayerController for KeyboardController {
         self.state.set_menu_ok(keyboard::is_key_pressed(ctx, keymap.menu_ok));
         self.state.set_menu_back(keyboard::is_key_pressed(ctx, keymap.menu_back));
 
+        self.state.set_one(keyboard::is_key_pressed(ctx, keymap.one));
+        self.state.set_two(keyboard::is_key_pressed(ctx, keymap.two));
+        self.state.set_three(keyboard::is_key_pressed(ctx, keymap.three));
+        self.state.set_four(keyboard::is_key_pressed(ctx, keymap.four));
+
+
+
         Ok(())
     }
 
@@ -77,6 +90,35 @@ impl PlayerController for KeyboardController {
         self.old_state = self.state;
         self.trigger = KeyState(trigger);
     }
+
+
+    //nuevo
+    fn one(&self) -> bool {
+        self.state.one()
+    }
+    fn two(&self) -> bool {
+        self.state.two()
+    }
+    fn three(&self) -> bool {
+        self.state.three()
+    }
+    fn four(&self) -> bool {
+        self.state.four()
+    }
+    fn trigger_one(&self) -> bool {
+        self.trigger.one()
+    }
+    fn trigger_two(&self) -> bool {
+        self.trigger.two()
+    }
+    fn trigger_three(&self) -> bool {
+        self.trigger.three()
+    }
+    fn trigger_four(&self) -> bool {
+        self.trigger.four()
+    }
+    //end
+
 
     fn move_up(&self) -> bool {
         self.state.up()

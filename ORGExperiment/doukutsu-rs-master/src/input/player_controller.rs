@@ -43,6 +43,18 @@ pub trait PlayerController: PlayerControllerClone {
     /// True if "strafe" button is down.
     fn strafe(&self) -> bool;
 
+    /// rythm button 1
+    fn one(&self) -> bool;
+
+    /// rythm button 2
+    fn two(&self) -> bool;
+
+    /// rythm button 3
+    fn three(&self) -> bool;
+
+    /// rythm button 4
+    fn four(&self) -> bool;
+
     fn trigger_up(&self) -> bool;
 
     fn trigger_left(&self) -> bool;
@@ -66,6 +78,19 @@ pub trait PlayerController: PlayerControllerClone {
     fn trigger_skip(&self) -> bool;
 
     fn trigger_strafe(&self) -> bool;
+
+    /// rythm button 1
+    fn trigger_one(&self) -> bool;
+
+    /// rythm button 2
+    fn trigger_two(&self) -> bool;
+
+    /// rythm button 3
+    fn trigger_three(&self) -> bool;
+
+    /// rythm button 4
+    fn trigger_four(&self) -> bool;
+
 
     fn trigger_menu_ok(&self) -> bool;
 

@@ -1,0 +1,159 @@
+
+This is the order of the drums in ORG:
+	"BASS01",
+	"BASS02",
+	"SNARE01",
+	"SNARE02",
+	"TOM01",
+
+	"HICLOSE",
+	"HIOPEN",
+	"CRASH",
+	"PER01",
+	"PER02",
+
+	"BASS03",
+	"TOM02",
+	"BASS04",
+	"BASS05",
+	"SNARE03",
+
+	"SNARE04",
+	"HICLOSE02",
+	"HIOPEN02",
+	"HICLOSE03",
+	"HIOPEN03",
+
+	"CRASH02",
+	"REVSYM01",
+	"RIDE01",
+	"TOM03",
+	"TOM04",
+
+	"ORCDRM01",
+	"BELL",
+	"CAT" ,
+	"BASS06",
+	"BASS07",
+
+	"SNARE05",
+	"SNARE06",
+	"SNARE07",
+	"TOM05",
+	"HIOPEN04",
+
+	"HICLOSE04",
+	"CLAP01",
+	"PESI01",
+	"QUICK01",
+	"BASS08" ,
+
+	"SNARE08",
+	"HICLOSE05",
+
+
+this is a windows concatenate command
+copy WAVE100 + fx96.wav + fx97.wav + fx98.wav + fx99.wav + fx9a.wav + fx9b.wav + fx00.wav + fx00.wav organya-wavetable-doukutsu.bin
+
+and this one is for linux
+cat WAVE100 fx96.wav fx97.wav fx98.wav fx99.wav fx9a.wav fx9b.wav fx00.wav fx00.wav > organya-wavetable-doukutsu.bin
+
+here's all the files in this directory
+	"Wave.dat" + 
+	"Bass01.wav" + 
+	"Bass02.wav" + 
+	"Snare01.wav" + 
+	"Snare02.wav" + 
+	"Tom01.wav" + 
+
+	"HiClose.wav" + 
+	"HiOpen.wav" + 
+	"Crash.wav" + 
+	"Per01.wav" + 
+	"Per02.wav" + 
+
+	"Bass03.wav" + 
+	"Tom02.wav" + 
+	"Bass04.wav" + 
+	"Bass05.wav" + 
+	"Snare03.wav" + 
+
+	"Snare04.wav" + 
+	"HiClose2.wav" + 
+	"HiOpen2.wav" + 
+	"HiClose03.wav" + 
+	"HiOpen03.wav" + 
+
+	"Crash02.wav" + 
+	"RevSym01.wav" + 
+	"Ride01.wav" + 
+	"Tom03.wav" + 
+	"Tom04.wav" + 
+
+	"OrcDrm01.wav" + 
+	"Bell.wav" + 
+	"Cat.wav" + 
+	"Bass06.wav" + 
+	"Bass07.wav" + 
+
+	"Snare05.wav" + 
+	"Snare06.wav" + 
+	"Snare07.wav" + 
+	"Tom05.wav" + 
+	"HiOpen04.wav" + 
+
+	"HiClose04.wav" + 
+	"Clap01.wav" + 
+	"Pesi01.wav" + 
+	"Quick01.wav" + 
+	"Bass08.wav" + 
+
+	"Snare08.wav" + 
+	"HiClose05.wav"
+
+
+here they are again formatted in a copy command for windows CMD
+
+copy "Wave.dat" + "Bass01.wav" + "Bass02.wav" + "Snare01.wav" + "Snare02.wav" + "Tom01.wav" + "HiClose.wav" + "HiOpen.wav" + "Crash.wav" + "Per01.wav" + "Per02.wav" + "Bass03.wav" + "Tom02.wav" + "Bass04.wav" + "Bass05.wav" + "Snare03.wav" + "Snare04.wav" + "HiClose2.wav" + "HiOpen2.wav" + "HiClose03.wav" + "HiOpen03.wav" + "Crash02.wav" + "RevSym01.wav" + "Ride01.wav" + "Tom03.wav" + "Tom04.wav" + "OrcDrm01.wav" + "Bell.wav" + "Cat.wav" + "Bass06.wav" + "Bass07.wav" + "Snare05.wav" + "Snare06.wav" + "Snare07.wav" + "Tom05.wav" + "HiOpen04.wav" + "HiClose04.wav" + "Clap01.wav" + "Pesi01.wav" + "Quick01.wav" + "Bass08.wav" + "Snare08.wav" + "HiClose05.wav" "output.bin"
+
+
+and again for linux shell
+
+
+
+
+
+
+cat "Wave.dat" "Bass01.wav" "Bass02.wav" "Snare01.wav" "Snare02.wav" "Tom01.wav" "HiClose.wav" "HiOpen.wav" "Crash.wav" "Per01.wav" "Per02.wav" "Bass03.wav" "Tom02.wav" "Bass04.wav" "Bass05.wav" "Snare03.wav" "Snare04.wav" "HiClose2.wav" "HiOpen2.wav" "HiClose03.wav" "HiOpen03.wav" "Crash02.wav" "RevSym01.wav" "Ride01.wav" "Tom03.wav" "Tom04.wav" "OrcDrm01.wav" "Bell.wav" "Cat.wav" "Bass06.wav" "Bass07.wav" "Snare05.wav" "Snare06.wav" "Snare07.wav" "Tom05.wav" "HiOpen04.wav" "HiClose04.wav" "Clap01.wav" "Pesi01.wav" "Quick01.wav" "Bass08.wav" "Snare08.wav" "HiClose05.wav" > oat.bin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

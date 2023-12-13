@@ -1,0 +1,1 @@
+for /r %%v in (*.wav) do a "%%v" "%%v"

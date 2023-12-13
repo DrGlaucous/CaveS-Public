@@ -7,7 +7,7 @@ use crate::input::player_controller::PlayerController;
 bitfield! {
   #[allow(unused)]
   #[derive(Clone, Copy)]
-  pub struct KeyState(u16);
+  pub struct KeyState(u32);
   impl Debug;
 
   pub left, set_left: 0;
@@ -26,6 +26,12 @@ bitfield! {
   pub strafe, set_strafe: 13;
   pub menu_ok, set_menu_ok: 14;
   pub menu_back, set_menu_back: 15;
+
+  pub one, set_one: 16;
+  pub two, set_two: 17;
+  pub three, set_three: 18;
+  pub four, set_four: 19;
+
 }
 
 #[derive(Copy, Clone)]
@@ -58,6 +64,33 @@ impl PlayerController for ReplayController {
         self.old_state = self.state;
         self.trigger = KeyState(trigger);
     }
+
+    //nuevo
+    fn one(&self) -> bool {
+        self.state.one()
+    }
+    fn two(&self) -> bool {
+        self.state.two()
+    }
+    fn three(&self) -> bool {
+        self.state.three()
+    }
+    fn four(&self) -> bool {
+        self.state.four()
+    }
+    fn trigger_one(&self) -> bool {
+        self.trigger.one()
+    }
+    fn trigger_two(&self) -> bool {
+        self.trigger.two()
+    }
+    fn trigger_three(&self) -> bool {
+        self.trigger.three()
+    }
+    fn trigger_four(&self) -> bool {
+        self.trigger.four()
+    }
+    //end
 
     fn move_up(&self) -> bool {
         self.state.up()

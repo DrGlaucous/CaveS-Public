@@ -103,10 +103,22 @@ impl BuiltinFS {
                     FSNode::File("builtin_font_1.png", include_bytes!("builtin/builtin_font_1.png")),
                     FSNode::File("gamecontrollerdb.txt", include_bytes!("builtin/gamecontrollerdb.txt")),
                     FSNode::File("icon.bmp", include_bytes!("../../res/crab.bmp")),
+                    //normal ORG instruments, included by default
                     FSNode::File(
                         "organya-wavetable-doukutsu.bin",
                         include_bytes!("builtin/organya-wavetable-doukutsu.bin"),
                     ),
+                    //extended ORG instruments. for some reason, not included by default...
+                    FSNode::File(
+                        "organya-wavetable-org.bin",
+                        include_bytes!("builtin/organya-wavetable-org.bin"),
+                    ),
+                    //ultra-extended ORG instruments, should be the solution to my problems
+                    FSNode::File(
+                        "organya-wavetable-orgmaker.bin",
+                        include_bytes!("builtin/organya-wavetable-orgmaker.bin"),
+                    ),
+
                     FSNode::File("touch.png", include_bytes!("builtin/touch.png")),
                     FSNode::Directory(
                         "builtin_data",

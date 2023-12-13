@@ -17,7 +17,7 @@ use crate::graphics::font::Font;
 #[derive(Clone)]
 pub struct Replay {
     replay_version: u16,
-    keylist: Vec<u16>,
+    keylist: Vec<u32>,
     last_input: KeyState,
     rng_seed: u64,
     pub controller: ReplayController,
@@ -88,7 +88,7 @@ impl Replay {
             file.write_u16::<LE>(0)?; // Space for versioning replay files
             file.write_u64::<LE>(self.rng_seed)?;
             for input in &self.keylist {
-                file.write_u16::<LE>(*input)?;
+                file.write_u32::<LE>(*input)?;
             }
         }
         Ok(())
@@ -108,7 +108,7 @@ impl Replay {
             let mut f = Cursor::new(data);
 
             for _ in 0..count {
-                inputs.push(f.read_u16::<LE>()?);
+                inputs.push(f.read_u32::<LE>()?);
             }
 
             self.keylist = inputs;
@@ -122,19 +122,20 @@ impl GameEntity<(&mut Context, &mut Player)> for Replay {
         match state.replay_state {
             ReplayState::Recording => {
                 // This mimics the KeyState bitfield
-                let inputs = player.controller.move_left() as u16
-                    + ((player.controller.move_right() as u16) << 1)
-                    + ((player.controller.move_up() as u16) << 2)
-                    + ((player.controller.move_down() as u16) << 3)
-                    + ((player.controller.trigger_map() as u16) << 4)
-                    + ((player.controller.trigger_inventory() as u16) << 5)
-                    + (((player.controller.jump() || player.controller.trigger_menu_ok()) as u16) << 6)
-                    + (((player.controller.shoot() || player.controller.trigger_menu_back()) as u16) << 7)
-                    + ((player.controller.next_weapon() as u16) << 8)
-                    + ((player.controller.prev_weapon() as u16) << 9)
-                    + ((player.controller.trigger_menu_ok() as u16) << 11)
-                    + ((player.controller.skip() as u16) << 12)
-                    + ((player.controller.strafe() as u16) << 13);
+                //(why couldn't we just use that?)
+                let inputs = player.controller.move_left() as u32
+                    + ((player.controller.move_right() as u32) << 1)
+                    + ((player.controller.move_up() as u32) << 2)
+                    + ((player.controller.move_down() as u32) << 3)
+                    + ((player.controller.trigger_map() as u32) << 4)
+                    + ((player.controller.trigger_inventory() as u32) << 5)
+                    + (((player.controller.jump() || player.controller.trigger_menu_ok()) as u32) << 6)
+                    + (((player.controller.shoot() || player.controller.trigger_menu_back()) as u32) << 7)
+                    + ((player.controller.next_weapon() as u32) << 8)
+                    + ((player.controller.prev_weapon() as u32) << 9)
+                    + ((player.controller.trigger_menu_ok() as u32) << 11)
+                    + ((player.controller.skip() as u32) << 12)
+                    + ((player.controller.strafe() as u32) << 13);
 
                 self.keylist.push(inputs);
             }

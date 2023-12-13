@@ -1,0 +1,30 @@
+
+Trying to understand the TSC engine:
+
+There is a compiler, decompiler, and parser.
+
+The engine supports both encrypted and unencrypted TSC, as well
+as both english and japanese "JIS" emcoding
+
+
+When loading a TSC file, it is first decrypted, then "Compiled"
+into a series of opcodes of individual events, each one starting with '#'
+the event is stored at event OPCode, A back-to-back series of numbers (each compiled into a byte length that is optimal), and unicode text (also converted)
+
+
+(unlike vanilla cave story where the whole file is parsed as an event is needed, this puts each event into an indexable 'cell' to be retrieved later)
+
+
+
+
+
+Stage select menu
+
+when [the menu] is initialized, the game will check for my custom JSON file that contains the highscores for each stage and compare it to the entries in the stage table
+* it will display all entries in the stage.tbl in a list
+if there are entries that are alike in both places, the score will be placed on the menu, too
+
+
+
+
+

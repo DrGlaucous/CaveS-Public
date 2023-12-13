@@ -23,7 +23,7 @@ pub fn put_varint(val: i32, out: &mut Vec<u8>) {
         }
     }
 }
-
+//read an integer variable at the cursor
 pub fn read_cur_varint(cursor: &mut Cursor<&[u8]>) -> GameResult<i32> {
     let mut result = 0u32;
 
@@ -42,6 +42,7 @@ pub fn read_cur_varint(cursor: &mut Cursor<&[u8]>) -> GameResult<i32> {
     Ok(((result << 31) ^ (result >> 1)) as i32)
 }
 
+//read the variant given an iterator
 #[allow(unused)]
 pub fn read_varint<I: Iterator<Item=u8>>(iter: &mut I) -> GameResult<i32> {
     let mut result = 0u32;
@@ -57,6 +58,7 @@ pub fn read_varint<I: Iterator<Item=u8>>(iter: &mut I) -> GameResult<i32> {
 
     Ok(((result << 31) ^ (result >> 1)) as i32)
 }
+
 
 pub fn put_string(buffer: &mut Vec<u8>, out: &mut Vec<u8>, encoding: TextScriptEncoding) {
     if buffer.is_empty() {
@@ -86,14 +88,45 @@ pub fn put_string(buffer: &mut Vec<u8>, out: &mut Vec<u8>, encoding: TextScriptE
     out.append(&mut tmp_buf);
 }
 
+
+pub fn read_string(cursor: &mut Cursor<&[u8]>, size: usize) -> GameResult<String> {
+
+    //holds the string we get from the cursor
+    let mut strvec: Vec<u8> = Vec::with_capacity(size);
+
+    //shove all the bytes we get into the vector
+    for p in cursor.bytes().take(size)
+    {
+        match p
+        {
+            Ok(a) =>
+            {
+                strvec.push(a)
+            }
+            Err(_) =>{
+                return Err( ParseError(String::from("Problem reading string from TSC parser")) );
+            }
+        }
+    };
+
+    //turn that into a string
+    let str_string = String::from_utf8(strvec).unwrap();
+
+    Ok(str_string)
+}
+
+
+//test reading and writing variable_int values
 #[test]
 fn test_varint() {
     for n in -4000..=4000 {
         let mut out = Vec::new();
+        //compile it into the vector
         put_varint(n, &mut out);
-
+        //pull it out
         let result = read_varint(&mut out.iter().copied()).unwrap();
         assert_eq!(result, n);
+        //try again with a cursor
         let mut cur: Cursor<&[u8]> = Cursor::new(&out);
         let result = read_cur_varint(&mut cur).unwrap();
         assert_eq!(result, n);

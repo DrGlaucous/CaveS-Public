@@ -172,7 +172,11 @@
         "skip": "Skip",
         "strafe": "Strafe",
         "menu_ok": "Menu select/confirm",
-        "menu_back": "Menu back/cancel"
+        "menu_back": "Menu back/cancel",
+        "one": "One",
+        "two": "Two",
+        "three": "Three",
+        "four": "Four"
       },
       "rebind_confirm_menu": {
         "title": "Press button for \"{control}\"",

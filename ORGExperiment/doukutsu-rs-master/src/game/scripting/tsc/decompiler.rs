@@ -59,7 +59,14 @@ impl TextScript {
                         | TSCOpCode::HM2
                         | TSCOpCode::POP
                         | TSCOpCode::KE2
-                        | TSCOpCode::FR2 => {
+                        | TSCOpCode::FR2
+                        //nuevo
+                        | TSCOpCode::PSM
+                        | TSCOpCode::RSM
+                        | TSCOpCode::SNH
+                        | TSCOpCode::HNH
+                        | TSCOpCode::LDT
+                        => {
                             writeln!(&mut result, "{:?}()", op).unwrap();
                         }
                         // One operand codes
@@ -102,7 +109,10 @@ impl TextScript {
                         | TSCOpCode::ACH
                         | TSCOpCode::S2MV
                         | TSCOpCode::S2PJ
-                        | TSCOpCode::PSH => {
+                        | TSCOpCode::PSH
+                        //nuevo
+                        | TSCOpCode::STS
+                        => {
                             let par_a = read_cur_varint(&mut cursor)?;
 
                             writeln!(&mut result, "{:?}({})", op, par_a).unwrap();
@@ -143,6 +153,11 @@ impl TextScript {
                             let par_d = read_cur_varint(&mut cursor)?;
 
                             writeln!(&mut result, "{:?}({}, {}, {}, {})", op, par_a, par_b, par_c, par_d).unwrap();
+                        }
+                        //custom codes
+                        TSCOpCode::CMF |  TSCOpCode::CTF =>
+                        {
+                            writeln!(&mut result, "{:?} (CMF/CTF Code: Not trying to decompile...)", op).unwrap();
                         }
                         TSCOpCode::_STR => {
                             let len = read_cur_varint(&mut cursor)?;

@@ -37,6 +37,7 @@ use crate::sound::SoundManager;
 use crate::util::bitvec::BitVec;
 use crate::util::rng::XorShift;
 
+
 use super::filesystem_container::FilesystemContainer;
 
 #[derive(PartialEq, Eq, Copy, Clone, serde::Serialize, serde::Deserialize)]
@@ -348,6 +349,9 @@ pub struct SharedGameState {
     #[cfg(feature = "discord-rpc")]
     pub discord_rpc: DiscordRPC,
     pub shutdown: bool,
+
+    //new: global guitar
+    //pub guitar_manager: Guitar,
 }
 
 impl SharedGameState {
@@ -592,7 +596,8 @@ impl SharedGameState {
         self.texture_set.unload_all();
     }
 
-    pub fn start_new_game(&mut self, ctx: &mut Context) -> GameResult {
+    //nuevo, start a new game at a specific map, running a specific event
+    pub fn start_new_game_at(&mut self, ctx: &mut Context, map_no: usize, event_no: u16, position: (i16, i16)) -> GameResult {
         self.reset();
         #[cfg(feature = "scripting-lua")]
         self.lua.reload_scripts(ctx)?;
@@ -600,9 +605,9 @@ impl SharedGameState {
         #[cfg(feature = "discord-rpc")]
         self.discord_rpc.update_difficulty(self.difficulty)?;
 
-        let mut next_scene = GameScene::new(self, ctx, self.constants.game.new_game_stage as usize)?;
+        let mut next_scene = GameScene::new(self, ctx, map_no)?;
         next_scene.player1.cond.set_alive(true);
-        let (pos_x, pos_y) = self.constants.game.new_game_player_pos;
+        let (pos_x, pos_y) = position;
         next_scene.player1.x = pos_x as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
         next_scene.player1.y = pos_y as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
 
@@ -610,12 +615,46 @@ impl SharedGameState {
         self.control_flags.set_control_enabled(true);
         self.control_flags.set_tick_world(true);
         self.fade_state = FadeState::Hidden;
-        self.textscript_vm.state = TextScriptExecutionState::Running(self.constants.game.new_game_event, 0);
+        self.textscript_vm.state = TextScriptExecutionState::Running(event_no, 0);
         self.tutorial_counter = 300;
 
         self.next_scene = Some(Box::new(next_scene));
 
         Ok(())
+    }
+
+
+    pub fn start_new_game(&mut self, ctx: &mut Context) -> GameResult {
+        //shrinkify repeated code
+        self.start_new_game_at(ctx,
+            self.constants.game.new_game_stage as usize,
+            self.constants.game.new_game_event,
+            self.constants.game.new_game_player_pos,
+        )
+        
+        // self.reset();
+        // #[cfg(feature = "scripting-lua")]
+        // self.lua.reload_scripts(ctx)?;
+
+        // #[cfg(feature = "discord-rpc")]
+        // self.discord_rpc.update_difficulty(self.difficulty)?;
+
+        // let mut next_scene = GameScene::new(self, ctx, self.constants.game.new_game_stage as usize)?;
+        // next_scene.player1.cond.set_alive(true);
+        // let (pos_x, pos_y) = self.constants.game.new_game_player_pos;
+        // next_scene.player1.x = pos_x as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
+        // next_scene.player1.y = pos_y as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
+
+        // self.reset_map_flags();
+        // self.control_flags.set_control_enabled(true);
+        // self.control_flags.set_tick_world(true);
+        // self.fade_state = FadeState::Hidden;
+        // self.textscript_vm.state = TextScriptExecutionState::Running(self.constants.game.new_game_event, 0);
+        // self.tutorial_counter = 300;
+
+        // self.next_scene = Some(Box::new(next_scene));
+
+        //Ok(())
     }
 
     pub fn start_intro(&mut self, ctx: &mut Context) -> GameResult {

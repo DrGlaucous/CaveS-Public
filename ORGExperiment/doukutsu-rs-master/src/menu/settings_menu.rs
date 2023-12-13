@@ -136,7 +136,7 @@ enum LinksMenuEntry {
 
 impl Default for LinksMenuEntry {
     fn default() -> Self {
-        LinksMenuEntry::Link(DISCORD_LINK)
+        LinksMenuEntry::Link(FORK_LINK)
     }
 }
 
@@ -194,6 +194,9 @@ static TRIBUTE_LINK: &str = "https://www.cavestory.org/";
 static GENERAL_LINK: &str = "https://discord.gg/cavestory";
 static MODDING_LINK: &str = "https://discord.gg/xRsWpz6";
 static GETPLUS_LINK: &str = "https://www.nicalis.com/games/cavestory+";
+//nuevo
+static FORK_LINK: &str = "https://github.com/DrGlaucous/CaveS-Public/";
+static FUN_LINK: &str = "https://ia801509.us.archive.org/10/items/Rick_Astley_Never_Gonna_Give_You_Up/Rick_Astley_Never_Gonna_Give_You_Up.mp4";
 
 impl SettingsMenu {
     pub fn new() -> SettingsMenu {
@@ -226,6 +229,11 @@ impl SettingsMenu {
     }
 
     pub fn init(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+
+        ///////////////////////////////////////
+        //GRAPHICS SETTINGS
+        ///////////////////////////////////////
+        
         self.graphics.push_entry(
             GraphicsMenuEntry::VSyncMode,
             MenuEntry::DescriptiveOptions(
@@ -375,11 +383,26 @@ impl SettingsMenu {
             MenuEntry::Active(state.loc.t("menus.options_menu.behavior").to_owned()),
         );
 
+        ///////////////////////////////////////
+        //LINK LIST
+        ///////////////////////////////////////
+
         self.main
             .push_entry(MainMenuEntry::Links, MenuEntry::Active(state.loc.t("menus.options_menu.links").to_owned()));
 
+            
         self.links
             .push_entry(LinksMenuEntry::Title, MenuEntry::Disabled(state.loc.t("menus.options_menu.links").to_owned()));
+
+        self.links.push_entry(
+            LinksMenuEntry::Link(FORK_LINK),
+            MenuEntry::Active("Mod Source Code".to_owned()),
+        );
+        self.links.push_entry(
+            LinksMenuEntry::Link(FUN_LINK),
+            MenuEntry::Active("Cave Story 2 (Leaked Assets)".to_owned()),
+        );
+
         self.links.push_entry(LinksMenuEntry::Link(DISCORD_LINK), MenuEntry::Active("doukutsu-rs Discord".to_owned()));
         self.links.push_entry(LinksMenuEntry::Link(GITHUB_LINK), MenuEntry::Active("doukutsu-rs GitHub".to_owned()));
         self.links.push_entry(LinksMenuEntry::Link(DOCS_LINK), MenuEntry::Active("doukutsu-rs Docs".to_owned()));
@@ -397,6 +420,10 @@ impl SettingsMenu {
             MainMenuEntry::Advanced,
             MenuEntry::Active(state.loc.t("menus.options_menu.advanced").to_owned()),
         );
+
+        ///////////////////////////////////////
+        //ADVANCED SETTINGS
+        ///////////////////////////////////////
 
         self.advanced.push_entry(
             AdvancedMenuEntry::Title,

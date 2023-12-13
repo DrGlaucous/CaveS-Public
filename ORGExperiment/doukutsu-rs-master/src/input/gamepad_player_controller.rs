@@ -8,7 +8,7 @@ use crate::game::player::TargetPlayer;
 
 bitfield! {
     #[derive(Clone, Copy)]
-    pub struct KeyState(u16);
+    pub struct KeyState(u32);
     impl Debug;
 
     pub left, set_left: 0;
@@ -26,6 +26,11 @@ bitfield! {
     pub strafe, set_strafe: 12;
     pub menu_ok, set_menu_ok: 13;
     pub menu_back, set_menu_back: 14;
+
+    pub one, set_one: 16;
+    pub two, set_two: 17;
+    pub three, set_three: 18;
+    pub four, set_four: 19;
 }
 
 #[derive(Clone)]
@@ -103,6 +108,11 @@ impl PlayerController for GamepadController {
             self.rumble_state = None;
         }
 
+        self.state.set_one(gamepad::is_active(ctx, self.gamepad_id, &button_map.one));
+        self.state.set_two(gamepad::is_active(ctx, self.gamepad_id, &button_map.two));
+        self.state.set_three(gamepad::is_active(ctx, self.gamepad_id, &button_map.three));
+        self.state.set_four(gamepad::is_active(ctx, self.gamepad_id, &button_map.four));
+
         Ok(())
     }
 
@@ -112,6 +122,33 @@ impl PlayerController for GamepadController {
         self.old_state = self.state;
         self.trigger = KeyState(trigger);
     }
+
+    //nuevo
+    fn one(&self) -> bool {
+        self.state.one()
+    }
+    fn two(&self) -> bool {
+        self.state.two()
+    }
+    fn three(&self) -> bool {
+        self.state.three()
+    }
+    fn four(&self) -> bool {
+        self.state.four()
+    }
+    fn trigger_one(&self) -> bool {
+        self.trigger.one()
+    }
+    fn trigger_two(&self) -> bool {
+        self.trigger.two()
+    }
+    fn trigger_three(&self) -> bool {
+        self.trigger.three()
+    }
+    fn trigger_four(&self) -> bool {
+        self.trigger.four()
+    }
+    //end
 
     fn move_up(&self) -> bool {
         self.state.up()

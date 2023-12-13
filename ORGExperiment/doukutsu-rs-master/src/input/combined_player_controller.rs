@@ -29,6 +29,33 @@ impl PlayerController for CombinedPlayerController {
         Ok(())
     }
 
+    //nuevo
+    fn one(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.one())
+    }
+    fn two(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.two())
+    }
+    fn three(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.three())
+    }
+    fn four(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.four())
+    }
+    fn trigger_one(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.trigger_one())
+    }
+    fn trigger_two(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.trigger_two())
+    }
+    fn trigger_three(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.trigger_three())
+    }
+    fn trigger_four(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.trigger_four())
+    }
+    //end
+
     fn move_up(&self) -> bool {
         self.controllers.iter().any(|cont| cont.move_up())
     }

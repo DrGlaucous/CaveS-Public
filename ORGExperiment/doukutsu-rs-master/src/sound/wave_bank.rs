@@ -24,11 +24,16 @@ impl fmt::Display for SoundBank {
 
 impl SoundBank {
     pub fn load_from<R: io::Read>(mut f: R) -> io::Result<SoundBank> {
+
+        //100 waves with 256 samples each? (yes)
         let mut wave100 = Box::new([0u8; 25600]);
 
+        //grab the wave table (this is of a known size, so we can just snatch it all right here)
         f.read_exact(wave100.as_mut())?;
 
-        let mut samples = Vec::with_capacity(16);
+        //holds the wave samples
+        //is it 43 or 42 waves? it's 42, windows explorer lied to me.
+        let mut samples = Vec::with_capacity(42); //16 originally
 
         loop {
             match wav::WavSample::read_from(&mut f) {

@@ -253,7 +253,9 @@ impl SaveSelectMenu {
         self.update_sizes(state);
         match self.current_menu {
             CurrentMenu::SaveMenu => match self.save_menu.tick(controller, state) {
+                //back
                 MenuSelectionResult::Selected(SaveMenuEntry::Back, _) | MenuSelectionResult::Canceled => exit_action(),
+                //new
                 MenuSelectionResult::Selected(SaveMenuEntry::New(slot), _) => {
                     state.save_slot = slot + 1;
 
@@ -264,6 +266,7 @@ impl SaveSelectMenu {
                         self.current_menu = CurrentMenu::DifficultyMenu;
                     }
                 }
+                //load
                 MenuSelectionResult::Selected(SaveMenuEntry::Load(slot), _) => {
                     state.save_slot = slot + 1;
 

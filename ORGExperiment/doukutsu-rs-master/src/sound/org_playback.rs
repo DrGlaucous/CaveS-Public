@@ -36,6 +36,7 @@ pub(crate) struct OrgPlaybackEngine {
     swaps: [usize; 8],
     changed: [bool; 8],
     keys: [u8; 8],
+    drm_keys: [u8; 8], //new, for running events and things
     /// Octave 0 Track 0 Swap 0
     /// Octave 0 Track 1 Swap 0
     /// ...
@@ -82,6 +83,7 @@ impl OrgPlaybackEngine {
             swaps: [0; 8],
             keys: [255; 8],
             changed: [false; 8],
+            drm_keys: [255; 8],
             track_buffers: unsafe { std::mem::transmute(buffers) },
             play_pos: 0,
             output_format: WavFormat { channels: 2, sample_rate: 44100, bit_depth: 16 },
@@ -136,11 +138,15 @@ impl OrgPlaybackEngine {
 
         //initialize drums
         for (idx, (track, buf)) in song.tracks[8..].iter().zip(self.track_buffers[128..].iter_mut()).enumerate() {
-            if self.song.version == Version::Extended {
-                *buf = RenderBuffer::new(samples.samples[track.inst.inst as usize].clone());
+            if song.version == Version::Extended {
+               *buf = RenderBuffer::new(samples.samples[track.inst.inst as usize].clone());
             } else {
-                *buf = RenderBuffer::new(samples.samples[idx].clone());
+                //this just takes the classic hard-baked cave story drums and adds them to the sound buffer
+               *buf = RenderBuffer::new(samples.samples[idx].clone());
             }
+
+            //just do this for now. the code above has problems
+            //*buf = RenderBuffer::new(samples.samples[idx].clone());
         }
 
         self.song = song;
@@ -308,6 +314,9 @@ impl OrgPlaybackEngine {
                     let pan = org_pan_to_pan(note.pan);
                     self.track_buffers[j].set_pan(pan);
                 }
+                
+                self.drm_keys[i - 8] = note.key; //for the tracker! (also for the empire!)
+
             }
         }
     }
@@ -701,26 +710,36 @@ impl OrgPlaybackEngine {
         out_state.swaps.clone_from(&self.swaps);
         out_state.changed.clone_from(&self.changed);
 
-        //reset 'changed' state (no longer need to do this here, we only call this function when the playback head advances forward)
+        //reset 'changed' state (no longer need to do this here, we only call this function when the playback head advances forward, which is actually false now. so not-confusing)
         self.changed = [false; 8];//.clone_from(&[false; 8]);
 
-        //drum infos (we can't know how long a drum note lasts: length is not maintained)
-        for i in 0..8
-        {
-            //in the designated drum buffers, find the ones that are active
-            let j = i + 128;
-            if self.track_buffers[j].playing
-            {
-                //it's a challenge to unravel the frequency of the note, so we just do this for now
-                //drums as a whole are unnecessary for my applications, but I'll have them anyway
-                out_state.drums[i] = 0x50;
-            }
-            else
-            {
-                out_state.drums[i] = 0xFF;
-            }
 
-        }
+        //get drum frequency
+        out_state.drums.clone_from(&self.drm_keys);
+
+        //reset drum frequency just like the "changed" state above
+        self.drm_keys = [0xFF; 8];
+
+
+
+
+        //drum infos (we can't know how long a drum note lasts: length is not maintained)
+        // for i in 0..8
+        // {
+        //     //in the designated drum buffers, find the ones that are active
+        //     let j = i + 128;
+        //     if self.track_buffers[j].playing
+        //     {
+        //         //it's a challenge to unravel the frequency of the note, so we just do this for now
+        //         //drums as a whole are unnecessary for my applications, but I'll have them anyway
+        //         out_state.drums[i] = 0x50;
+        //     }
+        //     else
+        //     {
+        //         out_state.drums[i] = 0xFF;
+        //     }
+
+        // }
 
         return out_state;
 

@@ -264,7 +264,33 @@ pub enum TSCOpCode {
     KE2,
     /// <FRE related to player 2?
     FR2,
+
     // ---- Custom opcodes, for use by modders ----
+    // aaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+    // Cue Music File
+    // <CMFXXXX:[Filepath from 'data']$
+    CMF,
+    // Cue Tracker File
+    // <CTF[Filepath from 'data']$
+    CTF,
+    // PSM: Pause Sound Manager
+    PSM,
+    // RSM: Resume Sound Manager
+    RSM,
+    // SNH: Show note highway
+    SNH,
+    // HNH: Hide note highway
+    HNH,
+
+    // STS: Store Tracker Stats (also saves)
+    // <STS[Map number]
+    STS,
+    
+    // SVT not needed... STS does this
+    // LDT: Load Tracker stats
+    LDT,
+
 }
 
 #[derive(FromPrimitive, PartialEq, Copy, Clone)]

@@ -126,6 +126,12 @@ enum ControlEntry {
     Strafe,
     MenuOk,
     MenuBack,
+
+    //new, buttons for rythm game
+    One,
+    Two,
+    Three,
+    Four,
 }
 
 impl ControlEntry {
@@ -145,6 +151,12 @@ impl ControlEntry {
             ControlEntry::Strafe => state.loc.t("menus.controls_menu.rebind_menu.strafe"),
             ControlEntry::MenuOk => state.loc.t("menus.controls_menu.rebind_menu.menu_ok"),
             ControlEntry::MenuBack => state.loc.t("menus.controls_menu.rebind_menu.menu_back"),
+
+            ControlEntry::One => state.loc.t("menus.controls_menu.rebind_menu.one"),
+            ControlEntry::Two => state.loc.t("menus.controls_menu.rebind_menu.two"),
+            ControlEntry::Three => state.loc.t("menus.controls_menu.rebind_menu.three"),
+            ControlEntry::Four => state.loc.t("menus.controls_menu.rebind_menu.four"),
+
         }
         .to_owned()
     }
@@ -306,6 +318,11 @@ impl ControlsMenu {
         map.push((ControlEntry::Skip, settings_key_map.skip));
         map.push((ControlEntry::Strafe, settings_key_map.strafe));
 
+        map.push((ControlEntry::One, settings_key_map.one));
+        map.push((ControlEntry::Two, settings_key_map.two));
+        map.push((ControlEntry::Three, settings_key_map.three));
+        map.push((ControlEntry::Four, settings_key_map.four));
+
         map
     }
 
@@ -329,6 +346,11 @@ impl ControlsMenu {
         map.push((ControlEntry::Map, settings_controller_button_map.map));
         map.push((ControlEntry::Skip, settings_controller_button_map.skip));
         map.push((ControlEntry::Strafe, settings_controller_button_map.strafe));
+
+        map.push((ControlEntry::One, settings_controller_button_map.one));
+        map.push((ControlEntry::Two, settings_controller_button_map.two));
+        map.push((ControlEntry::Three, settings_controller_button_map.three));
+        map.push((ControlEntry::Four, settings_controller_button_map.four));
 
         map
     }
@@ -545,6 +567,26 @@ impl ControlsMenu {
         let mut did_swap_controls = false;
 
         match self.selected_control.unwrap() {
+
+            //new codes
+            ControlEntry::One => match self.selected_player {
+                Player::Player1 => state.settings.player1_key_map.one = scan_code,
+                Player::Player2 => state.settings.player2_key_map.one = scan_code,
+            }
+            ControlEntry::Two => match self.selected_player {
+                Player::Player1 => state.settings.player1_key_map.two = scan_code,
+                Player::Player2 => state.settings.player2_key_map.two = scan_code,
+            }
+            ControlEntry::Three => match self.selected_player {
+                Player::Player1 => state.settings.player1_key_map.three = scan_code,
+                Player::Player2 => state.settings.player2_key_map.three = scan_code,
+            }
+            ControlEntry::Four => match self.selected_player {
+                Player::Player1 => state.settings.player1_key_map.four = scan_code,
+                Player::Player2 => state.settings.player2_key_map.four = scan_code,
+            }
+            //end
+
             ControlEntry::Left => match self.selected_player {
                 Player::Player1 => state.settings.player1_key_map.left = scan_code,
                 Player::Player2 => state.settings.player2_key_map.left = scan_code,
@@ -695,6 +737,27 @@ impl ControlsMenu {
         let mut did_swap_controls = false;
 
         match self.selected_control.unwrap() {
+
+
+            //new codes
+            ControlEntry::One => match self.selected_player {
+                Player::Player1 => state.settings.player1_controller_button_map.one = input_type,
+                Player::Player2 => state.settings.player1_controller_button_map.one = input_type,
+            }
+            ControlEntry::Two => match self.selected_player {
+                Player::Player1 => state.settings.player1_controller_button_map.two = input_type,
+                Player::Player2 => state.settings.player1_controller_button_map.two = input_type,
+            }
+            ControlEntry::Three => match self.selected_player {
+                Player::Player1 => state.settings.player1_controller_button_map.three = input_type,
+                Player::Player2 => state.settings.player1_controller_button_map.three = input_type,
+            }
+            ControlEntry::Four => match self.selected_player {
+                Player::Player1 => state.settings.player1_controller_button_map.four = input_type,
+                Player::Player2 => state.settings.player1_controller_button_map.four = input_type,
+            }
+            //end
+
             ControlEntry::Left => match self.selected_player {
                 Player::Player1 => state.settings.player1_controller_button_map.left = input_type,
                 Player::Player2 => state.settings.player2_controller_button_map.left = input_type,
@@ -767,6 +830,7 @@ impl ControlsMenu {
                 Player::Player1 => state.settings.player1_controller_button_map.strafe = input_type,
                 Player::Player2 => state.settings.player2_controller_button_map.strafe = input_type,
             },
+            
             ControlEntry::MenuOk => match self.selected_player {
                 Player::Player1 => {
                     did_swap_controls = self.swap_if_same(

@@ -1,12 +1,12 @@
 use std::cell::RefCell;
 use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
 
 
 use crate::common::{Color, Rect};
 use crate::framework::backend::{BackendTexture, SpriteBatchCommand};
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
+use crate::framework::filesystem::{user_create, user_open};
 use crate::framework::gamepad::get_gamepad_sprite_offset;
 use crate::framework::graphics;
 use crate::game::scripting::tsc::text_script::TextScriptExecutionState;
@@ -23,7 +23,43 @@ use crate::sound::SoundManager;
 
 use super::shared_game_state::TimingMode;
 
-//#[derive(Eq, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+
+
+//holds individual map info, vectored in GuitarScores
+#[derive(Serialize, Deserialize)]
+pub struct LevelScore {
+    name: String,
+    score: i32,
+}
+impl LevelScore
+{
+    pub fn new() ->LevelScore {
+        LevelScore {
+            name: "".to_owned(),
+            score: 0,
+        }
+    }
+}
+
+
+//holds the settings to be passed off to the json
+#[derive(Serialize, Deserialize)]
+pub struct GuitarScores {
+    stages: Vec<LevelScore>,
+}
+impl GuitarScores
+{
+    pub fn new() -> GuitarScores {
+        GuitarScores {
+            stages: Vec::new(),
+        }
+    }
+
+}
+
+
 
 
 
@@ -55,7 +91,7 @@ pub struct Guitar
     visible: bool,
     key_state: [bool; 4], //4 keys that can be pressed
     onscreen_time: f32, //how many seconds the note should last on the highway
-
+    current_score: LevelScore,
     pub controller: Box<dyn PlayerController>, //controls the reader (duh)
 
 
@@ -84,10 +120,10 @@ impl Guitar
             last_size: RefCell::new((0, 0)),
             draw_corners: [[0,0]; 4],
             current_song: 0,
-            visible: false,
+            visible: true,
             key_state: [false; 4], //state of user input
             onscreen_time: 0.75,//2.25,
-
+            current_score: LevelScore::new(),
             controller: Box::new(DummyPlayerController::new()),
 
             //note_key: [0; 4],
@@ -114,6 +150,9 @@ impl Guitar
     //Q will be used to run TSC events, with the event corresponding to the note being sent (only have a range or around 100+)
 
 
+    ///////////////////
+    /// Helper functions
+    ///////////////////
 
     //look at bound buttons and change trapdoor state accordingly
     fn handle_buttons(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult
@@ -122,10 +161,10 @@ impl Guitar
         self.controller.update_trigger();
 
 
-        self.key_state[0] = self.controller.move_left();
-        self.key_state[1] = self.controller.move_right();
-        self.key_state[2] = self.controller.move_up();
-        self.key_state[3] = self.controller.move_down();
+        self.key_state[0] = self.controller.one();
+        self.key_state[1] = self.controller.two();
+        self.key_state[2] = self.controller.three();
+        self.key_state[3] = self.controller.four();
 
         // if self.controller.trigger_left() || self.controller.trigger_up() || self.controller.trigger_right() || self.controller.trigger_down()
         // {
@@ -177,6 +216,17 @@ impl Guitar
             let change_decimal = Self::get_offset(self.onscreen_time, this_time, notess.timestamp);
             let length_decimal = Self::get_length(self.onscreen_time, notess.lengths[i], state.sound_manager.current_commander_tempo());   
             self.notes[i].push( GuitarNote{note_length: length_decimal, note_head_loc: change_decimal, last_time: this_time, was_hit: false} );
+        }
+
+        for i in 0..8
+        {
+            if notess.drums[i] != 0xFF && notess.drums[i] != 0x00
+            {
+                let mut yyt = i;
+                yyt += i;
+                print!("{}\n", notess.drums[i]);
+
+            }
         }
 
 
@@ -237,30 +287,42 @@ impl Guitar
 
     }
 
+
+    ///////////////////
+    /// Control functions
+    ///////////////////
+
     //starts a song X with tracker pattern Y
     pub fn start_program(music: String, pattern: String)
     {
 
     }
 
-    //pauses program execution
-    pub fn pause_program()
+    //show or hide the tracker bar
+    pub fn set_visibility(&mut self, state: bool)
     {
+        self.visible = state;
+    }
+
+    //saves the current stats to the map designated by stage number
+    pub fn store_stats(&mut self, state: &mut SharedGameState, stage_no: usize)
+    {
+        if stage_no >= state.stages.len()
+        {
+            return;
+        }
+        state.stages[stage_no].score = self.current_score.score;
 
     }
 
-    //resumes at the same place it left off
-    pub fn resume_program()
-    {
 
-    }
 
-    //get current scores and stats
-    pub fn get_stats()
-    {
 
-    }
 
+
+    ///////////////////
+    /// Main ticker functions
+    ///////////////////
 
     //advance the ticker, call this as often as possible
     pub fn update(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult
@@ -299,7 +361,7 @@ impl Guitar
     //put note bar onto the screen
     pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult
     {
-        //if !self.visible {return Ok(())}
+        if !self.visible {return Ok(())}
 
         //tallness of the fretboard in pixels
         let board_height  = 144.0;
@@ -381,7 +443,7 @@ impl Guitar
                             let delta_len = note_b_rect.bottom - note_b_rect.top;
                             let main_have = (note_px_len as i32) / (note_b_rect.bottom - note_b_rect.top) as i32;
                             let stub_have = if (note_px_len as i32) % (note_b_rect.bottom - note_b_rect.top) as i32 > 0 {1} else {0};
-                            for t in 0..(main_have + stub_have)
+                            for t in 0..(main_have)// + stub_have)
                             {
                                 batch.add_rect((16 * i) as  f32,
                                     (self.notes[i][j].note_head_loc * board_height) - (8 * t) as f32,
@@ -422,17 +484,17 @@ impl Guitar
                 string_rect_2, //src
 
                 //top LR
-                //(64.0 * state.scale, 0.0),
-                //((64.0 + 80.0) * state.scale, 0.0),
+                (64.0 * state.scale, 0.0),
+                ((64.0 + 80.0) * state.scale, 0.0),
 
                 //bottom LR
-                //(0.0, 144.0 * state.scale),
-                //((64.0 + 80.0 + 64.0) * state.scale, (144.0) * state.scale),
+                (0.0, 144.0 * state.scale),
+                ((64.0 + 80.0 + 64.0) * state.scale, (144.0) * state.scale),
 
-                (0.0 * state.scale, 0.0 * state.scale),
-                (64.0 * state.scale, 0.0 * state.scale),
-                (0.0 * state.scale, 144.0 * state.scale),
-                (64.0 * state.scale, 144.0 * state.scale),
+                //(0.0 * state.scale, 0.0 * state.scale),
+                //(64.0 * state.scale, 0.0 * state.scale),
+                //(0.0 * state.scale, 144.0 * state.scale),
+                //(64.0 * state.scale, 144.0 * state.scale),
 
 
                 Color::from_rgb(0xFF, 0xFF, 0xFF),
@@ -446,6 +508,71 @@ impl Guitar
         Ok(())
 
     }
+
+
+
+
+    ///////////////////
+    /// Save/load functions
+    ///////////////////
+
+
+    //load guitar stats from the json into the stage table
+    fn load(state: &mut SharedGameState, ctx: &Context) -> GameResult<GuitarScores> {
+
+        if let Ok(file) = user_open(ctx, "/save_data.json") {
+            match serde_json::from_reader::<_, GuitarScores>(file) {
+                Ok(scores) => {
+                    return Ok(scores);
+                },
+                Err(err) => {
+                    log::warn!("Failed to deserialize settings: {}", err)
+                },
+            }
+        }
+
+        Ok(GuitarScores::new())
+    }
+    //save a vector of guitar stats to a json
+    fn save(ctx: &Context, scores: &GuitarScores) -> GameResult
+    {
+        let file = user_create(ctx, "/save_data.json")?;
+        serde_json::to_writer_pretty(file, &scores)?;
+
+        Ok(())
+    }
+
+
+    //populates the stage table with the latest scores from the JSON
+    pub fn get_saved_scores(state: &mut SharedGameState, ctx: &Context) -> GameResult
+    {
+        let fresh_data = Self::load(state, ctx).unwrap();
+        for stage in state.stages.iter_mut()
+        {
+            for data in fresh_data.stages.iter()
+            {
+                if stage.name == data.name
+                {
+                    stage.score = data.score;
+                }
+            }
+        }
+        Ok(())
+    }
+    //saves the scores into the JSON
+    pub fn put_saved_scores(state: &mut SharedGameState, ctx: &mut Context) -> GameResult
+    {
+        let mut prepped_data: Vec<LevelScore> = Vec::with_capacity(state.stages.len());
+        
+        for stage in state.stages.iter_mut()
+        {
+            prepped_data.push(LevelScore{name: stage.name.clone(), score: stage.score});
+        }
+
+        Self::save(ctx, &GuitarScores{stages: prepped_data})
+    }
+
+
 
 
 }

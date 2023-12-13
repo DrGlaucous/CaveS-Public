@@ -29,6 +29,10 @@ use crate::game::weapon::WeaponType;
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameScene;
+//nuevo
+use crate::sound::SongFormat;
+use crate::game::scripting::tsc::bytecode_utils::read_string;
+use crate::game::guitar::Guitar;
 
 const TSC_SUBSTITUTION_MAP_SIZE: usize = 1;
 
@@ -1867,6 +1871,75 @@ impl TextScriptVM {
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
+        
+            //Nuevo
+
+            //cue music
+            TSCOpCode::CMF =>{
+                
+                //get mode
+                let typecode = read_cur_varint(&mut cursor)? as usize;
+                let song_type = match typecode {
+                    2 => SongFormat::OggMultiPart,
+                    1 => SongFormat::OggSinglePart,
+                    0 | _ => SongFormat::Organya,
+                };
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string(&mut cursor, len).unwrap();
+
+                state.sound_manager.play_song_filepath(&filepath, &state.constants, song_type,  &state.settings, ctx, false)?;
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+
+            }
+            //cue tracker
+            TSCOpCode::CTF =>{
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string(&mut cursor, len).unwrap();
+
+                state.sound_manager.play_commander_filepath(&filepath, &state.settings, ctx)?;
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            
+            }
+
+            //pause / resume
+            TSCOpCode::PSM =>{
+                state.sound_manager.pause();
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+            TSCOpCode::RSM =>{
+                state.sound_manager.resume();
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            //show/hide note highway
+            TSCOpCode::SNH =>{
+                game_scene.guitar_manager.set_visibility(true);
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+            TSCOpCode::HNH =>{
+                game_scene.guitar_manager.set_visibility(false);
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            TSCOpCode::STS =>{
+                //get stage
+                let stage_no = read_cur_varint(&mut cursor)? as usize;
+                //put into mapfiles and then into the json
+                game_scene.guitar_manager.store_stats(state, stage_no);
+                Guitar::put_saved_scores(state, ctx)?;
+            }
+            TSCOpCode::LDT =>{
+                //honestly not sure when this one would be used
+                Guitar::get_saved_scores(state, ctx);
+            }
+            
+        
+        
         }
 
         Ok(exec_state)

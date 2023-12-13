@@ -72,6 +72,7 @@ impl WavSample {
     pub fn read_from<R: io::Read>(mut f: R) -> io::Result<WavSample> {
         let riff = RiffChunk::read_from(&mut f)?;
 
+        //look at RIFF chunk and determine format
         match &riff.id {
             b"RIFF" => {}
             b"RIFX" => return Err(io::Error::new(ErrorKind::InvalidData, "Cannot handle RIFX data!".to_owned())),
@@ -88,12 +89,14 @@ impl WavSample {
             return Err(io::Error::new(ErrorKind::InvalidData, "Expected 'WAVE' RIFF chunk.".to_owned()));
         }
 
+        //pull out the "fmt " part of the header
         let fmt = RiffChunk::read_from(&mut f)?;
 
         if fmt.id != *b"fmt " {
             return Err(io::Error::new(ErrorKind::InvalidData, "Expected 'fmt ' RIFF chunk.".to_owned()));
         }
 
+        //check for PCM identifier (ID: 01)
         let afmt = f.read_u16::<LE>()?;
 
         if afmt != 1 {
@@ -105,6 +108,8 @@ impl WavSample {
         let _brate = f.read_u32::<LE>()?;
         let _balgn = f.read_u16::<LE>()?;
         let bits = f.read_u16::<LE>()?;
+
+        //this is where it should end, since the format is PCM, there should be no extra chunks between here and the data section
 
         let data = RiffChunk::read_from(&mut f)?;
 

@@ -21,9 +21,10 @@ use crate::menu::{Menu, MenuEntry, MenuSelectionResult};
 use crate::scene::jukebox_scene::JukeboxScene;
 use crate::scene::Scene;
 
-use crate::game::guitar::Guitar;
-use crate::sound::CurrentOrgState;
-
+//use crate::game::guitar::Guitar;
+//use crate::sound::CurrentOrgState;
+//use crate::sound::SongFormat;
+use crate::menu::guitar_menu::StageSelectMenu;
 
 
 #[derive(PartialEq, Eq, Copy, Clone)]
@@ -98,8 +99,8 @@ pub struct TitleScene {
     stage: Stage,
     textures: StageTexturePaths,
 
-    //TEST
-    aaaa: Guitar,
+    //nuevo
+    guitar_menu: StageSelectMenu,
 
 }
 
@@ -119,6 +120,7 @@ impl TitleScene {
                 background_color: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
                 npc1: NpcType::new("0"),
                 npc2: NpcType::new("0"),
+                score: 0,
             },
         };
         let mut textures = StageTexturePaths::new();
@@ -143,8 +145,8 @@ impl TitleScene {
             compact_jukebox: CompactJukebox::new(),
             stage: fake_stage,
             textures,
-            //TEST
-            aaaa: Guitar::new(),
+            //nuevo
+            guitar_menu: StageSelectMenu::new(),
         }
     }
 
@@ -194,10 +196,11 @@ impl TitleScene {
         } else {
             if song_id != state.sound_manager.current_song() {
                 //pause and resume needed so that both are started regardless of loading time
-                state.sound_manager.pause();
+                //state.sound_manager.pause();
                 state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
-                state.sound_manager.play_commander(song_id, &state.constants, &state.settings, ctx)?;
-                state.sound_manager.resume();
+                //state.sound_manager.play_song_filepath(&String::from("/Resource/theme03.ogg"), &state.constants, SongFormat::OggSinglePart, &state.settings, ctx, false)?;
+                //state.sound_manager.play_commander_filepath(&String::from("/Resource/ORG/CURLY.org"), &state.settings, ctx)?;
+                //state.sound_manager.resume();
             }
         }
 
@@ -221,7 +224,7 @@ impl Scene for TitleScene {
             state.reload_resources(ctx)?;
         }
 
-        self.aaaa.controller = state.settings.create_player1_controller();
+        //self.aaaa.controller = state.settings.create_player1_controller();
         self.controller.add(state.settings.create_player1_controller());
         self.controller.add(state.settings.create_player2_controller());
 
@@ -256,6 +259,8 @@ impl Scene for TitleScene {
         self.settings_menu.init(state, ctx)?;
 
         self.save_select_menu.init(state, ctx)?;
+        //nuevo
+        self.guitar_menu.init(state, ctx)?;
 
         self.coop_menu.on_title = true;
         self.coop_menu.init(state)?;
@@ -347,9 +352,12 @@ impl Scene for TitleScene {
         match self.current_menu {
             CurrentMenu::MainMenu => match self.main_menu.tick(&mut self.controller, state) {
                 MenuSelectionResult::Selected(MainMenuEntry::Start, _) => {
-                    state.mod_path = None;
-                    self.save_select_menu.init(state, ctx)?;
-                    self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
+                    //state.mod_path = None;
+                    //self.save_select_menu.init(state, ctx)?;
+                    //self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
+                    
+                    self.guitar_menu.init(state, ctx)?;
+                    
                     self.current_menu = CurrentMenu::SaveSelectMenu;
                 }
                 MenuSelectionResult::Selected(MainMenuEntry::Challenges, _) => {
@@ -392,14 +400,24 @@ impl Scene for TitleScene {
             CurrentMenu::SaveSelectMenu => {
                 let cm = &mut self.current_menu;
                 let rm = if state.mod_path.is_none() { CurrentMenu::MainMenu } else { CurrentMenu::ChallengesMenu };
-                self.save_select_menu.tick(
+                // self.save_select_menu.tick(
+                //     &mut || {
+                //         *cm = rm;
+                //     },
+                //     &mut self.controller,
+                //     state,
+                //     ctx,
+                // )?;
+                //nuevo
+                self.guitar_menu.tick(
                     &mut || {
                         *cm = rm;
                     },
                     &mut self.controller,
                     state,
                     ctx,
-                )?;
+                )?
+
             }
             CurrentMenu::ChallengesMenu => match self.challenges_menu.tick(&mut self.controller, state) {
                 MenuSelectionResult::Selected(ChallengesMenuEntry::Challenge(idx), _) => {
@@ -496,8 +514,6 @@ impl Scene for TitleScene {
 
         self.tick += 1;
 
-        //TEST
-        self.aaaa.update(state, ctx)?;
 
         Ok(())
     }
@@ -558,7 +574,7 @@ impl Scene for TitleScene {
             CurrentMenu::ChallengesMenu => self.challenges_menu.draw(state, ctx)?,
             CurrentMenu::ChallengeConfirmMenu => self.confirm_menu.draw(state, ctx)?,
             CurrentMenu::OptionMenu => self.settings_menu.draw(state, ctx)?,
-            CurrentMenu::SaveSelectMenu => self.save_select_menu.draw(state, ctx)?,
+            CurrentMenu::SaveSelectMenu => self.guitar_menu.draw(state, ctx)?,//self.save_select_menu.draw(state, ctx)?,
             CurrentMenu::PlayerCountMenu => self.coop_menu.draw(state, ctx)?,
         }
 
@@ -615,7 +631,7 @@ impl Scene for TitleScene {
         //batch.draw(ctx)?;
 
         //let batch2 = state.texture_set.get_or_load_batch(ctx, &state.constants, "Npc/NpcRegu")?;
-        self.aaaa.draw(state, ctx)?;
+        //self.aaaa.draw(state, ctx)?;
 
 
 
