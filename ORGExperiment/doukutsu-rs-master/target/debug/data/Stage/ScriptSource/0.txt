@@ -2,11 +2,6 @@
 
 //intro event
 #0100
-<FAI0004
-<PSM
-<CMF0001:/Resource/mus_core.ogg$
-<CTF/Resource/Tracker.org$
-<RSM
 <WAI9999<END
 
 //load-in event

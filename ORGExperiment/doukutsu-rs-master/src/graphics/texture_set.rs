@@ -148,6 +148,7 @@ impl SpriteBatch for DummyBatch {
         _rect: &Rect<u16>,
     ) {}
 
+
     fn draw(&mut self, _ctx: &mut Context) -> GameResult {
         Ok(())
     }
@@ -461,6 +462,7 @@ impl SpriteBatch for CombinedBatch {
     ) {
         self.main_batch.add_rect_scaled_tinted(x, y, color, scale_x, scale_y, rect)
     }
+
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.main_batch.draw(ctx)

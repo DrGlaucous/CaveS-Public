@@ -481,6 +481,7 @@ pub struct PlayerKeyMap {
     pub two: ScanCode,
     pub three: ScanCode,
     pub four: ScanCode,
+    pub strum: ScanCode,
 }
 
 #[inline(always)]
@@ -505,6 +506,7 @@ pub fn p1_default_keymap() -> PlayerKeyMap {
         two: ScanCode::Key2,
         three: ScanCode::Key3,
         four: ScanCode::Key4,
+        strum: ScanCode::Space,
         
     }
 }
@@ -531,6 +533,7 @@ pub fn p2_default_keymap() -> PlayerKeyMap {
         two: ScanCode::Key8,
         three: ScanCode::Key9,
         four: ScanCode::Key0,
+        strum: ScanCode::RShift,
     }
 }
 
@@ -561,6 +564,7 @@ pub struct PlayerControllerButtonMap {
     pub two: PlayerControllerInputType,
     pub three: PlayerControllerInputType,
     pub four: PlayerControllerInputType,
+    pub strum: PlayerControllerInputType,
 }
 
 #[inline(always)]
@@ -585,6 +589,7 @@ pub fn player_default_controller_button_map() -> PlayerControllerButtonMap {
         two: PlayerControllerInputType::ButtonInput(Button::North),
         three: PlayerControllerInputType::ButtonInput(Button::East),
         four: PlayerControllerInputType::ButtonInput(Button::South),
+        strum: PlayerControllerInputType::AxisInput(Axis::TriggerRight, AxisDirection::Either),
     }
 }
 

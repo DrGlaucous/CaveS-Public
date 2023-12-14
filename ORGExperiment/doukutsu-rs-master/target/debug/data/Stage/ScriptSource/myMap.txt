@@ -9,11 +9,12 @@
 #0200
 <HMC<KEY<MSGHello there.<NOD<CLO
 <PSM
-<CMF0001:/Resource/mus_core.ogg$
+<CMF0001:/Resource/01 Pac-Man Fever.ogg$
 //<CMF0000:/Resource/CORE_TRKR.org$
 <CTF/Resource/Tracker.org$
 <RSM
-<SNH<WAI0020<FAI0004
+<SNH
+<FAI0004
 <WAI9999
 
 

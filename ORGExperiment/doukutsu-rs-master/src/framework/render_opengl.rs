@@ -35,7 +35,8 @@ pub struct OpenGLTexture {
     height: u16,
     texture_id: u32,
     framebuffer_id: u32,
-    shader: RenderShader,
+    shader: RenderShader, //default texture shader
+    fill_shader: RenderShader, //color fill shader (new)
     vbo: GLuint,
     vertices: Vec<VertexData>,
     context_active: Arc<RefCell<bool>>,
@@ -256,7 +257,7 @@ impl BackendTexture for OpenGLTexture {
             }
             SpriteBatchCommand::DrawRectSkewedTinted(src, top_left, top_right, bottom_left, bottom_right, color) =>
             {
-
+                //get third componet for skew texture offsetting
                 let lens = make_lengths(
                     bottom_left,
                     bottom_right,
@@ -311,7 +312,65 @@ impl BackendTexture for OpenGLTexture {
                 self.vertices.extend_from_slice(&vertices);
             }
 
+            SpriteBatchCommand::DrawGradient(top_left, top_right, bottom_left, bottom_right, color_tl, color_tr, color_bl, color_br) =>
+            {
+                //get third componet for skew texture offsetting
+                let lens = make_lengths(
+                    bottom_left,
+                    bottom_right,
+                    top_left,
+                    top_right,
+                    );
+                    let color_tl = color_tl.to_rgba();
+                    let color_tr = color_tr.to_rgba();
+                    let color_bl = color_bl.to_rgba();
+                    let color_br = color_br.to_rgba();
 
+                    let vertices = [
+                        //slice 1 (left top corner triangle)
+    
+                        //left bottom 0,1
+                        VertexData {
+                            position: bottom_left,
+                            uv: (0.0,0.0,0.0),//(src.left * tex_scale_x * lens.0, src.bottom * tex_scale_y * lens.0, lens.0),
+                            color: color_bl,
+                        },
+                        //left top 0,0
+                        VertexData {
+                            position: top_left,
+                            uv: (0.0,0.0,0.0),//(src.left * tex_scale_x * lens.2, src.top * tex_scale_y * lens.2, lens.2),
+                            color: color_tl,
+                        },
+                        //right top 1,0
+                        VertexData {
+                            position: top_right,
+                            uv: (0.0,0.0,0.0),//(src.right * tex_scale_x * lens.3, src.top * tex_scale_y * lens.3, lens.3),
+                            color: color_tr,
+                        },
+    
+                        //slice 2 (right bottom corner triangle)
+    
+                        //left bottom 0,1
+                        VertexData {
+                            position: bottom_left,
+                            uv: (0.0,0.0,0.0),//(src.left * tex_scale_x * lens.0, src.bottom * tex_scale_y * lens.0, lens.0),
+                            color: color_bl,
+                        },
+                        //right top 1,0
+                        VertexData {
+                            position: top_right,
+                            uv: (0.0,0.0,0.0),//(src.right * tex_scale_x * lens.3, src.top * tex_scale_y * lens.3, lens.3),
+                            color: color_tr,
+                        },
+                        //right bottom 1,1
+                        VertexData {
+                            position: bottom_right,
+                            uv: (0.0,0.0,0.0),//(src.right * tex_scale_x * lens.1, src.bottom * tex_scale_y * lens.1, lens.1),
+                            color: color_br,
+                        },
+                    ];
+                    self.vertices.extend_from_slice(&vertices);
+            }
 
 
         }
@@ -337,7 +396,7 @@ impl BackendTexture for OpenGLTexture {
                 gl.gl.Enable(gl::BLEND);
                 gl.gl.Disable(gl::DEPTH_TEST);
 
-                
+                //tell opengl what variables to send to the shader
                 self.shader.bind_attrib_pointer(gl, self.vbo);
 
                 //set to the texture we want to draw
@@ -947,6 +1006,7 @@ impl BackendRenderer for OpenGLRenderer {
                     height,
                     vertices: Vec::new(),
                     shader: self.render_data.tex_shader,
+                    fill_shader: self.render_data.fill_shader, 
                     vbo: self.render_data.vbo,
                     context_active: self.context_active.clone(),
                 }))
@@ -986,6 +1046,7 @@ impl BackendRenderer for OpenGLRenderer {
                     height,
                     vertices: Vec::new(),
                     shader: self.render_data.tex_shader,
+                    fill_shader: self.render_data.fill_shader, 
                     vbo: self.render_data.vbo,
                     context_active: self.context_active.clone(),
                 }))

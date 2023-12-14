@@ -55,6 +55,9 @@ pub trait PlayerController: PlayerControllerClone {
     /// rythm button 4
     fn four(&self) -> bool;
 
+    /// strum button (for rythm)
+    fn strum(&self) -> bool;
+
     fn trigger_up(&self) -> bool;
 
     fn trigger_left(&self) -> bool;
@@ -91,6 +94,8 @@ pub trait PlayerController: PlayerControllerClone {
     /// rythm button 4
     fn trigger_four(&self) -> bool;
 
+    /// strum button (for rythm)
+    fn trigger_strum(&self) -> bool;
 
     fn trigger_menu_ok(&self) -> bool;
 

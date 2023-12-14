@@ -38,6 +38,7 @@ bitfield! {
     pub two, set_two: 12;
     pub three, set_three: 13;
     pub four, set_four: 14;
+    pub strum, set_strum: 15;
 
 }
 
@@ -270,6 +271,9 @@ impl PlayerController for TouchPlayerController {
     fn four(&self) -> bool {
         self.state.four()
     }
+    fn strum(&self) -> bool {
+        self.state.strum()
+    }
     fn trigger_one(&self) -> bool {
         self.trigger.one()
     }
@@ -281,6 +285,9 @@ impl PlayerController for TouchPlayerController {
     }
     fn trigger_four(&self) -> bool {
         self.trigger.four()
+    }
+    fn trigger_strum(&self) -> bool {
+        self.trigger.strum()
     }
     //end
 

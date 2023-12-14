@@ -33,6 +33,9 @@ impl PlayerController for DummyPlayerController {
     fn four(&self) -> bool {
         false
     }
+    fn strum(&self) -> bool {
+        false
+    }
     fn trigger_one(&self) -> bool {
         false
     }
@@ -43,6 +46,9 @@ impl PlayerController for DummyPlayerController {
         false
     }
     fn trigger_four(&self) -> bool {
+        false
+    }
+    fn trigger_strum(&self) -> bool {
         false
     }
     //end

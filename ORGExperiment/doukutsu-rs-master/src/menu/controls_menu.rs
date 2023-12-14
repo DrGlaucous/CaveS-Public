@@ -132,6 +132,7 @@ enum ControlEntry {
     Two,
     Three,
     Four,
+    Strum,
 }
 
 impl ControlEntry {
@@ -156,6 +157,7 @@ impl ControlEntry {
             ControlEntry::Two => state.loc.t("menus.controls_menu.rebind_menu.two"),
             ControlEntry::Three => state.loc.t("menus.controls_menu.rebind_menu.three"),
             ControlEntry::Four => state.loc.t("menus.controls_menu.rebind_menu.four"),
+            ControlEntry::Strum => state.loc.t("menus.controls_menu.rebind_menu.strum"),
 
         }
         .to_owned()
@@ -322,6 +324,7 @@ impl ControlsMenu {
         map.push((ControlEntry::Two, settings_key_map.two));
         map.push((ControlEntry::Three, settings_key_map.three));
         map.push((ControlEntry::Four, settings_key_map.four));
+        map.push((ControlEntry::Strum, settings_key_map.strum));
 
         map
     }
@@ -351,6 +354,7 @@ impl ControlsMenu {
         map.push((ControlEntry::Two, settings_controller_button_map.two));
         map.push((ControlEntry::Three, settings_controller_button_map.three));
         map.push((ControlEntry::Four, settings_controller_button_map.four));
+        map.push((ControlEntry::Strum, settings_controller_button_map.strum));
 
         map
     }
@@ -585,6 +589,10 @@ impl ControlsMenu {
                 Player::Player1 => state.settings.player1_key_map.four = scan_code,
                 Player::Player2 => state.settings.player2_key_map.four = scan_code,
             }
+            ControlEntry::Strum => match self.selected_player {
+                Player::Player1 => state.settings.player1_key_map.strum = scan_code,
+                Player::Player2 => state.settings.player2_key_map.strum = scan_code,
+            }
             //end
 
             ControlEntry::Left => match self.selected_player {
@@ -755,6 +763,10 @@ impl ControlsMenu {
             ControlEntry::Four => match self.selected_player {
                 Player::Player1 => state.settings.player1_controller_button_map.four = input_type,
                 Player::Player2 => state.settings.player1_controller_button_map.four = input_type,
+            }
+            ControlEntry::Strum => match self.selected_player {
+                Player::Player1 => state.settings.player1_controller_button_map.strum = input_type,
+                Player::Player2 => state.settings.player1_controller_button_map.strum = input_type,
             }
             //end
 

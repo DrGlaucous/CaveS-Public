@@ -31,6 +31,7 @@ bitfield! {
     pub two, set_two: 17;
     pub three, set_three: 18;
     pub four, set_four: 19;
+    pub strum, set_strum: 20;
 }
 
 #[derive(Clone)]
@@ -112,6 +113,7 @@ impl PlayerController for GamepadController {
         self.state.set_two(gamepad::is_active(ctx, self.gamepad_id, &button_map.two));
         self.state.set_three(gamepad::is_active(ctx, self.gamepad_id, &button_map.three));
         self.state.set_four(gamepad::is_active(ctx, self.gamepad_id, &button_map.four));
+        self.state.set_strum(gamepad::is_active(ctx, self.gamepad_id, &button_map.strum));
 
         Ok(())
     }
@@ -136,6 +138,9 @@ impl PlayerController for GamepadController {
     fn four(&self) -> bool {
         self.state.four()
     }
+    fn strum(&self) -> bool {
+        self.state.strum()
+    }
     fn trigger_one(&self) -> bool {
         self.trigger.one()
     }
@@ -147,6 +152,9 @@ impl PlayerController for GamepadController {
     }
     fn trigger_four(&self) -> bool {
         self.trigger.four()
+    }
+    fn trigger_strum(&self) -> bool {
+        self.trigger.strum()
     }
     //end
 

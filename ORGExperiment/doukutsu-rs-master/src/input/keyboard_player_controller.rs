@@ -33,6 +33,7 @@ bitfield! {
   pub two, set_two: 17;
   pub three, set_three: 18;
   pub four, set_four: 19;
+  pub strum, set_strum: 20;
 
 }
 
@@ -78,6 +79,7 @@ impl PlayerController for KeyboardController {
         self.state.set_two(keyboard::is_key_pressed(ctx, keymap.two));
         self.state.set_three(keyboard::is_key_pressed(ctx, keymap.three));
         self.state.set_four(keyboard::is_key_pressed(ctx, keymap.four));
+        self.state.set_strum(keyboard::is_key_pressed(ctx, keymap.strum));
 
 
 
@@ -105,6 +107,9 @@ impl PlayerController for KeyboardController {
     fn four(&self) -> bool {
         self.state.four()
     }
+    fn strum(&self) -> bool {
+        self.state.strum()
+    }
     fn trigger_one(&self) -> bool {
         self.trigger.one()
     }
@@ -116,6 +121,9 @@ impl PlayerController for KeyboardController {
     }
     fn trigger_four(&self) -> bool {
         self.trigger.four()
+    }
+    fn trigger_strum(&self) -> bool {
+        self.trigger.strum()
     }
     //end
 

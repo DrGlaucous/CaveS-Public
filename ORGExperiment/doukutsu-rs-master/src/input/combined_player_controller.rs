@@ -42,6 +42,9 @@ impl PlayerController for CombinedPlayerController {
     fn four(&self) -> bool {
         self.controllers.iter().any(|cont| cont.four())
     }
+    fn strum(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.strum())
+    }
     fn trigger_one(&self) -> bool {
         self.controllers.iter().any(|cont| cont.trigger_one())
     }
@@ -53,6 +56,9 @@ impl PlayerController for CombinedPlayerController {
     }
     fn trigger_four(&self) -> bool {
         self.controllers.iter().any(|cont| cont.trigger_four())
+    }
+    fn trigger_strum(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.trigger_strum())
     }
     //end
 

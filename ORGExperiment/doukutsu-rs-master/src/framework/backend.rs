@@ -140,5 +140,5 @@ pub enum SpriteBatchCommand {
 
     //Nuevo
     DrawRectSkewedTinted(Rect<f32>, (f32, f32), (f32, f32), (f32, f32), (f32, f32), Color), //src, [TL], [TR], [BL], [BR], RGBA
-
+    DrawGradient((f32, f32), (f32, f32), (f32, f32), (f32, f32), Color, Color, Color, Color) //src, [TL], [TR], [BL], [BR], RGBA_TL, RGBA_TR, RGBA_BL, RGBA_BR
 }

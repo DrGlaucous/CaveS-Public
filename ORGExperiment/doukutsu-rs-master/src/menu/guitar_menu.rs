@@ -78,7 +78,7 @@ impl StageSelectMenu {
         let mut i: usize = 0;
         for map in state.stages.iter()
         {
-            self.list_menu.push_entry(MenuItems::Level(i), MenuEntry::Active(map.name.clone() + " three") );
+            self.list_menu.push_entry(MenuItems::Level(i), MenuEntry::Active(map.name.clone() + " TODO: Score here") );
             self.list_menu.selected = MenuItems::Level(i);
             i += 1;
         }

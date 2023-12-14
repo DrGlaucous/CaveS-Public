@@ -66,7 +66,8 @@ impl GuitarScores
 //notes used by the guitar struct
 struct GuitarNote
 {
-    note_length: f32, //total length of the note, is represented in board length percentage
+    note_length_decimal: f32, //total length of the note, is represented in board length percentage
+    note_length: u8, //length of the note in dots
 
     //where the front of the note is (for note hit timing)
     //is a decimal from 0 to 1, where 1 is at the bottom and 0 is at the top
@@ -85,11 +86,13 @@ pub struct Guitar
 {
     //everything is drawn to this before this is then drawn to the main screen
     texture: RefCell<Option<Box<dyn BackendTexture>>>,
-    last_size: RefCell<(u16, u16)>,
+    last_size: RefCell<(u16, u16)>, //used to see if the window has been resized and the texure should also be resized
+    
+
     draw_corners: [[u32;2];4], //screen coordinates where the overlay should be placed
     current_song: usize,
     visible: bool,
-    key_state: [bool; 4], //4 keys that can be pressed
+    key_state: [bool; 5], //5 keys that can be pressed
     onscreen_time: f32, //how many seconds the note should last on the highway
     current_score: LevelScore,
     pub controller: Box<dyn PlayerController>, //controls the reader (duh)
@@ -121,7 +124,7 @@ impl Guitar
             draw_corners: [[0,0]; 4],
             current_song: 0,
             visible: true,
-            key_state: [false; 4], //state of user input
+            key_state: [false; 5], //state of user input
             onscreen_time: 0.75,//2.25,
             current_score: LevelScore::new(),
             controller: Box::new(DummyPlayerController::new()),
@@ -149,6 +152,12 @@ impl Guitar
     //channels 2-8 will be reserved for co-op?
     //Q will be used to run TSC events, with the event corresponding to the note being sent (only have a range or around 100+)
 
+    //I want the game to mimick this: https://wiki.clonehero.net/books/general-info/
+
+    //notes will award 50 points each x notes in a chord
+    //held notes will award 25 points per beat of holding ()
+    //multiplier will
+
 
     ///////////////////
     /// Helper functions
@@ -165,6 +174,7 @@ impl Guitar
         self.key_state[1] = self.controller.two();
         self.key_state[2] = self.controller.three();
         self.key_state[3] = self.controller.four();
+        self.key_state[4] = self.controller.strum();
 
         // if self.controller.trigger_left() || self.controller.trigger_up() || self.controller.trigger_right() || self.controller.trigger_down()
         // {
@@ -215,7 +225,7 @@ impl Guitar
 
             let change_decimal = Self::get_offset(self.onscreen_time, this_time, notess.timestamp);
             let length_decimal = Self::get_length(self.onscreen_time, notess.lengths[i], state.sound_manager.current_commander_tempo());   
-            self.notes[i].push( GuitarNote{note_length: length_decimal, note_head_loc: change_decimal, last_time: this_time, was_hit: false} );
+            self.notes[i].push( GuitarNote{note_length_decimal: length_decimal, note_length: notess.lengths[i], note_head_loc: change_decimal, last_time: this_time, was_hit: false} );
         }
 
         for i in 0..8
@@ -266,7 +276,7 @@ impl Guitar
             for i in (0..n_strip.len()).rev() //(n_strip.len() - 1)..=0
             {
 
-                if n_strip[i].note_head_loc - n_strip[i].note_length > 1.0
+                if n_strip[i].note_head_loc - n_strip[i].note_length_decimal > 1.0
                 {
                     n_strip.remove(i);
                     continue;
@@ -330,8 +340,8 @@ impl Guitar
 
         //create the surface to draw to
         //the bitmap size depends on window scale, so this surface also needs to change in size with the window
-        let width = (64.0 * state.scale) as u16;
-        let height = (144.0 * state.scale) as u16;
+        let width = (96.0 * state.scale) as u16;
+        let height = (176.0 * state.scale) as u16;
         //re-create the surface when the window size changes
         if *self.last_size.borrow() != (width, height)
         {
@@ -363,21 +373,22 @@ impl Guitar
     {
         if !self.visible {return Ok(())}
 
-        //tallness of the fretboard in pixels
-        let board_height  = 144.0;
+        //tallness of the fretboard in pixels (used for note positioning)
+        let board_height  = 176.0;
 
-        let string_rect = Rect { left: 0, top: 0, right: 64, bottom: 144};
+        //rect of the note highway board, split into top, mid, and bottom sections to mask off 
+        let board_mid_rect = Rect { left: 0, top: 0, right: 96, bottom: 176};
+        
 
-        let string_rect_2: Rect<f32> = Rect { left: 0.0, top: 0.0, right: 64.0 * state.scale, bottom: 144.0 * state.scale };
+        //rect of the intermediate surface that will be drawn to the screen after everything has been drawn to it
+        let board_rect_2: Rect<f32> = Rect { left: 0.0, top: 0.0, right: 96.0 * state.scale, bottom: 176.0 * state.scale };
 
-        let button_inactive = Rect { left: 64, top: 0, right: 80, bottom: 16 };
-        let button_active = Rect { left: 64, top: 16, right: 80, bottom: 32 };
+        let button_inactive = Rect { left: 176, top: 0, right: 192, bottom: 16 };
+        let button_active = Rect { left: 176, top: 16, right: 192, bottom: 32 };
 
-        //let note_head = Rect { left: 64, top: 64, right: 80, bottom: 80 };
-        let note_head = Rect { left: 64, top: 48, right: 80, bottom: 64 };
-        let note_body = Rect { left: 64, top: 40, right: 80, bottom: 48 };
-        let note_tail = Rect { left: 64, top: 32, right: 80, bottom: 48 };
-
+        let note_head = Rect { left: 176, top: 48, right: 192, bottom: 64 };
+        let note_body = Rect { left: 176, top: 40, right: 192, bottom: 48 };
+        let note_tail = Rect { left: 176, top: 32, right: 192, bottom: 48 };
 
         //push all shapes to the piano roll texture
         {
@@ -401,21 +412,23 @@ impl Guitar
 
 
             //draw note highway
-            batch.add_rect(0.0, 0.0, &string_rect);
+            batch.add_rect(0.0, 0.0, &board_mid_rect);
+
+            let button_offset = 16.0; //where the buttons and notes should start being drawn horizontally
+
 
             //draw buttons
             {
-                for i in 0..self.key_state.len()
+                for i in 0..4//self.key_state.len()
                 {
                     let button_rect = if self.key_state[i]
                     {shift_right(&button_active, i)}
                     else
                     {shift_right(&button_inactive, i)};
 
-                    batch.add_rect((16 * i) as  f32, board_height - 32.0, &button_rect); 
+                    batch.add_rect((16 * i) as  f32 + button_offset, board_height - 32.0, &button_rect); 
                 }
             }
-
 
             //draw notes
             {
@@ -436,33 +449,35 @@ impl Guitar
                     for j in 0..self.notes[i].len()
                     {
                         //how many pixels are within the note's total length
-                        let note_px_len = board_height * self.notes[i][j].note_length;
+                        let note_px_len = board_height * self.notes[i][j].note_length_decimal;
 
                         //draw tail segments
                         {
-                            let delta_len = note_b_rect.bottom - note_b_rect.top;
+                            //divide distance from start to end by size of the body, placing a segment for each place
+
+                            //let delta_len = note_b_rect.bottom - note_b_rect.top;
+                            //let stub_have = if (note_px_len as i32) % (note_b_rect.bottom - note_b_rect.top) as i32 > 0 {1} else {0};
+
                             let main_have = (note_px_len as i32) / (note_b_rect.bottom - note_b_rect.top) as i32;
-                            let stub_have = if (note_px_len as i32) % (note_b_rect.bottom - note_b_rect.top) as i32 > 0 {1} else {0};
                             for t in 0..(main_have)// + stub_have)
                             {
-                                batch.add_rect((16 * i) as  f32,
+                                batch.add_rect((16 * i) as  f32 + button_offset,
                                     (self.notes[i][j].note_head_loc * board_height) - (8 * t) as f32,
                                     &note_b_rect);
                             }
                         }
                         //cap with tail tip
-                        batch.add_rect((16 * i) as  f32,
-                                    ((self.notes[i][j].note_head_loc - self.notes[i][j].note_length) * board_height) as f32,
+                        batch.add_rect((16 * i) as  f32 + button_offset,
+                                    ((self.notes[i][j].note_head_loc - self.notes[i][j].note_length_decimal) * board_height) as f32,
                                     &note_t_rect);
 
 
                         //draw head
-                        batch.add_rect((16 * i) as  f32, self.notes[i][j].note_head_loc * board_height, &note_h_rect);  
+                        batch.add_rect((16 * i) as  f32 + button_offset, self.notes[i][j].note_head_loc * board_height, &note_h_rect);  
                     }
 
                 }
             }
-
 
 
 
@@ -476,12 +491,13 @@ impl Guitar
         }
 
 
+        
         //draw texture onto the main screen
         if let Some(tex) = self.texture.borrow_mut().as_mut()
         {
             tex.clear();
             tex.add(SpriteBatchCommand::DrawRectSkewedTinted(
-                string_rect_2, //src
+                board_rect_2, //src
 
                 //top LR
                 (64.0 * state.scale, 0.0),
@@ -504,7 +520,7 @@ impl Guitar
 
         }
 
-
+ 
         Ok(())
 
     }
