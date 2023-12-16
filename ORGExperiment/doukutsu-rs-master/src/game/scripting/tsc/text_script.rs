@@ -1908,11 +1908,13 @@ impl TextScriptVM {
 
             //pause / resume
             TSCOpCode::PSM =>{
-                state.sound_manager.pause();
+                state.sound_manager.pause_lock();
+                //state.sound_manager.soft_pause();
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             TSCOpCode::RSM =>{
-                state.sound_manager.resume();
+                state.sound_manager.resume_lock();
+                //state.sound_manager.soft_resume();
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
 
@@ -1925,7 +1927,7 @@ impl TextScriptVM {
                 game_scene.guitar_manager.set_visibility(false);
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
-
+            //store stats
             TSCOpCode::STS =>{
                 //get stage
                 let stage_no = read_cur_varint(&mut cursor)? as usize;
@@ -1933,9 +1935,10 @@ impl TextScriptVM {
                 game_scene.guitar_manager.store_stats(state, stage_no);
                 Guitar::put_saved_scores(state, ctx)?;
             }
+            //load stats
             TSCOpCode::LDT =>{
                 //honestly not sure when this one would be used
-                Guitar::get_saved_scores(state, ctx);
+                Guitar::get_saved_scores(state, ctx)?;
             }
             
         

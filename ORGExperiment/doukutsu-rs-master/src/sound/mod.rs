@@ -25,6 +25,8 @@ use crate::sound::organya::Song;
 use crate::sound::pixtone::{PixToneParameters, PixTonePlayback};
 use crate::sound::wave_bank::SoundBank;
 
+use crate::common::RunGameTime;
+
 use std::time::SystemTime;
 use self::organya::Timing;
 use self::wav::WavSample;
@@ -102,6 +104,15 @@ pub struct SoundManager {
     current_commander_id: usize,
     commander_tempo: u16,
 
+    //lock/unlock sound manager states
+    play_lock: bool, //true if the music was paused from TSC instead of a defocus
+    timer_lock_soft: bool, //true if the music was locked from a soft pause
+    timer_lock_hard: bool, //true if the music was locked from a hard pause
+
+    //time relative to music player's state
+    pub music_time: RunGameTime,
+
+    //string paths for songs
     current_song_path: String,
     current_commander_path: String,
 }
@@ -150,9 +161,13 @@ impl SoundManager {
                 prev_commander_id: 0,
                 current_commander_id: 0,
                 commander_tempo: 0,
-
+                play_lock: false,
                 current_commander_path: String::new(),
                 current_song_path: String::new(),
+
+                music_time: RunGameTime::new(),
+                timer_lock_soft: false,
+                timer_lock_hard: false,
             });
         }
 
@@ -186,6 +201,11 @@ impl SoundManager {
             prev_commander_id: 0,
             current_commander_id: 0,
             commander_tempo: 0,
+
+            music_time: RunGameTime::new(),
+            play_lock: false,
+            timer_lock_soft: false,
+            timer_lock_hard: false,
 
             current_commander_path: String::new(),
             current_song_path: String::new(),
@@ -275,17 +295,80 @@ impl SoundManager {
         Ok(())
     }
 
+
+    //feed 'true' if the command is from a soft resume
+    fn try_resume_music_timer(&mut self, is_soft: bool)
+    {
+        //change the state of the proper variable
+        if is_soft {self.timer_lock_soft = false}
+        else {self.timer_lock_hard = false}
+
+        if !self.timer_lock_soft && !self.timer_lock_hard
+        {
+            self.music_time.resume();
+        }
+    }
+
+    //pause with locking, so TSC events keep it paused even if screen events try to resume it
+    pub fn pause_lock(&mut self) {
+        self.play_lock = true;
+
+        if let Some(stream) = &mut self.stream {
+            let _ = stream.pause();
+
+            self.timer_lock_hard = true;
+            self.music_time.pause();
+        }
+    }
+    pub fn resume_lock(&mut self) {
+        self.play_lock = false;
+
+        if let Some(stream) = &mut self.stream {
+            let _ = stream.play();
+            self.try_resume_music_timer(false);
+        }
+    }
+
     pub fn pause(&mut self) {
         if let Some(stream) = &mut self.stream {
             let _ = stream.pause();
+            self.timer_lock_hard = true;
+            self.music_time.pause();
         }
     }
 
     pub fn resume(&mut self) {
+        if self.play_lock {return} //do not resume if locked
+
         if let Some(stream) = &mut self.stream {
             let _ = stream.play();
+            self.try_resume_music_timer(false);
         }
     }
+
+    //send pause and play commands to the player and tracker, keeping the rest of the sound enabled
+    pub fn soft_pause(&mut self)
+    {
+        //check if we are already soft-paused
+        if self.timer_lock_soft == true
+        { return }
+
+        self.send(PlaybackMessage::SaveState).unwrap();
+        self.send(PlaybackMessage::SaveCommanderState).unwrap();
+        self.send(PlaybackMessage::Stop).unwrap();
+        self.send(PlaybackMessage::StopCommander).unwrap();
+
+        self.timer_lock_soft = true;
+        self.music_time.pause();
+    }
+    pub fn soft_resume(&mut self)
+    {
+        self.send(PlaybackMessage::RestoreState(false)).unwrap();
+        self.send(PlaybackMessage::RestoreCommanderState(false)).unwrap();
+
+        self.try_resume_music_timer(true);
+    }
+
 
     pub fn play_sfx(&mut self, id: u8) {
         if self.no_audio {
@@ -553,6 +636,7 @@ impl SoundManager {
                         Ok(Ok(org)) => {
                             log::info!("Playing Organya BGM: {}", song_path);
 
+                            self.current_song_path = song_path.clone();
                             self.prev_song_id = self.current_song_id;
                             self.current_song_id = 0;
                             let _ = self
@@ -656,7 +740,7 @@ impl SoundManager {
             return Ok(());
         }
 
-        self.send(PlaybackMessage::RestoreState).unwrap();
+        self.send(PlaybackMessage::RestoreState(true)).unwrap();
         self.current_song_id = self.prev_song_id;
 
         Ok(())
@@ -874,6 +958,7 @@ impl SoundManager {
         settings: &Settings,
         ctx: &mut Context,
     ) -> GameResult {
+
         if self.current_commander_id == song_id || self.no_audio {
             return Ok(());
         }
@@ -955,6 +1040,10 @@ impl SoundManager {
         ctx: &mut Context,
     ) -> GameResult {
 
+        if self.current_commander_path == *song_path {
+            return Ok(());
+        }
+
         if song_path.is_empty() {
             log::info!("Stopping Tracker");
 
@@ -977,7 +1066,7 @@ impl SoundManager {
                 
                 self.current_commander_path = song_path.clone();
                 self.prev_commander_id = self.current_commander_id;
-                self.current_commander_id = 0;
+                self.current_commander_id = 1; //nasty hack: we're not actually playing track 1, but we need to keep 0 open
                 self.commander_tempo = org.time.wait;
                 
                 self.send(PlaybackMessage::SetCommanderInterpolation(settings.organya_interpolation)).unwrap();
@@ -1040,27 +1129,23 @@ pub(in crate::sound) enum PlaybackMessage {
     SetSampleVolume(f32),
     FadeoutSong,
     SaveState,
-    RestoreState,
+    RestoreState(bool),
     SetSampleParams(u8, PixToneParameters),
     SetOrgInterpolation(InterpolationMode),
     SetSampleData(u8, Vec<i16>),
     //Rewind,
 
-    
     //commander-related commands
     StopCommander,
     PlayCommanderSong(Box<Song>),
     SetCommanderSpeed(f32),
     SaveCommanderState,
-    RestoreCommanderState,
+    RestoreCommanderState(bool),
     SetCommanderInterpolation(InterpolationMode),
-    
-    
-
 
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 enum PlaybackState {
     Stopped,
     PlayingOrg,
@@ -1124,11 +1209,16 @@ impl OrgTelemCommander
         return false;
     }
 
-    pub fn get_state(&mut self) -> CurrentOrgState
+    pub fn get_telem(&mut self) -> CurrentOrgState
     {
         let state = self.org_engine.get_latest_track_state();
         //state.timestamp = SystemTime::now();
         return state;
+    }
+
+    pub fn get_state(&self) -> PlaybackState
+    {
+        self.state.clone()
     }
 
     pub fn set(&mut self, message: PlaybackMessage)
@@ -1162,7 +1252,7 @@ impl OrgTelemCommander
                     _ => PlaybackStateType::None,
                 };
             }
-            PlaybackMessage::RestoreState => {
+            PlaybackMessage::RestoreState(should_rewind) => {
 
                 let saved_state_loc = std::mem::take(&mut self.saved_state);
                 //restore the correct audio backend
@@ -1170,7 +1260,7 @@ impl OrgTelemCommander
                     PlaybackStateType::Organya(playback_state) => {
                         self.org_engine.set_state(playback_state, &self.bank);
 
-                        if self.state == PlaybackState::Stopped {
+                        if should_rewind && self.state == PlaybackState::Stopped {
                             self.org_engine.rewind();
                         }
 
@@ -1403,7 +1493,7 @@ fn run<T>(
                         };
                         
                     }
-                    Ok(PlaybackMessage::RestoreState) => {
+                    Ok(PlaybackMessage::RestoreState(should_rewind)) => {
 
                         let saved_state_loc = std::mem::take(&mut saved_state);
                         //restore the correct audio backend
@@ -1414,7 +1504,7 @@ fn run<T>(
                             PlaybackStateType::Organya(playback_state) => {
                                 org_engine.set_state(playback_state, &bank);
 
-                                if state == PlaybackState::Stopped {
+                                if should_rewind && state == PlaybackState::Stopped {
                                     org_engine.rewind();
                                 }
 
@@ -1435,7 +1525,7 @@ fn run<T>(
                             PlaybackStateType::Ogg(playback_state) => {
                                 ogg_engine.set_state(playback_state);
 
-                                if state == PlaybackState::Stopped {
+                                if should_rewind && state == PlaybackState::Stopped {
                                     ogg_engine.rewind();
                                 }
 
@@ -1474,8 +1564,11 @@ fn run<T>(
                     Ok(PlaybackMessage::SetCommanderSpeed(speed)) => {
                         tracker_engine.set(PlaybackMessage::SetSpeed(speed));
                     }
-                    Ok(PlaybackMessage::RestoreCommanderState) => {
-                        tracker_engine.set(PlaybackMessage::RestoreState);
+                    Ok(PlaybackMessage::SaveCommanderState) => {
+                        tracker_engine.set(PlaybackMessage::SaveState);
+                    }
+                    Ok(PlaybackMessage::RestoreCommanderState(should_rewind)) => {
+                        tracker_engine.set(PlaybackMessage::RestoreState(should_rewind));
                     }
                     Ok(PlaybackMessage::SetCommanderInterpolation(interpolation)) => {
                         tracker_engine.set(PlaybackMessage::SetOrgInterpolation(interpolation));
@@ -1585,17 +1678,20 @@ fn run<T>(
             }
 
 
-
+            //the only reason we have this out here is because we want to be able to play this even if the music is halted... for some reason...
             //we *technically* can do this, but it results in possible desync from the parent
             //this should keep it matched up, but only while the actual audio is playing:
             if tracker_ticker < 1 {tracker_ticker = 1}
 
             for _i in 0..tracker_ticker
             {
-                //send a telemetry packet when the ORG updates
-                if tracker_engine.run()
-                {}//{let _ = tx.send(tracker_engine.get_state());}
-                let _ = tx.send(tracker_engine.get_state());
+                if tracker_engine.get_state() != PlaybackState::Stopped
+                {
+                    //send a telemetry packet when the ORG updates
+                    if tracker_engine.run()
+                    {}//{let _ = tx.send(tracker_engine.get_state());}
+                    let _ = tx.send(tracker_engine.get_telem());
+                }
             
             }
             tracker_ticker = 0;

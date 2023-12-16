@@ -166,10 +166,17 @@ impl PauseMenu {
     pub fn pause(&mut self, state: &mut SharedGameState) {
         self.is_paused = true;
         state.sound_manager.play_sfx(5);
+        state.sound_manager.soft_pause();
     }
 
     pub fn is_paused(&mut self) -> bool {
         self.is_paused
+    }
+
+    fn resume(&mut self, state: &mut SharedGameState)
+    {
+        self.is_paused = false;
+        state.sound_manager.soft_resume();
     }
 
     pub fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
@@ -196,7 +203,7 @@ impl PauseMenu {
                     // double tap prevention
                     if self.tick >= 3 {
                         self.tick = 0;
-                        self.is_paused = false;
+                        self.resume(state);
                     }
                 }
                 MenuSelectionResult::Selected(PauseMenuEntry::Retry, _) => {

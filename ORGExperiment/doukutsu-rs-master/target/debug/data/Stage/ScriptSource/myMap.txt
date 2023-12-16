@@ -3,21 +3,45 @@
 
 
 
+//drum events
+#0084
+<FOM0016<END
+
+#0085
+<FON0085:0016<END
+
 
 
 
 #0200
 <HMC<KEY<MSGHello there.<NOD<CLO
-<PSM
+//<PSM
 <CMF0001:/Resource/01 Pac-Man Fever.ogg$
 //<CMF0000:/Resource/CORE_TRKR.org$
 <CTF/Resource/Tracker.org$
-<RSM
+//<RSM
 <SNH
+<MOV0006:0009
+<SMC
 <FAI0004
-<WAI9999
+<END
 
+#0300
+<KEY
+<PSM<NOD
+<RSM<END
 
+#0400
+<KEY
+<CMF0000:/Resource/ORG/XXXX.org$
+<CTF/Resource/ORG/XXXX.org$
+<END
+
+#0420
+<KEY
+<CMF0001:/Resource/01 Pac-Man Fever.ogg$
+<CTF/Resource/Tracker.org$
+<END
 
 
 

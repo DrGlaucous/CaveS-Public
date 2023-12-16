@@ -7,14 +7,17 @@ use crate::framework::backend::{BackendTexture, SpriteBatchCommand};
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::filesystem::{user_create, user_open};
-use crate::framework::gamepad::get_gamepad_sprite_offset;
 use crate::framework::graphics;
 use crate::game::scripting::tsc::text_script::TextScriptExecutionState;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::Stage;
 use crate::graphics::font::Font;
+use crate::graphics::texture_set::SpriteBatch;
 use crate::input::touch_controls::TouchControlType;
 use crate::engine_constants::EngineConstants;
+
+use crate::components::draw_common::draw_number;
+use crate::components::draw_common::Alignment;
 
 use crate::input::dummy_player_controller::DummyPlayerController;
 use crate::input::player_controller::PlayerController;
@@ -87,7 +90,7 @@ pub struct Guitar
     //everything is drawn to this before this is then drawn to the main screen
     texture: RefCell<Option<Box<dyn BackendTexture>>>,
     last_size: RefCell<(u16, u16)>, //used to see if the window has been resized and the texure should also be resized
-    
+    ref_size: (f32, f32), //pixel size of this texture, set here so it can be used everywhere
 
     draw_corners: [[u32;2];4], //screen coordinates where the overlay should be placed
     current_song: usize,
@@ -121,11 +124,12 @@ impl Guitar
         {
             texture: RefCell::new(None),
             last_size: RefCell::new((0, 0)),
+            ref_size: (96.0, 176.0),
             draw_corners: [[0,0]; 4],
             current_song: 0,
             visible: true,
             key_state: [false; 5], //state of user input
-            onscreen_time: 0.75,//2.25,
+            onscreen_time: 1.0, //2.25,
             current_score: LevelScore::new(),
             controller: Box::new(DummyPlayerController::new()),
 
@@ -218,23 +222,28 @@ impl Guitar
 
         //initialize new notes
         //checks tracks 1-4
-        let this_time = SystemTime::now();
+        let this_time = state.sound_manager.music_time.now();
         for i in 0..4
         {
             if notess.keys[i] == 0xFF {continue;}
 
-            let change_decimal = Self::get_offset(self.onscreen_time, this_time, notess.timestamp);
+            let change_decimal = Self::get_offset(self.onscreen_time, this_time, state.sound_manager.music_time.from_systime(notess.timestamp));
             let length_decimal = Self::get_length(self.onscreen_time, notess.lengths[i], state.sound_manager.current_commander_tempo());   
             self.notes[i].push( GuitarNote{note_length_decimal: length_decimal, note_length: notess.lengths[i], note_head_loc: change_decimal, last_time: this_time, was_hit: false} );
         }
 
+        //run events with drums
         for i in 0..8
         {
             if notess.drums[i] != 0xFF && notess.drums[i] != 0x00
             {
-                let mut yyt = i;
-                yyt += i;
-                print!("{}\n", notess.drums[i]);
+                //let mut yyt = i;
+                //yyt += i;
+                //print!("{}\n", notess.drums[i]);
+                state.control_flags.set_tick_world(true);
+                state.control_flags.set_interactions_disabled(true);
+                //state.textscript_vm.executor_player = id;
+                state.textscript_vm.start_script(notess.drums[i] as u16);
 
             }
         }
@@ -283,7 +292,7 @@ impl Guitar
                 }
 
                 //move note down
-                let present = SystemTime::now();
+                let present = state.sound_manager.music_time.now();
                 let down_movement = Self::get_offset(self.onscreen_time, present, n_strip[i].last_time);
                 n_strip[i].note_head_loc += down_movement;
                 n_strip[i].last_time = present;
@@ -294,6 +303,59 @@ impl Guitar
 
 
 
+
+    }
+
+    //draw a rect, making sure no parts of it can be seen outside the constraints of the larger rect
+    fn crop_and_draw_rect(mut x_loc: f32, mut y_loc: f32, source_rect_u16: Rect<u16>, crop_rect: Rect<f32>, batch: &mut Box<dyn SpriteBatch>)
+    {
+        let mut source_rect = Rect {left: source_rect_u16.left as f32,
+                                                top: source_rect_u16.top as f32,
+                                                right: source_rect_u16.right as f32,
+                                                bottom: source_rect_u16.bottom as f32};
+
+        //xloc and yloc are at the top left corner
+        
+        //OOB conditions
+        if x_loc + source_rect.width() < crop_rect.left
+        || y_loc + source_rect.height() < crop_rect.top
+        || x_loc > crop_rect.right
+        || y_loc > crop_rect.bottom
+        { return }
+
+        //partial OOB conditons
+
+        //scraping left wall
+        if x_loc < crop_rect.left
+        {
+            let overshoot = crop_rect.left - x_loc;
+            source_rect.left += overshoot;
+            x_loc += overshoot;
+        }
+        //scraping roof
+        if y_loc < crop_rect.left
+        {
+            let overshoot = crop_rect.top - y_loc;
+            source_rect.top += overshoot;
+            y_loc += overshoot;
+        }
+        //scraping right wall
+        if x_loc + source_rect.width() > crop_rect.right
+        {
+            let overshoot = (x_loc + source_rect.width() as f32) - crop_rect.right;
+            source_rect.right -= overshoot;
+        }
+        //scraping floor
+        if y_loc + source_rect.height() > crop_rect.bottom
+        {
+            let overshoot = (y_loc + source_rect.height() as f32) - crop_rect.bottom;
+            source_rect.bottom -= overshoot;
+        }
+
+        batch.add_rect_float(x_loc,
+            y_loc,
+            1.0,1.0,
+            &source_rect);
 
     }
 
@@ -340,8 +402,8 @@ impl Guitar
 
         //create the surface to draw to
         //the bitmap size depends on window scale, so this surface also needs to change in size with the window
-        let width = (96.0 * state.scale) as u16;
-        let height = (176.0 * state.scale) as u16;
+        let width = (self.ref_size.0 * state.scale) as u16;
+        let height = (self.ref_size.1 * state.scale) as u16;
         //re-create the surface when the window size changes
         if *self.last_size.borrow() != (width, height)
         {
@@ -368,8 +430,10 @@ impl Guitar
 
     }
 
-    //put note bar onto the screen
-    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult
+
+    //put note bar onto the screen (this is kind of messy)
+    /*
+    pub fn draw_old(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult
     {
         if !self.visible {return Ok(())}
 
@@ -524,8 +588,212 @@ impl Guitar
         Ok(())
 
     }
+    */
+
+    //trying again but making things more modular
+    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult
+    {
+
+        if !self.visible {return Ok(())}
 
 
+        //rect of the note highway board
+        let board_rect = Rect { left: 0, top: 0, right: 96, bottom: 176};
+
+        //rect of where the note strips will be positioned, not a bitmap RECT.
+        //left and top represent where on the fretboard they will be drawn,
+        let notespace_rect = Rect { left: 16.0, top: 8.0, right: 16.0 + 64.0, bottom: 8.0 + 160.0};
+        //tallness of the fretboard in pixels (used for note positioning) (notespace_rect.height())
+   
+        //where the buttons should be drawn vertically
+        let button_offset = notespace_rect.height() as f32 - 32.0; 
+
+
+        //rect of the intermediate surface that will be drawn to the screen after everything has been drawn to it
+        let board_rect_2: Rect<f32> = Rect { left: 0.0, top: 0.0, right: self.ref_size.0 * state.scale, bottom: self.ref_size.1 * state.scale };
+
+
+        //rect for user buttons
+        let button_inactive = Rect { left: 176, top: 0, right: 192, bottom: 16 };
+        let button_active = Rect { left: 176, top: 16, right: 192, bottom: 32 };
+        //rect for note parts
+        let note_head = Rect { left: 176, top: 48, right: 192, bottom: 64 };
+        let note_body = Rect { left: 176, top: 40, right: 192, bottom: 48 };
+        let note_tail = Rect { left: 176, top: 32, right: 192, bottom: 48 };
+
+        let nrg_bar_frame: Rect<u16> = Rect { left: 144, top: 0, right: 152, bottom: 64 };
+        let nrg_bar_fuel: Rect<u16> = Rect { left: 152, top: 0, right: 160, bottom: 64 };
+        let nrg_bar_max: Rect<u16> = Rect { left: 160, top: 0, right: 168, bottom: 64 };
+        let nrg_bar_flash: Rect<u16> = Rect { left: 168, top: 0, right: 176, bottom: 64 };
+
+
+
+
+        //push all shapes to the piano roll texture
+        {
+            //shift rects so we only have to define a few
+            fn shift_right(orig_rect: &Rect<u16>, shift: usize) -> Rect<u16>
+            {
+                let mut new_rect: Rect<u16> = orig_rect.clone();
+                let rect_width = new_rect.right - new_rect.left;
+                new_rect.left += rect_width * shift as u16;
+                new_rect.right = rect_width + new_rect.left;
+                new_rect
+            }
+
+            //use the piano roll bitmap
+            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "PianoRoll")?;
+
+            //set the render target to the texture
+            graphics::set_render_target(ctx, self.texture.borrow().as_ref())?;
+            //erase all old
+            graphics::clear(ctx, Color::new(0.0, 0.0, 0.0, 0.0));
+
+
+            //draw note highway
+            batch.add_rect(0.0, 0.0, &board_rect);
+
+
+            //set up offsets based on notezone rect
+            let note_spacing = notespace_rect.width() / 4.0; //4 because 4 notes
+            let note_offset = note_spacing / 2.0;
+
+
+            //draw buttons
+            {
+                for i in 0..4
+                {
+                    //choose either the 'on' or 'off' button rect and shift it so the color matches
+                    let button_rect = if self.key_state[i]
+                    {shift_right(&button_active, i)}
+                    else
+                    {shift_right(&button_inactive, i)};
+                    
+                    let button_width = (button_rect.width() / 2) as f32;
+                    batch.add_rect((notespace_rect.left + note_offset - button_width + note_spacing * i as f32) as f32, notespace_rect.top as f32 + button_offset, &button_rect); 
+                }
+            }
+
+            //draw notes
+            {
+
+                //for all note strips (4 of them)
+                for i in 0..4
+                {
+                    //color changing head
+                    let note_h_rect: Rect<u16> = shift_right(&note_head, i);
+                    //color changing body
+                    let note_b_rect: Rect<u16> = shift_right(&note_body, i);
+                    //color changing tail
+                    let note_t_rect: Rect<u16> = shift_right(&note_tail, i);
+
+                    let head_center = (note_h_rect.width() / 2) as f32;
+                    let body_center = (note_b_rect.width() / 2) as f32;
+                    let tail_center = (note_t_rect.width() / 2) as f32;
+                   
+                    //is notespace_rect.height(), but we also include the vertical offset so the note can despawn offscreen
+                    let travel_px = notespace_rect.height() + note_h_rect.height() as f32;
+
+                    //for all notes in the list
+                    for j in 0..self.notes[i].len()
+                    {
+                        
+                        //convert from percent-of-board length into pixels
+                        let note_px_len = travel_px * self.notes[i][j].note_length_decimal;
+
+                        //draw tail segments
+                        {
+                            //number of body segments that fit completely between the start and end of the note
+                            let main_have = (note_px_len as i32) / (note_b_rect.bottom - note_b_rect.top) as i32;
+
+                            for t in 0..(main_have)
+                            {
+                                let seg_x = notespace_rect.left + note_offset - body_center as f32 + note_spacing * i as f32;
+                                let seg_y = (self.notes[i][j].note_head_loc * travel_px) - note_h_rect.height() as f32 + notespace_rect.top as f32 - (8 * t) as f32;
+
+                                Self::crop_and_draw_rect(seg_x, seg_y, note_b_rect, notespace_rect, batch);
+                            }
+                        }
+
+                        //cap with tail tip
+                        let seg_x = notespace_rect.left + note_offset - tail_center as f32 + note_spacing * i as f32;
+                        let seg_y = (self.notes[i][j].note_head_loc - self.notes[i][j].note_length_decimal) * travel_px - note_h_rect.height() as f32 + notespace_rect.top;
+                        Self::crop_and_draw_rect(seg_x, seg_y, note_t_rect, notespace_rect, batch);
+
+                        //draw head
+                        let seg_x = notespace_rect.left + note_offset - head_center as f32 + note_spacing * i as f32;
+                        let seg_y = self.notes[i][j].note_head_loc * travel_px - note_h_rect.height() as f32 + notespace_rect.top;
+                        Self::crop_and_draw_rect(seg_x, seg_y, note_h_rect, notespace_rect, batch);
+                        
+
+                    }
+
+                }
+            }
+
+            //draw NRG bar
+            {
+                let nrg_x = (board_rect.right - nrg_bar_frame.width()) as f32;
+                let nrg_y = (board_rect.bottom - nrg_bar_frame.height() - 32) as f32;
+
+                batch.add_rect(nrg_x, nrg_y, &nrg_bar_frame);
+                batch.add_rect(nrg_x, nrg_y, &nrg_bar_fuel);
+                //batch.add_rect(nrg_x, nrg_y, &nrg_bar_flash);
+                batch.add_rect(nrg_x, nrg_y, &nrg_bar_max);
+
+            }
+
+            //blit all shapes to intermediate texture
+            batch.draw(ctx)?;
+
+
+            
+            //draw points counter and HUD
+            {
+                draw_number(64.0, 16.0, 76 as usize, Alignment::Left, state, ctx)?;
+            }
+
+
+            //set target back to main surface
+            graphics::set_render_target(ctx, None)?;
+
+        }
+
+
+        
+        //draw texture onto the main screen
+        if let Some(tex) = self.texture.borrow_mut().as_mut()
+        {
+            tex.clear();
+            tex.add(SpriteBatchCommand::DrawRectSkewedTinted(
+                board_rect_2, //src
+
+                //top LR
+                (64.0 * state.scale, 0.0),
+                ((64.0 + 80.0) * state.scale, 0.0),
+
+                //bottom LR
+                (0.0, 144.0 * state.scale),
+                ((64.0 + 80.0 + 64.0) * state.scale, (144.0) * state.scale),
+
+                // (0.0 * state.scale, 0.0 * state.scale),
+                // (self.ref_size.0 * state.scale, 0.0 * state.scale),
+                // (0.0 * state.scale, self.ref_size.1 * state.scale),
+                // (self.ref_size.0 * state.scale, self.ref_size.1 * state.scale),
+
+
+                Color::from_rgb(0xFF, 0xFF, 0xFF),
+            ));
+            tex.draw()?;
+
+
+        }
+
+ 
+        Ok(())
+
+
+    }
 
 
     ///////////////////

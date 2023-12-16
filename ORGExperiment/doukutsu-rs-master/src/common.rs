@@ -1,5 +1,6 @@
 use std::fmt;
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use lazy_static::lazy_static;
 use num_traits::{abs, Num};
@@ -565,4 +566,80 @@ impl<T> SliceExt for [T] {
             Some((ar, br))
         }
     }
+}
+
+
+//for getting and setting times only when the game is active.
+//that is, not paused, or out-of-focus (usually only when the sound manager is playing)
+pub struct RunGameTime {
+    //time when the function was paused
+    last_time: SystemTime,
+
+    //total time that the object was paused
+    pause_duration: Duration, 
+    state: bool,
+
+
+}
+impl RunGameTime{
+
+    pub fn new() -> RunGameTime{
+        return RunGameTime {
+            last_time:SystemTime::now(),
+            pause_duration: Duration::from_secs(0),
+            state: true,
+        }
+    }
+
+    pub fn now(&mut self) -> SystemTime
+    {
+        if self.state
+        {
+            SystemTime::now() - self.pause_duration
+        }
+        //if paused, use the last time when paused
+        else
+        {
+            self.last_time - self.pause_duration
+        }
+    }
+
+    pub fn from_systime(&self, input_time: SystemTime) -> SystemTime
+    {
+        let new_time = input_time - self.pause_duration;
+        if self.state
+        {
+            new_time
+        }
+        else
+        {
+            if input_time > self.last_time
+            {
+                self.last_time
+            }
+            else
+            {
+                new_time
+            }
+        }
+    }
+
+    pub fn pause(&mut self)
+    {
+        if self.state
+        {
+            self.last_time = SystemTime::now();
+            self.state = false;
+        }
+    }
+    pub fn resume(&mut self)
+    {
+        if !self.state
+        {
+            self.pause_duration += SystemTime::now().duration_since(self.last_time).unwrap();
+            self.state = true;
+        }
+    }
+
+
 }

@@ -2,7 +2,7 @@ use std::{cmp, ops::Div};
 
 use chrono::{Datelike, Local};
 
-use crate::common::{ControlFlags, Direction, FadeState};
+use crate::common::{ControlFlags, Direction, FadeState, RunGameTime};
 use crate::components::draw_common::{draw_number, Alignment};
 use crate::data::vanilla::VanillaExtractor;
 #[cfg(feature = "discord-rpc")]
@@ -36,7 +36,6 @@ use crate::scene::Scene;
 use crate::sound::SoundManager;
 use crate::util::bitvec::BitVec;
 use crate::util::rng::XorShift;
-
 
 use super::filesystem_container::FilesystemContainer;
 
@@ -350,8 +349,7 @@ pub struct SharedGameState {
     pub discord_rpc: DiscordRPC,
     pub shutdown: bool,
 
-    //new: global guitar
-    //pub guitar_manager: Guitar,
+
 }
 
 impl SharedGameState {

@@ -14,6 +14,7 @@ use crate::framework::error::{GameError, GameResult};
 use crate::framework::filesystem;
 use crate::framework::graphics::{create_texture, FilterMode};
 
+
 pub static mut I_MAG: f32 = 1.0;
 pub static mut G_MAG: f32 = 1.0;
 
@@ -73,6 +74,10 @@ pub trait SpriteBatch {
         scale_y: f32,
         rect: &common::Rect<u16>,
     );
+
+    //I'm lazy and don't want to re-do this entire page with generics, so I'm doing this instead
+    fn add_rect_float(&mut self, x: f32, y: f32, scale_x: f32, scale_y: f32, rect: &common::Rect<f32>);
+
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult;
 
@@ -148,6 +153,7 @@ impl SpriteBatch for DummyBatch {
         _rect: &Rect<u16>,
     ) {}
 
+    fn add_rect_float(&mut self, x: f32, y: f32, scale_x: f32, scale_y: f32, rect: &common::Rect<f32>) {}
 
     fn draw(&mut self, _ctx: &mut Context) -> GameResult {
         Ok(())
@@ -361,6 +367,32 @@ impl SpriteBatch for SubBatch {
         ));
     }
 
+    fn add_rect_float(&mut self, x: f32, y: f32, scale_x: f32, scale_y: f32, rect: &common::Rect<f32>) {
+
+        //ignore 0 size rects
+        if (rect.right - rect.left).abs() < 0.0001 || (rect.bottom - rect.top).abs() < 0.0001 {
+            return;
+        }
+
+        let mag = unsafe { I_MAG };
+
+        self.batch.add(SpriteBatchCommand::DrawRect(
+            Rect {
+                left: rect.left / self.scale_x,
+                top: rect.top / self.scale_y,
+                right: rect.right / self.scale_x,
+                bottom: rect.bottom / self.scale_y,
+            },
+            Rect {
+                left: x * mag,
+                top: y * mag,
+                right: (x + rect.width() * scale_x) * mag,
+                bottom: (y + rect.height() * scale_y) * mag,
+            },
+        ));
+    }
+
+
     #[inline(always)]
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.draw_filtered(FilterMode::Nearest, ctx)
@@ -463,6 +495,9 @@ impl SpriteBatch for CombinedBatch {
         self.main_batch.add_rect_scaled_tinted(x, y, color, scale_x, scale_y, rect)
     }
 
+    fn add_rect_float(&mut self, x: f32, y: f32, scale_x: f32, scale_y: f32, rect: &Rect<f32>) {
+        self.main_batch.add_rect_float(x, y, scale_x, scale_y, rect)
+    }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.main_batch.draw(ctx)
