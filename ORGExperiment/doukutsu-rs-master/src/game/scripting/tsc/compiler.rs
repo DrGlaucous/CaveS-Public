@@ -218,7 +218,8 @@ impl TextScript {
             | TSCOpCode::RSM
             | TSCOpCode::SNH
             | TSCOpCode::HNH
-            | TSCOpCode::LDT
+            | TSCOpCode::LTS
+            | TSCOpCode::RTS
             => {
                 put_varint(instr as i32, out);
             }
@@ -299,7 +300,15 @@ impl TextScript {
                 put_varint(operand_b as i32, out);
             }
             // Three operand codes
-            TSCOpCode::ANP | TSCOpCode::CNP | TSCOpCode::INP | TSCOpCode::TAM | TSCOpCode::CMP | TSCOpCode::INJ => {
+            TSCOpCode::ANP
+            | TSCOpCode::CNP
+            | TSCOpCode::INP
+            | TSCOpCode::TAM
+            | TSCOpCode::CMP
+            | TSCOpCode::INJ
+            //nuevo
+            | TSCOpCode::SSD
+            => {
                 let operand_a = read_number(iter)?;
                 if strict {
                     expect_char(b':', iter)?;

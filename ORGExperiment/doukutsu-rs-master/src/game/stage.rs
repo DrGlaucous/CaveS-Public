@@ -15,6 +15,8 @@ use crate::game::map::{Map, NPCData};
 use crate::game::scripting::tsc::text_script::TextScript;
 use crate::util::encoding::read_cur_shift_jis;
 
+use super::guitar::LevelScore;
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct NpcType {
     name: String,
@@ -210,7 +212,7 @@ pub struct StageData {
     pub npc2: NpcType,
 
     //nuevo
-    pub score: i32, //top score performed in this stage
+    pub score: LevelScore, //top score performed in this stage
 }
 
 impl Clone for StageData {
@@ -227,7 +229,7 @@ impl Clone for StageData {
             background_color: self.background_color,
             npc1: self.npc1.clone(),
             npc2: self.npc2.clone(),
-            score: self.score,
+            score: self.score.clone(),
         }
     }
 }
@@ -349,7 +351,7 @@ impl StageData {
                             background_color: Color::from_rgb(0, 0, 32),
                             npc1: NpcType::new(&npc1),
                             npc2: NpcType::new(&npc2),
-                            score: 0,
+                            score: LevelScore::new(),
                         };
                         new_stages.push(stage);
                     }
@@ -415,7 +417,7 @@ impl StageData {
                     background_color: Color::from_rgb(0, 0, 32),
                     npc1: NpcType::new(&npc1),
                     npc2: NpcType::new(&npc2),
-                    score: 0,
+                    score: LevelScore::new(),
                 };
                 stages.push(stage);
             }
@@ -475,7 +477,7 @@ impl StageData {
                     background_color: Color::from_rgb(0, 0, 32),
                     npc1: NpcType::new(&npc1),
                     npc2: NpcType::new(&npc2),
-                    score: 0,
+                    score: LevelScore::new(),
                 };
                 stages.push(stage);
             }
@@ -533,7 +535,7 @@ impl StageData {
                     background_color: Color::from_rgb(0, 0, 32),
                     npc1: NpcType::new(NXENGINE_NPCS.get(npc1).unwrap_or(&"0")),
                     npc2: NpcType::new(NXENGINE_NPCS.get(npc2).unwrap_or(&"0")),
-                    score: 0,
+                    score: LevelScore::new(),
                 };
                 stages.push(stage);
             }

@@ -4,6 +4,10 @@ use std::str::FromStr;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 
+//use chrono::Duration;
+use core::time::Duration;
+
+use cpal::{StreamInstant, OutputStreamTimestamp};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 #[cfg(feature = "ogg-playback")]
 use lewton::inside_ogg::OggStreamReader;
@@ -297,7 +301,7 @@ impl SoundManager {
 
 
     //feed 'true' if the command is from a soft resume
-    fn try_resume_music_timer(&mut self, is_soft: bool)
+    pub fn try_resume_music_timer(&mut self, is_soft: bool)
     {
         //change the state of the proper variable
         if is_soft {self.timer_lock_soft = false}
@@ -1110,9 +1114,27 @@ impl SoundManager {
         return self.commander_tempo;
     }
 
+    //track synchro functions, halts execution of either the tracker of the music player for a time to allow the other to catch up
+    pub fn freeze_song_for(&mut self, time_micros: f64)
+    {
+        if self.no_audio {
+            return;
+        }
+        self.send(PlaybackMessage::FreezeSong(time_micros)).unwrap();
+    }
+    pub fn freeze_tracker_for(&mut self, time_micros: f64)
+    {
+        self.send(PlaybackMessage::FreezeTracker(time_micros)).unwrap();
+    }
+
+
+
 }
 
 //everyone gets it now
+
+
+
 pub(in crate::sound) enum PlaybackMessage {
     Stop,
     PlayOrganyaSong(Box<Song>),
@@ -1133,6 +1155,7 @@ pub(in crate::sound) enum PlaybackMessage {
     SetSampleParams(u8, PixToneParameters),
     SetOrgInterpolation(InterpolationMode),
     SetSampleData(u8, Vec<i16>),
+    FreezeSong(f64),
     //Rewind,
 
     //commander-related commands
@@ -1142,6 +1165,7 @@ pub(in crate::sound) enum PlaybackMessage {
     SaveCommanderState,
     RestoreCommanderState(bool),
     SetCommanderInterpolation(InterpolationMode),
+    FreezeTracker(f64),
 
 }
 
@@ -1178,6 +1202,10 @@ struct OrgTelemCommander
     bank: SoundBank, //sounds to use (for initialization simplicity, they will not actually be played)
     //here for simplicity, but will not be able to be changed
     sample_rate: f32,
+    //only plays if current time is larger than this
+    resume_at: f64,
+    //current time relative to callback's state
+    curr_time: f64,
 }
 impl OrgTelemCommander
 {
@@ -1197,12 +1225,20 @@ impl OrgTelemCommander
             sample_rate: config.sample_rate.0 as f32,
             bank: sndbnk,//SoundBank { wave100: Box::new([0; 25600]), samples: vec![WavSample { format: (), data: () }; 16] },
 
+            resume_at: 0.0,
+            curr_time: 0.0,
         }
+    }
+
+    pub fn set_time(&mut self, delta_time: f64)
+    {
+        self.curr_time += delta_time;
     }
 
     pub fn run(&mut self) -> bool
     {
         if self.state != PlaybackState::Stopped //stop/go
+        && self.resume_at < self.curr_time
         {
             return self.org_engine.track_only();
         }
@@ -1289,7 +1325,10 @@ impl OrgTelemCommander
                 self.state = PlaybackState::Stopped;
             }
 
-
+            PlaybackMessage::FreezeSong(duration) =>
+            {
+                self.resume_at = self.curr_time + duration;
+            }
 
 
             _ => {
@@ -1302,8 +1341,6 @@ impl OrgTelemCommander
 
 }
 
-//need commands:
-//restart file
 
 //runs an audio bgm server/thread
 fn run<T>(
@@ -1322,13 +1359,26 @@ fn run<T>(
     let mut state = PlaybackState::Stopped;
     let mut saved_state: PlaybackStateType = PlaybackStateType::None;
     let mut speed = 1.0;
+
+    /////////////////////////
+    //startup delay managers
+    /////////////////////////
+    //only plays if current time is more than this
+    let mut resume_at: f64 = 0.0;
+    //current time
+    let mut curr_time: f64 = 0.0;
+
+
     //create an org engine to do ORG stuff
     let mut org_engine = Box::new(OrgPlaybackEngine::new());
-
 
     //create silent tracker
     let mut tracker_engine = OrgTelemCommander::new(config.clone(), bank.clone());
     let mut tracker_ticker = 0; //used to run in sync with the sample rate
+
+
+
+
 
     //if OGG, create an OGG engine to do playback as well
     #[cfg(feature = "ogg-playback")]
@@ -1363,6 +1413,7 @@ fn run<T>(
     let stream_result = device.build_output_stream(
         &config,
         move |data: &mut [T], _: &cpal::OutputCallbackInfo| {
+
 
             //check for new commands
             //will run until the recieve buffer is empty
@@ -1555,6 +1606,9 @@ fn run<T>(
                         pixtone.set_sample_data(id, data);
                     }
 
+                    Ok(PlaybackMessage::FreezeSong(duration)) => {
+                        resume_at = curr_time + duration;
+                    }
 
  
                     //nuevo
@@ -1576,10 +1630,12 @@ fn run<T>(
                     Ok(PlaybackMessage::StopCommander) => {
                         tracker_engine.set(PlaybackMessage::Stop);
                     }
+                    Ok(PlaybackMessage::FreezeTracker(duration)) =>{
+                        tracker_engine.set(PlaybackMessage::FreezeSong(duration));
+                    }
 
 
-
-                    Ok(_)=>{}
+                    //Ok(_)=>{}
                     
                     Err(_) => {
                         break;
@@ -1594,7 +1650,9 @@ fn run<T>(
             for frame in data.chunks_mut(channels) {
                 let (bgm_sample_l, bgm_sample_r): (u16, u16) = {
                     //fill left and right buffers with static value
-                    if state == PlaybackState::Stopped {
+                    if state == PlaybackState::Stopped
+                    || resume_at > curr_time
+                    {
 
                         (0x8000, 0x8000)
                     }
@@ -1694,9 +1752,30 @@ fn run<T>(
                 }
             
             }
+
+            let time_passage_micros: f64 = (tracker_ticker as f64 * 1000.0 / (sample_rate as f64 * channels as f64)) * 1000000.0; //last nbr to convert to micros
+            curr_time += time_passage_micros;
+            tracker_engine.set_time(time_passage_micros);
+
             tracker_ticker = 0;
 
 
+            // //data callback runs at sample_rate * channels / 1000 per second?
+            // //it's very close, but obviously off, as timers end up out of sync within a minute (this timer is slower than realTime)
+            // //maybe this is better, since it is in time with the actual trackers?
+            // //dummy simplification (for yours truly): 96 ticks equate to 1 second at sample rate of 48000 with 2 channels
+            // //callback_count += 1;
+            // if callback_count % (sample_rate as u32 * channels as u32 / 1000) == 0
+            // {
+            //     print!("ran {} seconds \n", callback_count / (sample_rate as u32 * channels as u32 / 1000));
+            // }
+            // let seconds_ticks = callback_count as f32 * 1000.0 / (sample_rate * channels as f32);
+            // let duras = Duration::from_millis();
+            // //reset to prevent overflow
+            // if callback_count % (sample_rate as u32 * channels as u32 / 1000) == 0
+            // {
+            //     callback_count = 0;
+            // }
 
 
         },

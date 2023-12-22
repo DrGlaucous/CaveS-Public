@@ -65,7 +65,8 @@ impl TextScript {
                         | TSCOpCode::RSM
                         | TSCOpCode::SNH
                         | TSCOpCode::HNH
-                        | TSCOpCode::LDT
+                        | TSCOpCode::LTS
+                        | TSCOpCode::RTS
                         => {
                             writeln!(&mut result, "{:?}()", op).unwrap();
                         }
@@ -138,7 +139,15 @@ impl TextScript {
                             writeln!(&mut result, "{:?}({}, {})", op, par_a, par_b).unwrap();
                         }
                         // Three operand codes
-                        TSCOpCode::ANP | TSCOpCode::CNP | TSCOpCode::INP | TSCOpCode::TAM | TSCOpCode::CMP | TSCOpCode::INJ => {
+                        TSCOpCode::ANP
+                        | TSCOpCode::CNP
+                        | TSCOpCode::INP
+                        | TSCOpCode::TAM
+                        | TSCOpCode::CMP
+                        | TSCOpCode::INJ
+                        //nuevo
+                        | TSCOpCode::SSD
+                        => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;
                             let par_c = read_cur_varint(&mut cursor)?;

@@ -12,6 +12,7 @@ use crate::game::settings::ControllerType;
 use crate::game::shared_game_state::{SharedGameState, TileSize};
 use crate::game::stage::{BackgroundType, NpcType, Stage, StageData, StageTexturePaths, Tileset};
 use crate::graphics::font::Font;
+use crate::game::guitar::LevelScore;
 use crate::input::combined_menu_controller::CombinedMenuController;
 use crate::scene::title_scene::TitleScene;
 use crate::scene::Scene;
@@ -45,7 +46,7 @@ impl JukeboxScene {
                 background_color: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
                 npc1: NpcType::new("0"),
                 npc2: NpcType::new("0"),
-                score: 0,
+                score: LevelScore::new(),
             },
         };
 

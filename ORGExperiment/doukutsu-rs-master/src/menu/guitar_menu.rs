@@ -32,21 +32,21 @@ use crate::game::guitar::Guitar;
 
 //holds settings relating to the main list
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum MenuItems
+pub enum MenuItemsStageSel
 {
     Banner,
     Back,
     Level(usize),
 }
-impl Default for MenuItems {
+impl Default for MenuItemsStageSel {
     fn default() -> Self {
-        MenuItems::Level(0)
+        MenuItemsStageSel::Level(0)
     }
 }
 
 //main menu
 pub struct StageSelectMenu {
-    list_menu: Menu<MenuItems>,
+    list_menu: Menu<MenuItemsStageSel>,
 }
 
 impl StageSelectMenu {
@@ -70,17 +70,18 @@ impl StageSelectMenu {
         Guitar::get_saved_scores(state, ctx)?;
 
         //make title
-        self.list_menu.push_entry(MenuItems::Banner, MenuEntry::Disabled(String::from("Stages")) );
+        self.list_menu.push_entry(MenuItemsStageSel::Banner, MenuEntry::Disabled(String::from("Stages")) );
 
         //make back button
+        self.list_menu.push_entry(MenuItemsStageSel::Back, MenuEntry::Active(state.loc.t("common.back").to_owned()));
 
 
         //push all maps in the stage table to the menu
         let mut i: usize = 0;
         for map in state.stages.iter()
         {
-            self.list_menu.push_entry(MenuItems::Level(i), MenuEntry::Active(map.name.clone() + " TODO: Score here") );
-            self.list_menu.selected = MenuItems::Level(i);
+            self.list_menu.push_entry(MenuItemsStageSel::Level(i), MenuEntry::Active(map.name.clone() + " TODO: Score here") );
+            self.list_menu.selected = MenuItemsStageSel::Level(i);
             i += 1;
         }
 
@@ -117,9 +118,9 @@ impl StageSelectMenu {
             {
                 match sub_item
                 {
-                    MenuItems::Banner => {}
-                    MenuItems::Back => {exit_action()}
-                    MenuItems::Level(level) =>{
+                    MenuItemsStageSel::Banner => {}
+                    MenuItemsStageSel::Back => {exit_action()}
+                    MenuItemsStageSel::Level(level) =>{
                         //load level based on selection with predefined event
                         state.reload_resources(ctx)?;
                         state.start_new_game_at(ctx, level, 200, (0,0))?;
@@ -145,6 +146,20 @@ impl StageSelectMenu {
 
 
 
+
+//holds settings relating to the main list
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum HiScoreDispItems
+{
+    Banner,
+    Back,
+    Level(usize),
+}
+impl Default for HiScoreDispItems {
+    fn default() -> Self {
+        HiScoreDispItems::Level(0)
+    }
+}
 
 
 

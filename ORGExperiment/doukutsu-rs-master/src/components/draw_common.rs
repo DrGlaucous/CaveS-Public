@@ -9,6 +9,24 @@ pub enum Alignment {
     Right,
 }
 
+pub fn draw_number_int(x: f32, y: f32, val: i32, align: Alignment, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "TextBox")?;
+
+    let n = val.to_string();
+    let align_offset = if align == Alignment::Right { n.len() as f32 * 8.0 } else { 0.0 };
+
+    for (offset, chr) in n.chars().enumerate() {
+        let idx = if chr == '-' //0x2D
+        {
+            10 //offset over by 10
+        } else {chr as u16 - '0' as u16};
+        batch.add_rect(x - align_offset + offset as f32 * 8.0, y, &Rect::new_size(idx * 8, 56, 8, 8));
+    }
+
+    batch.draw(ctx)?;
+    Ok(())
+}
+
 pub fn draw_number(x: f32, y: f32, val: usize, align: Alignment, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
     let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "TextBox")?;
 

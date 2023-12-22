@@ -283,13 +283,22 @@ pub enum TSCOpCode {
     // HNH: Hide note highway
     HNH,
 
-    // STS: Store Tracker Stats (also saves)
+    // STS: Store Tracker Stats (also saves everything to the JSON)
     // <STS[Map number]
     STS,
     
-    // SVT not needed... STS does this
-    // LDT: Load Tracker stats
-    LDT,
+    // LTS: Load Tracker Stats
+    LTS,
+
+    // RTS: Reset Tracker Stats (only the ones currently being tracked in Guitar, not the saved ones in the maps)
+    RTS,
+
+    // SSD: Set Start Delay, synchronizes the songs together when starting
+    // <SSD[song delay]:[tracker delay]:[extra delay]
+    SSD,
+
+
+
 
 }
 

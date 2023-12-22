@@ -616,6 +616,10 @@ impl SharedGameState {
         self.textscript_vm.state = TextScriptExecutionState::Running(event_no, 0);
         self.tutorial_counter = 300;
 
+        //make sure the tracker timer's soft lock is disabled
+        //I could probably put this in multiple places
+        self.sound_manager.try_resume_music_timer(true);
+
         self.next_scene = Some(Box::new(next_scene));
 
         Ok(())

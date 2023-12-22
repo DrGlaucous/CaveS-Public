@@ -1934,11 +1934,36 @@ impl TextScriptVM {
                 //put into mapfiles and then into the json
                 game_scene.guitar_manager.store_stats(state, stage_no);
                 Guitar::put_saved_scores(state, ctx)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             //load stats
-            TSCOpCode::LDT =>{
+            TSCOpCode::LTS =>{
                 //honestly not sure when this one would be used
                 Guitar::get_saved_scores(state, ctx)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            //reset stats
+            TSCOpCode::RTS =>{
+                //erase current score in the guitar
+                game_scene.guitar_manager.reset_stats();
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            TSCOpCode::SSD => {
+                //song delay
+                let millis_song = read_cur_varint(&mut cursor)? as u32;
+                //tracker delay
+                let millis_tracker = read_cur_varint(&mut cursor)? as u32;
+                //xtra delay
+                let extra_millis = read_cur_varint(&mut cursor)? as u32;
+                //send off
+                game_scene.guitar_manager.set_start_delay(state, millis_song, millis_tracker, extra_millis);
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             
         

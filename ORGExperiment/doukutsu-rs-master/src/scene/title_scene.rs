@@ -1,3 +1,5 @@
+use log::Level;
+
 use crate::common::{Color, VERSION_BANNER};
 use crate::components::background::Background;
 use crate::components::compact_jukebox::CompactJukebox;
@@ -11,6 +13,7 @@ use crate::game::shared_game_state::{
     GameDifficulty, MenuCharacter, ReplayKind, ReplayState, Season, SharedGameState, TileSize, self,
 };
 use crate::game::stage::{BackgroundType, NpcType, Stage, StageData, StageTexturePaths, Tileset};
+use crate::game::guitar::LevelScore;
 use crate::graphics::font::Font;
 use crate::input::combined_menu_controller::CombinedMenuController;
 use crate::input::touch_controls::TouchControlType;
@@ -120,7 +123,7 @@ impl TitleScene {
                 background_color: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
                 npc1: NpcType::new("0"),
                 npc2: NpcType::new("0"),
-                score: 0,
+                score: LevelScore::new(),
             },
         };
         let mut textures = StageTexturePaths::new();

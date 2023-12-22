@@ -1,7 +1,8 @@
 use std::cell::RefCell;
 use std::time::SystemTime;
+use std::time::Duration;
 
-
+use crate::bitfield;
 use crate::common::{Color, Rect};
 use crate::framework::backend::{BackendTexture, SpriteBatchCommand};
 use crate::framework::context::Context;
@@ -10,13 +11,14 @@ use crate::framework::filesystem::{user_create, user_open};
 use crate::framework::graphics;
 use crate::game::scripting::tsc::text_script::TextScriptExecutionState;
 use crate::game::shared_game_state::SharedGameState;
+use crate::game::graphics::screen_insets_scaled;
 use crate::game::stage::Stage;
 use crate::graphics::font::Font;
 use crate::graphics::texture_set::SpriteBatch;
 use crate::input::touch_controls::TouchControlType;
 use crate::engine_constants::EngineConstants;
 
-use crate::components::draw_common::draw_number;
+use crate::components::draw_common::draw_number_int;
 use crate::components::draw_common::Alignment;
 
 use crate::input::dummy_player_controller::DummyPlayerController;
@@ -26,31 +28,74 @@ use crate::sound::SoundManager;
 
 use super::shared_game_state::TimingMode;
 
+
+use log::Level;
 use serde::{Deserialize, Serialize};
 
 
 
-//holds individual map info, vectored in GuitarScores
-#[derive(Serialize, Deserialize)]
+//holds scores for each level
+#[derive(Serialize, Deserialize, Debug)]
 pub struct LevelScore {
-    name: String,
+    correct_notes: u32,
+    incorrect_notes: u32, //NOT "notes missed", also counts wrongful presses
+    total_notes: u32,
+    longest_streak: u32,
+    last_streak: u32,
     score: i32,
 }
 impl LevelScore
 {
-    pub fn new() ->LevelScore {
+    pub fn new() -> Self {
         LevelScore {
-            name: "".to_owned(),
+            correct_notes: 0,
+            incorrect_notes: 0,
+            total_notes: 0,
             score: 0,
+            longest_streak: 0,
+            last_streak: 0,
+        }
+    }
+    pub fn clone(&self) -> Self {
+        LevelScore {
+            correct_notes: self.correct_notes,
+            incorrect_notes: self.incorrect_notes,
+            total_notes: self.total_notes,
+            score: self.score,
+            longest_streak: self.longest_streak,
+            last_streak: self.last_streak,
+        }
+    }
+
+    pub fn accuracy(&self) -> f32
+    {
+        self.correct_notes as  f32 / (self.incorrect_notes + self.correct_notes) as f32 * 100.0
+    }
+}
+
+
+//wraps LevelScore with a name, is vectored in GuitarScores
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LevelScoreWrapper
+{
+    name: String,
+    score: LevelScore,
+}
+impl LevelScoreWrapper
+{
+    pub fn new() ->LevelScoreWrapper {
+        LevelScoreWrapper {
+            name: "".to_owned(),
+            score: LevelScore::new(),
         }
     }
 }
 
 
 //holds the settings to be passed off to the json
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GuitarScores {
-    stages: Vec<LevelScore>,
+    stages: Vec<LevelScoreWrapper>,
 }
 impl GuitarScores
 {
@@ -61,9 +106,6 @@ impl GuitarScores
     }
 
 }
-
-
-
 
 
 //notes used by the guitar struct
@@ -79,6 +121,7 @@ struct GuitarNote
     last_time: SystemTime, //the last time the location of the note was updated
 
     was_hit: bool, //true if the note was pressed
+    out_of_range: bool, //true if the note cannot be hit anymore
 
 }
 
@@ -92,21 +135,37 @@ pub struct Guitar
     last_size: RefCell<(u16, u16)>, //used to see if the window has been resized and the texure should also be resized
     ref_size: (f32, f32), //pixel size of this texture, set here so it can be used everywhere
 
-    draw_corners: [[u32;2];4], //screen coordinates where the overlay should be placed
-    current_song: usize,
-    visible: bool,
-    key_state: [bool; 5], //5 keys that can be pressed
     onscreen_time: f32, //how many seconds the note should last on the highway
+
     current_score: LevelScore,
     pub controller: Box<dyn PlayerController>, //controls the reader (duh)
 
+    //using arrays instead of bitfields because of (easier) iteration
+    hit_state: [bool;4],
+    hit_trigger: [bool;4],
 
-    //used to determine if a new note is going to be played
-    //note_key: [u8; 4], //lengths of last notes created by the tracker
-    //note_len: [u8; 4], //key of the last note created by the tracker (note: pitch doesn't matter, only that it changed)
-    //above is not needed, note change logic is now handled in get_latest_track_state()
-    
+    //holds position and state of all active notes
     notes: [Vec<GuitarNote>; 4],
+
+    /////////////////////////////////////
+    //settings to be configured:
+    /////////////////////////////////////
+    
+    draw_corners: [[u32;2];4], //screen coordinates where the overlay should be placed
+    visible: bool,
+
+    //how far down the notes should be on the note highway
+    //ranges from 0 to 1
+    button_offset: f32,
+    //the error between note start
+    hit_leniency: f32,
+
+    //for each multiplier level, this many notes need to be hit consecutively
+    streak_per_level: usize,
+
+
+
+
 }
 
 
@@ -126,16 +185,19 @@ impl Guitar
             last_size: RefCell::new((0, 0)),
             ref_size: (96.0, 176.0),
             draw_corners: [[0,0]; 4],
-            current_song: 0,
             visible: true,
-            key_state: [false; 5], //state of user input
-            onscreen_time: 1.0, //2.25,
+            hit_state: [false;4],
+            hit_trigger: [false;4],
+            onscreen_time: 1.472,//2.994, //2.25,
             current_score: LevelScore::new(),
             controller: Box::new(DummyPlayerController::new()),
-
-            //note_key: [0; 4],
-            //note_len: [0; 4],
             notes: [Vec::new(), Vec::new(), Vec::new(), Vec::new()],
+
+            button_offset: 0.75,
+            hit_leniency: 0.1,
+
+            streak_per_level: 5,
+
 
         }
 
@@ -174,17 +236,17 @@ impl Guitar
         self.controller.update_trigger();
 
 
-        self.key_state[0] = self.controller.one();
-        self.key_state[1] = self.controller.two();
-        self.key_state[2] = self.controller.three();
-        self.key_state[3] = self.controller.four();
-        self.key_state[4] = self.controller.strum();
 
-        // if self.controller.trigger_left() || self.controller.trigger_up() || self.controller.trigger_right() || self.controller.trigger_down()
-        // {
-        //     let mut my_baord = 4;
-        //     my_baord += 9;
-        // }
+        self.hit_state[0] = self.controller.one();
+        self.hit_state[1] = self.controller.two();
+        self.hit_state[2] = self.controller.three();
+        self.hit_state[3] = self.controller.four();
+
+        self.hit_trigger[0] = self.controller.trigger_one();
+        self.hit_trigger[1] = self.controller.trigger_two();
+        self.hit_trigger[2] = self.controller.trigger_three();
+        self.hit_trigger[3] = self.controller.trigger_four();
+
 
         return Ok(());
     }
@@ -192,6 +254,9 @@ impl Guitar
     //convert a change in time to a percent-of-track completion
     fn get_offset(onscreen_time: f32, time_now: SystemTime, time_then: SystemTime) -> f32
     {
+        //protect against backwards times (this is a glitch with the global stopwatch)
+        if time_then > time_now
+        {return 0.0}
 
         let delta_time = time_now
             .duration_since(time_then)
@@ -229,7 +294,16 @@ impl Guitar
 
             let change_decimal = Self::get_offset(self.onscreen_time, this_time, state.sound_manager.music_time.from_systime(notess.timestamp));
             let length_decimal = Self::get_length(self.onscreen_time, notess.lengths[i], state.sound_manager.current_commander_tempo());   
-            self.notes[i].push( GuitarNote{note_length_decimal: length_decimal, note_length: notess.lengths[i], note_head_loc: change_decimal, last_time: this_time, was_hit: false} );
+            self.notes[i].push( GuitarNote{note_length_decimal: length_decimal,
+                note_length: notess.lengths[i],
+                note_head_loc: change_decimal,
+                last_time: this_time,
+                was_hit: false,
+                out_of_range: false,
+                } );
+
+
+            self.current_score.total_notes += 1;
         }
 
         //run events with drums
@@ -255,31 +329,16 @@ impl Guitar
     fn handle_notes(&mut self, state: &mut SharedGameState, ctx: &mut Context)
     {
 
-        //50 or 60 FPS
-        state.settings.timing_mode;
+        let mut hit_minus = 0;
+        let mut hit_plus = 0;
 
-
-
-        //for each note strip
-
-        // for i in 0..4
-        // {
-        //     //go through all notes backward and remove ones that have moved out of range
-        //     //we go backwards because notes are shifted left as they are deleted
-        //     for j in (self.notes[i].len() - 1)..=0
-        //     {
-        //         if self.notes[i][j].note_head_loc - self.notes[i][j].note_length > bottom_coord
-        //         {
-        //             self.notes[i].remove(j);
-        //             continue;
-        //         }
-        //         //move note down
-        //         self.notes[i][j].note_head_loc += 1;
-        //     }
-        // }
-
-        for n_strip in self.notes.as_mut_slice()
+        //for each note strip, move notes down
+        //n is 0-3
+        for n in 0..self.notes.len()
         {
+            let n_strip = &mut self.notes[n];
+
+
             //go through all notes backward and remove ones that have moved out of range
             //we go backwards because notes are shifted left as they are deleted
             for i in (0..n_strip.len()).rev() //(n_strip.len() - 1)..=0
@@ -297,12 +356,66 @@ impl Guitar
                 n_strip[i].note_head_loc += down_movement;
                 n_strip[i].last_time = present;
 
+
+                //note out of range, disqualify it for hitting and penalize
+                if self.button_offset < n_strip[i].note_head_loc - n_strip[i].note_length_decimal - self.hit_leniency
+                && !n_strip[i].was_hit
+                && !n_strip[i].out_of_range
+                {
+                    n_strip[i].out_of_range = true;
+                    hit_minus += 1;
+                    continue;
+                }
                 
+                //check for intersection with button
+                if self.hit_trigger[n]
+                && self.button_offset < n_strip[i].note_head_loc + self.hit_leniency
+                && self.button_offset > n_strip[i].note_head_loc - n_strip[i].note_length_decimal - self.hit_leniency
+                {
+                    if n_strip[i].was_hit != true
+                    {
+                        n_strip[i].was_hit = true;
+                        hit_plus += 1;    
+                    }
+                }
+
             }
+
+            
+            //check for missing a note
+            if self.hit_trigger[n]
+            {
+                //pressed and hit nothing
+                if hit_plus < 1
+                {
+                    hit_minus += 1;
+                }
+            }
+
         }
 
+        //reset streak
+        if hit_minus > 0 
+        {
+            self.current_score.last_streak = 0;
+        }
+        else
+        {
+            self.current_score.last_streak += hit_plus;
+        }
 
+        //apply accuracies to score
+        self.current_score.score += 50 * (hit_plus as i32 - hit_minus as i32) * (1 + self.current_score.last_streak / self.streak_per_level as u32) as i32 + 10 * hit_plus as i32;
 
+        //update totals (TODO: fix missed_notes)
+        self.current_score.correct_notes += hit_plus;
+        self.current_score.incorrect_notes += hit_minus; //includes missed notes *and* missed strikes
+
+        //update top streak
+        if self.current_score.last_streak > self.current_score.longest_streak
+        {
+            self.current_score.longest_streak = self.current_score.last_streak;
+        }
 
     }
 
@@ -359,14 +472,69 @@ impl Guitar
 
     }
 
+    //shift rects so we only have to define a few
+    fn shift_right(orig_rect: &Rect<u16>, shift: usize) -> Rect<u16>
+    {
+        let mut new_rect: Rect<u16> = orig_rect.clone();
+        let rect_width = new_rect.right - new_rect.left;
+        new_rect.left += rect_width * shift as u16;
+        new_rect.right = rect_width + new_rect.left;
+        new_rect
+    }
+
 
     ///////////////////
     /// Control functions
     ///////////////////
 
-    //starts a song X with tracker pattern Y
-    pub fn start_program(music: String, pattern: String)
+    //starts a song X with tracker pattern Y (currently unused)
+    // pub fn start_program(music: String, pattern: String)
+    // {
+    // }
+
+    //feed this the time between when a note spawns and when it will cross the button row
+    pub fn set_time_to_intersect(&mut self, seconds: f32)
     {
+        //self.button_offset * self.onscreen_time = seconds;
+        self.onscreen_time = seconds / self.button_offset;
+    }
+
+    pub fn set_hit_window(&mut self, percent: f32)
+    {
+        self.hit_leniency = percent;
+    }
+
+
+    //tell each player to delay so that they are synchronized
+    //feed it milliseconds until the song+tracker makes the first note
+    pub fn set_start_delay(&self, state: &mut SharedGameState, millis_song: u32, millis_tracker: u32, extra_millis: u32)
+    {
+        //factors in how long it takes to reach the buttons from playing a note
+        let needed_tracker_time = millis_tracker as f32 - (self.button_offset * self.onscreen_time) * 1000.0;
+
+        let time_difference = (millis_song as f32 + needed_tracker_time).abs();
+
+        //if the song needs to start first
+        let (dur_for_song, dur_for_track) = if needed_tracker_time < millis_song as f32
+        {
+            (
+                extra_millis as f64 * 1000.0,
+                (extra_millis as f64 + time_difference as f64) * 1000.0,
+            )
+        }
+        //if the tracker needs to start first
+        else
+        {
+            (
+                (extra_millis as f64 + time_difference as f64) * 1000.0,
+                extra_millis as f64 * 1000.0,
+            )
+        };
+
+        //tell the players to halt for this ammount of time
+        state.sound_manager.freeze_song_for(dur_for_song);
+        state.sound_manager.freeze_tracker_for(dur_for_track);
+
 
     }
 
@@ -383,10 +551,15 @@ impl Guitar
         {
             return;
         }
-        state.stages[stage_no].score = self.current_score.score;
+        state.stages[stage_no].score = self.current_score.clone();
 
     }
 
+    //resets stats to default
+    pub fn reset_stats(&mut self)
+    {
+        self.current_score = LevelScore::new();
+    }
 
 
 
@@ -603,10 +776,15 @@ impl Guitar
         //rect of where the note strips will be positioned, not a bitmap RECT.
         //left and top represent where on the fretboard they will be drawn,
         let notespace_rect = Rect { left: 16.0, top: 8.0, right: 16.0 + 64.0, bottom: 8.0 + 160.0};
-        //tallness of the fretboard in pixels (used for note positioning) (notespace_rect.height())
-   
+           
         //where the buttons should be drawn vertically
-        let button_offset = notespace_rect.height() as f32 - 32.0; 
+        //let button_offset = notespace_rect.height() as f32 - 32.0; 
+        let button_px_offset = (notespace_rect.height() as f32) * self.button_offset; 
+
+        //notespace rect but cut off at the buttons, so 'hit' notes will not be drawn past there
+        let mut hit_notespace_rect = notespace_rect.clone();
+        hit_notespace_rect.bottom = hit_notespace_rect.top + button_px_offset;
+
 
 
         //rect of the intermediate surface that will be drawn to the screen after everything has been drawn to it
@@ -621,26 +799,30 @@ impl Guitar
         let note_body = Rect { left: 176, top: 40, right: 192, bottom: 48 };
         let note_tail = Rect { left: 176, top: 32, right: 192, bottom: 48 };
 
+        let note_dead_head = Rect { left: 160, top: 80, right: 176, bottom: 96 };
+        let note_dead_body = Rect { left: 160, top: 72, right: 176, bottom: 80 };
+        let note_dead_tail = Rect { left: 160, top: 64, right: 176, bottom: 80 };
+
         let nrg_bar_frame: Rect<u16> = Rect { left: 144, top: 0, right: 152, bottom: 64 };
         let nrg_bar_fuel: Rect<u16> = Rect { left: 152, top: 0, right: 160, bottom: 64 };
         let nrg_bar_max: Rect<u16> = Rect { left: 160, top: 0, right: 168, bottom: 64 };
         let nrg_bar_flash: Rect<u16> = Rect { left: 168, top: 0, right: 176, bottom: 64 };
 
 
+        //rects for HUD
+        let points_rc = Rect { left: 128, top: 64, right: 160, bottom: 72 };
+        let total_h_rc = Rect  { left: 128, top: 96, right: 176, bottom: 104 };
+        //rect of '1', but can be shifted over for other numbers
+        let mult_num_rc = Rect  { left: 128, top: 72, right: 136, bottom: 80 };
+        let rect_X = Rect  { left: 128, top: 80, right: 136, bottom: 88 };
+
+        let fill_bar_frame = Rect  { left: 176, top: 96, right: 240, bottom: 104 };
+        let fill_bar_back = Rect  { left: 176, top: 104, right: 240, bottom: 112 };
+        let fill_bar_filling = Rect  { left: 176, top: 112, right: 240, bottom: 120 };
 
 
         //push all shapes to the piano roll texture
         {
-            //shift rects so we only have to define a few
-            fn shift_right(orig_rect: &Rect<u16>, shift: usize) -> Rect<u16>
-            {
-                let mut new_rect: Rect<u16> = orig_rect.clone();
-                let rect_width = new_rect.right - new_rect.left;
-                new_rect.left += rect_width * shift as u16;
-                new_rect.right = rect_width + new_rect.left;
-                new_rect
-            }
-
             //use the piano roll bitmap
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "PianoRoll")?;
 
@@ -664,13 +846,13 @@ impl Guitar
                 for i in 0..4
                 {
                     //choose either the 'on' or 'off' button rect and shift it so the color matches
-                    let button_rect = if self.key_state[i]
-                    {shift_right(&button_active, i)}
+                    let button_rect = if self.hit_state[i]
+                    {Self::shift_right(&button_active, i)}
                     else
-                    {shift_right(&button_inactive, i)};
+                    {Self::shift_right(&button_inactive, i)};
                     
                     let button_width = (button_rect.width() / 2) as f32;
-                    batch.add_rect((notespace_rect.left + note_offset - button_width + note_spacing * i as f32) as f32, notespace_rect.top as f32 + button_offset, &button_rect); 
+                    batch.add_rect((notespace_rect.left + note_offset - button_width + note_spacing * i as f32) as f32, notespace_rect.top as f32 + button_px_offset, &button_rect); 
                 }
             }
 
@@ -680,12 +862,14 @@ impl Guitar
                 //for all note strips (4 of them)
                 for i in 0..4
                 {
+                    //let (n_head, n_body, n_tail) = if 
+
                     //color changing head
-                    let note_h_rect: Rect<u16> = shift_right(&note_head, i);
+                    let note_h_rect: Rect<u16> = Self::shift_right(&note_head, i);
                     //color changing body
-                    let note_b_rect: Rect<u16> = shift_right(&note_body, i);
+                    let note_b_rect: Rect<u16> = Self::shift_right(&note_body, i);
                     //color changing tail
-                    let note_t_rect: Rect<u16> = shift_right(&note_tail, i);
+                    let note_t_rect: Rect<u16> = Self::shift_right(&note_tail, i);
 
                     let head_center = (note_h_rect.width() / 2) as f32;
                     let body_center = (note_b_rect.width() / 2) as f32;
@@ -694,10 +878,15 @@ impl Guitar
                     //is notespace_rect.height(), but we also include the vertical offset so the note can despawn offscreen
                     let travel_px = notespace_rect.height() + note_h_rect.height() as f32;
 
+
                     //for all notes in the list
                     for j in 0..self.notes[i].len()
                     {
+                        //check for dead notes and change the RECT again if needed
+                        let (note_h_rect, note_b_rect, note_t_rect) = if self.notes[i][j].out_of_range
+                        { (note_dead_head, note_dead_body, note_dead_tail) } else {(note_h_rect, note_b_rect, note_t_rect)} ;
                         
+
                         //convert from percent-of-board length into pixels
                         let note_px_len = travel_px * self.notes[i][j].note_length_decimal;
 
@@ -711,19 +900,25 @@ impl Guitar
                                 let seg_x = notespace_rect.left + note_offset - body_center as f32 + note_spacing * i as f32;
                                 let seg_y = (self.notes[i][j].note_head_loc * travel_px) - note_h_rect.height() as f32 + notespace_rect.top as f32 - (8 * t) as f32;
 
-                                Self::crop_and_draw_rect(seg_x, seg_y, note_b_rect, notespace_rect, batch);
+                                Self::crop_and_draw_rect(seg_x, seg_y, note_b_rect, 
+                                    if self.notes[i][j].was_hit {hit_notespace_rect} else {notespace_rect},
+                                    batch);
                             }
                         }
 
                         //cap with tail tip
                         let seg_x = notespace_rect.left + note_offset - tail_center as f32 + note_spacing * i as f32;
                         let seg_y = (self.notes[i][j].note_head_loc - self.notes[i][j].note_length_decimal) * travel_px - note_h_rect.height() as f32 + notespace_rect.top;
-                        Self::crop_and_draw_rect(seg_x, seg_y, note_t_rect, notespace_rect, batch);
+                        Self::crop_and_draw_rect(seg_x, seg_y, note_t_rect, 
+                            if self.notes[i][j].was_hit {hit_notespace_rect} else {notespace_rect},
+                            batch);
 
                         //draw head
                         let seg_x = notespace_rect.left + note_offset - head_center as f32 + note_spacing * i as f32;
                         let seg_y = self.notes[i][j].note_head_loc * travel_px - note_h_rect.height() as f32 + notespace_rect.top;
-                        Self::crop_and_draw_rect(seg_x, seg_y, note_h_rect, notespace_rect, batch);
+                        Self::crop_and_draw_rect(seg_x, seg_y, note_h_rect,
+                            if self.notes[i][j].was_hit {hit_notespace_rect} else {notespace_rect},
+                            batch);
                         
 
                     }
@@ -747,15 +942,9 @@ impl Guitar
             batch.draw(ctx)?;
 
 
-            
-            //draw points counter and HUD
-            {
-                draw_number(64.0, 16.0, 76 as usize, Alignment::Left, state, ctx)?;
-            }
-
-
             //set target back to main surface
             graphics::set_render_target(ctx, None)?;
+
 
         }
 
@@ -789,6 +978,80 @@ impl Guitar
 
         }
 
+        //draw points counter and HUD (see hud.rs for a good example)
+        {
+
+            //things to draw:
+            //points
+            //score multiplier + level of multiplier
+            //total gems hit
+
+            //edge insets (used in HUD, what does it do?)
+            let (left, top, right, bottom) = screen_insets_scaled(ctx, state.scale);
+
+            //coordniates for drawing
+            let x = 16.0 + left;
+            let y = 16.0 + top;
+
+            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "PianoRoll")?;
+
+
+
+            batch.add_rect(x, y, &points_rc);
+            batch.add_rect(x, y + 8.0, &total_h_rc);
+
+
+            //draw fill bar
+            {
+
+                let shift_count = if self.current_score.last_streak as usize / self.streak_per_level > 3
+                {3} else {self.current_score.last_streak as usize / self.streak_per_level };
+                
+                //get rect ammount for how full the bar should be
+                let mut filling_amm = fill_bar_filling.clone();
+                let chunk = 
+                if shift_count == 3 {fill_bar_filling.width()}
+                else if (self.current_score.last_streak % self.streak_per_level as u32) == 0
+                {0}
+                else { fill_bar_filling.width() / self.streak_per_level as u16 * (self.current_score.last_streak % self.streak_per_level as u32) as u16 };
+
+                filling_amm.right = filling_amm.left +  chunk;
+
+
+                //get color
+                let tint_color = match shift_count
+                {
+                    0 =>{Color::from_rgb(0x00, 0xFF, 0xFF)}
+                    1 =>{Color::from_rgb(0x00, 0xFF, 0x00)}
+                    2 =>{Color::from_rgb(0xFF, 182, 0x00)}
+                    3 =>{Color::from_rgb(234, 25, 62)}
+                    _ =>{Color::from_rgb(0xFF, 0xFF, 0xFF)}
+                };
+
+                //multiplier bar
+                batch.add_rect(x, y + 16.0, &fill_bar_back);
+                batch.add_rect_tinted(x, y + 16.0, tint_color.to_rgba(), &fill_bar_back);
+                batch.add_rect_tinted(x, y + 16.0, tint_color.to_rgba(), &filling_amm);
+
+                let multiplier_rc = Self::shift_right(&mult_num_rc, shift_count );
+                batch.add_rect(x + 32.0, y + 16.0, &multiplier_rc);
+                batch.add_rect(x + 16.0, y + 16.0, &rect_X);
+
+
+            }
+
+
+
+            //draw to screen
+            batch.draw(ctx)?;
+
+            //points
+            draw_number_int(x + total_h_rc.width() as f32, y, self.current_score.score as i32, Alignment::Left, state, ctx)?;
+            
+            //hits
+            draw_number_int(x + total_h_rc.width() as f32, y + 8.0, self.current_score.correct_notes as i32, Alignment::Left, state, ctx)?;
+
+        }
  
         Ok(())
 
@@ -802,7 +1065,7 @@ impl Guitar
 
 
     //load guitar stats from the json into the stage table
-    fn load(state: &mut SharedGameState, ctx: &Context) -> GameResult<GuitarScores> {
+    fn load(ctx: &Context) -> GameResult<GuitarScores> {
 
         if let Ok(file) = user_open(ctx, "/save_data.json") {
             match serde_json::from_reader::<_, GuitarScores>(file) {
@@ -830,14 +1093,14 @@ impl Guitar
     //populates the stage table with the latest scores from the JSON
     pub fn get_saved_scores(state: &mut SharedGameState, ctx: &Context) -> GameResult
     {
-        let fresh_data = Self::load(state, ctx).unwrap();
+        let fresh_data = Self::load(ctx).unwrap();
         for stage in state.stages.iter_mut()
         {
             for data in fresh_data.stages.iter()
             {
                 if stage.name == data.name
                 {
-                    stage.score = data.score;
+                    stage.score = data.score.clone();
                 }
             }
         }
@@ -846,11 +1109,11 @@ impl Guitar
     //saves the scores into the JSON
     pub fn put_saved_scores(state: &mut SharedGameState, ctx: &mut Context) -> GameResult
     {
-        let mut prepped_data: Vec<LevelScore> = Vec::with_capacity(state.stages.len());
+        let mut prepped_data: Vec<LevelScoreWrapper> = Vec::with_capacity(state.stages.len());
         
         for stage in state.stages.iter_mut()
         {
-            prepped_data.push(LevelScore{name: stage.name.clone(), score: stage.score});
+            prepped_data.push(LevelScoreWrapper{name: stage.name.clone(), score: stage.score.clone()});
         }
 
         Self::save(ctx, &GuitarScores{stages: prepped_data})

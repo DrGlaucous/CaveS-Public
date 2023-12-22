@@ -142,7 +142,11 @@ impl OrgPlaybackEngine {
                *buf = RenderBuffer::new(samples.samples[track.inst.inst as usize].clone());
             } else {
                 //this just takes the classic hard-baked cave story drums and adds them to the sound buffer
-               *buf = RenderBuffer::new(samples.samples[idx].clone());
+                //*buf = RenderBuffer::new(samples.samples[idx].clone());
+
+                //order is whack unless we use extended indexing for everything when using the extended .bin file
+                *buf = RenderBuffer::new(samples.samples[track.inst.inst as usize].clone());
+
             }
 
             //just do this for now. the code above has problems
