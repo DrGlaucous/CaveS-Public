@@ -1115,16 +1115,16 @@ impl SoundManager {
     }
 
     //track synchro functions, halts execution of either the tracker of the music player for a time to allow the other to catch up
-    pub fn freeze_song_for(&mut self, time_micros: f64)
+    pub fn freeze_song_for(&mut self, time: Duration)
     {
         if self.no_audio {
             return;
         }
-        self.send(PlaybackMessage::FreezeSong(time_micros)).unwrap();
+        self.send(PlaybackMessage::FreezeSong(time)).unwrap();
     }
-    pub fn freeze_tracker_for(&mut self, time_micros: f64)
+    pub fn freeze_tracker_for(&mut self, time: Duration)
     {
-        self.send(PlaybackMessage::FreezeTracker(time_micros)).unwrap();
+        self.send(PlaybackMessage::FreezeTracker(time)).unwrap();
     }
 
 
@@ -1155,7 +1155,7 @@ pub(in crate::sound) enum PlaybackMessage {
     SetSampleParams(u8, PixToneParameters),
     SetOrgInterpolation(InterpolationMode),
     SetSampleData(u8, Vec<i16>),
-    FreezeSong(f64),
+    FreezeSong(Duration),
     //Rewind,
 
     //commander-related commands
@@ -1165,7 +1165,7 @@ pub(in crate::sound) enum PlaybackMessage {
     SaveCommanderState,
     RestoreCommanderState(bool),
     SetCommanderInterpolation(InterpolationMode),
-    FreezeTracker(f64),
+    FreezeTracker(Duration),
 
 }
 
@@ -1203,9 +1203,7 @@ struct OrgTelemCommander
     //here for simplicity, but will not be able to be changed
     sample_rate: f32,
     //only plays if current time is larger than this
-    resume_at: f64,
-    //current time relative to callback's state
-    curr_time: f64,
+    resume_at: SystemTime,
 }
 impl OrgTelemCommander
 {
@@ -1225,20 +1223,14 @@ impl OrgTelemCommander
             sample_rate: config.sample_rate.0 as f32,
             bank: sndbnk,//SoundBank { wave100: Box::new([0; 25600]), samples: vec![WavSample { format: (), data: () }; 16] },
 
-            resume_at: 0.0,
-            curr_time: 0.0,
+            resume_at: SystemTime::UNIX_EPOCH,
         }
-    }
-
-    pub fn set_time(&mut self, delta_time: f64)
-    {
-        self.curr_time += delta_time;
     }
 
     pub fn run(&mut self) -> bool
     {
         if self.state != PlaybackState::Stopped //stop/go
-        && self.resume_at < self.curr_time
+        && self.resume_at < SystemTime::now()
         {
             return self.org_engine.track_only();
         }
@@ -1327,7 +1319,7 @@ impl OrgTelemCommander
 
             PlaybackMessage::FreezeSong(duration) =>
             {
-                self.resume_at = self.curr_time + duration;
+                self.resume_at = SystemTime::now() + duration;
             }
 
 
@@ -1364,9 +1356,8 @@ fn run<T>(
     //startup delay managers
     /////////////////////////
     //only plays if current time is more than this
-    let mut resume_at: f64 = 0.0;
-    //current time
-    let mut curr_time: f64 = 0.0;
+    let mut resume_at = SystemTime::UNIX_EPOCH;
+
 
 
     //create an org engine to do ORG stuff
@@ -1607,7 +1598,7 @@ fn run<T>(
                     }
 
                     Ok(PlaybackMessage::FreezeSong(duration)) => {
-                        resume_at = curr_time + duration;
+                        resume_at = SystemTime::now() + duration;
                     }
 
  
@@ -1651,7 +1642,7 @@ fn run<T>(
                 let (bgm_sample_l, bgm_sample_r): (u16, u16) = {
                     //fill left and right buffers with static value
                     if state == PlaybackState::Stopped
-                    || resume_at > curr_time
+                    || resume_at > SystemTime::now()
                     {
 
                         (0x8000, 0x8000)
@@ -1753,13 +1744,12 @@ fn run<T>(
             
             }
 
-            let time_passage_micros: f64 = (tracker_ticker as f64 * 1000.0 / (sample_rate as f64 * channels as f64)) * 1000000.0; //last nbr to convert to micros
-            curr_time += time_passage_micros;
-            tracker_engine.set_time(time_passage_micros);
-
             tracker_ticker = 0;
 
 
+            // let time_passage_micros: f64 = (tracker_ticker as f64 * 1000.0 / (sample_rate as f64 * channels as f64)) * 1000000.0; //last nbr to convert to micros
+            // curr_time += time_passage_micros;
+            // tracker_engine.set_time(time_passage_micros);
             // //data callback runs at sample_rate * channels / 1000 per second?
             // //it's very close, but obviously off, as timers end up out of sync within a minute (this timer is slower than realTime)
             // //maybe this is better, since it is in time with the actual trackers?

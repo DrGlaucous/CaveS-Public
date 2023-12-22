@@ -518,16 +518,16 @@ impl Guitar
         let (dur_for_song, dur_for_track) = if needed_tracker_time < millis_song as f32
         {
             (
-                extra_millis as f64 * 1000.0,
-                (extra_millis as f64 + time_difference as f64) * 1000.0,
+                Duration::from_millis(extra_millis as u64),
+                Duration::from_millis(extra_millis as u64 + time_difference as u64),
             )
         }
         //if the tracker needs to start first
         else
         {
             (
-                (extra_millis as f64 + time_difference as f64) * 1000.0,
-                extra_millis as f64 * 1000.0,
+                Duration::from_millis(extra_millis as u64 + time_difference as u64),
+                Duration::from_millis(extra_millis as u64),
             )
         };
 
