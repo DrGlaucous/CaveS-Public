@@ -30,7 +30,7 @@ use crate::i18n::Locale;
 use crate::input::touch_controls::TouchControls;
 use crate::mod_list::ModList;
 use crate::mod_requirements::ModRequirements;
-use crate::scene::game_scene::GameScene;
+use crate::scene::game_scene::{GameScene, self};
 use crate::scene::title_scene::TitleScene;
 use crate::scene::Scene;
 use crate::sound::SoundManager;
@@ -732,7 +732,10 @@ impl SharedGameState {
             log::info!("Mod has saves disabled.");
         }
 
+        //TODO: create a reset function
         self.start_new_game(ctx)
+        //self.start_new_game_at(ctx, )
+
     }
 
     pub fn reset(&mut self) {

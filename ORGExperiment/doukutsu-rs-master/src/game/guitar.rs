@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::time::SystemTime;
 use std::time::Duration;
+use std::cmp::Ordering;
 
 use crate::bitfield;
 use crate::common::{Color, Rect};
@@ -33,16 +34,15 @@ use log::Level;
 use serde::{Deserialize, Serialize};
 
 
-
 //holds scores for each level
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LevelScore {
-    correct_notes: u32,
-    incorrect_notes: u32, //NOT "notes missed", also counts wrongful presses
-    total_notes: u32,
-    longest_streak: u32,
-    last_streak: u32,
-    score: i32,
+    pub correct_notes: u32,
+    pub incorrect_notes: u32, //NOT "notes missed", also counts wrongful presses
+    pub total_notes: u32, //correct notes + notes missed (total note count)
+    pub longest_streak: u32,
+    pub last_streak: u32,
+    pub score: i32,
 }
 impl LevelScore
 {
@@ -71,6 +71,10 @@ impl LevelScore
     {
         self.correct_notes as  f32 / (self.incorrect_notes + self.correct_notes) as f32 * 100.0
     }
+
+
+
+
 }
 
 
@@ -366,7 +370,17 @@ impl Guitar
                     hit_minus += 1;
                     continue;
                 }
-                
+
+            }
+
+            //iterate again, but forwards, so the furthest notes down get press-checked first
+            for i in 0..n_strip.len() //(n_strip.len() - 1)..=0
+            {
+                if n_strip[i].out_of_range
+                {
+                    continue;
+                }
+
                 //check for intersection with button
                 if self.hit_trigger[n]
                 && self.button_offset < n_strip[i].note_head_loc + self.hit_leniency
@@ -377,7 +391,10 @@ impl Guitar
                         n_strip[i].was_hit = true;
                         hit_plus += 1;    
                     }
+                    //breakout of for loop, each button can only press a single note at a time
+                    break;
                 }
+
 
             }
 
@@ -562,7 +579,10 @@ impl Guitar
     }
 
 
-
+    pub fn get_current_score(&mut self) -> LevelScore
+    {
+        self.current_score.clone()
+    }
 
 
     ///////////////////

@@ -26,3 +26,4 @@ pub(crate) mod sue;
 pub(crate) mod toroko;
 pub(crate) mod weapon_trail;
 pub(crate) mod wind_fortress;
+pub(crate) mod rave;

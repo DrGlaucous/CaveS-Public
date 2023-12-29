@@ -28,3 +28,26 @@ if there are entries that are alike in both places, the score will be placed on 
 
 
 
+
+needed features:
+Layers mode
+Sprite rotation
+<ANP by NPC type
+Gobos:
+	>Set Light Cone width
+	>Set color
+	>Set color speed
+	>Set to location
+	>Set move speed
+	>Color change mode
+	>Move change mode
+	>Strobe mode
+
+Crowd spawner and crowd NPC
+Band NPCs
+
+
+
+
+
+

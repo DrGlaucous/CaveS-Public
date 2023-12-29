@@ -1139,6 +1139,25 @@ pub struct NPCConsts {
     #[serde(default = "default_n369_gclone_curly_clone")]
     pub n369_gclone_curly_clone: SafeNPCRect<20>,
 
+    //370 doesn't exsist
+
+
+    #[serde(default = "default_n371_gobo")]
+    pub n371_gobo: SafeNPCRect<1>,
+
+    #[serde(default = "default_n372_gobo_base")]
+    pub n372_gobo_base: SafeNPCRect<4>,
+
+    #[serde(default = "default_n373_flood_light")]
+    pub n373_flood_light: SafeNPCRect<1>,
+
+    #[serde(default = "default_n374_strobe_light")]
+    pub n374_strobe_light: SafeNPCRect<1>,
+
+    ////////////////////////////////////
+    //bosses
+    ////////////////////////////////////
+
     // pub n370_second_quote: () // Same as n150_quote
     #[serde(default = "default_b01_omega")]
     pub b01_omega: SafeNPCRect<10>,
@@ -4936,6 +4955,41 @@ fn default_n369_gclone_curly_clone() -> SafeNPCRect<20> {
         Rect { left: 288, top: 64, right: 304, bottom: 80 },
     ])
 }
+
+//nuevo
+
+
+fn default_n371_gobo() -> SafeNPCRect<1> {
+    SafeNPCRect([
+        Rect { left: 64, top: 240, right: 80, bottom: 256 },
+    ])
+}
+
+fn default_n372_gobo_base() -> SafeNPCRect<4> {
+    SafeNPCRect([
+        Rect { left: 0, top: 240, right: 16, bottom: 272 }, //hang A
+        Rect { left: 16, top: 240, right: 32, bottom: 272 }, //hang B
+        Rect { left: 32, top: 240, right: 48, bottom: 272 }, //stand A
+        Rect { left: 48, top: 240, right: 64, bottom: 272 }, //stand B
+    ])
+}
+
+fn default_n373_flood_light() -> SafeNPCRect<1> {
+    SafeNPCRect([
+        Rect { left: 80, top: 240, right: 96, bottom: 256 },
+    ])
+}
+
+fn default_n374_strobe_light() -> SafeNPCRect<1> {
+    SafeNPCRect([
+        Rect { left: 64, top: 256, right: 80, bottom: 272 },
+    ])
+}
+
+
+////////////////////////////////////
+//bosses
+////////////////////////////////////
 
 fn default_b01_omega() -> SafeNPCRect<10> {
     SafeNPCRect([

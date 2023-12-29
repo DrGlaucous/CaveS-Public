@@ -5,6 +5,7 @@
   "common": {
     "name": "doukutsu-rs",
     "back": "< 戻る",
+    "continue": "Continue",
     "yes": "はい",
     "no": "いいえ",
     "on": "オン",

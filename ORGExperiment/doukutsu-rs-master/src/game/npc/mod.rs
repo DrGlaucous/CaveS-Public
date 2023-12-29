@@ -3,6 +3,7 @@ use std::io;
 use std::io::Cursor;
 use std::ops::Deref;
 use std::rc::Rc;
+use core::ops::Range;
 
 use byteorder::{LE, ReadBytesExt};
 
@@ -10,6 +11,7 @@ use crate::bitfield;
 use crate::common::{Condition, interpolate_fix9_scale, Rect};
 use crate::common::Direction;
 use crate::common::Flag;
+use crate::common::Color;
 use crate::components::flash::Flash;
 use crate::components::number_popup::NumberPopup;
 use crate::entity::GameEntity;
@@ -30,9 +32,10 @@ pub mod boss;
 pub mod list;
 pub mod utils;
 
+//TODO: add support for 32 bit npc.tbl
 bitfield! {
     #[derive(Clone, Copy)]
-    pub struct NPCFlag(u16);
+    pub struct NPCFlag(u32);
     impl Debug;
     /// Represented by 0x01
     pub solid_soft, set_solid_soft: 0;
@@ -66,6 +69,13 @@ bitfield! {
     pub hide_unless_flag_set, set_hide_unless_flag_set: 14;
     /// Represented by 0x8000
     pub show_damage, set_show_damage: 15;
+
+
+    //lightcone related things
+    pub emits_cone_light, set_emits_cone_light: 16;
+    pub emits_point_light, set_emits_point_light: 17;
+
+
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialOrd, PartialEq)]
@@ -127,6 +137,17 @@ pub struct NPC {
     pub rng: Xoroshiro32PlusPlus,
     pub popup: NumberPopup,
     pub splash: bool,
+
+    //nuevo
+    pub anchor_x: f32, //from corner of drawbox, pivot point
+    pub anchor_y: f32,
+    pub angle: f32, //angle in radians
+
+    pub light_angle: Range<i32>, //angle of light cone (if used) in degrees
+    pub light_color: Color, //color of emitted light (if used)
+    pub light_power: f32, //power of the cone light (decimal)
+    pub tint_color: Color, //tinted color of NPC, by default, no tint
+
 }
 
 impl NPC {
@@ -171,6 +192,15 @@ impl NPC {
             rng: Xoroshiro32PlusPlus::new(0),
             popup: NumberPopup::new(),
             splash: false,
+
+            //nuevo
+            anchor_x: 0.0,
+            anchor_y: 0.0,
+            angle: 0.0,
+            light_angle: 0..0,
+            light_power: 1.0,
+            light_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
+            tint_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
         }
     }
 
@@ -622,6 +652,14 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             368 => self.tick_n368_gclone(state, players, npc_list),
             369 => self.tick_n369_gclone_curly_clone(state, players, npc_list),
             370 => self.tick_n370_second_quote(state, players, npc_list),
+
+            //nuevo
+            371 => self.tick_n371_gobo(state, npc_list),
+            372 => self.tick_n372_gobo_head(state, players),
+
+
+
+
             _ => Ok(()),
         }?;
 
@@ -670,20 +708,70 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             state.frame_time,
         ) - frame_y;
 
-        if self.is_sue() && state.more_rust {
+        //do actual drawing
+
+        //no rust special for now, I want to try NPC flipping
+        //scratch that, the rust special is back. I succeded
+        if self.is_sue() && state.more_rust
+        {
             // tint sue blue
-            batch.add_rect_tinted(final_x, final_y, (200, 200, 255, 255), &self.anim_rect);
+            //batch.add_rect_tinted(final_x, final_y, (200, 200, 255, 255), &self.anim_rect);
+            
+            batch.add_rect_flip_scaled_tinted_rotated(
+                final_x,
+                final_y, 
+                false, 
+                false, 
+                self.angle as f64,
+                self.anchor_x, 
+                self.anchor_y,
+                (200,200,255,255),
+                1.0, 
+                1.0,
+                &self.anim_rect);
+            
             batch.draw(ctx)?;
+
+
         } else {
-            batch.add_rect(final_x, final_y, &self.anim_rect);
+            //batch.add_rect(final_x, final_y, &self.anim_rect);
+            batch.add_rect_flip_scaled_tinted_rotated(
+                final_x,
+                final_y, 
+                false, 
+                false, 
+                self.angle as f64,
+                self.anchor_x, 
+                self.anchor_y,
+                self.tint_color.to_rgba(),
+                1.0, 
+                1.0,
+                &self.anim_rect);
+
             batch.draw(ctx)?;
+
+
         }
 
-        if self.is_sue() && state.more_rust {
+        if self.is_sue() && state.more_rust
+        {
             // draw crab headband
             let headband_spritesheet = self.get_headband_spritesheet(state, &*texture_ref);
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, headband_spritesheet.as_str())?;
-            batch.add_rect(final_x, final_y, &self.anim_rect);
+
+            batch.add_rect_flip_scaled_tinted_rotated(
+                final_x,
+                final_y, 
+                false, 
+                false, 
+                self.angle as f64,
+                self.anchor_x, 
+                self.anchor_y,
+                (0xFF,0xFF,0xFF,0xFF),
+                1.0, 
+                1.0,
+                &self.anim_rect);
+
             batch.draw(ctx)?;
         }
 
@@ -848,7 +936,7 @@ impl NPCTable {
         }
 
         for npc in &mut table.entries {
-            npc.npc_flags.0 = f.read_u16::<LE>()?;
+            npc.npc_flags.0 = f.read_u16::<LE>()? as u32;
         }
 
         for npc in &mut table.entries {

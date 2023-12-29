@@ -5,6 +5,7 @@
   "common": {
     "name": "doukutsu-rs",
     "back": "< Back",
+    "continue": "Continue",
     "yes": "Yes",
     "no": "No",
     "on": "ON",

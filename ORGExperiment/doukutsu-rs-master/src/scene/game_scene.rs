@@ -55,6 +55,7 @@ use crate::scene::Scene;
 use crate::util::rng::RNG;
 
 use crate::game::guitar::Guitar;
+//use crate::menu::guitar_menu::HiScoreMenu; //unused
 //crate::scene::game_scene::guitar::Guitar;
 
 pub struct GameScene {
@@ -390,13 +391,13 @@ impl GameScene {
 
     fn draw_light_raycast(
         &self,
-        tile_size: TileSize,
-        world_point_x: i32,
+        tile_size: TileSize, //map's tile size
+        world_point_x: i32, //pixel location on map
         world_point_y: i32,
-        (br, bg, bb): (u8, u8, u8),
-        att: f32,
-        angle: Range<i32>,
-        batch: &mut Box<dyn SpriteBatch>,
+        (br, bg, bb): (u8, u8, u8), //color
+        att: f32, //light distance (power)
+        angle: Range<i32>, //width of beam (degrees)
+        batch: &mut Box<dyn SpriteBatch>, //pointer to surface to draw to
     ) {
         let px = world_point_x as f32 / 512.0;
         let py = world_point_y as f32 / 512.0;
@@ -536,9 +537,11 @@ impl GameScene {
                 continue;
             }
 
+            //don't think this will ever draw anything in it's current state, but it might put a top-layer lightmask over an NPC if it *did* work
             npc.draw_lightmap(state, ctx, &self.frame)?;
         }
 
+        //draw other lights
         {
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "builtin/lightmap/spot")?;
 
@@ -636,16 +639,21 @@ impl GameScene {
             }
 
             for npc in self.npc_list.iter_alive() {
+
+                //the light source NPCs demands a wider valid range because of the light cone
+                //let edge_margin = if npc.npc_type == 377 {256} else {128};
+                let edge_margin = (128.0 * npc.light_power) as i32;
+                
                 if npc.cond.hidden()
-                    || (npc.x < (self.frame.x - 128 * 0x200 - npc.display_bounds.width() as i32 * 0x200)
+                    || (npc.x < (self.frame.x - edge_margin * 0x200 - npc.display_bounds.width() as i32 * 0x200)
                         || npc.x
                             > (self.frame.x
-                                + 128 * 0x200
+                                + edge_margin * 0x200
                                 + (state.canvas_size.0 as i32 + npc.display_bounds.width() as i32) * 0x200)
-                            && npc.y < (self.frame.y - 128 * 0x200 - npc.display_bounds.height() as i32 * 0x200)
+                            && npc.y < (self.frame.y - edge_margin * 0x200 - npc.display_bounds.height() as i32 * 0x200)
                         || npc.y
                             > (self.frame.y
-                                + 128 * 0x200
+                                + edge_margin * 0x200
                                 + (state.canvas_size.1 as i32 + npc.display_bounds.height() as i32) * 0x200))
                 {
                     continue;
@@ -685,6 +693,7 @@ impl GameScene {
                         batch,
                     ),
                     17 if npc.anim_num == 0 => {
+                        //draw light at subpixel location x, y, dim red, only if the heart is lit
                         self.draw_light(
                             interpolate_fix9_scale(
                                 npc.prev_x - self.frame.prev_x,
@@ -1004,6 +1013,7 @@ impl GameScene {
                             batch,
                         )
                     }
+                    //curly AI
                     180 => {
                         if state.settings.light_cone {
                             // Curly's looking upward frames
@@ -1030,6 +1040,7 @@ impl GameScene {
                             );
                         }
                     }
+                    //carried curly
                     320 => {
                         if state.settings.light_cone {
                             let range = match npc.direction() {
@@ -1051,11 +1062,13 @@ impl GameScene {
                             );
                         }
                     }
+                    //deleet (rays expand out as it counts down)
                     322 => {
                         let scale = 0.004 * (npc.action_counter as f32);
 
                         self.draw_light_raycast(state.tile_size, npc.x, npc.y, (255, 0, 0), scale, 0..360, batch)
                     }
+                    //heavy press projectile
                     325 => {
                         let size = 0.5 * (npc.anim_num as f32 + 1.0);
                         self.draw_light(
@@ -1074,7 +1087,41 @@ impl GameScene {
                             batch,
                         )
                     }
-                    _ => {}
+                    _ => 
+                    {
+                        //use cutsom NPC stats
+
+                        if npc.npc_flags.emits_cone_light()
+                        {
+                            self.draw_light_raycast(
+                                state.tile_size,
+                                npc.x,
+                                npc.y,
+                                npc.light_color.to_rgb(),
+                                npc.light_power,
+                                npc.light_angle.clone(),
+                                batch);
+                        }
+
+                        if npc.npc_flags.emits_point_light()
+                        {
+                            self.draw_light(
+                                interpolate_fix9_scale(
+                                    npc.prev_x - self.frame.prev_x,
+                                    npc.x - self.frame.x,
+                                    state.frame_time,
+                                ),
+                                interpolate_fix9_scale(
+                                    npc.prev_y - self.frame.prev_y,
+                                    npc.y - self.frame.y,
+                                    state.frame_time,
+                                ),
+                                npc.light_power,
+                                npc.light_color.to_rgb(),
+                                batch);
+                        }
+
+                    }
                 }
             }
 
@@ -1253,16 +1300,20 @@ impl GameScene {
                     continue;
                 }
 
-                let hit = (npc.npc_flags.shootable()
-                    && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
-                    && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)
-                    && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.enemy_hit_height as i32)
-                    && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.enemy_hit_height as i32))
-                    || (npc.npc_flags.invulnerable()
-                        && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.hit_bounds.right as i32)
-                        && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.hit_bounds.left as i32)
-                        && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.hit_bounds.bottom as i32)
-                        && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.hit_bounds.top as i32));
+                let hit = npc.collides_with_bullet(bullet);
+
+                //why is it written this way? NPCs have a function to handle this...
+                // let hit = (npc.npc_flags.shootable()
+                //     && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
+                //     && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)
+                //     && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.enemy_hit_height as i32)
+                //     && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.enemy_hit_height as i32))
+                //     || (npc.npc_flags.invulnerable()
+                //         && (npc.x - npc.hit_bounds.right as i32) < (bullet.x + bullet.hit_bounds.right as i32)
+                //         && (npc.x + npc.hit_bounds.right as i32) > (bullet.x - bullet.hit_bounds.left as i32)
+                //         && (npc.y - npc.hit_bounds.top as i32) < (bullet.y + bullet.hit_bounds.bottom as i32)
+                //         && (npc.y + npc.hit_bounds.bottom as i32) > (bullet.y - bullet.hit_bounds.top as i32));
+
 
                 if !hit {
                     continue;
@@ -1810,6 +1861,8 @@ impl Scene for GameScene {
             self.pause_menu.pause(state);
         }
 
+
+
         if self.pause_menu.is_paused() {
             self.pause_menu.tick(state, ctx)?;
             return Ok(());
@@ -2003,9 +2056,11 @@ impl Scene for GameScene {
         let stage_textures_ref = &*self.stage_textures.deref().borrow();
         self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Background, stage_textures_ref, &self.stage)?;
+        //d-rs already supports drawing NPCs in 3 different spots, determined by each npc's prefrence
         self.draw_npc_layer(state, ctx, NPCLayer::Background)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Middleground, stage_textures_ref, &self.stage)?;
 
+        //shaders enabled and lighting mode is set to "background"
         if state.settings.shader_effects && self.lighting_mode == LightingMode::BackgroundOnly {
             self.draw_light_map(state, ctx)?;
         }
@@ -2023,6 +2078,7 @@ impl Scene for GameScene {
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
+        self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?; //nuevo
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front)?;
 
         self.draw_carets(state, ctx)?;
@@ -2033,9 +2089,10 @@ impl Scene for GameScene {
         self.draw_npc_popup(state, ctx)?;
         self.draw_boss_popup(state, ctx)?;
 
+        //if NOT credits and shaders enabled and lighting mode is ambient
         if !state.control_flags.credits_running()
             && state.settings.shader_effects
-            && self.lighting_mode == LightingMode::Ambient
+            && self.lighting_mode == LightingMode::Ambient //determined by background type
         {
             self.draw_light_map(state, ctx)?;
         }

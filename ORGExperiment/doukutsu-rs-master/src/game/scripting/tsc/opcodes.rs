@@ -287,7 +287,7 @@ pub enum TSCOpCode {
     // <STS[Map number]
     STS,
     
-    // LTS: Load Tracker Stats
+    // LTS: Load Tracker Stats:, loads stats from the JSON into each corresponding map
     LTS,
 
     // RTS: Reset Tracker Stats (only the ones currently being tracked in Guitar, not the saved ones in the maps)
@@ -296,6 +296,14 @@ pub enum TSCOpCode {
     // SSD: Set Start Delay, synchronizes the songs together when starting
     // <SSD[song delay]:[tracker delay]:[extra delay]
     SSD,
+
+    // SCS: Show Score Summary: Shows/hides the score summary chart
+    // <SCS[0000/1]
+    SCS,
+
+    // HSJ: High Score Jump, Jump if the current score is better in any way than the old one for that map
+    // <HSJ[Map Number]:[Event]
+    HSJ,
 
 
 

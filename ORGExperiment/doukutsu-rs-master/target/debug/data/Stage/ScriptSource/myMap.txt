@@ -27,7 +27,13 @@
 
 
 #0200
-<HMC<KEY<MSGHello there.<NOD<CLO
+<HMC<KEY<MSGHello there.<NOD<CLO<HNH
+<AM+0002:0000
+<MOV0006:0009
+<SMC
+<FAI0004
+<END
+
 <PSM
 //<CMF0000:/Resource/ORG/CURLY_OL_2.org$
 //<CTF/Resource/Curly_Tracker.org$

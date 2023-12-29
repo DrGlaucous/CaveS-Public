@@ -265,6 +265,7 @@ impl TextScript {
             | TSCOpCode::PSH
             //nuevo
             | TSCOpCode::STS
+            | TSCOpCode::SCS
             => {
                 //get the argument, then push the code + argument
                 let operand = read_number(iter)?;
@@ -286,7 +287,9 @@ impl TextScript {
             | TSCOpCode::SMP
             | TSCOpCode::PSp
             | TSCOpCode::IpN
-            | TSCOpCode::FFm => {
+            | TSCOpCode::FFm
+            | TSCOpCode::HSJ
+            => {
                 let operand_a = read_number(iter)?;
                 if strict {
                     expect_char(b':', iter)?;

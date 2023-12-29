@@ -49,12 +49,13 @@ impl NPCList {
     }
 
     /// Inserts NPC into list in first available slot after given ID.
-    pub fn spawn(&self, min_id: u16, mut npc: NPC) -> GameResult {
+    pub fn spawn(&self, min_id: u16, mut npc: NPC) -> GameResult<u16> {
         let npc_len = unsafe { self.npcs().len() };
 
         if min_id as usize >= npc_len {
             return Err(GameError::InvalidValue("NPC ID is out of bounds".to_string()));
         }
+
 
         for id in min_id..(npc_len as u16) {
             let npc_ref = unsafe { self.npcs_mut().get_unchecked_mut(id as usize) };
@@ -74,7 +75,7 @@ impl NPCList {
                     self.max_npc.replace(id + 1);
                 }
 
-                return Ok(());
+                return Ok(id);
             }
         }
 

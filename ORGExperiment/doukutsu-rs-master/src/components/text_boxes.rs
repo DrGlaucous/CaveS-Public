@@ -9,6 +9,8 @@ use crate::game::scripting::tsc::text_script::{ConfirmSelection, TextScriptExecu
 use crate::game::shared_game_state::SharedGameState;
 use crate::graphics::font::{Font, Symbols};
 
+use crate::menu::Menu;
+
 pub struct TextBoxes {
     pub slide_in: u8,
     pub anim_counter: usize,
@@ -272,6 +274,58 @@ impl GameEntity<()> for TextBoxes {
                 )?;
             }
         }
+
+        //nuevo: draw save confirmation menus
+        //if state.textscript_vm.show_save_comp
+        {
+            //use the menu class to draw a blank slate I can put my stuff on
+            let width = 136;
+            let height = 64;
+            let x_corn = center as isize - (width/2) as isize;
+            let y_corn = state.canvas_size.1 as isize - 104 - height as isize;
+            let mut menu_backpane: Menu<u8> = Menu::new(x_corn, 
+                y_corn,
+                width,
+                height);
+            menu_backpane.draw_cursor = false;
+            menu_backpane.draw(state, ctx)?;
+
+
+
+            state.font.builder().x(x_corn as f32).y(y_corn as f32).shadow(true).draw(
+                    &format!("Final Results"),
+                    ctx,
+                    &state.constants,
+                    &mut state.texture_set,
+                )?;
+            
+            state.font.builder().x(x_corn as f32).y(y_corn as f32 + 10.0).shadow(true).draw(
+                    &format!("Points: 12345"),
+                    ctx,
+                    &state.constants,
+                    &mut state.texture_set,
+                )?;
+            
+            state.font.builder().x(x_corn as f32).y(y_corn as f32 + 20.0).shadow(true).draw(
+                    &format!("Longest Streak: 12345"),
+                    ctx,
+                    &state.constants,
+                    &mut state.texture_set,
+                )?;
+
+            state.font.builder().x(x_corn as f32).y(y_corn as f32 + 40.0).shadow(true).draw(
+                    &format!("Press {} key to continue.", state.loc.t("menus.controls_menu.rebind_menu.jump").to_owned()    ),
+                    ctx,
+                    &state.constants,
+                    &mut state.texture_set,
+                )?;
+
+            //let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "PianoRoll")?;
+            
+
+
+        }
+
 
         Ok(())
     }

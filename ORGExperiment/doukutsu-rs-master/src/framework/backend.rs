@@ -140,5 +140,6 @@ pub enum SpriteBatchCommand {
 
     //Nuevo
     DrawRectSkewedTinted(Rect<f32>, (f32, f32), (f32, f32), (f32, f32), (f32, f32), Color), //src, [TL], [TR], [BL], [BR], RGBA
-    DrawGradient((f32, f32), (f32, f32), (f32, f32), (f32, f32), Color, Color, Color, Color) //src, [TL], [TR], [BL], [BR], RGBA_TL, RGBA_TR, RGBA_BL, RGBA_BR
+    DrawGradient((f32, f32), (f32, f32), (f32, f32), (f32, f32), Color, Color, Color, Color), //src, [TL], [TR], [BL], [BR], RGBA_TL, RGBA_TR, RGBA_BL, RGBA_BR
+    DrawRectFlipTintedRotated(Rect<f32>, Rect<f32>, bool, bool, Color, f64, f32, f32, f32), //src, dst, flip_x, flip_y, color_key, rotation, xloc, yloc, mag(backend dependant)
 }

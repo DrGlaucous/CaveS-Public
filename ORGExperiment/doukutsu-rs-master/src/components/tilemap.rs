@@ -16,6 +16,7 @@ pub enum TileLayer {
     Background,
     Middleground,
     Foreground,
+    FarForeground,
     Snack,
 }
 
@@ -52,6 +53,7 @@ impl Tilemap {
             TileLayer::Background => &textures.tileset_bg,
             TileLayer::Middleground => &textures.tileset_mg,
             TileLayer::Foreground => &textures.tileset_fg,
+            _ => &textures.tileset_fg, //this will only be used with the PXM type, so this string won't matter anyway
         };
 
         let (layer_offset, layer_width, layer_height, uses_layers) = if let Some(pxpack_data) = &stage.data.pxpack_data
@@ -65,14 +67,30 @@ impl Tilemap {
                 }
                 _ => (0, pxpack_data.size_fg.0, pxpack_data.size_fg.1, true),
             }
+        } else if stage.map.tiles.len() > (stage.map.width * stage.map.height) as usize { //PXM layer mode detection
+            //layer order:
+            //0 foreground
+            //1 far back
+            //2 back
+            //3 far front
+            match layer {
+                TileLayer::Background =>(1 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                TileLayer::Middleground =>(2 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                TileLayer::Foreground =>(0 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                TileLayer::FarForeground =>(3 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, true),
+                TileLayer::Snack =>(0 * (stage.map.width * stage.map.height) as usize, stage.map.width, stage.map.height, false), //do this so we bypass the first draw-all section of the match statement below
+            }
+
         } else {
             (0, stage.map.width, stage.map.height, false)
         };
 
-        if !uses_layers && layer == TileLayer::Middleground {
+        //do not draw mid-ground tiles if layers are not turned on
+        if !uses_layers && (layer == TileLayer::Middleground || layer == TileLayer::FarForeground) {
             return Ok(());
         }
 
+        //for integer and floating point camera positioning, respectively
         let tile_size = state.tile_size.as_int();
         let tile_sizef = state.tile_size.as_float();
         let halft = tile_size / 2;

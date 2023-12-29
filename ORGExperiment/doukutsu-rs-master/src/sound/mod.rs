@@ -112,6 +112,7 @@ pub struct SoundManager {
     play_lock: bool, //true if the music was paused from TSC instead of a defocus
     timer_lock_soft: bool, //true if the music was locked from a soft pause
     timer_lock_hard: bool, //true if the music was locked from a hard pause
+    music_paused_at: SystemTime, //time when the music was paused (used for delayed resumes)
 
     //time relative to music player's state
     pub music_time: RunGameTime,
@@ -172,6 +173,7 @@ impl SoundManager {
                 music_time: RunGameTime::new(),
                 timer_lock_soft: false,
                 timer_lock_hard: false,
+                music_paused_at: SystemTime::UNIX_EPOCH,
             });
         }
 
@@ -210,6 +212,7 @@ impl SoundManager {
             play_lock: false,
             timer_lock_soft: false,
             timer_lock_hard: false,
+            music_paused_at: SystemTime::UNIX_EPOCH,
 
             current_commander_path: String::new(),
             current_song_path: String::new(),
@@ -301,76 +304,138 @@ impl SoundManager {
 
 
     //feed 'true' if the command is from a soft resume
+    //moved to general wrapper function below
     pub fn try_resume_music_timer(&mut self, is_soft: bool)
     {
         //change the state of the proper variable
         if is_soft {self.timer_lock_soft = false}
         else {self.timer_lock_hard = false}
-
         if !self.timer_lock_soft && !self.timer_lock_hard
         {
             self.music_time.resume();
         }
     }
 
+    //feed 'true' if the command is from a soft lock
+    pub fn pause_music_timer(&mut self, is_soft: bool, pause: bool)
+    {
+        //true if timer was running
+        let prev_state = !self.timer_lock_soft && !self.timer_lock_hard;
+        
+        //run pasuse operation
+        if pause
+        {
+            //change the state of the proper variable
+            if is_soft
+            {
+                //check if we are already soft-paused
+                if self.timer_lock_soft { return }
+
+                self.send(PlaybackMessage::SaveState).unwrap();
+                self.send(PlaybackMessage::SaveCommanderState).unwrap();
+                self.send(PlaybackMessage::Stop).unwrap();
+                self.send(PlaybackMessage::StopCommander).unwrap();
+
+                self.timer_lock_soft = true;
+                self.music_time.pause();
+            }
+            else
+            {
+                //check if we are already soft-paused
+                if self.timer_lock_hard { return }
+
+                if let Some(stream) = &mut self.stream {
+                    let _ = stream.pause();
+                    self.timer_lock_hard = true;
+                    self.music_time.pause();
+                }
+            }
+
+            //log the moment when the music was stopped
+            //should only run if the total state was changed
+            // if prev_state == true && //last state is true
+            // ! (self.timer_lock_soft || self.timer_lock_hard) //current state is false
+            // {
+            //     self.music_paused_at = SystemTime::now();
+            // }
+
+            if prev_state //last state is true
+            {
+                if self.timer_lock_soft || self.timer_lock_hard
+                {
+                    self.music_paused_at = SystemTime::now();
+                }
+            }
+
+
+        }
+        //run resume operation
+        else
+        {
+            if is_soft
+            {
+                //check for existing operation
+                if !self.timer_lock_soft {return}
+
+                self.timer_lock_soft = false;
+            
+                self.send(PlaybackMessage::RestoreState(false)).unwrap();
+                self.send(PlaybackMessage::RestoreCommanderState(false)).unwrap();                
+            
+            }
+            else
+            {
+                //check for existing operation
+                if !self.timer_lock_hard {return}
+
+                if let Some(stream) = &mut self.stream {
+                    let _ = stream.play();
+                    self.timer_lock_hard = false;
+                }
+            }
+
+            //resume timer if both hard and soft locks are removed
+            if !self.timer_lock_soft && !self.timer_lock_hard
+            {
+                self.music_time.resume();
+
+                let time_paused = SystemTime::now().duration_since(self.music_paused_at).unwrap();
+                self.send(PlaybackMessage::SetFreezeSongOffset(time_paused)).unwrap();
+                self.send(PlaybackMessage::SetFreezeTrackerOffset(time_paused)).unwrap();
+            }
+        }
+
+
+    }
+
+
     //pause with locking, so TSC events keep it paused even if screen events try to resume it
     pub fn pause_lock(&mut self) {
         self.play_lock = true;
-
-        if let Some(stream) = &mut self.stream {
-            let _ = stream.pause();
-
-            self.timer_lock_hard = true;
-            self.music_time.pause();
-        }
+        self.pause_music_timer(false, true);
     }
     pub fn resume_lock(&mut self) {
         self.play_lock = false;
-
-        if let Some(stream) = &mut self.stream {
-            let _ = stream.play();
-            self.try_resume_music_timer(false);
-        }
+        self.pause_music_timer(false, false);
     }
 
     pub fn pause(&mut self) {
-        if let Some(stream) = &mut self.stream {
-            let _ = stream.pause();
-            self.timer_lock_hard = true;
-            self.music_time.pause();
-        }
+        self.pause_music_timer(false, true);
     }
 
     pub fn resume(&mut self) {
         if self.play_lock {return} //do not resume if locked
-
-        if let Some(stream) = &mut self.stream {
-            let _ = stream.play();
-            self.try_resume_music_timer(false);
-        }
+        self.pause_music_timer(false, false);
     }
 
     //send pause and play commands to the player and tracker, keeping the rest of the sound enabled
     pub fn soft_pause(&mut self)
     {
-        //check if we are already soft-paused
-        if self.timer_lock_soft == true
-        { return }
-
-        self.send(PlaybackMessage::SaveState).unwrap();
-        self.send(PlaybackMessage::SaveCommanderState).unwrap();
-        self.send(PlaybackMessage::Stop).unwrap();
-        self.send(PlaybackMessage::StopCommander).unwrap();
-
-        self.timer_lock_soft = true;
-        self.music_time.pause();
+        self.pause_music_timer(true, true);
     }
     pub fn soft_resume(&mut self)
     {
-        self.send(PlaybackMessage::RestoreState(false)).unwrap();
-        self.send(PlaybackMessage::RestoreCommanderState(false)).unwrap();
-
-        self.try_resume_music_timer(true);
+        self.pause_music_timer(true, false);
     }
 
 
@@ -1156,7 +1221,7 @@ pub(in crate::sound) enum PlaybackMessage {
     SetOrgInterpolation(InterpolationMode),
     SetSampleData(u8, Vec<i16>),
     FreezeSong(Duration),
-    //Rewind,
+    SetFreezeSongOffset(Duration), //tells the tracker how much time has passed when we wake it back up
 
     //commander-related commands
     StopCommander,
@@ -1166,6 +1231,7 @@ pub(in crate::sound) enum PlaybackMessage {
     RestoreCommanderState(bool),
     SetCommanderInterpolation(InterpolationMode),
     FreezeTracker(Duration),
+    SetFreezeTrackerOffset(Duration),
 
 }
 
@@ -1320,6 +1386,11 @@ impl OrgTelemCommander
             PlaybackMessage::FreezeSong(duration) =>
             {
                 self.resume_at = SystemTime::now() + duration;
+            }
+
+            PlaybackMessage::SetFreezeSongOffset(duration) =>
+            {
+                self.resume_at = self.resume_at + duration;
             }
 
 
@@ -1600,6 +1671,9 @@ fn run<T>(
                     Ok(PlaybackMessage::FreezeSong(duration)) => {
                         resume_at = SystemTime::now() + duration;
                     }
+                    Ok(PlaybackMessage::SetFreezeSongOffset(duration)) => {
+                        resume_at = resume_at + duration;
+                    }
 
  
                     //nuevo
@@ -1621,12 +1695,16 @@ fn run<T>(
                     Ok(PlaybackMessage::StopCommander) => {
                         tracker_engine.set(PlaybackMessage::Stop);
                     }
-                    Ok(PlaybackMessage::FreezeTracker(duration)) =>{
+                    Ok(PlaybackMessage::FreezeTracker(duration)) => {
                         tracker_engine.set(PlaybackMessage::FreezeSong(duration));
                     }
 
+                    Ok(PlaybackMessage::SetFreezeTrackerOffset(duration)) => {
+                        tracker_engine.set(PlaybackMessage::SetFreezeSongOffset(duration));
+                    }
 
-                    //Ok(_)=>{}
+
+                    Ok(_)=>{}
                     
                     Err(_) => {
                         break;
@@ -1635,6 +1713,10 @@ fn run<T>(
             
             }
 
+            let rsm_breakout = resume_at.duration_since(SystemTime::UNIX_EPOCH).unwrap();
+            let tsm_breakout  = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
+            let rmm = rsm_breakout.as_secs();
+            let tmm = tsm_breakout.as_secs();
 
 
             //send audio frames to backend, dols out audio data evenly between frames

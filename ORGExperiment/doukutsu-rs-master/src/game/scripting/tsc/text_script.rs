@@ -163,6 +163,9 @@ pub struct TextScriptVM {
     pub illustration_state: IllustrationState,
     prev_char: char,
     pub substitution_rect_map: [(char, Rect<u16>); TSC_SUBSTITUTION_MAP_SIZE],
+    //nuevo
+    pub show_save_comp: bool,
+    pub compare_map_no: usize,
 }
 
 pub struct Scripts {
@@ -239,6 +242,9 @@ impl TextScriptVM {
             illustration_state: IllustrationState::Hidden,
             prev_char: '\x00',
             substitution_rect_map: [('=', Rect::new(0, 0, 0, 0))],
+            //nuevo
+            show_save_comp: false,
+            compare_map_no: 0,
         }
     }
 
@@ -517,6 +523,8 @@ impl TextScriptVM {
                     }
                 }
                 TextScriptExecutionState::WaitConfirmation(event, ip, no_event, wait, selection) => {
+
+                    //decrement wait time until user can make a choice
                     if wait > 0 {
                         state.textscript_vm.state =
                             TextScriptExecutionState::WaitConfirmation(event, ip, no_event, wait - 1, selection);
@@ -1071,7 +1079,7 @@ impl TextScriptVM {
             TSCOpCode::CMP => {
                 let pos_x = read_cur_varint(&mut cursor)? as usize;
                 let pos_y = read_cur_varint(&mut cursor)? as usize;
-                let tile_type = read_cur_varint(&mut cursor)? as u8;
+                let tile_type = read_cur_varint(&mut cursor)? as u16;
 
                 if game_scene.stage.change_tile(pos_x, pos_y, tile_type) {
                     let mut npc = NPC::create(4, &state.npc_table);
@@ -1960,10 +1968,45 @@ impl TextScriptVM {
                 let millis_tracker = read_cur_varint(&mut cursor)? as u32;
                 //xtra delay
                 let extra_millis = read_cur_varint(&mut cursor)? as u32;
-                //send off
+                //sendoff
                 game_scene.guitar_manager.set_start_delay(state, millis_song, millis_tracker, extra_millis);
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            TSCOpCode::SCS => {
+                //song delay
+                let should_show = read_cur_varint(&mut cursor)? as u32;
+                state.textscript_vm.show_save_comp = should_show > 0;
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            TSCOpCode::HSJ => {
+
+                let map_no = read_cur_varint(&mut cursor)? as usize;
+                let event_no = read_cur_varint(&mut cursor)? as u16;
+
+                //jump event if any part of the high score is better than before
+                let score_curr = game_scene.guitar_manager.get_current_score();
+                let score_prev = state.stages[map_no].score.clone();
+
+                //QOL: implement this as a partialOrd (for now, I will just do manual comparisons)
+                if score_curr.correct_notes > score_prev.correct_notes
+                || score_curr.accuracy() > score_prev.accuracy()
+                || score_curr.longest_streak > score_prev.longest_streak
+                {
+                    //jump
+                    state.textscript_vm.clear_text_box();
+                    exec_state = TextScriptExecutionState::Running(event_no, 0);
+                }
+                else
+                {
+                    //continue
+                    exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);   
+                }
+
+
+
             }
             
         

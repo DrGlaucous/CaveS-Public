@@ -375,5 +375,3 @@
 #368	g	clone	gclone 	0:352:96:366	gclone 	CE:Misc ;
 #369	gclone	curly	gclone curly 	0:352:96:366	gclone curly 	CE:Misc ;
 #370	quote	2	quote 2	48:48:64:64	quote 2 (for rust)	;
-#371	Gobo	Light	Gobo	48:48:64:64	Rotating effect light	RAVE:LIGHTS ;
-#372	Gobo	Head	Gobo Head	48:48:64:64	Sub-part of Gobo light	RAVE:LIGHT ;

@@ -1,7 +1,7 @@
 ///! Various utility functions for NPC-related objects
 use num_traits::abs;
 
-use crate::common::{Condition, Direction, Flag, Rect};
+use crate::common::{Condition, Direction, Flag, Rect, Color};
 use crate::components::number_popup::NumberPopup;
 use crate::game::caret::CaretType;
 use crate::game::map::NPCData;
@@ -88,6 +88,15 @@ impl NPC {
             rng: Xoroshiro32PlusPlus::new(0),
             popup: NumberPopup::new(),
             splash: false,
+
+            //nuevo
+            anchor_x: 0.0,
+            anchor_y: 0.0,
+            angle: 0.0,
+            light_angle: 0..0,
+            light_power: 1.0,
+            light_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
+            tint_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
         }
     }
 
@@ -101,7 +110,7 @@ impl NPC {
         npc.y = data.y as i32 * ti;
         npc.flag_num = data.flag_num;
         npc.event_num = data.event_num;
-        npc.npc_flags = NPCFlag(data.flags | npc.npc_flags.0);
+        npc.npc_flags = NPCFlag(data.flags as u32 | npc.npc_flags.0); //data flags are still u16, this may need to be changed
         npc.direction = if npc.npc_flags.spawn_facing_right() { Direction::Right } else { Direction::Left };
 
         npc
