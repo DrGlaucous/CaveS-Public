@@ -97,6 +97,10 @@ impl NPC {
             light_power: 1.0,
             light_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
             tint_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
+            pass_var_a: 0,
+            pass_var_b: 0,
+            gen_var_a: 0,
+            gen_var_b: 0,
         }
     }
 

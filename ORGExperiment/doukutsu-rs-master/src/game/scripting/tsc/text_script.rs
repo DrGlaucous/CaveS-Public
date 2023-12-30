@@ -2008,6 +2008,22 @@ impl TextScriptVM {
 
 
             }
+
+            TSCOpCode::UNP => {
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+                let action_num = read_cur_varint(&mut cursor)? as u16;
+                let gen_var_a = read_cur_varint(&mut cursor)? as i32;
+                let gen_var_b = read_cur_varint(&mut cursor)? as i32;
+
+                for npc in game_scene.npc_list.iter_alive() {
+                    if npc.event_num == event_num {
+                        npc.action_num = action_num;
+                        npc.gen_var_a = gen_var_a;
+                        npc.gen_var_b = gen_var_b;
+
+                    }
+                }
+            }
             
         
         

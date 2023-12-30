@@ -305,6 +305,15 @@ pub enum TSCOpCode {
     // <HSJ[Map Number]:[Event]
     HSJ,
 
+    //like ANP, but can pass 3 arbitrary values back instead of 1 (direction is hamstrung in d-rs, so it doesnt count)
+    //Ultra aNP: <ANP[NPC]:[Act No]:[Gen Var A]:[Gen Var B]
+    UNP,
+
+    // TNP: Tick NPc, run's the NPC's backend code instantly, good for passing multiple parameters to the NPC in a single tick
+    // <TNP[NPC no]
+    TNP,
+
+
 
 
 

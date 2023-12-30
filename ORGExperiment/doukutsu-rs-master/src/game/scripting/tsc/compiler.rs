@@ -266,6 +266,7 @@ impl TextScript {
             //nuevo
             | TSCOpCode::STS
             | TSCOpCode::SCS
+            | TSCOpCode::TNP
             => {
                 //get the argument, then push the code + argument
                 let operand = read_number(iter)?;
@@ -332,7 +333,11 @@ impl TextScript {
                 put_varint(operand_c as i32, out);
             }
             // Four operand codes
-            TSCOpCode::TRA | TSCOpCode::MNP | TSCOpCode::SNP => {
+            TSCOpCode::TRA
+            | TSCOpCode::MNP
+            | TSCOpCode::SNP
+            | TSCOpCode::UNP
+            => {
                 let operand_a = read_number(iter)?;
                 if strict {
                     expect_char(b':', iter)?;

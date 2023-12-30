@@ -148,6 +148,13 @@ pub struct NPC {
     pub light_power: f32, //power of the cone light (decimal)
     pub tint_color: Color, //tinted color of NPC, by default, no tint
 
+    //generic variables to pass commands to the NPCs
+    pub pass_var_a: u16,
+    pub pass_var_b: u16,
+
+    //generic variables for use inside the NPCs
+    pub gen_var_a: i32,
+    pub gen_var_b: i32,
 }
 
 impl NPC {
@@ -201,6 +208,10 @@ impl NPC {
             light_power: 1.0,
             light_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
             tint_color: Color::from_rgb(0xFF, 0xFF, 0xFF),
+            pass_var_a: 0,
+            pass_var_b: 0,
+            gen_var_a: 0,
+            gen_var_b: 0,
         }
     }
 
@@ -655,7 +666,8 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
 
             //nuevo
             371 => self.tick_n371_gobo(state, npc_list),
-            372 => self.tick_n372_gobo_head(state, players),
+            372 => self.tick_n372_gobo_base(state),
+            373 => self.tick_n373_stage_light(state),
 
 
 

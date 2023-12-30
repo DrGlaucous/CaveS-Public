@@ -4967,10 +4967,10 @@ fn default_n371_gobo() -> SafeNPCRect<1> {
 
 fn default_n372_gobo_base() -> SafeNPCRect<4> {
     SafeNPCRect([
-        Rect { left: 0, top: 240, right: 16, bottom: 272 }, //hang A
-        Rect { left: 16, top: 240, right: 32, bottom: 272 }, //hang B
         Rect { left: 32, top: 240, right: 48, bottom: 272 }, //stand A
         Rect { left: 48, top: 240, right: 64, bottom: 272 }, //stand B
+        Rect { left: 0, top: 240, right: 16, bottom: 272 }, //hang A
+        Rect { left: 16, top: 240, right: 32, bottom: 272 }, //hang B
     ])
 }
 

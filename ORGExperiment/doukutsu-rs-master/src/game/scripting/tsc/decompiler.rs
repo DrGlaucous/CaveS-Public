@@ -114,6 +114,7 @@ impl TextScript {
                         //nuevo
                         | TSCOpCode::STS
                         | TSCOpCode::SCS
+                        | TSCOpCode::TNP
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
 
@@ -158,7 +159,11 @@ impl TextScript {
                             writeln!(&mut result, "{:?}({}, {}, {})", op, par_a, par_b, par_c).unwrap();
                         }
                         // Four operand codes
-                        TSCOpCode::TRA | TSCOpCode::MNP | TSCOpCode::SNP => {
+                        TSCOpCode::TRA
+                        | TSCOpCode::MNP
+                        | TSCOpCode::SNP
+                        | TSCOpCode::UNP
+                        => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;
                             let par_c = read_cur_varint(&mut cursor)?;

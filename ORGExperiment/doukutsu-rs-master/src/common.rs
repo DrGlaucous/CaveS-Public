@@ -399,6 +399,14 @@ pub fn get_timestamp() -> u64 {
     now.duration_since(UNIX_EPOCH).unwrap().as_secs() as u64
 }
 
+pub fn value_map<T: Num + PartialOrd + Copy + Serialize>(value: T, min_1: T, max_1: T, min_2: T, max_2: T) -> T
+{
+    //intercept + slope * x
+    min_2 + ( (max_2 - min_2) / (max_1 - min_1) ) * (value - min_1)
+}
+
+
+
 /// A RGBA color in the `sRGB` color space represented as `f32`'s in the range `[0.0-1.0]`
 ///
 /// For convenience, [`WHITE`](constant.WHITE.html) and [`BLACK`](constant.BLACK.html) are provided.

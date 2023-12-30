@@ -377,3 +377,4 @@
 #370	quote	2	quote 2	48:48:64:64	quote 2 (for rust)	;
 #371	Gobo	Light	Gobo	48:48:64:64	Rotating effect light	RAVE:LIGHTS ;
 #372	Gobo	Head	Gobo Head	48:48:64:64	Sub-part of Gobo light	RAVE:LIGHT ;
+#373	Stage	Light	Stage Light	48:48:64:64	Stationary, color changing light	RAVE:LIGHTS ;

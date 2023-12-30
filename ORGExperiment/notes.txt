@@ -34,11 +34,11 @@ Layers mode
 Sprite rotation
 <ANP by NPC type
 Gobos:
-	>Set Light Cone width
-	>Set color
+	>Set Light Cone width X
+	>Set color X
 	>Set color speed
 	>Set to location
-	>Set move speed
+	>Set move speed X
 	>Color change mode
 	>Move change mode
 	>Strobe mode
