@@ -1139,8 +1139,7 @@ pub struct NPCConsts {
     #[serde(default = "default_n369_gclone_curly_clone")]
     pub n369_gclone_curly_clone: SafeNPCRect<20>,
 
-    //370 doesn't exsist
-
+    //370 reuses another RECT
 
     #[serde(default = "default_n371_gobo")]
     pub n371_gobo: SafeNPCRect<1>,
@@ -1153,6 +1152,14 @@ pub struct NPCConsts {
 
     #[serde(default = "default_n374_strobe_light")]
     pub n374_strobe_light: SafeNPCRect<1>,
+
+    //375 doesn't use a physical RECT
+
+    #[serde(default = "default_n376_crowd_member")]
+    pub n376_crowd_member: SafeNPCRect<6>,
+
+    #[serde(default = "default_n377_band_member")]
+    pub n377_band_member: SafeNPCRect<8>,
 
     ////////////////////////////////////
     //bosses
@@ -4983,6 +4990,30 @@ fn default_n373_flood_light() -> SafeNPCRect<1> {
 fn default_n374_strobe_light() -> SafeNPCRect<1> {
     SafeNPCRect([
         Rect { left: 64, top: 256, right: 80, bottom: 272 },
+    ])
+}
+
+fn default_n376_crowd_member() -> SafeNPCRect<6> {
+    SafeNPCRect([
+        Rect { left: 0, top: 0, right: 16, bottom: 16 }, //stand
+        Rect { left: 16, top: 0, right: 32, bottom: 16 }, //blink
+        Rect { left: 32, top: 0, right: 48, bottom: 16 }, //look up
+        Rect { left: 48, top: 0, right: 64, bottom: 16 }, //look up blink
+        Rect { left: 64, top: 0, right: 80, bottom: 16 }, //hop
+        Rect { left: 80, top: 0, right: 96, bottom: 16 }, //hop, hands outstretched
+    ])
+}
+
+fn default_n377_band_member() -> SafeNPCRect<8> {
+    SafeNPCRect([
+        Rect { left: 0, top: 0, right: 48, bottom: 48 }, //frame 1
+        Rect { left: 0, top: 48, right: 48, bottom: 96 }, //frame 2
+        Rect { left: 0, top: 96, right: 48, bottom: 144 }, //frame 3
+        Rect { left: 0, top: 144, right: 48, bottom: 192 }, //frame 4
+        Rect { left: 0, top: 192, right: 48, bottom: 240 }, //frame 5
+        Rect { left: 0, top: 240, right: 48, bottom: 288 }, //frame 6
+        Rect { left: 0, top: 288, right: 48, bottom: 336 }, //frame 7
+        Rect { left: 0, top: 336, right: 48, bottom: 384 }, //frame 8
     ])
 }
 

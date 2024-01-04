@@ -30,9 +30,9 @@ y	y coord
 
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
-92 originals + 14 news
+92 originals + 20 news
 
-[CE_TSC]	106
+[CE_TSC]	112
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -137,5 +137,11 @@ TSC List revised by Jackalope and Lace
 <SSD	3	###-	Set Start Delay	Synchronizes songs together when starting (in ms) <SSD[song delay]:[tracker delay]:[extra delay]
 <SCS	1	#---	Show Score Summary	Shows/hides the score summary chart <SCS[0000/1]
 <HSJ	2	#e--	High Score Jump	Jump if the score is better than the old one <HSJ[Map Number]:[Event]
-<UNP	4	N###	Ultra aNP	Like ANP, but passes back different vars <ANP[NPC]:[Act No]:[Gen Var A]:[Gen Var B]
+<UNP	4	N###	Ultra aNP	Like ANP, but passes back different vars <UNP[NPC]:[Act No]:[Gen Var A]:[Gen Var B]
+<UNA	4	N###	Ultra aNp All	Like UNP but for all NPCS of a type <UNA[NPC Type]:[Act No]:[Gen Var A]:[Gen Var B]
 <TNP	1	N---	Tick NPc	run the NPC's backend code instantly <TNP[NPC no]
+<FNC	1	#---	FuNCtion	Run this this event, returning to the current event on <END
+<CRX	4	####	set CoRner X	Set the location of the note highway, <CRX[00/01/02/03:TL,TR,BL,BR | Anchor 00/01/02:L/C/R]:[Time]:[sign 0/1 +/-]:[Offset]
+<CRY	4	####	set CoRner Y	Set the location of the note highway, <CRY[00/01/02/03:TL,TR,BL,BR | Anchor 00/01/02:L/C/R]:[Time]:[sign 0/1 +/-]:[Offset]
+<UKY	0	----	Ultra KeY lock	Lock player controls and hide status bars until <FRE, persists through <END.
+<TTL	0	----	TiTLe	Return directly to the game title screen

@@ -220,6 +220,8 @@ impl TextScript {
             | TSCOpCode::HNH
             | TSCOpCode::LTS
             | TSCOpCode::RTS
+            | TSCOpCode::UKY
+            | TSCOpCode::TTL
             => {
                 put_varint(instr as i32, out);
             }
@@ -265,8 +267,8 @@ impl TextScript {
             | TSCOpCode::PSH
             //nuevo
             | TSCOpCode::STS
-            | TSCOpCode::SCS
             | TSCOpCode::TNP
+            | TSCOpCode::FNC
             => {
                 //get the argument, then push the code + argument
                 let operand = read_number(iter)?;
@@ -290,6 +292,8 @@ impl TextScript {
             | TSCOpCode::IpN
             | TSCOpCode::FFm
             | TSCOpCode::HSJ
+            //nuevo
+            | TSCOpCode::SCS
             => {
                 let operand_a = read_number(iter)?;
                 if strict {
@@ -336,7 +340,11 @@ impl TextScript {
             TSCOpCode::TRA
             | TSCOpCode::MNP
             | TSCOpCode::SNP
+            //nuevo
             | TSCOpCode::UNP
+            | TSCOpCode::UNA
+            | TSCOpCode::CRX
+            | TSCOpCode::CRY
             => {
                 let operand_a = read_number(iter)?;
                 if strict {

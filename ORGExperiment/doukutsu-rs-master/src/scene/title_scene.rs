@@ -26,7 +26,7 @@ use crate::scene::Scene;
 
 //use crate::game::guitar::Guitar;
 //use crate::sound::CurrentOrgState;
-//use crate::sound::SongFormat;
+use crate::sound::SongFormat;
 use crate::menu::guitar_menu::StageSelectMenu;
 
 
@@ -109,6 +109,7 @@ pub struct TitleScene {
 
 impl TitleScene {
     pub fn new() -> Self {
+        //for the title screen background
         let fake_stage = Stage {
             map: Map { width: 0, height: 0, tiles: vec![], attrib: [0; 0x100], tile_size: TileSize::Tile16x16 },
             data: StageData {
@@ -118,8 +119,8 @@ impl TitleScene {
                 boss_no: 0,
                 tileset: Tileset { name: "0".to_string() },
                 pxpack_data: None,
-                background: crate::game::stage::Background::new("bkMoon"),
-                background_type: BackgroundType::Outside,
+                background: crate::game::stage::Background::new("bkTexture"),
+                background_type: BackgroundType::Slide,
                 background_color: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
                 npc1: NpcType::new("0"),
                 npc2: NpcType::new("0"),
@@ -200,8 +201,8 @@ impl TitleScene {
             if song_id != state.sound_manager.current_song() {
                 //pause and resume needed so that both are started regardless of loading time
                 //state.sound_manager.pause();
-                state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
-                //state.sound_manager.play_song_filepath(&String::from("/Resource/theme03.ogg"), &state.constants, SongFormat::OggSinglePart, &state.settings, ctx, false)?;
+                //state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
+                state.sound_manager.play_song_filepath(&String::from("/Resource/ORG/Idle.org"), &state.constants, SongFormat::Organya, &state.settings, ctx, false)?;
                 //state.sound_manager.play_commander_filepath(&String::from("/Resource/ORG/CURLY.org"), &state.settings, ctx)?;
                 //state.sound_manager.resume();
             }
@@ -216,9 +217,9 @@ impl TitleScene {
     }
 }
 
-static COPYRIGHT_PIXEL: &str = "2004.12  Studio Pixel";
+static COPYRIGHT_PIXEL: &str = "2024.1  Dr_G"; //"2004.12  Studio Pixel";
 // Freeware
-static COPYRIGHT_NICALIS: &str = "@2022 NICALIS INC."; // Nicalis font uses @ for copyright
+static COPYRIGHT_NICALIS: &str = "You did a very bad thing.";//"@2022 NICALIS INC."; // Nicalis font uses @ for copyright
 
 impl Scene for TitleScene {
     fn init(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
@@ -526,20 +527,32 @@ impl Scene for TitleScene {
         self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage)?;
 
         if self.current_menu == CurrentMenu::MainMenu {
+
+            //draw guitar first, centered on screen
+            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "GuitarTitle")?;
+            batch.add_rect(
+                ((state.canvas_size.0 - state.constants.title.guitar_rect.width() as f32) / 2.0).floor(),
+                ((state.canvas_size.1 - state.constants.title.guitar_rect.height() as f32) / 2.0).floor(),
+                &state.constants.title.guitar_rect,
+            );
+            batch.draw(ctx)?;
+
+            //draw splash text
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
-            let logo_x_offset =
-                if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
+            //let logo_x_offset =
+            //    if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
 
             batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor() + logo_x_offset,
-                40.0,
+                ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor(),
+                20.0,
                 &state.constants.title.logo_rect,
             );
-            batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
-                88.0,
-                &state.constants.title.logo_splash_rect,
-            );
+
+            // batch.add_rect(
+            //     ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
+            //     88.0,
+            //     &state.constants.title.logo_splash_rect,
+            // );
             batch.draw(ctx)?;
         } else {
             let window_title = match self.current_menu {

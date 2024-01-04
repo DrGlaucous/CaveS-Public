@@ -738,6 +738,11 @@ impl SharedGameState {
 
     }
 
+    pub fn restart_map(&mut self, ctx: &mut Context, stage_id: usize) -> GameResult {
+        self.start_new_game_at(ctx, stage_id, 200, (0, 0))
+    }
+
+
     pub fn reset(&mut self) {
         self.control_flags.0 = 0;
         self.game_flags = BitVec::with_size(8000);

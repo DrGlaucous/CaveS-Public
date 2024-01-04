@@ -7,6 +7,7 @@ use crate::input::combined_menu_controller::CombinedMenuController;
 use crate::menu::MenuEntry;
 use crate::menu::{Menu, MenuSelectionResult};
 use crate::scene::title_scene::TitleScene;
+use crate::scene::game_scene::GameScene;
 
 use super::coop_menu::PlayerCountMenu;
 use super::settings_menu::SettingsMenu;
@@ -179,7 +180,7 @@ impl PauseMenu {
         state.sound_manager.soft_resume();
     }
 
-    pub fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    pub fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context, stage_id: usize) -> GameResult {
         self.update_sizes(state);
 
         self.controller.update(state, ctx)?;
@@ -209,7 +210,8 @@ impl PauseMenu {
                 MenuSelectionResult::Selected(PauseMenuEntry::Retry, _) => {
                     state.stop_noise();
                     state.sound_manager.play_song(0, &state.constants, &state.settings, ctx, false)?;
-                    state.load_or_start_game(ctx)?;
+                    //state.load_or_start_game(ctx)?;
+                    state.restart_map(ctx, stage_id)?;
                 }
                 MenuSelectionResult::Selected(PauseMenuEntry::AddPlayer2, _) => {
                     if !state.constants.is_cs_plus {

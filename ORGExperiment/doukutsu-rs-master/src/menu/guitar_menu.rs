@@ -79,12 +79,15 @@ impl StageSelectMenu {
 
 
         //push all maps in the stage table to the menu
-        let mut i: usize = 0;
-        for map in state.stages.iter()
+        //let mut i: usize = 0;
+        for (i, map) in state.stages.iter().enumerate()
         {
+            //don't show the map if flagged with a boss
+            if map.boss_no != 0 {continue}
+
             self.list_menu.push_entry(MenuItemsStageSel::Level(i), MenuEntry::Active(map.name.clone() + " TODO: Score here") );
             self.list_menu.selected = MenuItemsStageSel::Level(i);
-            i += 1;
+            //i += 1;
         }
 
         self.update_sizes(state);

@@ -438,7 +438,9 @@ impl GameScene {
                     let bymth = (by * ti - tih) as f32;
                     let bypth = (by * ti + tih) as f32;
 
-                    if ((tile == 0x62 || tile == 0x41 || tile == 0x43 || tile == 0x46)
+                    //block light by tile type
+                    //0x65 is new (light blocking blocktype)
+                    if ((tile == 0x62 || tile == 0x41 || tile == 0x43 || tile == 0x46 || tile == 0x65)
                         && x >= bxmth
                         && x <= bxpth
                         && y >= bymth
@@ -1864,7 +1866,7 @@ impl Scene for GameScene {
 
 
         if self.pause_menu.is_paused() {
-            self.pause_menu.tick(state, ctx)?;
+            self.pause_menu.tick(state, ctx, self.stage_id)?;
             return Ok(());
         }
 
@@ -2078,6 +2080,7 @@ impl Scene for GameScene {
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
+        self.draw_npc_layer(state, ctx, NPCLayer::Foreground)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?; //nuevo
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front)?;
 
@@ -2111,13 +2114,17 @@ impl Scene for GameScene {
             graphics::draw_rect(ctx, rect, dim_color)?;
         }
 
-        //draw player, inventory, or other game elements
+
+        //draw player, inventory, or other game elements 
         match state.textscript_vm.mode {
             ScriptMode::Map | ScriptMode::Debug if state.control_flags.control_enabled() => {
+                //don't draw if guitar is visible
+                //if !self.guitar_manager.get_visibility(){} 
+                
                 self.hud_player1.draw(state, ctx, &self.frame)?;
                 self.hud_player2.draw(state, ctx, &self.frame)?;
                 self.boss_life_bar.draw(state, ctx, &self.frame)?;
-
+                //offscreen text
                 if self.player2.cond.alive() && !self.player2.cond.hidden() {
                     if self.player2.teleport_counter < state.settings.timing_mode.get_tps() as u16 * 3
                         || self.player2.teleport_counter % 5 != 0
@@ -2216,6 +2223,7 @@ impl Scene for GameScene {
             ScriptMode::Inventory => self.inventory_ui.draw(state, ctx, &self.frame)?,
             _ => {}
         }
+        
         //draw guitar
         self.guitar_manager.draw(state, ctx)?;
 

@@ -264,6 +264,9 @@ pub struct TitleConsts {
     pub cursor_toroko: [Rect<u16>; 4],
     pub cursor_king: [Rect<u16>; 4],
     pub cursor_sue: [Rect<u16>; 4],
+
+    //nuevo
+    pub guitar_rect: Rect<u16>,
 }
 
 impl Clone for TitleConsts {
@@ -286,6 +289,9 @@ impl Clone for TitleConsts {
             cursor_toroko: self.cursor_toroko,
             cursor_king: self.cursor_king,
             cursor_sue: self.cursor_sue,
+
+            //nuevo
+            guitar_rect: self.guitar_rect,
         }
     }
 }
@@ -1567,7 +1573,9 @@ impl EngineConstants {
             },
             title: TitleConsts {
                 intro_text: "Studio Pixel presents".to_owned(),
-                logo_rect: Rect { left: 0, top: 0, right: 144, bottom: 40 },
+                //logo_rect: Rect { left: 0, top: 0, right: 144, bottom: 40 },
+                logo_rect: Rect { left: 0, top: 56, right: 128, bottom: 144 },
+                guitar_rect: Rect { left: 0, top: 0, right: 320, bottom: 240 },
                 logo_splash_rect: Rect { left: 0, top: 0, right: 0, bottom: 0 }, //Hidden so patches can display splash art / subtitle
                 menu_left_top: Rect { left: 0, top: 0, right: 8, bottom: 8 },
                 menu_right_top: Rect { left: 236, top: 0, right: 244, bottom: 8 },

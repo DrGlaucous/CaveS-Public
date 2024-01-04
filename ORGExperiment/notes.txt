@@ -36,12 +36,12 @@ Sprite rotation
 Gobos:
 	>Set Light Cone width X
 	>Set color X
-	>Set color speed
+	>Set color speed X
 	>Set to location
 	>Set move speed X
-	>Color change mode
-	>Move change mode
-	>Strobe mode
+	>Color change mode X
+	>Move change mode X
+	>Strobe mode X
 
 Crowd spawner and crowd NPC
 Band NPCs

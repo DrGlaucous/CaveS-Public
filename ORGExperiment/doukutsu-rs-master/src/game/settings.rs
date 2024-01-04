@@ -419,7 +419,7 @@ impl Default for Settings {
             version: current_version(),
             seasonal_textures: true,
             original_textures: false,
-            shader_effects: false,
+            shader_effects: true, //false
             light_cone: true,
             subpixel_coords: true,
             motion_interpolation: true,

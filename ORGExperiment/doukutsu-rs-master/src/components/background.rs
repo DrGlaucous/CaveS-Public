@@ -167,6 +167,37 @@ impl Background {
                     batch.add_rect(x as f32, offset_y + 176.0, &Rect::new_size(0, 176, 320, 64));
                 }
             }
+        
+            BackgroundType::Slide =>
+            {
+
+                let (bg_width, bg_height) = (batch.width() as i32, batch.height() as i32);
+                let offset_x = self.tick as f32 % (bg_width as f32 / 0.25);
+                let offset_y = self.tick as f32 % (bg_height as f32 / 0.125);
+
+                let interp_x = (offset_x * (1.0 - state.frame_time as f32)
+                    + (offset_x + 1.0) * state.frame_time as f32)
+                    * 0.25
+                    * scale;
+
+                let interp_y = (offset_y * (1.0 - state.frame_time as f32)
+                    + (offset_y + 1.0) * state.frame_time as f32)
+                    * 0.125
+                    * scale;
+
+
+                let count_x = state.canvas_size.0 as i32 / bg_width + 6;
+                let count_y = state.canvas_size.1 as i32 / bg_height + 6;
+
+                for y in -1..count_y {
+                    for x in -1..count_x {
+                        batch.add((x * bg_width) as f32 - interp_x, (y * bg_height) as f32 - interp_y);
+                    }
+                }
+
+
+            }
+        
         }
 
         batch.draw(ctx)?;

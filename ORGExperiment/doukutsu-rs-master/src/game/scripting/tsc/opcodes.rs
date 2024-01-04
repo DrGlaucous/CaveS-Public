@@ -309,12 +309,31 @@ pub enum TSCOpCode {
     //Ultra aNP: <ANP[NPC]:[Act No]:[Gen Var A]:[Gen Var B]
     UNP,
 
+    //Ultra aNp All, like UNP but for all NPCS of a type, rather than by event
+    // <UNA[NPC Type]:[Act No]:[Gen Var A]:[Gen Var B]
+    UNA, 
+
     // TNP: Tick NPc, run's the NPC's backend code instantly, good for passing multiple parameters to the NPC in a single tick
     // <TNP[NPC no]
     TNP,
 
+    // FuCNtion: Run the sub-event as a function and return to this one when execution completes (hit an <END)
+    // <FNC[event number]
+    FNC,
 
+    // CoRner X: Set the location of the corner and the time it takes to get there, for note highway
+    //to keep arguments less than 4 long, corner and anchor are concatated: first 2 digits are for corner, second 2 are for anchor
+    // <CRX[00/01/02/03:TL,TR,BL,BR | Anchor 00/01/02:L/C/R]:[Time]:[sign 0/1 +/-]:[Offset]
+    CRX,
 
+    // CoRner Y: Same as CRX but sets y coordinate
+    CRY,
+    
+    //Ultra KeY: Key that persists past the end of an <END event (can be removed with FRE)
+    UKY,
+
+    //TiTLe: Return to title screen
+    TTL,
 
 
 }

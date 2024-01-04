@@ -18,6 +18,7 @@ use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::game::frame::UpdateTarget;
+use crate::game::guitar::LevelScore;
 use crate::game::npc::NPC;
 use crate::game::player::{ControlMode, TargetPlayer};
 use crate::game::scripting::tsc::bytecode_utils::read_cur_varint;
@@ -32,7 +33,8 @@ use crate::scene::game_scene::GameScene;
 //nuevo
 use crate::sound::SongFormat;
 use crate::game::scripting::tsc::bytecode_utils::read_string;
-use crate::game::guitar::Guitar;
+use crate::game::guitar::{Guitar, Relativity, CornerIndex};
+use crate::scene::title_scene::TitleScene;
 
 const TSC_SUBSTITUTION_MAP_SIZE: usize = 1;
 
@@ -127,6 +129,7 @@ pub enum TextScriptExecutionState {
     SaveProfile(u16, u32),
     LoadProfile,
     Reset,
+    GotoTitle,
 }
 
 #[derive(PartialEq, Copy, Clone)]
@@ -165,7 +168,15 @@ pub struct TextScriptVM {
     pub substitution_rect_map: [(char, Rect<u16>); TSC_SUBSTITUTION_MAP_SIZE],
     //nuevo
     pub show_save_comp: bool,
-    pub compare_map_no: usize,
+    pub current_data: LevelScore, //data in the guitar
+    pub previous_data: LevelScore, //data already in the map
+    //the last place the cursor was before a sub-function was loaded
+    pub subfunc_return: Vec<(u64, u16)>
+
+    //don't need, we look at the return vector size now
+    //true if we should return on <END
+    //pub in_subfunc_mode: bool, 
+
 }
 
 pub struct Scripts {
@@ -244,7 +255,9 @@ impl TextScriptVM {
             substitution_rect_map: [('=', Rect::new(0, 0, 0, 0))],
             //nuevo
             show_save_comp: false,
-            compare_map_no: 0,
+            current_data: LevelScore::new(),
+            previous_data: LevelScore::new(),
+            subfunc_return: Vec::new(),
         }
     }
 
@@ -295,6 +308,7 @@ impl TextScriptVM {
         self.current_illustration = None;
         self.illustration_state = IllustrationState::Hidden;
         self.face = 0;
+        self.subfunc_return.clear();
         self.clear_text_box();
     }
 
@@ -671,6 +685,15 @@ impl TextScriptVM {
                 TextScriptExecutionState::MapSystem => {
                     break;
                 }
+                //nuevo
+                TextScriptExecutionState::GotoTitle => {
+                    //state.next_scene = Some(Box::new(TitleScene::new()));
+                    state.textscript_vm.suspend = true;
+                    state.stop_noise();
+                    state.textscript_vm.flags.set_cutscene_skip(false);
+                    state.next_scene = Some(Box::new(TitleScene::new()));
+                }
+
             }
         }
 
@@ -729,22 +752,34 @@ impl TextScriptVM {
                 }
             }
             TSCOpCode::END => {
-                state.textscript_vm.flags.set_cutscene_skip(false);
-                state.control_flags.set_tick_world(true);
-                state.control_flags.set_control_enabled(true);
 
-                state.textscript_vm.flags.set_render(false);
-                state.textscript_vm.flags.set_background_visible(false);
-                state.textscript_vm.stack.clear();
-
-                if state.textscript_vm.mode == ScriptMode::Debug {
-                    state.textscript_vm.set_mode(ScriptMode::Map);
+                //return if there are return events in the stack
+                if let Some((return_offset, return_event)) = state.textscript_vm.subfunc_return.pop() {
+                    state.textscript_vm.clear_text_box();
+                    exec_state = TextScriptExecutionState::Running(return_event, return_offset as u32);
                 }
+                else {
 
-                game_scene.player1.cond.set_interacted(false);
-                game_scene.player2.cond.set_interacted(false);
+                    state.textscript_vm.flags.set_cutscene_skip(false);
+                    state.control_flags.set_tick_world(true);
 
-                exec_state = TextScriptExecutionState::Ended;
+                    if !state.control_flags.locked_control_enabled()
+                    {state.control_flags.set_control_enabled(true);}
+
+                    state.textscript_vm.flags.set_render(false);
+                    state.textscript_vm.flags.set_background_visible(false);
+                    state.textscript_vm.stack.clear();
+
+                    if state.textscript_vm.mode == ScriptMode::Debug {
+                        state.textscript_vm.set_mode(ScriptMode::Map);
+                    }
+
+                    game_scene.player1.cond.set_interacted(false);
+                    game_scene.player2.cond.set_interacted(false);
+
+                    exec_state = TextScriptExecutionState::Ended;
+
+                }
             }
             TSCOpCode::SLP => {
                 state.textscript_vm.set_mode(ScriptMode::StageSelect);
@@ -795,6 +830,7 @@ impl TextScriptVM {
             TSCOpCode::FRE => {
                 state.control_flags.set_tick_world(true);
                 state.control_flags.set_control_enabled(true);
+                state.control_flags.set_locked_control_enabled(false);
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
@@ -1977,7 +2013,16 @@ impl TextScriptVM {
             TSCOpCode::SCS => {
                 //song delay
                 let should_show = read_cur_varint(&mut cursor)? as u32;
-                state.textscript_vm.show_save_comp = should_show > 0;
+                let map_num = read_cur_varint(&mut cursor)? as usize;
+
+                if should_show > 0
+                {
+                    state.textscript_vm.current_data = game_scene.guitar_manager.get_current_score();
+                    state.textscript_vm.previous_data = state.stages[map_num].score.clone();
+                    state.textscript_vm.show_save_comp = true;
+                }
+                else {state.textscript_vm.show_save_comp = false;}
+
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
 
@@ -2009,22 +2054,124 @@ impl TextScriptVM {
 
             }
 
-            TSCOpCode::UNP => {
+            TSCOpCode::UNP | TSCOpCode::UNA => {
                 let event_num = read_cur_varint(&mut cursor)? as u16;
                 let action_num = read_cur_varint(&mut cursor)? as u16;
-                let gen_var_a = read_cur_varint(&mut cursor)? as i32;
-                let gen_var_b = read_cur_varint(&mut cursor)? as i32;
+                let pass_var_a = read_cur_varint(&mut cursor)? as u16;
+                let pass_var_b = read_cur_varint(&mut cursor)? as u16;
+
+                for npc in game_scene.npc_list.iter_alive() {
+
+                    if op == TSCOpCode::UNP {
+                        if npc.event_num == event_num {
+                            npc.action_num = action_num;
+                            npc.pass_var_a = pass_var_a;
+                            npc.pass_var_b = pass_var_b;
+                        }
+                    }
+                    else {
+                        if npc.npc_type == event_num {
+                            npc.action_num = action_num;
+                            npc.pass_var_a = pass_var_a;
+                            npc.pass_var_b = pass_var_b;
+                        }
+                    }
+                }
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32); 
+
+            }
+
+            TSCOpCode::TNP => {
+                let event_num = read_cur_varint(&mut cursor)? as u16;
 
                 for npc in game_scene.npc_list.iter_alive() {
                     if npc.event_num == event_num {
-                        npc.action_num = action_num;
-                        npc.gen_var_a = gen_var_a;
-                        npc.gen_var_b = gen_var_b;
+
+                        npc.tick(
+                            state,
+                            (
+                                [&mut game_scene.player1, &mut game_scene.player2],
+                                &game_scene.npc_list,
+                                &mut game_scene.stage,
+                                &mut game_scene.bullet_manager,
+                                &mut game_scene.flash,
+                                &mut game_scene.boss,
+                            ),
+                        )?;
 
                     }
                 }
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32); 
+
+            }
+
+            TSCOpCode::FNC => {
+
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+                
+                //push back current cursor position and current event
+                state.textscript_vm.subfunc_return.push(( cursor.position(),  event  ));
+
+                state.textscript_vm.clear_text_box();
+                exec_state = TextScriptExecutionState::Running(event_num, 0);
+            }
+
+            TSCOpCode::CRX | TSCOpCode::CRY => {
+
+                let corner_and_anchor = read_cur_varint(&mut cursor)?;
+                let corn_data = corner_and_anchor / 100;
+                let anch_data = corner_and_anchor % 100;
+
+                let corner_num = match corn_data
+                {
+                    0 => CornerIndex::TopLeft,
+                    1 => CornerIndex::TopRight,
+                    2 => CornerIndex::BottomLeft,
+                    _ => CornerIndex::BottomRight,
+                };
+
+                let anchor_pt = match anch_data
+                {
+                    0 => Relativity::ZeroWall,
+                    1 => Relativity::CenterPoint,
+                    _ => Relativity::OutsideWall,
+                };
+
+                let time = read_cur_varint(&mut cursor)? as u32;
+                let sign = read_cur_varint(&mut cursor)? as u16;
+                let offset = read_cur_varint(&mut cursor)? * if sign > 0 {-1} else {1};
+            
+                let axis = if op == TSCOpCode::CRX {0} else {1};
+                
+                game_scene.guitar_manager.set_corner(axis, corner_num, anchor_pt, offset, time);
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32); 
+            
             }
             
+            TSCOpCode::UKY => {
+                state.control_flags.set_tick_world(true);
+                state.control_flags.set_control_enabled(false);
+                state.control_flags.set_locked_control_enabled(true);
+
+                game_scene.player1.up = false;
+                game_scene.player1.shock_counter = 0;
+
+                game_scene.player2.up = false;
+                game_scene.player2.shock_counter = 0;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            TSCOpCode::TTL => {
+                //off to the title
+                game_scene.player1.flags.0 = 0;
+                game_scene.player2.flags.0 = 0;
+
+                exec_state = TextScriptExecutionState::GotoTitle;
+            }
         
         
         }

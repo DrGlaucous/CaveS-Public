@@ -18,7 +18,7 @@ pub const CDEG_RAD: f64 = std::f64::consts::PI / 128.0;
 lazy_static! {
     pub static ref VERSION_BANNER: String = {
         let version = option_env!("DRS_BUILD_VERSION_OVERRIDE").unwrap_or(env!("CARGO_PKG_VERSION"));
-        format!("doukutsu-rs {}", version)
+        format!("built with doukutsu-rs {}", version)
     };
 }
 
@@ -131,6 +131,10 @@ bitfield! {
     pub ok_button_disabled, set_ok_button_disabled: 4; // 0x10
     // engine specific flags
     pub friendly_fire, set_friendly_fire: 14;
+
+    //nuevo
+    //prevents <END from removing control_enabled
+    pub locked_control_enabled, set_locked_control_enabled: 5;
 }
 
 bitfield! {
@@ -399,10 +403,11 @@ pub fn get_timestamp() -> u64 {
     now.duration_since(UNIX_EPOCH).unwrap().as_secs() as u64
 }
 
+#[inline(always)]
 pub fn value_map<T: Num + PartialOrd + Copy + Serialize>(value: T, min_1: T, max_1: T, min_2: T, max_2: T) -> T
 {
     //intercept + slope * x
-    min_2 + ( (max_2 - min_2) / (max_1 - min_1) ) * (value - min_1)
+    min_2 + ( (max_2 - min_2) / (max_1 - min_1) ) * (value - min_1)   
 }
 
 

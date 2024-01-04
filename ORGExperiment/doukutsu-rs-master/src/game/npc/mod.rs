@@ -668,7 +668,10 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             371 => self.tick_n371_gobo(state, npc_list),
             372 => self.tick_n372_gobo_base(state),
             373 => self.tick_n373_stage_light(state),
-
+            374 => self.tick_n374_strobe_light(state),
+            375 => self.tick_n375_crowd_manager(state, stage, npc_list),
+            376 => self.tick_n376_crowd_member(state),
+            377 => self.tick_n377_band_member(state),
 
 
 

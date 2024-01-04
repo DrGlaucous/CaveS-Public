@@ -378,3 +378,7 @@
 #371	Gobo	Light	Gobo	48:48:64:64	Rotating effect light	RAVE:LIGHTS ;
 #372	Gobo	Head	Gobo Head	48:48:64:64	Sub-part of Gobo light	RAVE:LIGHT ;
 #373	Stage	Light	Stage Light	48:48:64:64	Stationary, color changing light	RAVE:LIGHTS ;
+#374	Strobe	Light	Strobe Light	48:48:64:64	A color changing point light	RAVE:LIGHTS ;
+#375	Crowd	Manager	Crowd Manager	48:48:64:64	Makes and manages crowds	;
+#376	Crowd	Member	Crowd Member	48:48:64:64	Part of a crowd, managed by the crowd manager	RAVE:PEOPLE ;
+#377	Band	Member	Band Member	48:48:64:64	Plays in the band	RAVE:PEOPLE ;

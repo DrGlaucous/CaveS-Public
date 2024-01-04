@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::ops::Index;
 use std::time::SystemTime;
 use std::time::Duration;
 use std::cmp::Ordering;
@@ -9,6 +10,7 @@ use crate::framework::backend::{BackendTexture, SpriteBatchCommand};
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::filesystem::{user_create, user_open};
+use crate::framework::gamepad::Axis;
 use crate::framework::graphics;
 use crate::game::scripting::tsc::text_script::TextScriptExecutionState;
 use crate::game::shared_game_state::SharedGameState;
@@ -32,6 +34,24 @@ use super::shared_game_state::TimingMode;
 
 use log::Level;
 use serde::{Deserialize, Serialize};
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum Relativity
+{
+    ZeroWall, //left, top
+    CenterPoint, //center
+    OutsideWall, //right, bottom
+}
+
+pub enum CornerIndex
+{
+    TopLeft = 0,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+}
 
 
 //holds scores for each level
@@ -130,6 +150,61 @@ struct GuitarNote
 }
 
 
+//used to sync events with hits
+struct DrumEvent
+{
+    //where the front of the note is (for note hit timing)
+    //is a decimal from 0 to 1, where 1 is at the bottom and 0 is at the top
+    note_head_loc: f32,
+
+    last_time: SystemTime, //the last time the location of the note was updated
+
+    event_no: u8,
+}
+
+
+//infor for each axis in a corner
+#[derive(Clone, Copy)]
+struct AxisCornerInfo {
+    draw_coord: f32, //screen coordinates where the overlay should be placed (relative to anchor)
+    last_draw_coord: f32, //where it was when the new command was recieved
+    next_draw_coord: f32, //where we want it to end up
+    
+    corner_anchor: Relativity, //what the coordinates are realtivive to
+    last_corner_anchor: Relativity,
+    corner_travel_time: u32, //how many ticks until the corner reaches its spot
+}
+impl AxisCornerInfo {
+    pub fn new() -> AxisCornerInfo
+    {
+        AxisCornerInfo {
+            draw_coord: 0.0,
+            last_draw_coord: 0.0,
+            next_draw_coord: 0.0,
+            corner_anchor: Relativity::ZeroWall,
+            last_corner_anchor: Relativity::ZeroWall,
+            corner_travel_time: 0,
+        }
+    }
+}
+
+//info for each corner's movement
+#[derive(Clone, Copy)]
+struct CornerInfo
+{
+    //x and y
+    point: [AxisCornerInfo; 2],
+}
+
+impl CornerInfo
+{
+    pub fn new() -> CornerInfo
+    {
+        CornerInfo {
+            point: [AxisCornerInfo::new();2],
+        }
+    }
+}
 
 //renders and handles the guitar overlay, starting, and stopping
 pub struct Guitar
@@ -151,11 +226,14 @@ pub struct Guitar
     //holds position and state of all active notes
     notes: [Vec<GuitarNote>; 4],
 
+    events: Vec<DrumEvent>,
+
     /////////////////////////////////////
     //settings to be configured:
     /////////////////////////////////////
     
-    draw_corners: [[u32;2];4], //screen coordinates where the overlay should be placed
+    draw_corners: [CornerInfo; 4],
+
     visible: bool,
 
     //how far down the notes should be on the note highway
@@ -188,7 +266,7 @@ impl Guitar
             texture: RefCell::new(None),
             last_size: RefCell::new((0, 0)),
             ref_size: (96.0, 176.0),
-            draw_corners: [[0,0]; 4],
+            draw_corners: [CornerInfo::new(); 4],
             visible: true,
             hit_state: [false;4],
             hit_trigger: [false;4],
@@ -196,7 +274,7 @@ impl Guitar
             current_score: LevelScore::new(),
             controller: Box::new(DummyPlayerController::new()),
             notes: [Vec::new(), Vec::new(), Vec::new(), Vec::new()],
-
+            events: Vec::new(),
             button_offset: 0.75,
             hit_leniency: 0.1,
 
@@ -310,23 +388,64 @@ impl Guitar
             self.current_score.total_notes += 1;
         }
 
-        //run events with drums
+        //push back any events to be run
         for i in 0..8
         {
+            let change_decimal = Self::get_offset(self.onscreen_time, this_time, state.sound_manager.music_time.from_systime(notess.timestamp));
             if notess.drums[i] != 0xFF && notess.drums[i] != 0x00
             {
-                //let mut yyt = i;
-                //yyt += i;
-                //print!("{}\n", notess.drums[i]);
+                self.events.push(DrumEvent{
+                    note_head_loc: change_decimal,
+                    last_time: this_time,
+                    event_no: notess.drums[i],
+                });
+            }
+        }
+        
+
+        //run events with drums
+        //moved to 'handle_notes'
+        // for i in 0..8
+        // {
+        //     if notess.drums[i] != 0xFF && notess.drums[i] != 0x00
+        //     {
+        //         //let mut yyt = i;
+        //         //yyt += i;
+        //         //print!("{}\n", notess.drums[i]);
+        //         state.control_flags.set_tick_world(true);
+        //         state.control_flags.set_interactions_disabled(true);
+        //         //state.textscript_vm.executor_player = id;
+        //         state.textscript_vm.start_script(notess.drums[i] as u16);
+        //     }
+        // }
+
+
+    }
+
+    //move events down and check for when they cross the hit position
+    fn handle_events(&mut self, state: &mut SharedGameState)
+    {
+        for n in (0..self.events.len()).rev()
+        {
+            //move event down
+            let present = state.sound_manager.music_time.now();
+            let down_movement = Self::get_offset(self.onscreen_time, present, self.events[n].last_time);
+            self.events[n].note_head_loc += down_movement;
+            self.events[n].last_time = present;
+
+            if self.button_offset <= self.events[n].note_head_loc {
+                //equivalent of <EVE
+
                 state.control_flags.set_tick_world(true);
                 state.control_flags.set_interactions_disabled(true);
                 //state.textscript_vm.executor_player = id;
-                state.textscript_vm.start_script(notess.drums[i] as u16);
+                state.textscript_vm.start_script(self.events[n].event_no as u16);
 
+                //remove note
+                self.events.remove(n);
             }
+
         }
-
-
     }
 
     //move the notes down their rows and checks for hits from the buttons
@@ -390,6 +509,10 @@ impl Guitar
                     {
                         n_strip[i].was_hit = true;
                         hit_plus += 1;    
+                    }
+                    else {
+                        //was hit, ignore this one
+                        continue;
                     }
                     //breakout of for loop, each button can only press a single note at a time
                     break;
@@ -499,6 +622,81 @@ impl Guitar
         new_rect
     }
 
+    fn handle_corners(&mut self, state: &SharedGameState)
+    {
+        //for each corner
+        for corner in self.draw_corners.iter_mut()
+        {
+            for (i, axis) in corner.point.iter_mut().enumerate()
+            {
+                
+                //changed refrence points, update the last refrence to match this one
+                if axis.corner_anchor != axis.last_corner_anchor
+                {
+                    let canvas_size = if i == 0 {state.canvas_size.0} else {state.canvas_size.1};
+
+
+                    //start by making the last coordinate relative to the left/top wall
+                    match axis.last_corner_anchor
+                    {
+                        Relativity::ZeroWall => {} //already realtive, do nothing
+
+                        Relativity::CenterPoint => {
+                            axis.last_draw_coord += canvas_size / 2.0;
+                        }
+                        Relativity::OutsideWall => {
+                            axis.last_draw_coord += canvas_size;
+                        }
+                    }
+                    //now make it relative to the current anchor
+                    match axis.corner_anchor
+                    {
+                        Relativity::ZeroWall => {} //already realtive, do nothing
+
+                        Relativity::CenterPoint => {
+                            axis.last_draw_coord -= canvas_size / 2.0;
+                        }
+                        Relativity::OutsideWall => {
+                            axis.last_draw_coord -= canvas_size;
+                            //axis.last_draw_coord = canvas_size - axis.last_draw_coord;
+                        }
+                    }
+                    //since this only happens when we change coordinates, we can assume these are equal
+                    axis.draw_coord = axis.last_draw_coord;
+
+                    //we are now on the same anchor
+                    axis.last_corner_anchor = axis.corner_anchor;
+
+                }
+
+                let step_x = (axis.next_draw_coord - axis.last_draw_coord) / axis.corner_travel_time as f32;
+                
+                //overshot checking
+                if step_x < 0.0 {
+                    
+                    if axis.draw_coord <= axis.next_draw_coord// - (axis.next_draw_coord * 0.1) //+- 10%
+                    {
+                        axis.draw_coord = axis.next_draw_coord;
+                    }
+                }
+                else {
+                    if axis.draw_coord >= axis.next_draw_coord// + (axis.next_draw_coord * 0.1) //+- 10%
+                    {
+                        axis.draw_coord = axis.next_draw_coord;
+                    }
+                }
+
+                //move to
+                if axis.draw_coord != axis.next_draw_coord
+                {
+                    axis.draw_coord += step_x;
+                }
+        
+            }
+        
+        
+        }
+    }
 
     ///////////////////
     /// Control functions
@@ -527,9 +725,9 @@ impl Guitar
     pub fn set_start_delay(&self, state: &mut SharedGameState, millis_song: u32, millis_tracker: u32, extra_millis: u32)
     {
         //factors in how long it takes to reach the buttons from playing a note
-        let needed_tracker_time = millis_tracker as f32 - (self.button_offset * self.onscreen_time) * 1000.0;
+        let needed_tracker_time = millis_tracker as f32 + (self.button_offset * self.onscreen_time) * 1000.0;
 
-        let time_difference = (millis_song as f32 + needed_tracker_time).abs();
+        let time_difference = (millis_song as f32 - needed_tracker_time).abs();
 
         //if the song needs to start first
         let (dur_for_song, dur_for_track) = if needed_tracker_time < millis_song as f32
@@ -560,6 +758,10 @@ impl Guitar
     {
         self.visible = state;
     }
+    pub fn get_visibility(&self) -> bool
+    {
+        self.visible
+    }
 
     //saves the current stats to the map designated by stage number
     pub fn store_stats(&mut self, state: &mut SharedGameState, stage_no: usize)
@@ -584,6 +786,38 @@ impl Guitar
         self.current_score.clone()
     }
 
+    //set a corner to move to a spot
+    pub fn set_corner(&mut self, axis: usize, index: CornerIndex, anchor: Relativity, offset: i32, time: u32)
+    {
+
+        
+
+        let idx = match index
+        {
+            CornerIndex::TopLeft => {0},
+            CornerIndex::TopRight => {1},
+            CornerIndex::BottomLeft => {2},
+            CornerIndex::BottomRight => {3},
+        };
+
+        //handle OOB
+        let axis = if axis >= self.draw_corners.len() {
+            self.draw_corners.len() - 1
+        }
+        else {axis};
+
+        //update olds
+        self.draw_corners[idx].point[axis].last_corner_anchor = self.draw_corners[idx].point[axis].corner_anchor;
+        self.draw_corners[idx].point[axis].last_draw_coord = self.draw_corners[idx].point[axis].draw_coord;
+
+        //set news
+        self.draw_corners[idx].point[axis].corner_anchor = anchor;
+        self.draw_corners[idx].point[axis].next_draw_coord = offset as f32;
+        self.draw_corners[idx].point[axis].corner_travel_time = if time < 1 {1} else {time};
+
+
+
+    }
 
     ///////////////////
     /// Main ticker functions
@@ -605,8 +839,15 @@ impl Guitar
             *self.texture.borrow_mut() = graphics::create_texture_mutable(ctx, width, height).ok();
         }
 
+        //do not process if it can't be seen
+        if !self.visible
+        {
+            return Ok(())
+        }
+
+
         //get latest input state
-        self.handle_buttons(state, ctx);
+        self.handle_buttons(state, ctx)?;
 
         //get the latest and greatest notes
         self.handle_tracker(state);
@@ -614,8 +855,11 @@ impl Guitar
         //move existing notes down the chain
         self.handle_notes(state, ctx);
 
+        //handle event timing
+        self.handle_events(state);
 
-
+        //move edges to new locations
+        self.handle_corners(state);
 
 
 
@@ -834,7 +1078,7 @@ impl Guitar
         let total_h_rc = Rect  { left: 128, top: 96, right: 176, bottom: 104 };
         //rect of '1', but can be shifted over for other numbers
         let mult_num_rc = Rect  { left: 128, top: 72, right: 136, bottom: 80 };
-        let rect_X = Rect  { left: 128, top: 80, right: 136, bottom: 88 };
+        let rect_x = Rect  { left: 128, top: 80, right: 136, bottom: 88 };
 
         let fill_bar_frame = Rect  { left: 176, top: 96, right: 240, bottom: 104 };
         let fill_bar_back = Rect  { left: 176, top: 104, right: 240, bottom: 112 };
@@ -946,17 +1190,17 @@ impl Guitar
                 }
             }
 
-            //draw NRG bar
-            {
-                let nrg_x = (board_rect.right - nrg_bar_frame.width()) as f32;
-                let nrg_y = (board_rect.bottom - nrg_bar_frame.height() - 32) as f32;
+            //draw NRG bar (vetoed for now)
+            // {
+            //     let nrg_x = (board_rect.right - nrg_bar_frame.width()) as f32;
+            //     let nrg_y = (board_rect.bottom - nrg_bar_frame.height() - 32) as f32;
 
-                batch.add_rect(nrg_x, nrg_y, &nrg_bar_frame);
-                batch.add_rect(nrg_x, nrg_y, &nrg_bar_fuel);
-                //batch.add_rect(nrg_x, nrg_y, &nrg_bar_flash);
-                batch.add_rect(nrg_x, nrg_y, &nrg_bar_max);
+            //     batch.add_rect(nrg_x, nrg_y, &nrg_bar_frame);
+            //     batch.add_rect(nrg_x, nrg_y, &nrg_bar_fuel);
+            //     //batch.add_rect(nrg_x, nrg_y, &nrg_bar_flash);
+            //     batch.add_rect(nrg_x, nrg_y, &nrg_bar_max);
 
-            }
+            // }
 
             //blit all shapes to intermediate texture
             batch.draw(ctx)?;
@@ -973,17 +1217,38 @@ impl Guitar
         //draw texture onto the main screen
         if let Some(tex) = self.texture.borrow_mut().as_mut()
         {
+            let mut final_corners = [(0.0, 0.0);4];
+
+            for (i, corner) in self.draw_corners.iter().enumerate()
+            {
+                //have to do this explicitly; we're working with tuples
+                final_corners[i].0 = match corner.point[0].corner_anchor
+                {
+                    Relativity::ZeroWall => corner.point[0].draw_coord,
+                    Relativity::CenterPoint => corner.point[0].draw_coord + state.canvas_size.0/2.0, 
+                    Relativity::OutsideWall => corner.point[0].draw_coord + state.canvas_size.0, 
+                } * state.scale;
+                final_corners[i].1 = match corner.point[1].corner_anchor
+                {
+                    Relativity::ZeroWall => corner.point[1].draw_coord,
+                    Relativity::CenterPoint => corner.point[1].draw_coord + state.canvas_size.1/2.0, 
+                    Relativity::OutsideWall => corner.point[1].draw_coord + state.canvas_size.1, 
+                } * state.scale;
+
+            }
+
             tex.clear();
             tex.add(SpriteBatchCommand::DrawRectSkewedTinted(
                 board_rect_2, //src
-
+                final_corners[0], final_corners[1],
+                final_corners[2], final_corners[3],
                 //top LR
-                (64.0 * state.scale, 0.0),
-                ((64.0 + 80.0) * state.scale, 0.0),
+                //(64.0 * state.scale, 0.0),
+                //((64.0 + 80.0) * state.scale, 0.0),
 
                 //bottom LR
-                (0.0, 144.0 * state.scale),
-                ((64.0 + 80.0 + 64.0) * state.scale, (144.0) * state.scale),
+                //(0.0, 144.0 * state.scale),
+                //((64.0 + 80.0 + 64.0) * state.scale, (144.0) * state.scale),
 
                 // (0.0 * state.scale, 0.0 * state.scale),
                 // (self.ref_size.0 * state.scale, 0.0 * state.scale),
@@ -1055,7 +1320,7 @@ impl Guitar
 
                 let multiplier_rc = Self::shift_right(&mult_num_rc, shift_count );
                 batch.add_rect(x + 32.0, y + 16.0, &multiplier_rc);
-                batch.add_rect(x + 16.0, y + 16.0, &rect_X);
+                batch.add_rect(x + 16.0, y + 16.0, &rect_x);
 
 
             }
