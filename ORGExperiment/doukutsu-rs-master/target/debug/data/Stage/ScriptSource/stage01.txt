@@ -1,7 +1,67 @@
 
-//song end event
+//start keys and change flood color
+#0060
+<UNP3003:0001:0000:0000//keys
+<FNC1331<FNC1340<FNC1350//cyan
+<END
+
+//change gobo color
+#0061
+<FNC1031<FNC1040<FNC1051//green
+<END
+
+//flood color again
+#0062
+<FNC1330<FNC1340<FNC1351//yellow
+<END
+
+//gobo color again
+#0063
+<FNC1030<FNC1041<FNC1051//red
+<END
+
+//flood color again
+#0064
+<FNC1330<FNC1341<FNC1350//magenta
+<END
+
+
+//superDisco, start all band members
+#0065
+<FNC0220//start band
+<FNC0300//SD
+<END
+
+
+
+
+//focusLeft
+#0066
+<FON3010:1000
+<END
+
+//focusCenter
+#0067
+<FON3011:1000
+<END
+//focusRight
+#0068
+<FON3012:1000
+<END
+
+//focusDrums
+#0069
+<FON3002:1000
+<END
+
+//focusGuitar
 #0070
-<EVE0110
+<FON3001:1000
+<END
+
+
+
+
 
 //crowd jump
 #0080
@@ -9,6 +69,10 @@
 <UNA0376:0030:0000:0010//jump with random delay between 0 and 10 ticks
 <END
 
+
+//song end event
+#0095
+<EVE0110
 
 
 
@@ -22,9 +86,7 @@
 <MNA<WAI0050
 <PSM
 <CMF0001:/Resource/OGG/StadiumRaveA.ogg$
-<CTF/Resource/TRACK/Channel0.org$
-//<SSD4484:9BQN:0000
-//<SSD4484:1440:0000
+<CTF/Resource/TRACK/StadiumRaveA_T.org$
 <SSD4484:0840:0000
 <RSM
 <SNH
@@ -62,17 +124,32 @@ Press Jump key to continue.<NOD
 
 //entry event
 #0200
-<KEY<HMC<HNH
-<FNC0210<FNC0220//prepare band
+<UKY<HMC<HNH
+<FNC0210//prepare band
 <MOV0024:0038
-<FON3002:0001<WAI0001//focus on band
-<FON3002:0016
+<FON3011:0001<WAI0001//focus on band
+<FON3011:0016
+<FNC1521//strobe OFF
 <FAI0004
 <FNC0100//start song
+//start drum and thag
+<UNP3002:0001:0000:0000//drums
+<UNP3004:0001:0000:0000//thag
 <FNC0250<FNC0251<FNC0253//bring up highway
-<UKY
 <END
 
+
+//band members
+//guitar Main
+//#3000
+//guitar Bass
+//#3001
+//drums
+//#3002
+//keys
+//#3003
+//Thagomizer
+//#3004
 
 
 
@@ -89,11 +166,11 @@ Press Jump key to continue.<NOD
 
 //start band NPCs
 #0220
-<UNP3000:0001:0000:0000
-<UNP3001:0001:0000:0000
-<UNP3002:0001:0000:0000
-<UNP3003:0001:0000:0000
-<UNP3004:0001:0000:0000
+<UNP3000:0001:0000:0000//guitar
+<UNP3001:0001:0000:0000//bass
+<UNP3002:0001:0000:0000//drums
+<UNP3003:0001:0000:0000//keys
+<UNP3004:0001:0000:0000//thag
 <END
 
 //halt band NPCs
@@ -984,6 +1061,16 @@ Press Jump key to continue.<NOD
 #3003
 //Thagomizer
 #3004
+
+
+//focusers
+
+//left
+#3010
+//center
+#3011
+//right
+#3012
 
 
 

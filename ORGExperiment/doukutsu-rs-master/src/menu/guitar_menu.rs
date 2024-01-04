@@ -85,7 +85,7 @@ impl StageSelectMenu {
             //don't show the map if flagged with a boss
             if map.boss_no != 0 {continue}
 
-            self.list_menu.push_entry(MenuItemsStageSel::Level(i), MenuEntry::Active(map.name.clone() + " TODO: Score here") );
+            self.list_menu.push_entry(MenuItemsStageSel::Level(i), MenuEntry::Active(map.name.clone() + &format!(" | Score: {}", map.score.score)) );
             self.list_menu.selected = MenuItemsStageSel::Level(i);
             //i += 1;
         }
