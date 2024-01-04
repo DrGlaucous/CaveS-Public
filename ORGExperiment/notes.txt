@@ -26,7 +26,8 @@ if there are entries that are alike in both places, the score will be placed on 
 
 
 
-
+how to build a static executable:
+https://stackoverflow.com/questions/31770604/how-to-generate-statically-linked-executables
 
 
 needed features:
