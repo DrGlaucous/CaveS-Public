@@ -1,0 +1,76 @@
+
+
+
+
+
+//drum events
+#0084
+<FOM0016<END
+
+#0085
+<FON0085:0016<END
+
+//end and save
+#0086
+<PSM//pause
+<FOM0016
+//store stats for map 1
+<STS0001
+//load silence
+<CMF0000:/Resource/ORG/XXXX.org$
+<CTF/Resource/ORG/XXXX.org$
+<RTS//reset current note carrier
+<HNH//hide notes
+<RSM//resume sound
+<END
+
+
+
+#0200
+<HMC<KEY<MSGHello there.<NOD<CLO<HNH
+<AM+0002:0000
+<MOV0006:0009
+<SMC
+<FAI0004
+<END
+
+<PSM
+//<CMF0000:/Resource/ORG/CURLY_OL_2.org$
+//<CTF/Resource/Curly_Tracker.org$
+
+<CMF0001:/Resource/01 Pac-Man Fever.ogg$
+<CTF/Resource/Channel0.org$
+<SSD9B81:0000:0000
+<RSM
+<SNH
+<MOV0006:0009
+<SMC
+<FAI0004
+<END
+<FAI9B81
+
+#0300
+<KEY
+<PSM<NOD
+<RSM<END
+
+#0400
+<KEY
+<CMF0000:/Resource/ORG/XXXX.org$
+<CTF/Resource/ORG/XXXX.org$
+<END
+
+#0420
+<KEY
+<CMF0001:/Resource/01 Pac-Man Fever.ogg$
+<CTF/Resource/Tracker.org$
+<END
+
+
+
+
+
+
+
+
+

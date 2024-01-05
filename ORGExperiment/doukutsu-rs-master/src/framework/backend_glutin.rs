@@ -1,7 +1,7 @@
 use std::any::Any;
 use std::cell::{RefCell, UnsafeCell};
 use std::ffi::c_void;
-use std::io::Read;
+use std::io::Read; //, Seek, SeekFrom};
 use std::mem;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -21,6 +21,7 @@ use glutin::window::WindowBuilder;
 use glutin::{Api, ContextBuilder, GlProfile, GlRequest, PossiblyCurrent, WindowedContext};
 use imgui::{DrawCmdParams, DrawData, DrawIdx, DrawVert};
 use winit::dpi::PhysicalSize;
+use winit::platform::windows::IconExtWindows;
 use winit::window::Icon;
 
 use crate::common::Rect;
@@ -197,6 +198,21 @@ impl BackendEventLoop for GlutinEventLoop {
         //create a window pointing to the parent context and with the event loop we made earlier
         let window: &'static mut WindowedContext<PossiblyCurrent> =
             unsafe { std::mem::transmute(self.get_context(&ctx, &event_loop)) };    
+
+        //load up icon
+        //TODO: this (glutin has trouble loading from internal resources; we must help)
+        // #[cfg(not(any(target_os = "android", target_os = "horizon")))]
+        // {
+        //     let mut file = filesystem::open(&ctx, "/builtin/icon.bmp").unwrap();
+        //     let mut buf: Vec<u8> = Vec::new();
+        //     file.seek(SeekFrom::Start(54));
+        //     file.read_to_end(&mut buf);
+        //     //let icoo = Icon::from_resource(unsafe{buf.as_ptr() as u16}, None).unwrap();
+        //     let icoo = Icon::from_rgba(buf, 64, 64).unwrap();
+        //     //window.window().set_window_icon(Some(icoo));
+        // }
+        
+
 
 
         //resize the window (first time) and handle the size change
