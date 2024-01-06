@@ -135,8 +135,8 @@ TSC List revised by Jackalope and Lace
 <LTS	0	----	Load Tracker Stats	Loads each map's score data from the JSON file
 <RTS	0	----	Reset Tracker Stats	Resets the score currently inside the guitar (not the map scores)
 <SSD	3	###-	Set Start Delay	Synchronizes songs together when starting (in ms) <SSD[song delay]:[tracker delay]:[extra delay]
-<SCS	1	#---	Show Score Summary	Shows/hides the score summary chart <SCS[0000/1]
-<HSJ	2	#e--	High Score Jump	Jump if the score is better than the old one <HSJ[Map Number]:[Event]
+<SCS	2	#m--	Show Score Summary	Shows/hides the score summary chart <SCS[0000/1]:[Map No]
+<HSJ	2	me--	High Score Jump	Jump if the score is better than the old one <HSJ[Map Number]:[Event]
 <UNP	4	N###	Ultra aNP	Like ANP, but passes back different vars <UNP[NPC]:[Act No]:[Gen Var A]:[Gen Var B]
 <UNA	4	N###	Ultra aNp All	Like UNP but for all NPCS of a type <UNA[NPC Type]:[Act No]:[Gen Var A]:[Gen Var B]
 <TNP	1	N---	Tick NPc	run the NPC's backend code instantly <TNP[NPC no]

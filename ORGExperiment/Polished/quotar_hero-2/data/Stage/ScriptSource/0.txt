@@ -1,0 +1,31 @@
+
+
+//intro event
+#0100
+<WAI9999<END
+
+//load-in event
+#0200
+<WAI9999<END
+
+
+//starting event for now
+#2000
+<PSM<END
+
+#2001
+<RSM<END
+
+#2002
+<FLJ7001:2003
+<FL+7001
+<CMF0001:/Resource/mus_core.ogg$
+<END
+
+#2003
+<CMF0001:/Resource/theme03.ogg$
+<FL-7001
+<END
+
+
+
