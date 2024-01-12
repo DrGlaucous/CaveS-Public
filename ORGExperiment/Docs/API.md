@@ -132,17 +132,27 @@ When I did it, I used an online tempo tapper like [taptempo.io](https://taptempo
 
 If I was lucky, the song would divide evenly into an ORG tempo. If not, I used Audacity to slightly stretch or compress the song in order to make it comply. (open the program, drag the song in, select it, and go to Effect>Change Tempo to stretch the song without changing pitch)
 
+![AudacityEdit](AudacityEdit.png)
+
+Tempo divisibility depends on the resolution set when converting the MIDI to ORG as explained below. This means that a tempo that works for a ‘new’ org will not always work with a populated track. The process of song stretching may need to be revisited after the tracker is made if the two become desynced as the song progresses (even if they were recorded in-sync with the MIDI).
 
 
+Once the song was properly adjusted, I used a MIDI keyboard and a MIDI recorder application (MidiEditor [http://www.midieditor.org/] in my case) to hammer out a file in realtime while listening to the music. When doing this though, be sure to set the tempo of the record MIDI before recording so it will be converted properly!
 
+![MidiEditor](MidiEditor.png)
 
+After the midi is recorded, I used my tool, OrgTools https://github.com/DrGlaucous/ORGTools to convert the midi into an ORG that would work with the game.
+The GUI is pretty self-explanatory, but when selecting the settings, force-simplify to 1/32 and tell the program that the drum track is 0. That way the program will automatically place each separate note pitch into a separate channel for you.
 
+![OrgTools](OrgTools.png)
 
+![FinishedTracker](FinishedTracker.png)
 
+Once that is done, you can move the track notes around and clean up any mistakes you made when recording the initial MIDI.
 
-
-
-
-
+## Getting timing right:
+(This applies to all song types, ORG or OGG)
+To make sure both songs are synchronized, find the time in milliseconds it takes to play the first note in the song in milliseconds. With OGG files, Audacity can be used by placing the cursor over the first note hit. To find this value in the ORG file, multiply the number of grid spaces by the ‘wait’ value.
+Then in the setup event, run <SSD with those times and it will make sure you press that note as soon as you hear it.
 
 
