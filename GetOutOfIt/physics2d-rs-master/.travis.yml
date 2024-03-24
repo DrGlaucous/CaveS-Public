@@ -1,0 +1,24 @@
+language: rust
+rust:
+- stable
+- beta
+- nightly
+matrix:
+  allow_failures:
+  - rust: nightly
+
+sudo: required
+dist: trusty
+
+before_install:
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+- sudo apt-get update -q
+- sudo apt-get install libsfml-dev libcsfml-dev -y
+
+deploy:
+- provider: script
+  script: scripts/deploy.sh
+  on:
+    branch: master
+    tags: true
+    rust: stable
