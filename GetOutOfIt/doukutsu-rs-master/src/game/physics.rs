@@ -1,8 +1,12 @@
-use crate::common::{Condition, Direction, Flag, Rect};
+use image::imageops::tile;
+
+use crate::common::{Condition, Direction, Flag, Rect, get_dist};
 use crate::game::caret::CaretType;
 use crate::game::npc::list::NPCList;
 use crate::game::shared_game_state::{SharedGameState, TileSize};
 use crate::game::stage::Stage;
+
+use super::npc;
 
 //      -3 -2 -1  0  1  2  3  4
 //    +------------------------
@@ -88,6 +92,9 @@ pub trait PhysicalEntity {
     fn vel_x(&self) -> i32;
     fn vel_y(&self) -> i32;
 
+    fn prev_x(&self) -> i32;
+    fn prev_y(&self) -> i32;
+
     fn hit_rect_size(&self) -> usize;
     fn offset_x(&self) -> i32 {
         0
@@ -95,6 +102,10 @@ pub trait PhysicalEntity {
     fn offset_y(&self) -> i32 {
         0
     }
+
+
+    fn set_x_pass(&mut self, x: i32, npc_list: &NPCList) {}
+    fn set_y_pass(&mut self, y: i32, npc_list: &NPCList) {}
 
     fn hit_bounds(&self) -> &Rect<u32>;
     fn display_bounds(&self) -> &Rect<u32>;
@@ -109,6 +120,10 @@ pub trait PhysicalEntity {
 
     fn direction(&self) -> Direction;
     fn is_player(&self) -> bool;
+
+    fn needs_special_collision(&self) -> bool {false}
+    fn npc_type(&self) -> usize {0}
+
     fn ignore_tile_44(&self) -> bool {
         true
     }
@@ -118,6 +133,214 @@ pub trait PhysicalEntity {
     fn player_right_pressed(&self) -> bool {
         false
     }
+
+
+    fn test_block_hit_vec(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
+        let half_tile_size = state.tile_size.as_int() * 0x100;
+
+        //is not a player and is npc number 379 (hammer)
+        let sicky = !self.is_player() && self.npc_type() == 379;
+
+
+        //x, y, is the top left corner of the tile
+
+        //if bottom below floor
+        //and if top above roof
+        //and lefth to the left of right wall
+        //and righth to the right of left wall
+            
+        let left_wall_x = (x * 2 - 1) * half_tile_size;
+        let right_wall_x = (x * 2 + 1) * half_tile_size;
+        let floor_wall_y = (y * 2 - 1) * half_tile_size;
+        let roof_wall_y = (y * 2 + 1) * half_tile_size;
+
+        // if x == 27 && y == 21
+        // {
+        //     let holder = left_wall_x *2;
+        // }
+        // let mut checker = 0;
+        // if ((self.x() - self.hit_bounds().left as i32) < right_wall_x)
+        // {checker += 1;}
+        // if ((self.x() + self.hit_bounds().right as i32) > left_wall_x)
+        // {checker += 1;}
+        // if ((self.y() - self.hit_bounds().top as i32) < roof_wall_y)
+        // {checker += 1;}
+        // if ((self.y() + self.hit_bounds().bottom as i32) > floor_wall_y)
+        // {checker += 1;}
+
+        //inside the tile
+        if ((self.x() - self.hit_bounds().left as i32) < right_wall_x) //leftside is to the left of rightside
+            && ((self.x() + self.hit_bounds().right as i32) > left_wall_x) //rightside to the right of the leftside
+            && ((self.y() - self.hit_bounds().top as i32) < roof_wall_y) //top bound above the roof
+            && ((self.y() + self.hit_bounds().bottom as i32) > floor_wall_y) //bottom bound below the floor
+        {
+            
+            //check for inf or 0 slope, move linearly if this is the case
+            if self.x() - self.prev_x() == 0 //vertical
+            {
+                //moved up
+                if self.prev_y() > self.y()
+                {
+                    //snap back out
+                    self.set_y(roof_wall_y + self.hit_bounds().top as i32);
+
+                    self.flags().set_hit_top_wall(true);
+                }
+                else
+                {
+                    //snap back out
+                    self.set_y(floor_wall_y - self.hit_bounds().bottom as i32);
+
+                    self.flags().set_hit_bottom_wall(true);
+                }
+                return;
+            }
+            else if self.y() - self.prev_y() == 0 //horizontal
+            {
+                //moved left
+                if self.prev_x() > self.x()
+                {
+                    //snap back out
+                    self.set_x(right_wall_x + self.hit_bounds().left as i32);
+
+                    self.flags().set_hit_left_wall(true);
+                }
+                else
+                {
+                    //snap back out
+                    self.set_x(left_wall_x - self.hit_bounds().right as i32);
+
+                    self.flags().set_hit_right_wall(true);
+                }
+                return;
+            }
+
+
+
+
+            //get slope of line between this point and the last point:
+            let slope = (self.y() - self.prev_y()) as f32/(self.x() - self.prev_x()) as f32;
+            // if slope == 0.0
+            // {
+            //     let dy = (self.y() - self.prev_y());
+            //     let dx = (self.x() - self.prev_x());
+            //     let slo = dy/dx;
+            //     log::info!("something went wrong here!");
+            // }
+
+
+            //assume intercept is 0, since 0,0 is x,y
+
+            //distance between where object is now to the edge of the block, following the slope and direction
+            let (to_x_edge, to_y_edge) = if slope > 0.0 {
+                
+                if self.x() > self.prev_x() {
+                    //push to TL
+                    
+                    //how far we need to push out X
+                    let x_push_dist = left_wall_x - (self.x() + self.hit_bounds().right as i32); //T
+                    //how far we need to push out Y (ind.)
+                    let y_push_dist = floor_wall_y - (self.y() + self.hit_bounds().bottom as i32); //L
+                    (x_push_dist, y_push_dist)
+                }
+                else {
+                    //push to BR
+
+                    let x_push_dist = right_wall_x - (self.x() - self.hit_bounds().left as i32); //B
+                    let y_push_dist = roof_wall_y - (self.y() - self.hit_bounds().top as i32); //R
+                    (x_push_dist, y_push_dist)
+                }
+            }
+            else {
+                if self.x() > self.prev_x() {
+                    //push to TR
+                    let x_push_dist = left_wall_x - (self.x() + self.hit_bounds().right as i32); //T
+                    let y_push_dist = roof_wall_y - (self.y() - self.hit_bounds().top as i32); //R
+                    (x_push_dist, y_push_dist)
+
+                }
+                else {
+                    //push to BL
+                    let x_push_dist = right_wall_x - (self.x() - self.hit_bounds().left as i32); //B
+                    let y_push_dist = floor_wall_y - (self.y() + self.hit_bounds().bottom as i32); //L
+                    (x_push_dist, y_push_dist)
+                }
+            };
+
+            //problem: when the slope is positive
+
+            //x and y values that come with the edge values calculated above
+            let y_derive = to_x_edge as f32 * slope; //with to_x_edge
+            let x_derive = to_y_edge as f32 / slope; //with to_y_edge
+
+            //distance to get flush with either the x edge or y edge
+            let to_x_edge_d = get_dist((0.0, 0.0), (to_x_edge as f32, y_derive as f32));
+            let to_y_edge_d = get_dist((0.0, 0.0), (x_derive as f32, to_y_edge as f32));
+
+            // select the shortest travel distance and use those coordinates to move
+            if to_x_edge_d.floor() == to_y_edge_d.floor() {
+                //if the distances are essentially equal, that means we're approaching from a corner, so
+                //snap to what ever wall is closest
+                if to_x_edge > to_y_edge {
+                    //floor or ceiling
+                    self.set_y(self.y() + to_y_edge);
+                    self.set_vel_y(0);
+                    if to_y_edge < 0
+                    {self.flags().set_hit_top_wall(true);}
+                    else
+                    {self.flags().set_hit_bottom_wall(true);}
+                    
+                }
+                else {
+                    self.set_x(self.x() + to_x_edge);
+                    self.set_vel_x(0);
+                    if to_x_edge < 0
+                    {self.flags().set_hit_left_wall(true);}
+                    else
+                    {self.flags().set_hit_right_wall(true);}
+                }
+            }
+            else if to_x_edge_d < to_y_edge_d {
+
+                self.set_x_pass(self.x() + to_x_edge, npc_list);
+                //if sicky {self.set_y_pass(self.y() + y_derive as i32, npc_list);}
+
+                self.set_vel_x(0);
+
+                if to_x_edge < 0
+                {self.flags().set_hit_left_wall(true);}
+                else
+                {self.flags().set_hit_right_wall(true);}
+
+            }
+            else {
+
+                if sicky {self.set_x_pass(self.x() + x_derive as i32, npc_list);}
+                self.set_y_pass(self.y() + to_y_edge, npc_list);
+
+                self.set_vel_y(0);
+                
+                if to_y_edge < 0
+                {self.flags().set_hit_top_wall(true);}
+                else
+                {self.flags().set_hit_bottom_wall(true);}
+            }
+
+
+            //hit conditions:
+            //if slope is positive, we either hit the floor or left wall
+            //otherwise, we hit the roof or right wall
+            //if slope is 0, if x now is bigger than x prev we hit left wall
+            //if slope is inf. if y now is bigger than y prev we hit floor
+
+        }
+
+
+
+
+    }
+
+
 
     fn test_block_hit(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
         let bounds_x = if self.is_player() { 0x600 } else { 0x600 };
@@ -735,6 +958,11 @@ pub trait PhysicalEntity {
     }
 
     fn tick_map_collisions(&mut self, state: &mut SharedGameState, _npc_list: &NPCList, stage: &mut Stage) {
+        
+        //see the chart at the top, this is the radius of the collision zone
+
+        //hit rect size is the width of the collision box for the entitiy.
+        //bosses check 4x4 grid, NPCs check 3x3 if "big", or 2x2 if "small"
         let hit_rect_size = self.hit_rect_size().clamp(1, 4);
         let hit_rect_size = if state.tile_size == TileSize::Tile8x8 {
             4 * hit_rect_size * hit_rect_size
@@ -742,170 +970,242 @@ pub trait PhysicalEntity {
             hit_rect_size * hit_rect_size
         };
 
+        //pixel size of the tile (8/16)*subpixel
         let tile_size = state.tile_size.as_int() * 0x200;
-        let x = (self.x() + self.offset_x()) / tile_size;
-        let y = (self.y() + self.offset_y()) / tile_size;
 
-        self.flags().0 = 0;
-        for (idx, &(ox, oy)) in OFFSETS.iter().enumerate() {
-            if idx == hit_rect_size {
-                break;
-            }
 
-            let attrib = stage.map.get_attribute((x + ox) as usize, (y + oy) as usize);
-            match attrib {
-                // Spikes
-                0x62 | 0x42 if self.is_player() => {
-                    self.test_hit_spike(state, x + ox, y + oy, attrib & 0x20 != 0);
+
+        //cache locations in case collisions make the NPC move
+        let (curr_x, curr_y) = (self.x(), self.y());
+        let (prev_x, prev_y) = (self.prev_x(), self.prev_y());
+
+        //NPC moves more than a single tile in a single tick
+        let delt_x = (curr_x - prev_x).abs();
+        let delt_y = (curr_y - prev_y).abs();
+
+        //decide which velocity change is bigger, then use that to iterate hitboxes
+        let (delt, left, right) =
+        if delt_x > delt_y {(delt_x, self.hit_bounds().left as i32, self.hit_bounds().right as i32)}
+        else {(delt_y, self.hit_bounds().top as i32, self.hit_bounds().bottom as i32)};
+
+        //test
+        // let (delt_x, delt_y) = (45, 25);
+        // let prev_x = 0;
+        // let prev_y = 0;
+        // let x = 45;
+        // let y = 25;
+        // let delt = 45;
+        // let left = 5;
+        // let right = 5;
+
+        //rect is relative to NPC center
+        //let tile_count = delt/(right + left); //4
+        //in pixels
+        //let step_x = left + right;//delt_x / tile_count; //larger side gets step size of hitbox
+        //let step_y = delt_y / tile_count;
+
+        let tile_count = delt;
+
+        // in pixels, larger side gets step size of hitbox
+        let (step_x, step_y) =
+        if tile_count == 0 {(0, 0)}
+        else if delt_x > delt_y {(left+right, delt_y/tile_count)}
+        else {(delt_x/tile_count, left+right)};
+
+        //start at 1: no need to check where we were when we started, also +1 on the tile count because we will always check the final position
+        //for i in 1..=(tile_count + 1) {
+        //for i in 0..=(80)
+        {
+
+            //for each tile in this range
+            //let (off_x, off_y) = if i == tile_count + 1 {(curr_x, curr_y)} else {(prev_x + i * step_x, prev_y + i * step_y)};
+
+            let (off_x, off_y) = (self.x(), self.y());//(prev_x + delt_x * i / 80, prev_y + delt_y*i/80);
+
+            //when do we break?
+            //when we hit_anything()
+
+            //location of object relative to tiles
+            let x = (off_x + self.offset_x()) / tile_size;
+            let y = (off_y + self.offset_y()) / tile_size;
+
+            //reset flags
+            self.flags().0 = 0;
+
+            for (idx, &(ox, oy)) in OFFSETS.iter().enumerate() {
+                //go until we hit the rect limit for this entity
+                if idx == hit_rect_size {
+                    break;
                 }
 
-                // Blocks
-                0x02 | 0x60 => {
-                    self.test_hit_water(state, x + ox, y + oy);
-                }
-                0x62 if !self.is_player() => {
-                    self.test_hit_water(state, x + ox, y + oy);
-                }
-                0x61 => {
-                    self.test_block_hit(state, x + ox, y + oy);
-                    self.test_hit_water(state, x + ox, y + oy);
-                }
-                0x04 | 0x64 if !self.is_player() => {
-                    self.test_block_hit(state, x + ox, y + oy);
-                    self.test_hit_water(state, x + ox, y + oy);
-                }
-                0x05 | 0x41 | 0x43 | 0x46 if self.is_player() => {
-                    self.test_block_hit(state, x + ox, y + oy);
-                }
-                0x03 | 0x05 | 0x41 | 0x43 if !self.is_player() => {
-                    self.test_block_hit(state, x + ox, y + oy);
-                }
-                0x44 => {
-                    if !self.ignore_tile_44() {
+                let attrib = stage.map.get_attribute((x + ox) as usize, (y + oy) as usize);
+                match attrib {
+                    // Spikes
+                    0x62 | 0x42 if self.is_player() => {
+                        self.test_hit_spike(state, x + ox, y + oy, attrib & 0x20 != 0);
+                    }
+
+                    // Blocks
+                    0x02 | 0x60 => {
+                        self.test_hit_water(state, x + ox, y + oy);
+                    }
+                    0x62 if !self.is_player() => {
+                        self.test_hit_water(state, x + ox, y + oy);
+                    }
+                    0x61 => {
+                        self.test_block_hit(state, x + ox, y + oy);
+                        self.test_hit_water(state, x + ox, y + oy);
+                    }
+                    0x04 | 0x64 if !self.is_player() => {
+                        self.test_block_hit(state, x + ox, y + oy);
+                        self.test_hit_water(state, x + ox, y + oy);
+                    }
+                    0x05 | 0x41 | 0x43 | 0x46 if self.is_player() => {
                         self.test_block_hit(state, x + ox, y + oy);
                     }
-                }
-                0x4a => {
-                    self.test_platform_hit(state, x + ox, y + oy);
-                }
+                    0x03 | 0x05 | 0x41 | 0x43 if !self.is_player() => {
+                        if self.is_player()
+                        {self.test_block_hit(state, x + ox, y + oy);}
+                        else if self.needs_special_collision() {
+                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list); //test
+                        }
+                    }
+                    0x44 => {
+                        if !self.ignore_tile_44() {
+                            self.test_block_hit(state, x + ox, y + oy);
+                        }
+                    }
+                    0x4a => {
+                        self.test_platform_hit(state, x + ox, y + oy);
+                    }
 
-                // Slopes
-                0x50 | 0x70 => {
-                    self.test_hit_upper_left_slope_high(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    // Slopes
+                    0x50 | 0x70 => {
+                        self.test_hit_upper_left_slope_high(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x51 | 0x71 => {
-                    self.test_hit_upper_left_slope_low(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x51 | 0x71 => {
+                        self.test_hit_upper_left_slope_low(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x52 | 0x72 => {
-                    self.test_hit_upper_right_slope_low(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x52 | 0x72 => {
+                        self.test_hit_upper_right_slope_low(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x53 | 0x73 => {
-                    self.test_hit_upper_right_slope_high(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x53 | 0x73 => {
+                        self.test_hit_upper_right_slope_high(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x54 | 0x74 => {
-                    self.test_hit_lower_left_slope_high(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x54 | 0x74 => {
+                        self.test_hit_lower_left_slope_high(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x55 | 0x75 => {
-                    self.test_hit_lower_left_slope_low(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x55 | 0x75 => {
+                        self.test_hit_lower_left_slope_low(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x56 | 0x76 => {
-                    self.test_hit_lower_right_slope_low(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x56 | 0x76 => {
+                        self.test_hit_lower_right_slope_low(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x57 | 0x77 => {
-                    self.test_hit_lower_right_slope_high(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x57 | 0x77 => {
+                        self.test_hit_lower_right_slope_high(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x5a | 0x7a => {
-                    self.test_hit_upper_left_slope(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x5a | 0x7a => {
+                        self.test_hit_upper_left_slope(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x5b | 0x7b => {
-                    self.test_hit_upper_right_slope(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x5b | 0x7b => {
+                        self.test_hit_upper_right_slope(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x5c | 0x7c => {
-                    self.test_hit_lower_left_slope(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x5c | 0x7c => {
+                        self.test_hit_lower_left_slope(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
-                0x5d | 0x7d => {
-                    self.test_hit_lower_right_slope(state, x + ox, y + oy);
-                    if attrib & 0x20 != 0 {
-                        self.test_hit_water(state, x + ox, y + oy);
+                    0x5d | 0x7d => {
+                        self.test_hit_lower_right_slope(state, x + ox, y + oy);
+                        if attrib & 0x20 != 0 {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
                     }
-                }
 
-                // Forces
-                0x80 | 0xa0 if self.is_player() => {
-                    self.test_hit_force(state, x + ox, y + oy, Direction::Left, attrib & 0x20 != 0);
-                }
-                0x81 | 0xa1 if self.is_player() => {
-                    self.test_hit_force(state, x + ox, y + oy, Direction::Up, attrib & 0x20 != 0);
-                }
-                0x82 | 0xa2 if self.is_player() => {
-                    self.test_hit_force(state, x + ox, y + oy, Direction::Right, attrib & 0x20 != 0);
-                }
-                0x83 | 0xa3 if self.is_player() => {
-                    self.test_hit_force(state, x + ox, y + oy, Direction::Bottom, attrib & 0x20 != 0);
-                }
-                0x80 | 0xa0 if !self.is_player() => {
-                    self.flags().set_force_left(true);
-                    if attrib & 0x20 != 0 {
-                        self.flags().set_in_water(true);
+                    // Forces
+                    0x80 | 0xa0 if self.is_player() => {
+                        self.test_hit_force(state, x + ox, y + oy, Direction::Left, attrib & 0x20 != 0);
                     }
-                }
-                0x81 | 0xa1 if !self.is_player() => {
-                    self.flags().set_force_up(true);
-                    if attrib & 0x20 != 0 {
-                        self.flags().set_in_water(true);
+                    0x81 | 0xa1 if self.is_player() => {
+                        self.test_hit_force(state, x + ox, y + oy, Direction::Up, attrib & 0x20 != 0);
                     }
-                }
-                0x82 | 0xa2 if !self.is_player() => {
-                    self.flags().set_force_right(true);
-                    if attrib & 0x20 != 0 {
-                        self.flags().set_in_water(true);
+                    0x82 | 0xa2 if self.is_player() => {
+                        self.test_hit_force(state, x + ox, y + oy, Direction::Right, attrib & 0x20 != 0);
                     }
-                }
-                0x83 | 0xa3 if !self.is_player() => {
-                    self.flags().set_force_down(true);
-                    if attrib & 0x20 != 0 {
-                        self.flags().set_in_water(true);
+                    0x83 | 0xa3 if self.is_player() => {
+                        self.test_hit_force(state, x + ox, y + oy, Direction::Bottom, attrib & 0x20 != 0);
                     }
+                    0x80 | 0xa0 if !self.is_player() => {
+                        self.flags().set_force_left(true);
+                        if attrib & 0x20 != 0 {
+                            self.flags().set_in_water(true);
+                        }
+                    }
+                    0x81 | 0xa1 if !self.is_player() => {
+                        self.flags().set_force_up(true);
+                        if attrib & 0x20 != 0 {
+                            self.flags().set_in_water(true);
+                        }
+                    }
+                    0x82 | 0xa2 if !self.is_player() => {
+                        self.flags().set_force_right(true);
+                        if attrib & 0x20 != 0 {
+                            self.flags().set_in_water(true);
+                        }
+                    }
+                    0x83 | 0xa3 if !self.is_player() => {
+                        self.flags().set_force_down(true);
+                        if attrib & 0x20 != 0 {
+                            self.flags().set_in_water(true);
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
-        }
 
-        if (self.y() - 0x800) > state.water_level {
-            self.flags().set_in_water(true);
+            if (self.y() - 0x800) > state.water_level {
+                self.flags().set_in_water(true);
+            }
+
+            // //break if solid object hit
+            // if self.flags().hit_anything()
+            // {
+            //     break;
+            // }
+
         }
+        //end test
+
     }
 }

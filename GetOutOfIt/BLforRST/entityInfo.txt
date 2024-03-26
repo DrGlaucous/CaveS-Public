@@ -385,3 +385,5 @@
 #378	Climber	Base	Climber Base	48:48:64:64	Base entity for the climber	ALL:ALL ;
 #379	Climber	Hammer	Climber Hammer	0:0:32:32	Used to move the climber	ALL:ALL ;
 #380	Climber	Cursor	Climber Cursor	0:0:32:32	Controlled with mouse, directs climber hammer	ALL:ALL ;
+#381	Climber	Pole	Climber Pole	48:48:64:64	Connects the hammer hand the base	ALL:ALL ;
+#382	Climber	Hand	Climber Hand	48:48:64:64	Holds the pole	ALL:ALL ;

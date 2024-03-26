@@ -2,7 +2,7 @@ use std::fmt;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use lazy_static::lazy_static;
-use num_traits::{abs, Num};
+use num_traits::{abs, Num, Pow};
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::SerializeTupleStruct;
@@ -410,6 +410,23 @@ pub fn angle_rotate(x: f32, y: f32, angle: f32) -> (f32, f32)
     let nuy = (y * cosdeg + x * sindeg) as f32;
     return(nux, nuy);
 }
+
+pub fn get_dist((x1, y1): (f32, f32), (x2, y2): (f32, f32)) -> f32
+{
+    // if let ((sqr_1), (sqr_2)) = ((x2 - x1).pow(2.0), (y2 - y1).pow(2.0))
+    // {
+    //     return (sqr_1 + sqr_2).sqrt();
+    // }
+    // else
+    // {
+    //     return 0.0;
+    // }
+    let (sqr_1, sqr_2) = ((x2 - x1).pow(2.0), (y2 - y1).pow(2.0));
+    return (sqr_1 + sqr_2).sqrt();
+
+}
+
+
 
 
 /// A RGBA color in the `sRGB` color space represented as `f32`'s in the range `[0.0-1.0]`

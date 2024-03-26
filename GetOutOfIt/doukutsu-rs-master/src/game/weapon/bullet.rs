@@ -1830,6 +1830,17 @@ impl PhysicalEntity for Bullet {
     }
 
     #[inline(always)]
+    fn prev_x(&self) -> i32 {
+        self.prev_x
+    }
+
+    #[inline(always)]
+    fn prev_y(&self) -> i32 {
+        self.prev_y
+    }
+
+
+    #[inline(always)]
     fn vel_x(&self) -> i32 {
         self.vel_x
     }

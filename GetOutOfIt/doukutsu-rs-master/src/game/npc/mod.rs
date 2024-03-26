@@ -840,8 +840,9 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             377 => self.tick_n000_null(),
             378 => self.tick_n378_climber_base(state, players, npc_list),
             379 => self.tick_n379_climber_hammer(state, players, npc_list),
-            380 => self.tick_n380_climber_cursor(state, players, npc_list, ctx),
-
+            380 => self.tick_n380_climber_cursor(npc_list, ctx),
+            381 => self.tick_n381_stick(npc_list),
+            382 => self.tick_n382_hand(npc_list),
 
             _ => Ok(()),
         }?;
@@ -985,6 +986,16 @@ impl PhysicalEntity for NPC {
     }
 
     #[inline(always)]
+    fn prev_x(&self) -> i32 {
+        self.prev_x
+    }
+
+    #[inline(always)]
+    fn prev_y(&self) -> i32 {
+        self.prev_y
+    }
+
+    #[inline(always)]
     fn vel_x(&self) -> i32 {
         self.vel_x
     }
@@ -1044,6 +1055,63 @@ impl PhysicalEntity for NPC {
     fn set_y(&mut self, y: i32) {
         self.y = y;
     }
+
+    //new functions, used to pass more off to parent NPCs
+    fn set_x_pass(&mut self, x: i32, npc_list: &NPCList) {
+
+        //for 379, pass offset off to parent NPC as well (specific to 379)
+        if self.npc_type == 379
+        {
+            let delt = x - self.x;
+
+            if let Some(parent) = npc_list.get_npc(self.parent_id as usize)
+            {
+                parent.x += delt / 2;   
+                parent.vel_x += delt / 2;
+            }
+
+            self.x += delt;
+        }
+        else
+        {
+            self.x = x;            
+        }
+
+    }
+
+    #[inline(always)]
+    fn set_y_pass(&mut self, y: i32, npc_list: &NPCList) {
+        //for 379, pass offset off to parent NPC as well (specific to 379)
+        if self.npc_type == 379
+        {
+            let delt = y - self.y;
+
+            if let Some(parent) = npc_list.get_npc(self.parent_id as usize)
+            {
+                parent.y += delt / 2;   
+                parent.vel_y += delt / 2;
+            }
+
+            self.y += delt;
+        }
+        else
+        {
+            self.y = y;            
+        }
+    }
+
+    #[inline(always)]
+    fn needs_special_collision(&self) -> bool
+    {
+        if self.npc_type == 379 || self.npc_type == 378 {true} else {false}
+    }
+
+    #[inline(always)]
+    fn npc_type(&self) -> usize
+    {
+        self.npc_type as usize
+    }
+
 
     #[inline(always)]
     fn set_vel_x(&mut self, vel_x: i32) {
