@@ -7,7 +7,6 @@ use crate::input::combined_menu_controller::CombinedMenuController;
 use crate::menu::MenuEntry;
 use crate::menu::{Menu, MenuSelectionResult};
 use crate::scene::title_scene::TitleScene;
-
 use super::coop_menu::PlayerCountMenu;
 use super::settings_menu::SettingsMenu;
 
@@ -25,6 +24,7 @@ enum CurrentMenu {
 enum PauseMenuEntry {
     Resume,
     Retry,
+    Save,
     AddPlayer2,
     DropPlayer2,
     Settings,
@@ -61,6 +61,9 @@ pub struct PauseMenu {
     confirm_menu: Menu<ConfirmMenuEntry>,
     tick: u32,
     should_update_coop_menu: bool,
+    //use these two to request a save
+    needs_saved: bool,
+    has_saved: bool,
 }
 
 impl PauseMenu {
@@ -77,6 +80,8 @@ impl PauseMenu {
             confirm_menu: Menu::new(0, 0, 75, 0),
             tick: 0,
             should_update_coop_menu: false,
+            needs_saved: false,
+            has_saved: false,
         }
     }
 
@@ -88,6 +93,10 @@ impl PauseMenu {
             .push_entry(PauseMenuEntry::Resume, MenuEntry::Active(state.loc.t("menus.pause_menu.resume").to_owned()));
         self.pause_menu
             .push_entry(PauseMenuEntry::Retry, MenuEntry::Active(state.loc.t("menus.pause_menu.retry").to_owned()));
+        
+        self.pause_menu
+            .push_entry(PauseMenuEntry::Save, MenuEntry::Active(state.loc.t("menus.pause_menu.save").to_owned()));
+
         self.pause_menu.push_entry(PauseMenuEntry::AddPlayer2, MenuEntry::Hidden);
         self.pause_menu.push_entry(PauseMenuEntry::DropPlayer2, MenuEntry::Hidden);
         self.pause_menu.push_entry(
@@ -171,6 +180,25 @@ impl PauseMenu {
     pub fn is_paused(&mut self) -> bool {
         self.is_paused
     }
+    pub fn request_save(&mut self) -> bool {
+        self.needs_saved && !self.has_saved
+    }
+    pub fn set_save_made(&mut self, state: &mut SharedGameState, result: bool)
+    {
+        self.has_saved = result;
+
+        if result
+        {
+            // show we saved
+            self.pause_menu.set_entry(
+                PauseMenuEntry::Save,
+                MenuEntry::Active(state.loc.t("menus.pause_menu.save_confirm").to_owned()),
+            );
+            self.needs_saved = false;
+            //self.has_saved = false; //comented out so we can only save once per pause
+        }
+        
+    }
 
     pub fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         self.update_sizes(state);
@@ -197,6 +225,15 @@ impl PauseMenu {
                     if self.tick >= 3 {
                         self.tick = 0;
                         self.is_paused = false;
+
+                        //reset save vars
+                        self.has_saved = false;
+                        self.needs_saved = false;
+
+                        self.pause_menu.set_entry(
+                            PauseMenuEntry::Save,
+                            MenuEntry::Active(state.loc.t("menus.pause_menu.save").to_owned()),
+                        );
                     }
                 }
                 MenuSelectionResult::Selected(PauseMenuEntry::Retry, _) => {
@@ -204,6 +241,17 @@ impl PauseMenu {
                     state.sound_manager.play_song(0, &state.constants, &state.settings, ctx, false)?;
                     state.load_or_start_game(ctx)?;
                 }
+
+                MenuSelectionResult::Selected(PauseMenuEntry::Save, _) => {
+                    //state.stop_noise();
+                    if !self.has_saved
+                    {
+                        //state.sound_manager.play_song(0, &state.constants, &state.settings, ctx, false)?;
+                        self.needs_saved = true;
+                    }
+
+                }
+
                 MenuSelectionResult::Selected(PauseMenuEntry::AddPlayer2, _) => {
                     if !state.constants.is_cs_plus {
                         state.player_count = PlayerCount::Two;

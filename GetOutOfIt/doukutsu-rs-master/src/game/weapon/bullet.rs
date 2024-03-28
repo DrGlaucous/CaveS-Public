@@ -4,7 +4,7 @@ use crate::common::{BulletFlag, Condition, Direction, Flag, Rect};
 use crate::engine_constants::{BulletData, EngineConstants};
 use crate::game::caret::CaretType;
 use crate::game::npc::list::NPCList;
-use crate::game::npc::NPC;
+use crate::game::npc::{self, NPC};
 use crate::game::physics::{OFFSETS, PhysicalEntity};
 use crate::game::player::{Player, TargetPlayer};
 use crate::game::shared_game_state::{SharedGameState, TileSize};
@@ -1986,28 +1986,28 @@ impl PhysicalEntity for Bullet {
                 }
                 // Slopes
                 0x50 | 0x70 => {
-                    self.test_hit_upper_left_slope_high(state, x + ox, y + oy);
+                    self.test_hit_upper_left_slope_high(state, x + ox, y + oy, npc_list);
                 }
                 0x51 | 0x71 => {
-                    self.test_hit_upper_left_slope_low(state, x + ox, y + oy);
+                    self.test_hit_upper_left_slope_low(state, x + ox, y + oy, npc_list);
                 }
                 0x52 | 0x72 => {
-                    self.test_hit_upper_right_slope_low(state, x + ox, y + oy);
+                    self.test_hit_upper_right_slope_low(state, x + ox, y + oy, npc_list);
                 }
                 0x53 | 0x73 => {
-                    self.test_hit_upper_right_slope_high(state, x + ox, y + oy);
+                    self.test_hit_upper_right_slope_high(state, x + ox, y + oy, npc_list);
                 }
                 0x54 | 0x74 => {
-                    self.test_hit_lower_left_slope_high(state, x + ox, y + oy);
+                    self.test_hit_lower_left_slope_high(state, x + ox, y + oy, npc_list);
                 }
                 0x55 | 0x75 => {
-                    self.test_hit_lower_left_slope_low(state, x + ox, y + oy);
+                    self.test_hit_lower_left_slope_low(state, x + ox, y + oy, npc_list);
                 }
                 0x56 | 0x76 => {
-                    self.test_hit_lower_right_slope_low(state, x + ox, y + oy);
+                    self.test_hit_lower_right_slope_low(state, x + ox, y + oy, npc_list);
                 }
                 0x57 | 0x77 => {
-                    self.test_hit_lower_right_slope_high(state, x + ox, y + oy);
+                    self.test_hit_lower_right_slope_high(state, x + ox, y + oy, npc_list);
                 }
                 _ => {}
             }

@@ -17,6 +17,7 @@ use crate::engine_constants::EngineConstants;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
+//use crate::game;
 use crate::game::frame::UpdateTarget;
 use crate::game::npc::NPC;
 use crate::game::player::{ControlMode, TargetPlayer};
@@ -1878,6 +1879,21 @@ impl TextScriptVM {
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
+        
+            //if map is W, jump to X
+            TSCOpCode::MEJ => {
+                let map_id = read_cur_varint(&mut cursor)? as usize;
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+
+                if map_id == game_scene.stage_id {
+                    state.textscript_vm.clear_text_box();
+                    exec_state = TextScriptExecutionState::Running(event_num, 0);
+                } else {
+                    exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+                }
+            }
+        
+        
         }
 
         Ok(exec_state)

@@ -840,9 +840,9 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             377 => self.tick_n000_null(),
             378 => self.tick_n378_climber_base(state, players, npc_list),
             379 => self.tick_n379_climber_hammer(state, players, npc_list),
-            380 => self.tick_n380_climber_cursor(npc_list, ctx),
-            381 => self.tick_n381_stick(npc_list),
-            382 => self.tick_n382_hand(npc_list),
+            380 => self.tick_n380_climber_cursor(state, npc_list, ctx),
+            381 => self.tick_n381_stick(state, npc_list),
+            382 => self.tick_n382_hand(state, npc_list),
 
             _ => Ok(()),
         }?;

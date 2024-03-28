@@ -22,6 +22,8 @@
     "pause_menu": {
       "resume": "再開",
       "retry": "リトライ",
+      "save": "Save",
+      "save_confirm": "Saved",
       "options": "設定",
       "title": "メインメニュー",
       "title_confirm": "メインメニュー？",

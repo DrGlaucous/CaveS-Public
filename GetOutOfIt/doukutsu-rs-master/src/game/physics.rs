@@ -104,8 +104,8 @@ pub trait PhysicalEntity {
     }
 
 
-    fn set_x_pass(&mut self, x: i32, npc_list: &NPCList) {}
-    fn set_y_pass(&mut self, y: i32, npc_list: &NPCList) {}
+    fn set_x_pass(&mut self, x: i32, npc_list: &NPCList) {self.set_x(x)}
+    fn set_y_pass(&mut self, y: i32, npc_list: &NPCList) {self.set_y(y)}
 
     fn hit_bounds(&self) -> &Rect<u32>;
     fn display_bounds(&self) -> &Rect<u32>;
@@ -476,7 +476,7 @@ pub trait PhysicalEntity {
     }
 
     // upper left slope (bigger half)
-    fn test_hit_upper_left_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_upper_left_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -487,8 +487,8 @@ pub trait PhysicalEntity {
             < (y * tile_size) - (self.x() - x * tile_size) / 2 + quarter_tile_size
             && (self.y() + self.hit_bounds().bottom as i32) > (y * 2 - 1) * half_tile_size
         {
-            self.set_y(
-                (y * tile_size) - ((self.x() - x * tile_size) / 2) + quarter_tile_size + self.hit_bounds().top as i32,
+            self.set_y_pass(
+                (y * tile_size) - ((self.x() - x * tile_size) / 2) + quarter_tile_size + self.hit_bounds().top as i32, npc_list
             );
 
             if self.is_player() && !self.cond().hidden() && self.vel_y() < -0x200 {
@@ -517,7 +517,7 @@ pub trait PhysicalEntity {
     }
 
     // upper left slope (smaller half)
-    fn test_hit_upper_left_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_upper_left_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -528,8 +528,8 @@ pub trait PhysicalEntity {
             < (y * tile_size) - (self.x() - x * tile_size) / 2 - quarter_tile_size
             && (self.y() + self.hit_bounds().bottom as i32) > (y * 2 - 1) * half_tile_size
         {
-            self.set_y(
-                (y * tile_size) - ((self.x() - x * tile_size) / 2) - quarter_tile_size + self.hit_bounds().top as i32,
+            self.set_y_pass(
+                (y * tile_size) - ((self.x() - x * tile_size) / 2) - quarter_tile_size + self.hit_bounds().top as i32, npc_list,
             );
 
             if self.is_player() && !self.cond().hidden() && self.vel_y() < -0x200 {
@@ -558,7 +558,7 @@ pub trait PhysicalEntity {
     }
 
     // upper right slope (smaller half)
-    fn test_hit_upper_right_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_upper_right_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -569,8 +569,8 @@ pub trait PhysicalEntity {
             < (y * tile_size) + (self.x() - x * tile_size) / 2 - quarter_tile_size
             && (self.y() + self.hit_bounds().bottom as i32) > (y * 2 - 1) * half_tile_size
         {
-            self.set_y(
-                (y * tile_size) + ((self.x() - x * tile_size) / 2) - quarter_tile_size + self.hit_bounds().top as i32,
+            self.set_y_pass(
+                (y * tile_size) + ((self.x() - x * tile_size) / 2) - quarter_tile_size + self.hit_bounds().top as i32, npc_list
             );
 
             if self.is_player() && !self.cond().hidden() && self.vel_y() < -0x200 {
@@ -599,7 +599,7 @@ pub trait PhysicalEntity {
     }
 
     // upper right slope (bigger half)
-    fn test_hit_upper_right_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_upper_right_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -610,8 +610,8 @@ pub trait PhysicalEntity {
             < (y * tile_size) + (self.x() - x * tile_size) / 2 + quarter_tile_size
             && (self.y() + self.hit_bounds().bottom as i32) > (y * 2 - 1) * half_tile_size
         {
-            self.set_y(
-                (y * tile_size) + ((self.x() - x * tile_size) / 2) + quarter_tile_size + self.hit_bounds().top as i32,
+            self.set_y_pass(
+                (y * tile_size) + ((self.x() - x * tile_size) / 2) + quarter_tile_size + self.hit_bounds().top as i32, npc_list
             );
 
             if self.is_player() && !self.cond().hidden() && self.vel_y() < -0x200 {
@@ -640,7 +640,7 @@ pub trait PhysicalEntity {
     }
 
     // lower left half (bigger)
-    fn test_hit_lower_left_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_lower_left_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -653,10 +653,10 @@ pub trait PhysicalEntity {
             > (y * tile_size) + (self.x() - x * tile_size) / 2 - quarter_tile_size
             && (self.y() - self.hit_bounds().top as i32) < (y * 2 + 1) * half_tile_size
         {
-            self.set_y(
+            self.set_y_pass(
                 (y * tile_size) + ((self.x() - x * tile_size) / 2)
                     - quarter_tile_size
-                    - self.hit_bounds().bottom as i32,
+                    - self.hit_bounds().bottom as i32, npc_list,
             );
 
             if self.is_player() && self.vel_y() > 0x400 {
@@ -673,7 +673,7 @@ pub trait PhysicalEntity {
     }
 
     // lower left half (smaller)
-    fn test_hit_lower_left_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_lower_left_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -686,9 +686,9 @@ pub trait PhysicalEntity {
             > (y * tile_size) + (self.x() - x * tile_size) / 2 + quarter_tile_size
             && (self.y() - self.hit_bounds().top as i32) < (y * 2 + 1) * half_tile_size
         {
-            self.set_y(
+            self.set_y_pass(
                 (y * tile_size) + ((self.x() - x * tile_size) / 2) + quarter_tile_size
-                    - self.hit_bounds().bottom as i32,
+                    - self.hit_bounds().bottom as i32, npc_list,
             );
 
             if self.is_player() && self.vel_y() > 0x400 {
@@ -705,7 +705,7 @@ pub trait PhysicalEntity {
     }
 
     // lower right half (smaller)
-    fn test_hit_lower_right_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_lower_right_slope_low(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -718,9 +718,9 @@ pub trait PhysicalEntity {
             > (y * tile_size) - (self.x() - x * tile_size) / 2 + quarter_tile_size
             && (self.y() - self.hit_bounds().top as i32) < (y * 2 + 1) * half_tile_size
         {
-            self.set_y(
+            self.set_y_pass(
                 (y * tile_size) - ((self.x() - x * tile_size) / 2) + quarter_tile_size
-                    - self.hit_bounds().bottom as i32,
+                    - self.hit_bounds().bottom as i32, npc_list,
             );
 
             if self.is_player() && self.vel_y() > 0x400 {
@@ -737,7 +737,7 @@ pub trait PhysicalEntity {
     }
 
     // lower right half (bigger)
-    fn test_hit_lower_right_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_lower_right_slope_high(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -750,11 +750,11 @@ pub trait PhysicalEntity {
             > (y * tile_size) - (self.x() - x * tile_size) / 2 - quarter_tile_size
             && (self.y() - self.hit_bounds().top as i32) < (y * 2 + 1) * half_tile_size
         {
-            self.set_y(
+            self.set_y_pass(
                 (y * tile_size)
                     - ((self.x() - x * tile_size) / 2)
                     - quarter_tile_size
-                    - self.hit_bounds().bottom as i32,
+                    - self.hit_bounds().bottom as i32, npc_list,
             );
 
             if self.is_player() && self.vel_y() > 0x400 {
@@ -771,7 +771,7 @@ pub trait PhysicalEntity {
     }
 
     // upper left slope
-    fn test_hit_upper_left_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_upper_left_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
 
@@ -780,7 +780,7 @@ pub trait PhysicalEntity {
             && (self.y() - self.hit_bounds().top as i32) < (y * tile_size) - (self.x() - x * tile_size)
             && (self.y() + self.hit_bounds().bottom as i32) > (y * 2 - 1) * half_tile_size
         {
-            self.set_y((y * tile_size) - (self.x() - x * tile_size) + self.hit_bounds().top as i32);
+            self.set_y_pass((y * tile_size) - (self.x() - x * tile_size) + self.hit_bounds().top as i32, npc_list);
 
             if self.is_player() && !self.cond().hidden() && self.vel_y() < -0x200 {
                 state.sound_manager.play_sfx(3);
@@ -807,7 +807,7 @@ pub trait PhysicalEntity {
     }
 
     // upper right slope
-    fn test_hit_upper_right_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_upper_right_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
 
@@ -816,7 +816,7 @@ pub trait PhysicalEntity {
             && (self.y() - self.hit_bounds().top as i32) < (y * tile_size) + (self.x() - x * tile_size)
             && (self.y() + self.hit_bounds().bottom as i32) > (y * 2 - 1) * half_tile_size
         {
-            self.set_y((y * tile_size) + (self.x() - x * tile_size) + self.hit_bounds().top as i32);
+            self.set_y_pass((y * tile_size) + (self.x() - x * tile_size) + self.hit_bounds().top as i32, npc_list);
 
             if self.is_player() && !self.cond().hidden() && self.vel_y() < -0x200 {
                 state.sound_manager.play_sfx(3);
@@ -843,7 +843,7 @@ pub trait PhysicalEntity {
     }
 
     // lower left slope
-    fn test_hit_lower_left_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_lower_left_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -856,8 +856,8 @@ pub trait PhysicalEntity {
             > (y * tile_size) + (self.x() - x * tile_size) - quarter_tile_size
             && (self.y() - self.hit_bounds().top as i32) < (y * 2 + 1) * half_tile_size
         {
-            self.set_y(
-                (y * tile_size) + (self.x() - x * tile_size) - quarter_tile_size - self.hit_bounds().bottom as i32,
+            self.set_y_pass(
+                (y * tile_size) + (self.x() - x * tile_size) - quarter_tile_size - self.hit_bounds().bottom as i32, npc_list
             );
 
             if self.is_player() && self.vel_y() > 0x400 {
@@ -874,7 +874,7 @@ pub trait PhysicalEntity {
     }
 
     // lower right slope
-    fn test_hit_lower_right_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32) {
+    fn test_hit_lower_right_slope(&mut self, state: &mut SharedGameState, x: i32, y: i32, npc_list: &NPCList) {
         let tile_size = state.tile_size.as_int() * 0x200;
         let half_tile_size = tile_size / 2;
         let quarter_tile_size = half_tile_size / 2;
@@ -887,8 +887,8 @@ pub trait PhysicalEntity {
             > (y * tile_size) - (self.x() - x * tile_size) - quarter_tile_size
             && (self.y() - self.hit_bounds().top as i32) < (y * 2 + 1) * half_tile_size
         {
-            self.set_y(
-                (y * tile_size) - (self.x() - x * tile_size) - quarter_tile_size - self.hit_bounds().bottom as i32,
+            self.set_y_pass(
+                (y * tile_size) - (self.x() - x * tile_size) - quarter_tile_size - self.hit_bounds().bottom as i32, npc_list
             );
 
             if self.is_player() && self.vel_y() > 0x400 {
@@ -1053,11 +1053,15 @@ pub trait PhysicalEntity {
                         self.test_hit_water(state, x + ox, y + oy);
                     }
                     0x61 => {
-                        self.test_block_hit(state, x + ox, y + oy);
+                        if self.needs_special_collision() {
+                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                        } else {self.test_block_hit(state, x + ox, y + oy)}
                         self.test_hit_water(state, x + ox, y + oy);
                     }
                     0x04 | 0x64 if !self.is_player() => {
-                        self.test_block_hit(state, x + ox, y + oy);
+                        if self.needs_special_collision() {
+                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                        } else {self.test_block_hit(state, x + ox, y + oy)}
                         self.test_hit_water(state, x + ox, y + oy);
                     }
                     0x05 | 0x41 | 0x43 | 0x46 if self.is_player() => {
@@ -1067,12 +1071,14 @@ pub trait PhysicalEntity {
                         if self.is_player()
                         {self.test_block_hit(state, x + ox, y + oy);}
                         else if self.needs_special_collision() {
-                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list); //test
-                        }
+                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                        } else {self.test_block_hit(state, x + ox, y + oy)}
                     }
                     0x44 => {
                         if !self.ignore_tile_44() {
-                            self.test_block_hit(state, x + ox, y + oy);
+                            if self.needs_special_collision() {
+                                self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                            } else {self.test_block_hit(state, x + ox, y + oy)}
                         }
                     }
                     0x4a => {
@@ -1081,73 +1087,73 @@ pub trait PhysicalEntity {
 
                     // Slopes
                     0x50 | 0x70 => {
-                        self.test_hit_upper_left_slope_high(state, x + ox, y + oy);
+                        self.test_hit_upper_left_slope_high(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x51 | 0x71 => {
-                        self.test_hit_upper_left_slope_low(state, x + ox, y + oy);
+                        self.test_hit_upper_left_slope_low(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x52 | 0x72 => {
-                        self.test_hit_upper_right_slope_low(state, x + ox, y + oy);
+                        self.test_hit_upper_right_slope_low(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x53 | 0x73 => {
-                        self.test_hit_upper_right_slope_high(state, x + ox, y + oy);
+                        self.test_hit_upper_right_slope_high(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x54 | 0x74 => {
-                        self.test_hit_lower_left_slope_high(state, x + ox, y + oy);
+                        self.test_hit_lower_left_slope_high(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x55 | 0x75 => {
-                        self.test_hit_lower_left_slope_low(state, x + ox, y + oy);
+                        self.test_hit_lower_left_slope_low(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x56 | 0x76 => {
-                        self.test_hit_lower_right_slope_low(state, x + ox, y + oy);
+                        self.test_hit_lower_right_slope_low(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x57 | 0x77 => {
-                        self.test_hit_lower_right_slope_high(state, x + ox, y + oy);
+                        self.test_hit_lower_right_slope_high(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x5a | 0x7a => {
-                        self.test_hit_upper_left_slope(state, x + ox, y + oy);
+                        self.test_hit_upper_left_slope(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x5b | 0x7b => {
-                        self.test_hit_upper_right_slope(state, x + ox, y + oy);
+                        self.test_hit_upper_right_slope(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x5c | 0x7c => {
-                        self.test_hit_lower_left_slope(state, x + ox, y + oy);
+                        self.test_hit_lower_left_slope(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }
                     }
                     0x5d | 0x7d => {
-                        self.test_hit_lower_right_slope(state, x + ox, y + oy);
+                        self.test_hit_lower_right_slope(state, x + ox, y + oy, _npc_list);
                         if attrib & 0x20 != 0 {
                             self.test_hit_water(state, x + ox, y + oy);
                         }

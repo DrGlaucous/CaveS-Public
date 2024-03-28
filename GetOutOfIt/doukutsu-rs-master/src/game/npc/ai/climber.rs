@@ -41,7 +41,7 @@ impl NPC {
         npc_list: &NPCList) -> GameResult {
 
         //construct and spawn in a cursor and a hammer, centered on the base
-        if self.action_num == 0
+        if self.action_counter3 == 0
         {
             //create cursor
             let mut npc_c = NPC::create(380, &state.npc_table);
@@ -79,7 +79,7 @@ impl NPC {
             {self.child_ids.push(cursor_id);} //pole has index 2
 
 
-            self.action_num = 1;
+            self.action_counter3 = 1;
 
         }
 
@@ -104,6 +104,51 @@ impl NPC {
             self.direction = if hammer.x > self.x{Direction::Right} else {Direction::Left};
 
         }
+
+
+        //animate (using action_counter in lieu of action_num)
+        match self.action_counter2 {
+            0 | 1 => {
+                if self.action_counter2 == 0 {
+                    self.action_counter2 = 1;
+                    self.anim_num = 0;
+                    self.anim_counter = 0;
+                    self.vel_x = 0;
+                }
+
+                if self.rng.range(0..120) == 10 {
+                    self.action_counter2 = 2;
+                    self.action_counter = 0;
+                    self.anim_num = 1;
+                }
+            }
+            2 => {
+                self.action_counter += 1;
+                if self.action_counter > 8 {
+                    self.action_counter2 = 1;
+                    self.anim_num = 0;
+                }
+            }
+            _ => {self.action_counter2 = 0;}
+        }
+
+        //snap player to us
+        match self.action_num
+        {
+            //action 1: snap to player, then begin action 2
+            1 => {
+                self.x = players[0].x;
+                self.y = players[0].y;
+                self.action_num = 2;
+            }
+            //action 2: snap player to us
+            2 => {
+                players[0].x = self.x;
+                players[0].y = self.y;
+            }
+            _ => {}
+        }
+
 
         //test: follow PC for now
         //let tgt_x = players[0].x;
@@ -133,16 +178,10 @@ impl NPC {
         //self.layer = NPCLayer::Foreground;
 
         if self.direction == Direction::Left {
-            self.anim_rect.left = 16;
-            self.anim_rect.top = 0;
-            self.anim_rect.right = 32;
-            self.anim_rect.bottom = 32;
+            self.anim_rect = state.constants.npc.n378_climber_base[self.anim_num as usize]; //left
         }
         else {
-            self.anim_rect.left = 32;
-            self.anim_rect.top = 0;
-            self.anim_rect.right = 48;
-            self.anim_rect.bottom = 32; 
+            self.anim_rect = state.constants.npc.n378_climber_base[2 + self.anim_num as usize]; //right
         }
 
         Ok(())
@@ -245,10 +284,7 @@ impl NPC {
             self.y = tgt_cons_y - (angle.sin() * dist_min) as i32;
         }
 
-        self.anim_rect.left = 0;
-        self.anim_rect.top = 16;
-        self.anim_rect.right = 16;
-        self.anim_rect.bottom = 32;
+        self.anim_rect = state.constants.npc.n379_382_climber_parts[1];
 
         Ok(())
     }
@@ -256,6 +292,7 @@ impl NPC {
 
     pub(crate) fn tick_n380_climber_cursor(
         &mut self,
+        state: &mut SharedGameState,
         npc_list: &NPCList,
         ctx: &Context) -> GameResult {
 
@@ -351,16 +388,13 @@ impl NPC {
 
         //self.layer = NPCLayer::Foreground;
 
-        self.anim_rect.left = 0;
-        self.anim_rect.top = 0;
-        self.anim_rect.right = 16;
-        self.anim_rect.bottom = 16;
+        self.anim_rect = state.constants.npc.n379_382_climber_parts[0];
 
         Ok(())
     }
 
 
-    pub(crate) fn tick_n381_stick(&mut self, npc_list: &NPCList) -> GameResult {
+    pub(crate) fn tick_n381_stick(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
         
 
         let mut tgt_x = 0;
@@ -399,18 +433,13 @@ impl NPC {
         self.anchor_x = (self.display_bounds.left / 0x200) as f32;
         self.anchor_y = (self.display_bounds.top / 0x200) as f32;
 
-        self.anim_rect.left = 0;
-        self.anim_rect.top = 32;
-        self.anim_rect.right = 48;
-        self.anim_rect.bottom = 48;
+        self.anim_rect = state.constants.npc.n379_382_climber_parts[2];
         
         Ok(())
 
     }
 
-
-
-    pub(crate) fn tick_n382_hand(&mut self, npc_list: &NPCList) -> GameResult {
+    pub(crate) fn tick_n382_hand(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
         
 
         let mut tgt_x = 0;
@@ -455,21 +484,16 @@ impl NPC {
         self.anchor_y = (self.display_bounds.top / 0x200) as f32;
 
         if self.direction == Direction::Left {
-            self.anim_rect.left = 0;
-            self.anim_rect.top = 48;
-            self.anim_rect.right = 16;
-            self.anim_rect.bottom = 64;
+            self.anim_rect = state.constants.npc.n379_382_climber_parts[3];
         }
         else {
-            self.anim_rect.left = 16;
-            self.anim_rect.top = 48;
-            self.anim_rect.right = 32;
-            self.anim_rect.bottom = 64;
+            self.anim_rect = state.constants.npc.n379_382_climber_parts[4];
         }
         
         Ok(())
 
     }
+
 
 
 }

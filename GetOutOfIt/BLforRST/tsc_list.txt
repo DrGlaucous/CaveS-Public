@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	92
+[CE_TSC]	93
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -124,3 +124,5 @@ TSC List revised by Jackalope and Lace
 <XX1	1	l---	XX1	Show the island falling in manner W. Use 0000 to have it crash and 0001 to have it stop midway.
 <YNJ	1	e---	Yes/No Jump	Prompt Yes/No; jump to event W if No is selected.
 <ZAM	0	----	Zero ArMs	Sets all weapon energy to zero.
+<MEJ	2	me--	Map Event Jump	Jump to event X if current map is W.
+

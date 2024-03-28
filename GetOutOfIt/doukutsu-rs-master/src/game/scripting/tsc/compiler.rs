@@ -241,7 +241,9 @@ impl TextScript {
             | TSCOpCode::SMP
             | TSCOpCode::PSp
             | TSCOpCode::IpN
-            | TSCOpCode::FFm => {
+            | TSCOpCode::FFm
+            | TSCOpCode::MEJ
+            => {
                 let operand_a = read_number(iter)?;
                 if strict {
                     expect_char(b':', iter)?;

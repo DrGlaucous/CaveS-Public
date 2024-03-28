@@ -21,10 +21,16 @@
 <KEY<SKJ0005:0091<PRI<CMU0000<MSG
 From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 
+//load from save event
 #0300
-<HMC<FON0320:0016<END
+<HMC
+<ANP0320:0001:0000//snap NPC to PC and then PC to NPC
+<FON0320:0016
+<FAI0004<END
 
-
+#0500
+<DNP0500
+<MS2<TURHit trigger<WAI0040<END
 
 #1000
 <MOV0032:0020
@@ -53,6 +59,186 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 #1203
 //tory
 #1204
+
+
+
+#3000
+<KEY<MSG
+Welcome to Getting Out of It,
+Your goal is to get Kanpachi out
+of the depths of this island.
+
+In case you don't know who
+Kanpachi is, he's the little
+rabbit-like fellow in the bucket.
+
+He likes to fish, but right now,
+he's using his fishing pole to
+climb the steep cave walls.
+//////////////
+Throughout the playthough,
+I will NOT be saving your
+progress and mistakes...
+
+Because you can do it yourself.
+There's a save button in the
+pause menu.
+
+Feel free to save when you make a
+breakthrough, or when you fall all
+the way back to the start.
+
+I believe that how hard you want
+the experience to
+be is completely up to you.
+
+I won't be commenting on your
+mistakes and pitfalls because
+again, I leave it in your hands.
+
+//////////////
+
+This game pays homage to two
+previous titles:
+Cave Story and Getting Over It
+with Bennet Foddy.
+
+The first game is pretty obvious,
+isn't it?
+You probably wouldn't even know
+this mod exsists if you haven't
+at least tried the original
+game first
+and shown a minute iota of
+interest in it.
+
+As for the second game by
+Mr. Foddy, that one may
+have some players at a disconnect.
+
+If you don't know what that is,
+I suggest you pause this mod now,
+look it up, maybe play it, then
+come back.
+
+If it wasn't a good
+game, I wouldn't have made this
+mod now, would I.
+
+//////////////////////
+
+Ironically enough, Getting Over It
+is itself a homage to an even
+older game, Sexy Hiking.
+
+In Foddy's commentary, which
+plays in the game much like
+what you're reading now,
+
+he explains that Sexy Hiking
+was never meant to
+be a high quality game,
+
+but was rather a fun challenge for
+the creator to make. The game is
+hard and controls poorly,
+
+making it a very fustrating
+experience for any prospective
+players (ask me how I know).
+
+////////////////////////////
+
+Foddy's game, on the other hand,
+is polished and complete, and
+is both fair and controls well,
+even if it is challenging at times.
+
+This game, although more directly
+inspired by Getting Over It, has
+more in common with Sexy Hiking.
+
+It is the product of a passion for
+game creation less than a desire
+for a smooth user experience.
+
+////////////////////////////////////
+
+The physics are poor, the backend
+cobbled, and the final result
+rushed.
+
+To see this for yourself, take that
+fishing rod of yours and ram it
+hard into one of the walls.
+
+You might be suprised to see it go
+all the way though or get stuck
+inside.
+
+Use this mechanic as you will.
+I can't complain. I made it.
+I left it in.
+
+It was my choice,
+made in light of lack of skill
+and tight time constraints.
+It's part of the game now.
+
+/////////////////////////////////
+
+Kind of like that Discovery TV
+watermark in the bottom right
+corner,
+
+A remnant of what this mod's base
+came from, which was originally
+themed around the Mythbusters.
+
+It's something I chose to keep for
+my own amusement, rather than for
+polish or user reception.
+
+///////////////////////////////
+
+Much like how Sexy Hiking used MS
+MS paint graphics and MIDI-smash
+music,
+
+or how you can clip or snap
+off obstacles and find yourself
+falling out of the world.
+
+It was a project of passion,
+not one of polish.
+
+
+///////////////////////////////
+
+But still you play,
+despite the game's poor
+presentation.
+
+You've taken some of your
+precious time to take part in my
+passion.
+
+////////////////////////////////
+
+Even if you break the game, cheese
+it, or breeze through it,
+you still got here.
+
+And for that, I thank you.
+I thank you for playing my mod.
+
+////////////////////////////////
+
+
+<END
+
+
+
 
 
 

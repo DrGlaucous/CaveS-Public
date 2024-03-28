@@ -22,6 +22,8 @@
     "pause_menu": {
       "resume": "Resume",
       "retry": "Retry",
+      "save": "Save",
+      "save_confirm": "Saved",
       "options": "Options",
       "title": "Title",
       "title_confirm": "Title?",

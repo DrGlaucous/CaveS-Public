@@ -265,6 +265,10 @@ pub enum TSCOpCode {
     /// <FRE related to player 2?
     FR2,
     // ---- Custom opcodes, for use by modders ----
+    
+    /// <MEJwwww:xxxx, Jumps to event X if map is W
+    MEJ,
+
 }
 
 #[derive(FromPrimitive, PartialEq, Copy, Clone)]

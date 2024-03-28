@@ -1158,6 +1158,11 @@ pub struct NPCConsts {
     #[serde(default = "default_n376_mini_buster")]
     pub n376_mini_buster: SafeNPCRect<18>,
 
+    #[serde(default = "default_n378_climber_base")]
+    pub n378_climber_base: SafeNPCRect<4>,
+
+    #[serde(default = "default_n379_382_climber_parts")]
+    pub n379_382_climber_parts: SafeNPCRect<5>,
     /////////////////////
     //BOSSES
     /////////////////////
@@ -5016,6 +5021,27 @@ fn default_n376_mini_buster() -> SafeNPCRect<18>{
         ]
     )
 }
+
+fn default_n378_climber_base() -> SafeNPCRect<4> {
+    SafeNPCRect([
+        Rect { left: 16, top: 0, right: 32, bottom: 32 }, //L
+        Rect { left: 32, top: 0, right: 48, bottom: 32 }, //L-c
+        Rect { left: 48, top: 0, right: 64, bottom: 32 }, //R
+        Rect { left: 64, top: 0, right: 80, bottom: 32 }, //R-c
+    ])
+}
+
+fn default_n379_382_climber_parts() -> SafeNPCRect<5> {
+    SafeNPCRect([
+        Rect { left: 0, top: 0, right: 16, bottom: 16 }, //cursor 0
+        Rect { left: 0, top: 16, right: 16, bottom: 32 }, //hammer 1
+        Rect { left: 0, top: 32, right: 48, bottom: 48 }, //stick 2
+        Rect { left: 0, top: 48, right: 16, bottom: 64 }, //hand1 3
+        Rect { left: 16, top: 48, right: 32, bottom: 64 }, //hand2 4
+    ])
+}
+
+
 
 
 /////////////////////

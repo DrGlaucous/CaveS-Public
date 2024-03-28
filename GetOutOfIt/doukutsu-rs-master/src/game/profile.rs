@@ -11,6 +11,8 @@ use crate::game::player::ControlMode;
 use crate::game::shared_game_state::{GameDifficulty, SharedGameState};
 use crate::game::weapon::{WeaponLevel, WeaponType};
 use crate::scene::game_scene::GameScene;
+//use crate::game::npc::NPC;
+//use super::npc::list::NPCList;
 
 pub struct WeaponData {
     pub weapon_id: u32,
@@ -46,11 +48,14 @@ pub struct GameProfile {
     pub flags: [u8; 1000],
     pub timestamp: u64,
     pub difficulty: u8,
+    //pub npc_list: Vec<NPC>, //don't need to save all existant NPCs, we can use the player to hold the climber data
 }
 
 impl GameProfile {
     pub fn apply(&self, state: &mut SharedGameState, game_scene: &mut GameScene, ctx: &mut Context) {
-        state.fade_state = FadeState::Visible;
+        //let TSC do this
+        //state.fade_state = FadeState::Visible;
+
         state.control_flags.set_tick_world(true);
         state.control_flags.set_control_enabled(true);
 
@@ -132,6 +137,9 @@ impl GameProfile {
             }
         }
 
+        //run EVENT 0 on load/reset, set flag 1000 when this happens so we can "run event on start"
+        state.set_flag(1000, true);
+
         state.textscript_vm.start_script(0);
 
         game_scene.player1.equip.0 = self.equipment as u16;
@@ -155,6 +163,7 @@ impl GameProfile {
 
         game_scene.player1.skin.apply_gamestate(state);
         game_scene.player2.skin.apply_gamestate(state);
+
     }
 
     pub fn dump(state: &mut SharedGameState, game_scene: &mut GameScene) -> GameProfile {

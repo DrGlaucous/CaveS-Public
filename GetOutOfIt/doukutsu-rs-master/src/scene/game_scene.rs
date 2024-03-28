@@ -1903,6 +1903,12 @@ impl Scene for GameScene {
 
         if self.pause_menu.is_paused() {
             self.pause_menu.tick(state, ctx)?;
+
+            if self.pause_menu.request_save()
+            {
+                state.save_game(self, ctx)?;
+                self.pause_menu.set_save_made(state, true);
+            }
             return Ok(());
         }
 
