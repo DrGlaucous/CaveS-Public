@@ -137,7 +137,7 @@ impl MapSystem {
                 }
             }
             MapSystemState::FadeInLine(tick) => {
-                if (tick + 2) < stage.map.height {
+                if ((tick + 2) as u32) < stage.map.height {
                     self.state = MapSystemState::FadeInLine(tick + 2);
                 } else {
                     self.state = MapSystemState::Visible;

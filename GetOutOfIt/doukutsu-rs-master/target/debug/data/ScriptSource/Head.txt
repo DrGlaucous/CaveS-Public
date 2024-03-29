@@ -8,6 +8,7 @@
 #0005
 <FL-1000//startup done: remove flag
 <MEJ0013:0300
+<MEJ0017:0300
 <END
 
 #0016

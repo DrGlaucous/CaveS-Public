@@ -194,9 +194,9 @@ pub struct PxPackStageData {
     pub scroll_fg: PxPackScroll,
     pub scroll_mg: PxPackScroll,
     pub scroll_bg: PxPackScroll,
-    pub size_fg: (u16, u16),
-    pub size_mg: (u16, u16),
-    pub size_bg: (u16, u16),
+    pub size_fg: (u32, u32),
+    pub size_mg: (u32, u32),
+    pub size_bg: (u32, u32),
     pub offset_mg: u32,
     pub offset_bg: u32,
 }

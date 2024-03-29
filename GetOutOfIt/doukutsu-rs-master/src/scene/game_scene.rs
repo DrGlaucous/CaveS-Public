@@ -1797,7 +1797,7 @@ impl Scene for GameScene {
         self.frame.immediate_update(state, &self.stage);
 
         // I'd personally set it to something higher but left it as is for accuracy.
-        state.water_level = 0x1e0000;
+        state.water_level = i32::max_value(); //0x1e0000;
 
         state.carets.clear();
 

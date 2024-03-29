@@ -50,7 +50,7 @@ pub struct DynamicWater {
 }
 
 impl DynamicWater {
-    pub fn new(x: u16, y: u16, length: u16, color: WaterParamEntry) -> DynamicWater {
+    pub fn new(x: u32, y: u32, length: u32, color: WaterParamEntry) -> DynamicWater {
         let mut columns = Vec::new();
         let count = length as usize * 8 + 1;
 
@@ -146,7 +146,7 @@ pub struct DepthRegion {
 }
 
 impl DepthRegion {
-    pub fn new_tile(rect: Rect<u16>, color: WaterParamEntry) -> DepthRegion {
+    pub fn new_tile(rect: Rect<u32>, color: WaterParamEntry) -> DepthRegion {
         DepthRegion {
             rect: Rect {
                 left: rect.left as f32 * 16.0,
@@ -177,7 +177,7 @@ impl WaterRenderer {
 
     pub fn initialize(
         &mut self,
-        regions: Vec<(WaterRegionType, Rect<u16>, u16)>,//u8)>,
+        regions: Vec<(WaterRegionType, Rect<u32>, u16)>,//u8)>,
         water_params: &WaterParams,
         stage: &Stage,
     ) {

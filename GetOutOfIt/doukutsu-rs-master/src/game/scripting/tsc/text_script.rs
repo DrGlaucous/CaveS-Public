@@ -17,6 +17,7 @@ use crate::engine_constants::EngineConstants;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
+use crate::game;
 //use crate::game;
 use crate::game::frame::UpdateTarget;
 use crate::game::npc::NPC;
@@ -1905,8 +1906,9 @@ impl TextScriptVM {
 
 
                 let background_type = BackgroundType::from(bg_type);
-
-
+                game_scene.stage.data.background_type = background_type;
+                
+                //game_scene.background.
 
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);

@@ -1,1 +1,29 @@
-empty
+
+
+
+//entry / saveLoad
+#0300
+<HMC
+<ANP0320:0001:0000//snap NPC to PC and then PC to NPC
+<FON0320:0016
+<FAI0004<END
+
+
+
+
+
+
+//climber base
+#0320
+
+
+
+
+
+
+
+
+
+
+
+

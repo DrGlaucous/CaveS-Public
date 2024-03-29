@@ -22,10 +22,13 @@ static SUPPORTED_PXE_VERSIONS: [u8; 2] = [0, 0x10];
 
 #[derive(Clone)]
 pub struct Map {
-    pub width: u16,
-    pub height: u16,
+    pub width: u32, //u16,
+    pub height: u32, //u16,
     pub tiles: Vec<u16>,//Vec<u8>, //all tiledata is stored in here, even if there are multiple layers (todo: u16)
-    pub attrib: [u8; 0x100],
+    
+    //pub attrib: [u8; 0x100], //cannot be static array: size_of<u16>() is too large
+    pub attrib: Vec<u8>,
+
     pub tile_size: TileSize,
 }
 
@@ -78,8 +81,9 @@ impl Map {
         //let rr = 0x0968; //2408
         //let tt = 0x4B08; //19208
 
-        let width = map_data.read_u16::<LE>()?;
-        let height = map_data.read_u16::<LE>()?;
+        //make these bigger to account for much larger maps (so w*h doesn't overflow)
+        let width = map_data.read_u16::<LE>()? as u32;
+        let height = map_data.read_u16::<LE>()? as u32;
 
         let mut tiles_u16 = Vec::<u16>::new();
 
@@ -130,12 +134,20 @@ impl Map {
         log::info!("Map size: {}x{}", width, height);
 
         //read attribute data
-        let mut attrib = [0u8; 0x100];
+
+        //get file size
+        map_data.seek(std::io::SeekFrom::End(0))?;
+        let fsize = map_data.stream_position()?;
+        map_data.rewind()?;//seek(std::io::SeekFrom::Start(0))?;
+
+        //let mut attrib = [0u8; 0x100];
+        let mut attrib = vec![0 as u8; fsize as usize];
+
         if attrib_data.read_exact(&mut attrib).is_err() {
             log::warn!("Map attribute data is shorter than 256 bytes!");
         }
 
-        Ok(Map { width, height, tiles: tiles_u16, attrib, tile_size: TileSize::Tile16x16 })
+        Ok(Map { width: width, height: height, tiles: tiles_u16, attrib, tile_size: TileSize::Tile16x16 })
     }
 
     //pxpack support for Cave Story
@@ -229,8 +241,8 @@ impl Map {
             return Err(ResourceLoadError("Invalid magic".to_owned()));
         }
 
-        let width_fg = map_data.read_u16::<LE>()?;
-        let height_fg = map_data.read_u16::<LE>()?;
+        let width_fg = map_data.read_u16::<LE>()? as u32;
+        let height_fg = map_data.read_u16::<LE>()? as u32;
         map_data.read_u8()?;
 
         log::info!("Foreground map size: {}x{}", width_fg, height_fg);
@@ -246,8 +258,8 @@ impl Map {
             return Err(ResourceLoadError("Invalid magic".to_owned()));
         }
 
-        let width_mg = map_data.read_u16::<LE>()?;
-        let height_mg = map_data.read_u16::<LE>()?;
+        let width_mg = map_data.read_u16::<LE>()? as u32;
+        let height_mg = map_data.read_u16::<LE>()? as u32;
 
         log::info!("Middleground map size: {}x{}", width_mg, height_mg);
 
@@ -264,8 +276,8 @@ impl Map {
             return Err(ResourceLoadError("Invalid magic".to_owned()));
         }
 
-        let width_bg = map_data.read_u16::<LE>()?;
-        let height_bg = map_data.read_u16::<LE>()?;
+        let width_bg = map_data.read_u16::<LE>()? as u32;
+        let height_bg = map_data.read_u16::<LE>()? as u32;
 
         log::info!("Background map size: {}x{}", width_bg, height_bg);
 
@@ -367,6 +379,9 @@ impl Map {
         //copy the tiles out to a u16 vector
         let tiles_u16: Vec<u16> = tiles.iter().map(|&e| e as u16).collect();
 
+        //copy the attributes to a u8 vector
+        let attrib = Vec::from(attrib);
+
         Ok(Map { width: width_fg, height: height_fg, tiles: tiles_u16, attrib, tile_size: TileSize::Tile8x8 })
     }
 
@@ -381,7 +396,7 @@ impl Map {
         return self.attrib[*self.tiles.get(self.width as usize * y + x).unwrap_or(&0u16) as usize]; //0u8
     }
 
-    pub fn find_water_regions(&self, water_params: &WaterParams) -> Vec<(WaterRegionType, Rect<u16>, u16)> {//u8)> {
+    pub fn find_water_regions(&self, water_params: &WaterParams) -> Vec<(WaterRegionType, Rect<u32>, u16)> {//u8)> {
         let mut result = Vec::new();
 
         if self.height == 0 || self.width == 0 {
@@ -389,7 +404,7 @@ impl Map {
         }
 
         let mut walked = vec![false; self.width as usize * self.height as usize];
-        let mut rects = Vec::<(Rect<u16>, u16)>::new();//u8)>::new();
+        let mut rects = Vec::<(Rect<u32>, u16)>::new();//u8)>::new();
 
         for x in 0..self.width {
             for y in 0..self.height {
@@ -464,7 +479,7 @@ impl Map {
 
                         let attr = self.get_attribute(ex as usize, ey as usize);
                         if WATER_TILES.contains(&attr) {
-                            queue.push((flow_flags, ex as u16, ey as u16));
+                            queue.push((flow_flags, ex as u32, ey as u32));
                         }
                     };
 
