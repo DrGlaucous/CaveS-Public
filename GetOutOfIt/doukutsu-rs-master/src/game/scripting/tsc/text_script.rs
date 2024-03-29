@@ -21,7 +21,7 @@ use crate::framework::error::GameResult;
 use crate::game::frame::UpdateTarget;
 use crate::game::npc::NPC;
 use crate::game::player::{ControlMode, TargetPlayer};
-use crate::game::scripting::tsc::bytecode_utils::read_cur_varint;
+use crate::game::scripting::tsc::bytecode_utils::{read_cur_varint, read_string};
 use crate::game::scripting::tsc::encryption::decrypt_tsc;
 use crate::game::scripting::tsc::opcodes::TSCOpCode;
 use crate::game::shared_game_state::ReplayState;
@@ -30,6 +30,7 @@ use crate::game::weapon::WeaponType;
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameScene;
+use crate::game::stage::BackgroundType;
 
 const TSC_SUBSTITUTION_MAP_SIZE: usize = 1;
 
@@ -1891,6 +1892,24 @@ impl TextScriptVM {
                 } else {
                     exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
                 }
+            }
+
+            TSCOpCode::LBK => {
+
+                //get scroll type
+                let bg_type = read_cur_varint(&mut cursor)? as u8;
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string(&mut cursor, len).unwrap();
+
+
+                let background_type = BackgroundType::from(bg_type);
+
+
+
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
         
         

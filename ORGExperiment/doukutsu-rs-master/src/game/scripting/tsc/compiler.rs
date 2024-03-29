@@ -374,7 +374,7 @@ impl TextScript {
             }
 
             //custom codes
-            //cue music file
+            //cue music file //parses 1 operand + string delimited by $
             TSCOpCode::CMF =>
             {
 
@@ -424,7 +424,7 @@ impl TextScript {
 
 
             }
-            //cue tracker file
+            //cue tracker file //parses string delimited by $
             TSCOpCode::CTF =>
             {
 

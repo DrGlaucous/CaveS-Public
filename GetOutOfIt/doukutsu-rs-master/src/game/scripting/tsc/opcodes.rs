@@ -269,6 +269,9 @@ pub enum TSCOpCode {
     /// <MEJwwww:xxxx, Jumps to event X if map is W
     MEJ,
 
+    /// <LBKwwww:STRING$, loads background of name STRING with scroll type wwww
+    LBK
+
 }
 
 #[derive(FromPrimitive, PartialEq, Copy, Clone)]
