@@ -37,6 +37,16 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 <DNP0500
 <MS2<TURHit trigger<WAI0040<END
 
+//test
+#0520
+<LBK0001:BK0.bmp$<END
+
+
+
+
+
+
+
 #1000
 <MOV0032:0020
 <END

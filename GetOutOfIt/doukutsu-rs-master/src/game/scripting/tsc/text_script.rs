@@ -1909,6 +1909,7 @@ impl TextScriptVM {
                 game_scene.stage.data.background_type = background_type;
                 
                 //game_scene.background.
+                game_scene.stage_textures.borrow_mut().background = filepath;
 
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
