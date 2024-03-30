@@ -137,8 +137,8 @@ impl GameProfile {
             }
         }
 
-        //run EVENT 0 on load/reset, set flag 1000 when this happens so we can "run event on start"
-        state.set_flag(1000, true);
+        //run EVENT 0 on load/reset, set flag 6359 when this happens so we can "run event on start"
+        state.set_flag(6359, true);
 
         state.textscript_vm.start_script(0);
 

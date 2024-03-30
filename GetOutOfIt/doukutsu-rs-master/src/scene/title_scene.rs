@@ -105,7 +105,7 @@ impl TitleScene {
                 boss_no: 0,
                 tileset: Tileset { name: "0".to_string() },
                 pxpack_data: None,
-                background: crate::game::stage::Background::new("bkMoon"),
+                background: crate::game::stage::Background::new("bkFog"),
                 background_type: BackgroundType::Outside,
                 background_color: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
                 npc1: NpcType::new("0"),
@@ -195,9 +195,9 @@ impl TitleScene {
     }
 }
 
-static COPYRIGHT_PIXEL: &str = "2004.12  Studio Pixel";
+static COPYRIGHT_PIXEL: &str = "2024.3  Dr. G";
 // Freeware
-static COPYRIGHT_NICALIS: &str = "@2022 NICALIS INC."; // Nicalis font uses @ for copyright
+static COPYRIGHT_NICALIS: &str = "2024.3  Dr. G"; // Nicalis font uses @ for copyright
 
 impl Scene for TitleScene {
     fn init(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {

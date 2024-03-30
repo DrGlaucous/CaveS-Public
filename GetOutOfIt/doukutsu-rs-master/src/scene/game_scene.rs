@@ -99,8 +99,23 @@ pub struct GameScene {
 pub enum LightingMode {
     None, //like classic CS
     BackgroundOnly, //background dark, foreground light
-    ForegroundOnly, //foreground dark background light
+    //ForegroundOnly, //foreground dark background light (not implemented!)
     Ambient, //background and foreground dark
+}
+
+impl From<u8> for LightingMode {
+    fn from(val: u8) -> Self {
+        match val {
+            0 => Self::None,
+            1 => Self::BackgroundOnly,
+            //2 => Self::ForegroundOnly,
+            2 => Self::Ambient,
+            _ => {
+                log::warn!("Unknown Lighting type: {}", val);
+                Self::None
+            }
+        }
+    }
 }
 
 const P2_OFFSCREEN_TEXT: &'static str = "P2";
@@ -1131,6 +1146,26 @@ impl GameScene {
                         let cone_range= (origin_look - 40)..(origin_look + 40);
                         self.draw_light_raycast(state.tile_size, npc.x, npc.y, (255, 255, 150), 0.90, cone_range, batch);
                     }
+                    //climber base (point light)
+                    378 => {
+                        self.draw_light(
+                            interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                            interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                            2.0,
+                            (255, 255, 255),
+                            batch,
+                        );
+                    }
+                    //climber cursor (point light)
+                    380 => {
+                        self.draw_light(
+                            interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                            interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                            0.5,
+                            (255, 255, 255),
+                            batch,
+                        );
+                    }
                     _ => {}
                 }
             }
@@ -1405,7 +1440,7 @@ impl GameScene {
     fn tick_world(&mut self, state: &mut SharedGameState, ctx: &Context) -> GameResult {
         self.nikumaru.tick(state, &self.player1)?;
         self.background.tick()?;
-        self.hud_player1.visible = self.player1.cond.alive();
+        self.hud_player1.visible = self.player1.cond.alive() && !self.player1.cond.hidden();
         self.hud_player2.visible = self.player2.cond.alive();
         self.hud_player1.has_player2 = self.player2.cond.alive() && !self.player2.cond.hidden();
         self.hud_player2.has_player2 = self.player1.cond.alive() && !self.player1.cond.hidden();
@@ -1500,12 +1535,17 @@ impl GameScene {
         }
 
         for npc in self.npc_list.iter_alive() {
-            if !npc.npc_flags.ignore_solidity() {
-                npc.tick_map_collisions(state, &self.npc_list, &mut self.stage);
-            }
+            //if !npc.npc_flags.ignore_solidity() {
+            //    npc.tick_map_collisions(state, &self.npc_list, &mut self.stage);
+            //}
+            //will check for solid ignoring inside the tick function, is used so we can still hit tile44
+            npc.tick_map_collisions(state, &self.npc_list, &mut self.stage);
         }
         for npc in self.boss.parts.iter_mut() {
-            if npc.cond.alive() && !npc.npc_flags.ignore_solidity() {
+            // if npc.cond.alive() && !npc.npc_flags.ignore_solidity() {
+            //     npc.tick_map_collisions(state, &self.npc_list, &mut self.stage);
+            // }
+            if npc.cond.alive() {
                 npc.tick_map_collisions(state, &self.npc_list, &mut self.stage);
             }
         }
@@ -2308,8 +2348,9 @@ impl Scene for GameScene {
 
             batch.draw(ctx)?;
 
-            draw_number_int(8.0, 8.0, ctx.mouse_context.abs_mouse_coords.0 as i32, Alignment::Left, state, ctx)?;
-            draw_number_int(8.0, 20.0, ctx.mouse_context.abs_mouse_coords.1 as i32, Alignment::Left, state, ctx)?;
+            //cursor velocity
+            //draw_number_int(8.0, 8.0, ctx.mouse_context.abs_mouse_coords.0 as i32, Alignment::Left, state, ctx)?;
+            //draw_number_int(8.0, 20.0, ctx.mouse_context.abs_mouse_coords.1 as i32, Alignment::Left, state, ctx)?;
         }
 
 

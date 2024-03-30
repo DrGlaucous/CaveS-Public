@@ -575,15 +575,18 @@ impl NPC {
 
         if self.direction == Direction::Left {
             if self.x < player.x {
-                self.x += 0x5ff;
+                self.x += 0x600//0x5ff;
             } else {
-                self.x -= 0x5ff;
+                self.x -= 0x600;
             }
         } else if self.y < player.y {
-            self.y += 0x5ff;
+            self.y += 0x600;
         } else {
-            self.y -= 0x5ff;
+            self.y -= 0x600;
         }
+
+        //test: render NPC
+        self.anim_rect = state.constants.npc.n070_sparkle[0];
 
         Ok(())
     }

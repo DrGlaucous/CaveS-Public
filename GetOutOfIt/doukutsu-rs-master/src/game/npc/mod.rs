@@ -1112,6 +1112,12 @@ impl PhysicalEntity for NPC {
         self.npc_type as usize
     }
 
+    //so we can still block with tile44
+    #[inline(always)]
+    fn ignore_solidity(&self) -> bool {
+        self.npc_flags.ignore_solidity()
+    }
+
 
     #[inline(always)]
     fn set_vel_x(&mut self, vel_x: i32) {

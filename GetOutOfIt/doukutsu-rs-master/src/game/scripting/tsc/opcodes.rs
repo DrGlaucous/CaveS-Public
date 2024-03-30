@@ -270,7 +270,10 @@ pub enum TSCOpCode {
     MEJ,
 
     /// <LBKwwww:STRING$, loads background of name STRING with scroll type wwww
-    LBK
+    LBK,
+
+    /// <SLMxxxx, Set Lighting Mode, changes current stage's LightingMode value to type xxxx
+    SLM,
 
 }
 

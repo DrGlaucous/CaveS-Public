@@ -157,10 +157,14 @@ impl NPC {
         if self.flags.hit_top_wall()
         {self.vel_x = self.vel_x * 4 / 5;}
 
-        self.vel_y += 0x40;
+        //gravity
+        self.vel_y += if self.flags.in_water() { 0x20 } else { 0x40 };
 
-        //speed limit
-        let sp_lim = 0x600;
+        //max speed limits (slower in water)
+        let sp_lim = if self.flags.in_water() { 0x300 } else { 0x600 };
+
+
+
         if self.vel_x > sp_lim
         {self.vel_x = sp_lim}
         if self.vel_x < -sp_lim
@@ -206,6 +210,7 @@ impl NPC {
         let mut tgt_drif_x = 0;
         let mut tgt_drif_y = 0;
 
+        let mut base_in_water = false;
 
         //get coordinate of the parent (the climber base)
         if let Some(base) = npc_list.get_npc(self.parent_id as usize)
@@ -220,6 +225,8 @@ impl NPC {
 
             self.target_x = base.x;
             self.target_y = base.y;
+
+            base_in_water = base.flags.in_water();
 
 
             //look for the cursor
@@ -253,7 +260,7 @@ impl NPC {
         self.vel_y = (tgt_drif_y - self.y) / 4;
 
         //speed limit (relative)
-        let sp_lim = 0x1000;
+        let sp_lim = if base_in_water {0x500} else {0x1000};
         if self.vel_x > sp_lim + tgt_cons_vx
         {self.vel_x = sp_lim + tgt_cons_vx}
         if self.vel_x < -sp_lim + tgt_cons_vx

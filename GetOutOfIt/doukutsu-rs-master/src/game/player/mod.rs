@@ -207,10 +207,10 @@ impl Player {
                     state.textscript_vm.start_script(1100);
                 } else {
                     // Switch uses player sprite for drowned effect
-                    if !state.constants.is_switch {
-                        self.cond.set_hidden(true);
-                        state.create_caret(self.x, self.y, CaretType::DrownedQuote, self.direction);
-                    }
+                    // if !state.constants.is_switch {
+                    //     self.cond.set_hidden(true);
+                    //     state.create_caret(self.x, self.y, CaretType::DrownedQuote, self.direction);
+                    // }
                     state.textscript_vm.start_script(41);
                 }
             } else {

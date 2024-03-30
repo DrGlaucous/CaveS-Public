@@ -31,6 +31,7 @@ use crate::game::weapon::WeaponType;
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameScene;
+use crate::scene::game_scene::LightingMode;
 use crate::game::stage::BackgroundType;
 
 const TSC_SUBSTITUTION_MAP_SIZE: usize = 1;
@@ -1894,7 +1895,7 @@ impl TextScriptVM {
                     exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
                 }
             }
-
+            //load background with scroll type wwww and lighting effect xxxx
             TSCOpCode::LBK => {
 
                 //get scroll type
@@ -1903,7 +1904,6 @@ impl TextScriptVM {
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
                 let filepath = read_string(&mut cursor, len).unwrap();
-
 
                 let background_type = BackgroundType::from(bg_type);
                 game_scene.stage.data.background_type = background_type;
@@ -1915,6 +1915,15 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
         
+            TSCOpCode::SLM => {
+
+                //get light type
+                let light_mode = read_cur_varint(&mut cursor)? as u8;
+                //set light type
+                game_scene.lighting_mode = LightingMode::from(light_mode);
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
         
         }
 

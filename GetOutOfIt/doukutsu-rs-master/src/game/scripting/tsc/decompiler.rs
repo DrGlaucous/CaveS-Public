@@ -102,7 +102,9 @@ impl TextScript {
                         | TSCOpCode::ACH
                         | TSCOpCode::S2MV
                         | TSCOpCode::S2PJ
-                        | TSCOpCode::PSH => {
+                        | TSCOpCode::PSH
+                        | TSCOpCode::SLM
+                        => {
                             let par_a = read_cur_varint(&mut cursor)?;
 
                             writeln!(&mut result, "{:?}({})", op, par_a).unwrap();

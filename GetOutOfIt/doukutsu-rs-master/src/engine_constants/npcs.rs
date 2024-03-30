@@ -301,7 +301,7 @@ pub struct NPCConsts {
     pub n074_jack: SafeNPCRect<12>,
 
     #[serde(default = "default_n075_kanpachi")]
-    pub n075_kanpachi: SafeNPCRect<2>,
+    pub n075_kanpachi: SafeNPCRect<4>,
 
     // pub n076_flowers: () // Defined in code
     #[serde(default = "default_n077_yamashita")]
@@ -2065,10 +2065,12 @@ fn default_n074_jack() -> SafeNPCRect<12> {
     ])
 }
 
-fn default_n075_kanpachi() -> SafeNPCRect<2> {
+fn default_n075_kanpachi() -> SafeNPCRect<4> {
     SafeNPCRect([
-        Rect { left: 272, top: 32, right: 296, bottom: 56 },
-        Rect { left: 296, top: 32, right: 320, bottom: 56 },
+        Rect { left: 272, top: 32, right: 296, bottom: 56 }, //eyes closed (L)
+        Rect { left: 296, top: 32, right: 320, bottom: 56 }, //eyes open (L)
+        Rect { left: 96, top: 152, right: 120, bottom: 176 }, //eyes closed (R)
+        Rect { left: 72, top: 152, right: 96, bottom: 176 }, //eyes open (R)
     ])
 }
 

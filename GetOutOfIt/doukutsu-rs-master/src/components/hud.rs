@@ -177,6 +177,43 @@ impl GameEntity<(&Player, &mut Inventory)> for HUD {
 
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, _frame: &Frame) -> GameResult {
         if !self.visible {
+            //bodge: draw air counter anyway
+            {
+                let (left, top, right, bottom) = screen_insets_scaled(ctx, state.scale);
+                let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "TextBox")?;
+                let air_offset = if self.has_player2 {
+                    50.0 * match self.alignment {
+                        Alignment::Left => -1.0,
+                        Alignment::Right => 1.0,
+                    }
+                } else {
+                    0.0
+                };
+                if self.air_counter > 0 {
+                    let rect = if self.air % 30 > 10 { Rect::new_size(112, 72, 32, 8) } else { Rect::new_size(112, 80, 32, 8) };
+        
+                    batch.add_rect(
+                        left + ((state.canvas_size.0 - left - right) / 2.0).floor() - 40.0 + air_offset,
+                        top + ((state.canvas_size.1 - top - bottom) / 2.0).floor(),
+                        &rect,
+                    );
+                }
+        
+                batch.draw(ctx)?;
+                let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "ArmsImage")?;
+                if self.air_counter > 0 && self.air_counter % 6 < 4 {
+                    draw_number(
+                        left + ((state.canvas_size.0 - left - right) / 2.0).floor() + 8.0 + air_offset,
+                        top + ((state.canvas_size.1 - top - bottom) / 2.0).floor(),
+                        (self.air / 10) as usize,
+                        Alignment::Left,
+                        state,
+                        ctx,
+                    )?;
+                }
+
+
+            }
             return Ok(());
         }
 
@@ -322,4 +359,5 @@ impl GameEntity<(&Player, &mut Inventory)> for HUD {
 
         Ok(())
     }
+
 }

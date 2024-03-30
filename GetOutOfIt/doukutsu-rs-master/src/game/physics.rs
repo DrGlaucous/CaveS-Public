@@ -127,6 +127,9 @@ pub trait PhysicalEntity {
     fn ignore_tile_44(&self) -> bool {
         true
     }
+    fn ignore_solidity(&self) -> bool {
+        false
+    }
     fn player_left_pressed(&self) -> bool {
         false
     }
@@ -1039,165 +1042,180 @@ pub trait PhysicalEntity {
                 }
 
                 let attrib = stage.map.get_attribute((x + ox) as usize, (y + oy) as usize);
-                match attrib {
-                    // Spikes
-                    0x62 | 0x42 if self.is_player() => {
-                        self.test_hit_spike(state, x + ox, y + oy, attrib & 0x20 != 0);
-                    }
-
-                    // Blocks
-                    0x02 | 0x60 => {
-                        self.test_hit_water(state, x + ox, y + oy);
-                    }
-                    0x62 if !self.is_player() => {
-                        self.test_hit_water(state, x + ox, y + oy);
-                    }
-                    0x61 => {
-                        if self.needs_special_collision() {
-                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
-                        } else {self.test_block_hit(state, x + ox, y + oy)}
-                        self.test_hit_water(state, x + ox, y + oy);
-                    }
-                    0x04 | 0x64 if !self.is_player() => {
-                        if self.needs_special_collision() {
-                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
-                        } else {self.test_block_hit(state, x + ox, y + oy)}
-                        self.test_hit_water(state, x + ox, y + oy);
-                    }
-                    0x05 | 0x41 | 0x43 | 0x46 if self.is_player() => {
-                        self.test_block_hit(state, x + ox, y + oy);
-                    }
-                    0x03 | 0x05 | 0x41 | 0x43 if !self.is_player() => {
-                        if self.is_player()
-                        {self.test_block_hit(state, x + ox, y + oy);}
-                        else if self.needs_special_collision() {
-                            self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
-                        } else {self.test_block_hit(state, x + ox, y + oy)}
-                    }
-                    0x44 => {
+                if self.ignore_solidity()
+                {
+                    if attrib == 0x44 {
                         if !self.ignore_tile_44() {
                             if self.needs_special_collision() {
                                 self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
                             } else {self.test_block_hit(state, x + ox, y + oy)}
                         }
                     }
-                    0x4a => {
-                        self.test_platform_hit(state, x + ox, y + oy);
-                    }
-
-                    // Slopes
-                    0x50 | 0x70 => {
-                        self.test_hit_upper_left_slope_high(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x51 | 0x71 => {
-                        self.test_hit_upper_left_slope_low(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x52 | 0x72 => {
-                        self.test_hit_upper_right_slope_low(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x53 | 0x73 => {
-                        self.test_hit_upper_right_slope_high(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x54 | 0x74 => {
-                        self.test_hit_lower_left_slope_high(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x55 | 0x75 => {
-                        self.test_hit_lower_left_slope_low(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x56 | 0x76 => {
-                        self.test_hit_lower_right_slope_low(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x57 | 0x77 => {
-                        self.test_hit_lower_right_slope_high(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x5a | 0x7a => {
-                        self.test_hit_upper_left_slope(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x5b | 0x7b => {
-                        self.test_hit_upper_right_slope(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x5c | 0x7c => {
-                        self.test_hit_lower_left_slope(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-                    0x5d | 0x7d => {
-                        self.test_hit_lower_right_slope(state, x + ox, y + oy, _npc_list);
-                        if attrib & 0x20 != 0 {
-                            self.test_hit_water(state, x + ox, y + oy);
-                        }
-                    }
-
-                    // Forces
-                    0x80 | 0xa0 if self.is_player() => {
-                        self.test_hit_force(state, x + ox, y + oy, Direction::Left, attrib & 0x20 != 0);
-                    }
-                    0x81 | 0xa1 if self.is_player() => {
-                        self.test_hit_force(state, x + ox, y + oy, Direction::Up, attrib & 0x20 != 0);
-                    }
-                    0x82 | 0xa2 if self.is_player() => {
-                        self.test_hit_force(state, x + ox, y + oy, Direction::Right, attrib & 0x20 != 0);
-                    }
-                    0x83 | 0xa3 if self.is_player() => {
-                        self.test_hit_force(state, x + ox, y + oy, Direction::Bottom, attrib & 0x20 != 0);
-                    }
-                    0x80 | 0xa0 if !self.is_player() => {
-                        self.flags().set_force_left(true);
-                        if attrib & 0x20 != 0 {
-                            self.flags().set_in_water(true);
-                        }
-                    }
-                    0x81 | 0xa1 if !self.is_player() => {
-                        self.flags().set_force_up(true);
-                        if attrib & 0x20 != 0 {
-                            self.flags().set_in_water(true);
-                        }
-                    }
-                    0x82 | 0xa2 if !self.is_player() => {
-                        self.flags().set_force_right(true);
-                        if attrib & 0x20 != 0 {
-                            self.flags().set_in_water(true);
-                        }
-                    }
-                    0x83 | 0xa3 if !self.is_player() => {
-                        self.flags().set_force_down(true);
-                        if attrib & 0x20 != 0 {
-                            self.flags().set_in_water(true);
-                        }
-                    }
-                    _ => {}
                 }
+                else
+                {
+                    match attrib {
+                        // Spikes
+                        0x62 | 0x42 if self.is_player() => {
+                            self.test_hit_spike(state, x + ox, y + oy, attrib & 0x20 != 0);
+                        }
+
+                        // Blocks
+                        0x02 | 0x60 => {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
+                        0x62 if !self.is_player() => {
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
+                        0x61 => {
+                            if self.needs_special_collision() {
+                                self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                            } else {self.test_block_hit(state, x + ox, y + oy)}
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
+                        0x04 | 0x64 if !self.is_player() => {
+                            if self.needs_special_collision() {
+                                self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                            } else {self.test_block_hit(state, x + ox, y + oy)}
+                            self.test_hit_water(state, x + ox, y + oy);
+                        }
+                        0x05 | 0x41 | 0x43 | 0x46 if self.is_player() => {
+                            self.test_block_hit(state, x + ox, y + oy);
+                        }
+                        0x03 | 0x05 | 0x41 | 0x43 if !self.is_player() => {
+                            if self.is_player()
+                            {self.test_block_hit(state, x + ox, y + oy);}
+                            else if self.needs_special_collision() {
+                                self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                            } else {self.test_block_hit(state, x + ox, y + oy)}
+                        }
+                        0x44 => {
+                            if !self.ignore_tile_44() {
+                                if self.needs_special_collision() {
+                                    self.test_block_hit_vec(state, x + ox, y + oy, _npc_list);
+                                } else {self.test_block_hit(state, x + ox, y + oy)}
+                            }
+                        }
+                        0x4a => {
+                            self.test_platform_hit(state, x + ox, y + oy);
+                        }
+
+                        // Slopes
+                        0x50 | 0x70 => {
+                            self.test_hit_upper_left_slope_high(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x51 | 0x71 => {
+                            self.test_hit_upper_left_slope_low(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x52 | 0x72 => {
+                            self.test_hit_upper_right_slope_low(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x53 | 0x73 => {
+                            self.test_hit_upper_right_slope_high(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x54 | 0x74 => {
+                            self.test_hit_lower_left_slope_high(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x55 | 0x75 => {
+                            self.test_hit_lower_left_slope_low(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x56 | 0x76 => {
+                            self.test_hit_lower_right_slope_low(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x57 | 0x77 => {
+                            self.test_hit_lower_right_slope_high(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x5a | 0x7a => {
+                            self.test_hit_upper_left_slope(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x5b | 0x7b => {
+                            self.test_hit_upper_right_slope(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x5c | 0x7c => {
+                            self.test_hit_lower_left_slope(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+                        0x5d | 0x7d => {
+                            self.test_hit_lower_right_slope(state, x + ox, y + oy, _npc_list);
+                            if attrib & 0x20 != 0 {
+                                self.test_hit_water(state, x + ox, y + oy);
+                            }
+                        }
+
+                        // Forces
+                        0x80 | 0xa0 if self.is_player() => {
+                            self.test_hit_force(state, x + ox, y + oy, Direction::Left, attrib & 0x20 != 0);
+                        }
+                        0x81 | 0xa1 if self.is_player() => {
+                            self.test_hit_force(state, x + ox, y + oy, Direction::Up, attrib & 0x20 != 0);
+                        }
+                        0x82 | 0xa2 if self.is_player() => {
+                            self.test_hit_force(state, x + ox, y + oy, Direction::Right, attrib & 0x20 != 0);
+                        }
+                        0x83 | 0xa3 if self.is_player() => {
+                            self.test_hit_force(state, x + ox, y + oy, Direction::Bottom, attrib & 0x20 != 0);
+                        }
+                        0x80 | 0xa0 if !self.is_player() => {
+                            self.flags().set_force_left(true);
+                            if attrib & 0x20 != 0 {
+                                self.flags().set_in_water(true);
+                            }
+                        }
+                        0x81 | 0xa1 if !self.is_player() => {
+                            self.flags().set_force_up(true);
+                            if attrib & 0x20 != 0 {
+                                self.flags().set_in_water(true);
+                            }
+                        }
+                        0x82 | 0xa2 if !self.is_player() => {
+                            self.flags().set_force_right(true);
+                            if attrib & 0x20 != 0 {
+                                self.flags().set_in_water(true);
+                            }
+                        }
+                        0x83 | 0xa3 if !self.is_player() => {
+                            self.flags().set_force_down(true);
+                            if attrib & 0x20 != 0 {
+                                self.flags().set_in_water(true);
+                            }
+                        }
+                        _ => {}
+                    }
+                
+                }
+
             }
 
             if (self.y() - 0x800) > state.water_level {

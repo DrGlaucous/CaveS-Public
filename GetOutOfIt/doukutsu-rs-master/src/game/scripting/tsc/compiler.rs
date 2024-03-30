@@ -221,7 +221,9 @@ impl TextScript {
             | TSCOpCode::ACH
             | TSCOpCode::S2MV
             | TSCOpCode::S2PJ
-            | TSCOpCode::PSH => {
+            | TSCOpCode::PSH
+            | TSCOpCode::SLM
+            => {
                 let operand = read_number(iter)?;
                 put_varint(instr as i32, out);
                 put_varint(operand as i32, out);

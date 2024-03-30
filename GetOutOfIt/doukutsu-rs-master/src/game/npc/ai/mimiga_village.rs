@@ -149,7 +149,7 @@ impl NPC {
             }
         }
 
-        self.anim_rect = state.constants.npc.n075_kanpachi[self.anim_num as usize];
+        self.anim_rect = state.constants.npc.n075_kanpachi[self.anim_num as usize + if self.direction != Direction::Left {2} else {0}];
 
         Ok(())
     }

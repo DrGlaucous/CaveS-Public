@@ -17,17 +17,20 @@
 <TRA0012:0091:0037:0011
 
 
+
 #0200
+<EVE0500
 <KEY<SKJ0005:0091<PRI<CMU0000<MSG
 From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 
 
 //load from save event / entry event
 #0300
-<HMC
+//<FAI0004<END
+<HMC<KEY//abusing POP warning mechanic to keep player KEYED when event ends
 <ANP0320:0001:0000//snap NPC to PC and then PC to NPC
 <FON0320:0016
-<FAI0004<END
+<FAI0004<POP<END
 
 
 
@@ -39,7 +42,8 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 
 //test
 #0520
-<LBK0001:BK0.bmp$<END
+<DNP0520
+<LBK0007:bkFog$<SLM0002<END
 
 
 
@@ -253,9 +257,59 @@ I thank you for playing my mod.
 <END
 
 
+//background test
+#2000
+<KEY<MSGThis is an event<NOD<CLR<PSH2001
+<MSGBack to parent event...<NOD<CLR<END<FRE
+
+#2001
+<KEY<MSGThis is a sub-event<NOD<POP<END
 
 
 
+#2030
+//biomes:
+//plantation
+//BKGreen (scroll distant) 1
+//(BK Only) 1
+<LBK0001:bkGreen$
+<SLM0001
+<NOD
+//weed
+//BKBlue (scroll distant) 1
+//ambient 2
+<LBK0001:bkBlue$
+<SLM0002
+<NOD
+
+//labyrinth
+//BKMaze (scroll distant) 1
+//(BK only) 1
+<LBK0001:bkMaze$
+<SLM0001
+<NOD
+
+//first cave
+//bkBlack (stationary) 0
+//ambient light 2
+<LBK0000:bk0$
+<SLM0002
+
+<NOD
+//last cave
+//BKBlack (stationary) 0
+//ambient light 2
+<LBK0000:bk0$
+<SLM0002
+<NOD
+
+//balcony
+//BKFog (parallax clouds) 7
+//no light (fullbright) 0
+<LBK0007:bkFog$
+<SLM0000
+<NOD
+<END
 
 
 
