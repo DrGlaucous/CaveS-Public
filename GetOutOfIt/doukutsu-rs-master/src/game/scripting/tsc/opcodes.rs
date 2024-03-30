@@ -275,6 +275,10 @@ pub enum TSCOpCode {
     /// <SLMxxxx, Set Lighting Mode, changes current stage's LightingMode value to type xxxx
     SLM,
 
+    // Cue Music File
+    // <CMFXXXX:[Filepath from 'data']$, where xxxx is the song type ()
+    CMF,
+
 }
 
 #[derive(FromPrimitive, PartialEq, Copy, Clone)]

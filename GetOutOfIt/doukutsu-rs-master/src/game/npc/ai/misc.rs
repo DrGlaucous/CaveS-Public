@@ -586,7 +586,7 @@ impl NPC {
         }
 
         //test: render NPC
-        self.anim_rect = state.constants.npc.n070_sparkle[0];
+        //self.anim_rect = state.constants.npc.n070_sparkle[0];
 
         Ok(())
     }

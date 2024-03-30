@@ -150,8 +150,9 @@ impl TextScript {
                         }
 
                         // 1 Operand + string code
-                        TSCOpCode::LBK =>
-                        {
+                        TSCOpCode::LBK
+                        | TSCOpCode::CMF
+                        => {
                             writeln!(&mut result, "{:?} (String-based code: Not trying to decompile...)", op).unwrap();
                         }
 

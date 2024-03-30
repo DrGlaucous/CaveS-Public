@@ -1,0 +1,325 @@
+
+#0090
+<MNA<CMU0008<FAI0000<END
+#0091
+<MNA<CMU0008<FAI0001<END
+#0092
+<MNA<CMU0008<FAI0002<END
+#0093
+<MNA<CMU0008<FAI0003<END
+#0094
+<MNA<CMU0008<FAI0004<END
+
+#0100
+<PRI<CNP0100:0000:0000
+<SOU0011<FAO0001
+<TRA0014:0100:0015:0029
+<TRA0012:0091:0037:0011
+
+
+
+#0200
+<EVE0500
+<KEY<SKJ0005:0091<PRI<CMU0000<MSG
+From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
+
+
+//load from save event / entry event
+#0300
+//<FAI0004<END
+<HMC<KEY//abusing POP warning mechanic to keep player KEYED when event ends
+<ANP0320:0001:0000//snap NPC to PC and then PC to NPC
+<FON0320:0016
+<FAI0004<POP<END
+
+
+
+
+#0500
+<TRA0017:0300:0141:0504
+<DNP0500
+<MS2<TURHit trigger<WAI0040<END
+
+//test
+#0520
+<DNP0520
+<LBK0007:bkFog$<SLM0002<END
+
+
+
+
+
+
+
+#1000
+<MOV0032:0020
+<END
+
+//adam
+#1200
+<KEY<MYB0002
+<ANP1200:0001:0000
+<ANP1201:0001:0000
+<ANP1202:0001:0000
+<ANP1203:0001:0000
+<ANP1204:0001:0000
+<NOD
+<ANP1200:0000:0000
+<ANP1201:0000:0000
+<ANP1202:0000:0000
+<ANP1203:0000:0000
+<ANP1204:0000:0000<NOD<END
+
+//jamie
+#1201
+//kari
+#1202
+//grant
+#1203
+//tory
+#1204
+
+
+
+#3000
+<KEY<MSG
+Welcome to Getting Out of It,
+Your goal is to get Kanpachi out
+of the depths of this island.
+
+In case you don't know who
+Kanpachi is, he's the little
+rabbit-like fellow in the bucket.
+
+He likes to fish, but right now,
+he's using his fishing pole to
+climb the steep cave walls.
+//////////////
+Throughout the playthough,
+I will NOT be saving your
+progress and mistakes...
+
+Because you can do it yourself.
+There's a save button in the
+pause menu.
+
+Feel free to save when you make a
+breakthrough, or when you fall all
+the way back to the start.
+
+I believe that how hard you want
+the experience to
+be is completely up to you.
+
+I won't be commenting on your
+mistakes and pitfalls because
+again, I leave it in your hands.
+
+//////////////
+
+This game pays homage to two
+previous titles:
+Cave Story and Getting Over It
+with Bennet Foddy.
+
+The first game is pretty obvious,
+isn't it?
+You probably wouldn't even know
+this mod exsists if you haven't
+at least tried the original
+game first
+and shown a minute iota of
+interest in it.
+
+As for the second game by
+Mr. Foddy, that one may
+have some players at a disconnect.
+
+If you don't know what that is,
+I suggest you pause this mod now,
+look it up, maybe play it, then
+come back.
+
+If it wasn't a good
+game, I wouldn't have made this
+mod now, would I.
+
+//////////////////////
+
+Ironically enough, Getting Over It
+is itself a homage to an even
+older game, Sexy Hiking.
+
+In Foddy's commentary, which
+plays in the game much like
+what you're reading now,
+
+he explains that Sexy Hiking
+was never meant to
+be a high quality game,
+
+but was rather a fun challenge for
+the creator to make. The game is
+hard and controls poorly,
+
+making it a very fustrating
+experience for any prospective
+players (ask me how I know).
+
+////////////////////////////
+
+Foddy's game, on the other hand,
+is polished and complete, and
+is both fair and controls well,
+even if it is challenging at times.
+
+This game, although more directly
+inspired by Getting Over It, has
+more in common with Sexy Hiking.
+
+It is the product of a passion for
+game creation less than a desire
+for a smooth user experience.
+
+////////////////////////////////////
+
+The physics are poor, the backend
+cobbled, and the final result
+rushed.
+
+To see this for yourself, take that
+fishing rod of yours and ram it
+hard into one of the walls.
+
+You might be suprised to see it go
+all the way though or get stuck
+inside.
+
+Use this mechanic as you will.
+I can't complain. I made it.
+I left it in.
+
+It was my choice,
+made in light of lack of skill
+and tight time constraints.
+It's part of the game now.
+
+/////////////////////////////////
+
+Kind of like that Discovery TV
+watermark in the bottom right
+corner,
+
+A remnant of what this mod's base
+came from, which was originally
+themed around the Mythbusters.
+
+It's something I chose to keep for
+my own amusement, rather than for
+polish or user reception.
+
+///////////////////////////////
+
+Much like how Sexy Hiking used MS
+MS paint graphics and MIDI-smash
+music,
+
+or how you can clip or snap
+off obstacles and find yourself
+falling out of the world.
+
+It was a project of passion,
+not one of polish.
+
+
+///////////////////////////////
+
+But still you play,
+despite the game's poor
+presentation.
+
+You've taken some of your
+precious time to take part in my
+passion.
+
+////////////////////////////////
+
+Even if you break the game, cheese
+it, or breeze through it,
+you still got here.
+
+And for that, I thank you.
+I thank you for playing my mod.
+
+////////////////////////////////
+
+
+<END
+
+
+//background test
+#2000
+<KEY<MSGThis is an event<NOD<CLR<PSH2001
+<MSGBack to parent event...<NOD<CLR<END<FRE
+
+#2001
+<KEY<MSGThis is a sub-event<NOD<POP<END
+
+
+
+#2030
+//biomes:
+//plantation
+//BKGreen (scroll distant) 1
+//(BK Only) 1
+<LBK0001:bkGreen$
+<SLM0001
+<NOD
+//weed
+//BKBlue (scroll distant) 1
+//ambient 2
+<LBK0001:bkBlue$
+<SLM0002
+<NOD
+
+//labyrinth
+//BKMaze (scroll distant) 1
+//(BK only) 1
+<LBK0001:bkMaze$
+<SLM0001
+<NOD
+
+//first cave
+//bkBlack (stationary) 0
+//ambient light 2
+<LBK0000:bk0$
+<SLM0002
+
+<NOD
+//last cave
+//BKBlack (stationary) 0
+//ambient light 2
+<LBK0000:bk0$
+<SLM0002
+<NOD
+
+//balcony
+//BKFog (parallax clouds) 7
+//no light (fullbright) 0
+<LBK0007:bkFog$
+<SLM0000
+<NOD
+<END
+
+
+
+
+
+
+
+
+
+
+
+
+

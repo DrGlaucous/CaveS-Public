@@ -33,6 +33,7 @@ use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameScene;
 use crate::scene::game_scene::LightingMode;
 use crate::game::stage::BackgroundType;
+use crate::sound::SongFormat;
 
 const TSC_SUBSTITUTION_MAP_SIZE: usize = 1;
 
@@ -1923,6 +1924,27 @@ impl TextScriptVM {
                 game_scene.lighting_mode = LightingMode::from(light_mode);
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            //cue music //_intro.ogg and _loop.ogg for multi-part OGGs
+            TSCOpCode::CMF =>{
+                
+                //get mode
+                let typecode = read_cur_varint(&mut cursor)? as usize;
+                let song_type = match typecode {
+                    2 => SongFormat::OggMultiPart,
+                    1 => SongFormat::OggSinglePart,
+                    0 | _ => SongFormat::Organya,
+                };
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string(&mut cursor, len).unwrap();
+
+                state.sound_manager.play_song_filepath(&filepath, &state.constants, song_type,  &state.settings, ctx, false)?;
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+
             }
         
         }

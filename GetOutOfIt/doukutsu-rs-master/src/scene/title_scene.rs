@@ -20,6 +20,7 @@ use crate::menu::settings_menu::SettingsMenu;
 use crate::menu::{Menu, MenuEntry, MenuSelectionResult};
 use crate::scene::jukebox_scene::JukeboxScene;
 use crate::scene::Scene;
+use crate::sound::SongFormat;
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
@@ -152,38 +153,48 @@ impl TitleScene {
         let minutes = self.nikumaru_rec.tick / (60 * state.settings.timing_mode.get_tps());
         let mut song_id: usize;
 
-        if self.nikumaru_rec.shown && minutes < 3 {
-            state.menu_character = MenuCharacter::Sue;
+        // if self.nikumaru_rec.shown && minutes < 3 {
+        //     state.menu_character = MenuCharacter::Sue;
 
-            song_id = 2;
+        song_id = 2;
 
-            if state.constants.is_cs_plus && !state.constants.is_switch {
-                self.compact_jukebox.show();
-            }
-        } else if self.nikumaru_rec.shown && minutes < 4 {
-            state.menu_character = MenuCharacter::King;
-            song_id = 41;
-        } else if self.nikumaru_rec.shown && minutes < 5 {
-            state.menu_character = MenuCharacter::Toroko;
-            song_id = 40;
-        } else if self.nikumaru_rec.shown && minutes < 6 {
-            state.menu_character = MenuCharacter::Curly;
-            song_id = 36;
-        } else {
-            state.menu_character = MenuCharacter::Quote;
-            song_id = 24;
-        }
+        //     if state.constants.is_cs_plus && !state.constants.is_switch {
+        //         self.compact_jukebox.show();
+        //     }
+        // } else if self.nikumaru_rec.shown && minutes < 4 {
+        //     state.menu_character = MenuCharacter::King;
+        //     song_id = 41;
+        // } else if self.nikumaru_rec.shown && minutes < 5 {
+        //     state.menu_character = MenuCharacter::Toroko;
+        //     song_id = 40;
+        // } else if self.nikumaru_rec.shown && minutes < 6 {
+        //     state.menu_character = MenuCharacter::Curly;
+        //     song_id = 36;
+        // } else {
+        //     state.menu_character = MenuCharacter::Quote;
+        //     song_id = 24;
+        // }
 
-        if state.settings.soundtrack == "New" && Season::current() == Season::PixelBirthday {
-            song_id = 43;
-        }
+        // if state.settings.soundtrack == "New" && Season::current() == Season::PixelBirthday {
+        //     song_id = 43;
+        // }
 
         if self.compact_jukebox.is_shown() {
             self.compact_jukebox.change_song(song_id, state, ctx)?;
         } else {
-            if song_id != state.sound_manager.current_song() {
-                state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
-            }
+
+            state.sound_manager.play_song_filepath(&String::from("/Resource/OGG/Allusive.ogg"), &state.constants, SongFormat::OggSinglePart, &state.settings, ctx, false)?;
+
+
+            // if song_id != state.sound_manager.current_song()
+            // {
+            //     //pause and resume needed so that both are started regardless of loading time
+            //     //state.sound_manager.pause();
+            //     //state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
+            //     //state.sound_manager.play_song_filepath(&String::from("/Resource/ORG/Idle.org"), &state.constants, SongFormat::Organya, &state.settings, ctx, false)?;
+            //     //state.sound_manager.play_commander_filepath(&String::from("/Resource/ORG/CURLY.org"), &state.settings, ctx)?;
+            //     //state.sound_manager.resume();
+            // }
         }
 
         Ok(())

@@ -312,8 +312,9 @@ impl TextScript {
             }
 
             //codes that parse 1 operand + string delimited by $
-            TSCOpCode::LBK =>
-            {
+            TSCOpCode::LBK
+            | TSCOpCode::CMF
+            => {
 
                 //get music type
                 let operand_a = read_number(iter)?;

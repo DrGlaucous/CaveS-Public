@@ -1921,6 +1921,7 @@ impl Scene for GameScene {
         if self.intro_mode {
             state.touch_controls.control_type = TouchControlType::Dialog;
 
+            //go to title as soon as it hits the 9999 wait
             if let TextScriptExecutionState::WaitTicks(_, _, 9999) = state.textscript_vm.state {
                 state.next_scene = Some(Box::new(TitleScene::new()));
             }
