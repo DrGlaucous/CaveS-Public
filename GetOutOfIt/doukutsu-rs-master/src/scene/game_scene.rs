@@ -2350,8 +2350,8 @@ impl Scene for GameScene {
             batch.draw(ctx)?;
 
             //cursor velocity
-            //draw_number_int(8.0, 8.0, ctx.mouse_context.abs_mouse_coords.0 as i32, Alignment::Left, state, ctx)?;
-            //draw_number_int(8.0, 20.0, ctx.mouse_context.abs_mouse_coords.1 as i32, Alignment::Left, state, ctx)?;
+            draw_number_int(8.0, 8.0, ctx.mouse_context.abs_mouse_coords.0 as i32, Alignment::Left, state, ctx)?;
+            draw_number_int(8.0, 20.0, ctx.mouse_context.abs_mouse_coords.1 as i32, Alignment::Left, state, ctx)?;
         }
 
 

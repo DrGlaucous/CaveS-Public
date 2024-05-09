@@ -21,7 +21,7 @@ impl MouseContext {
             mouse_is_locked: false,
             mouse_veloc: (0.0,0.0),
             last_lock_state: false,
-            mouse_accel_sensitivity: 0.5,
+            mouse_accel_sensitivity: 0.3,
         }
     }
 
@@ -52,6 +52,9 @@ impl MouseContext {
         //relative to pixels, but since we are using velocity, not location, we want abs coords * sensitivity
         //self.rel_mouse_coords = (self.abs_mouse_coords.0 as f32 / scale, self.abs_mouse_coords.1 as f32 / scale);
         self.rel_mouse_coords = (self.abs_mouse_coords.0 as f32 * self.mouse_accel_sensitivity, self.abs_mouse_coords.1 as f32 * self.mouse_accel_sensitivity);
+
+        //test for glutin backend:
+        //self.abs_mouse_coords = (self.rel_mouse_coords.0 as i32, self.rel_mouse_coords.1 as i32);
 
     }
 

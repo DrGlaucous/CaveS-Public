@@ -367,6 +367,16 @@ impl NPC {
         //self.y += self.vel_y;
 
 
+        //test: limit relative distance (shouldn't be needed?)
+        let dist_max = (64 * 0x200) as f32;
+        let dist = get_dist((self.target_x as f32, self.target_y as f32), (0 as f32, 0 as f32));
+        if dist > dist_max {
+            let angle = ((self.target_y) as f32).atan2((self.target_x) as f32);
+            self.target_x = (dist_max * angle.cos()) as i32;
+            self.target_y = (dist_max * angle.sin()) as i32;
+        }
+        
+
 
 
 
@@ -380,7 +390,8 @@ impl NPC {
         if dist > dist_max
         {
             self.x = tgt_cons_x - (angle.cos() * dist_max) as i32;
-            self.y = tgt_cons_y - (angle.sin() * dist_max) as i32;
+            self.y = tgt_cons_y - (angle.sin() * dist_max) as i32;    
+
         }
         else if dist < dist_min
         {
