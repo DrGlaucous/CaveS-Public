@@ -1,0 +1,258 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - cpp-rewrite
+      - horizon-os
+    paths-ignore:
+      - '.gitignore'
+      - '.github/*'
+      - '**.md'
+      - 'LICENSE'
+      - 'drshorizon/**'
+      - 'res/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  VERSION: "0.101.0"
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: Linux x86_64
+            os: ubuntu-latest
+            channel: stable
+            target: x86_64-unknown-linux-gnu
+            target_name: linux-x64
+            arch_name: x86_64
+          - name: Windows x64
+            os: windows-latest
+            channel: stable
+            target: x86_64-pc-windows-msvc
+            target_name: windows-x64
+            arch_name: x86_64
+          - name: Windows x32
+            os: windows-latest
+            channel: stable
+            target: i686-pc-windows-msvc
+            target_name: windows-x32
+            arch_name: i686
+          - name: macOS x64 (Intel Macs)
+            os: macos-latest
+            channel: stable
+            target: x86_64-apple-darwin
+            target_name: mac-x64
+          - name: macOS ARM64 (M1 Macs)
+            os: macos-latest
+            channel: stable
+            target: aarch64-apple-darwin
+            target_name: mac-arm64
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt install libasound2-dev libudev-dev libgl1-mesa-dev
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo
+            ~/.rustup
+            target
+          key: ${{ matrix.target_name }}-cargo
+
+      - name: Setup rust toolchain
+        run: |
+          rustup default ${{ matrix.channel }}
+          rustup target add ${{ matrix.target }}
+          
+          rustc -vV
+          cargo -vV
+          
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            cargo install cargo-bundle
+          fi
+
+      - name: Build
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            export DRS_BUILD_VERSION_OVERRIDE="{{ github.ref_name }}"
+          elif [ "${{ github.ref_name }}" == "master"]; then
+            export DRS_BUILD_VERSION_OVERRIDE="${{ env.VERSION }}-$((${{ github.run_number }} + 654))"
+          else
+            export DRS_BUILD_VERSION_OVERRIDE="${{ env.VERSION }}-${GITHUB_SHA:0:7}"
+          fi
+          
+          mkdir release
+          cp LICENSE release
+          
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            CARGO_INCREMENTAL=1 cargo bundle --release --target ${{ matrix.target }}
+            cp -a ./target/${{ matrix.target }}/release/bundle/osx/doukutsu-rs.app release/doukutsu-rs.app
+            codesign -s - -f ./release/doukutsu-rs.app/Contents/MacOS/doukutsu-rs
+          elif [ "${{ runner.os }}" == "Windows" ]; then
+            CARGO_INCREMENTAL=1 cargo build --release --bin doukutsu-rs --target ${{ matrix.target }}
+            cp ./target/${{ matrix.target }}/release/doukutsu-rs.exe release/doukutsu-rs.${{ matrix.arch_name }}.exe
+          elif [ "${{ runner.os }}" == "Linux" ]; then
+            RUSTFLAGS="-C link-args=-s" CARGO_INCREMENTAL=1 cargo build --release --bin doukutsu-rs
+            cp -a ./target/release/doukutsu-rs release/doukutsu-rs.${{ matrix.arch_name }}.elf
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doukutsu-rs_${{ matrix.target_name }}
+          path: ./release/*
+          if-no-files-found: error
+
+      - name: Save cache
+        if: ${{ github.ref_name == 'master' || github.ref_type == 'tag' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo
+            ~/.rustup
+            target
+          key: ${{ matrix.target_name }}-cargo
+
+  build_android:
+    name: Android build
+    runs-on: ubuntu-latest
+    env:
+      APP_OUTPUTS_DIR: "app/app/build/outputs/apk/release"
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache
+            ~/.cargo
+            ~/.rustup
+            ~/.gradle
+            app/app/.cxx
+            app/app/build
+            drsandroid/target
+          key: android-cargo
+
+      - name: Setup rust toolchain
+        run: |
+          rustup default stable
+          rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android
+          rustc -vV
+          cargo -vV
+          cargo install cargo-ndk
+
+      - name: Build
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            export DRS_BUILD_VERSION_OVERRIDE="{{ github.ref_name }}"
+          elif [ "${{ github.ref_name }}" == "master"]; then
+            export DRS_BUILD_VERSION_OVERRIDE="${{ env.VERSION }}-$((${{ github.run_number }} + 654))"
+          else
+            export DRS_BUILD_VERSION_OVERRIDE="${{ env.VERSION }}-${GITHUB_SHA:0:7}"
+          fi
+          
+          cd app
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
+
+      - name: Sign app
+        run: |
+          BUILD_TOOLS=$ANDROID_HOME/build-tools/33.0.0
+          
+          echo "${{ secrets.ANDROID_SIGNING_KEYSTORE }}" | base64 --decode > keystore.jks
+          if [ "${{ secrets.ANDROID_SIGNING_KEY_PASS }}" != "" ]; then
+            $BUILD_TOOLS/apksigner sign --ks ./keystore.jks --ks-key-alias "${{ secrets.ANDROID_SIGNING_ALIAS }}" --ks-pass "pass:${{ secrets.ANDROID_SIGNING_KEYSTORE_PASS }}" --key-pass "pass:${{ secrets.ANDROID_SIGNING_KEY_PASS }}" --out $APP_OUTPUTS_DIR/app-signed.apk $APP_OUTPUTS_DIR/app-release-unsigned.apk
+          else
+            $BUILD_TOOLS/apksigner sign --ks ./keystore.jks --ks-key-alias "${{ secrets.ANDROID_SIGNING_ALIAS }}" --ks-pass "pass:${{ secrets.ANDROID_SIGNING_KEYSTORE_PASS }}" --out $APP_OUTPUTS_DIR/app-signed.apk $APP_OUTPUTS_DIR/app-release-unsigned.apk
+          fi
+          
+          rm keystore.jks
+
+      - name: Prepare artifact
+        run: |
+          mkdir release
+          mv $APP_OUTPUTS_DIR/app-signed.apk release/doukutsu-rs.apk
+          cp LICENSE ./release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doukutsu-rs_android
+          path: ./release/*
+          if-no-files-found: error
+
+      - name: Save cache
+        if: ${{ github.ref_name == 'master' || github.ref_type == 'tag' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache
+            ~/.cargo
+            ~/.rustup
+            ~/.gradle
+            app/app/.cxx
+            app/app/build
+            drsandroid/target
+          key: android-cargo
+
+  update_metadata:
+    name: Update metadata
+    runs-on: ubuntu-latest
+    if: ${{ github.ref_type != 'tag' && always() }}
+    needs: [build, build_android]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: doukutsu-rs/metadata
+          token: ${{ secrets.METADATA_USER_TOKEN }}
+
+      - name: Update metadata
+        id: metadata
+        run: |
+          export FILE="./metadata/nightly.json"
+          if [ "${{ github.ref_name }}" == "master" ]; then
+            export VERSION="${{ env.VERSION }}-$((${{ github.run_number }} + 654))"
+          else
+            export VERSION="${{ env.VERSION }}-${GITHUB_SHA:0:7}"
+          fi
+
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            node ./metadata.js --os linux --arch x86_64 --version $VERSION --commit $GITHUB_SHA --link https://nightly.link/doukutsu-rs/doukutsu-rs/actions/runs/${{ github.run_id }}/doukutsu-rs_linux-x64.zip $FILE
+            node ./metadata.js --os windows --arch x86_64 --version $VERSION --commit $GITHUB_SHA --link https://nightly.link/doukutsu-rs/doukutsu-rs/actions/runs/${{ github.run_id }}/doukutsu-rs_windows-x64.zip $FILE
+            node ./metadata.js --os windows --arch i686 --version $VERSION --commit $GITHUB_SHA --link https://nightly.link/doukutsu-rs/doukutsu-rs/actions/runs/${{ github.run_id }}/doukutsu-rs_windows-x32.zip $FILE
+            node ./metadata.js --os macos --arch x64 --version $VERSION --commit $GITHUB_SHA --link https://nightly.link/doukutsu-rs/doukutsu-rs/actions/runs/${{ github.run_id }}/doukutsu-rs_mac-x64.zip $FILE
+            node ./metadata.js --os macos --arch arm64 --version $VERSION --commit $GITHUB_SHA --link https://nightly.link/doukutsu-rs/doukutsu-rs/actions/runs/${{ github.run_id }}/doukutsu-rs_mac-arm64.zip $FILE
+          fi
+
+          if [ "${{ needs.build_android.result }}" == "success" ]; then
+            node ./metadata.js --os android --version $VERSION --commit $GITHUB_SHA --link https://nightly.link/doukutsu-rs/doukutsu-rs/actions/runs/${{ github.run_id }}/doukutsu-rs_android.zip $FILE
+          fi
+
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload metadata
+        run: |
+          git config user.name ${{ vars.METADATA_USER_NAME }}
+          git config user.email ${{ vars.METADATA_USER_EMAIL }}
+
+          git add ${{ steps.metadata.outputs.file }}
+          git commit -m "Update nightly builds metadata(CI)"
+          git push
