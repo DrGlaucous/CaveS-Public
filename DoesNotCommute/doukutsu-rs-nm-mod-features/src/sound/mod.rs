@@ -7,8 +7,6 @@ use std::sync::mpsc::{Receiver, Sender};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 #[cfg(feature = "ogg-playback")]
 use lewton::inside_ogg::OggStreamReader;
-#[cfg(feature = "tracker-playback")]
-use xmrs::module::Module;
 use num_traits::clamp;
 //#[cfg(feature = "tracker-playback")]
 
@@ -32,8 +30,6 @@ use crate::sound::wave_bank::SoundBank;
 mod fir;
 #[cfg(feature = "tracker-playback")]
 mod tracker_playback;
-#[cfg(feature = "tracker-playback")]
-mod xmrs_player;
 
 #[cfg(feature = "ogg-playback")]
 mod ogg_playback;

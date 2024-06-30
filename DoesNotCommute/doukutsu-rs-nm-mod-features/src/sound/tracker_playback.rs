@@ -15,6 +15,9 @@ use xmrs::prelude::*;
 use xmrs::xm::xmmodule::XmModule;
 use crate::sound::xmrs_player::player::XmrsPlayerMod;
 
+use oxdz::{self, Oxdz};
+
+
 //use xmrsplayer::prelude::*;
 
 // pub struct Runner {
@@ -46,8 +49,7 @@ use crate::sound::xmrs_player::player::XmrsPlayerMod;
 
 pub(crate) struct TrackerPlaybackEngine<'a> {
 
-    player: Option<XmrsPlayerMod<'a>>, //Option<Arc<RwLock<XmrsPlayerMod>>>
-    curr_music: Box<Rc<Module>>, //Rc<RefCell<Box<Module>>>,
+    player: Option<Oxdz<'a>>, //Arc<RwLock<Oxdz<'a>>>>,
     output_format: WavFormat,
     //position: f64, // seconds
     position: (i32, i32), //order, row
@@ -67,7 +69,7 @@ impl<'a> TrackerPlaybackEngine<'a> {
     pub fn new() -> TrackerPlaybackEngine<'a> {
         TrackerPlaybackEngine {
             player: None,
-            curr_music: None,
+            //curr_music: None,
             output_format: WavFormat { channels: 2, sample_rate: 44100, bit_depth: 16 },
             position: (0,0),
             buffer: Vec::with_capacity(4096),
@@ -195,33 +197,17 @@ impl<'a> TrackerPlaybackEngine<'a> {
         let mut mod_data = vec![0; file_len as usize];
         f.read(&mut mod_data)?;
 
-        let xm = if let Ok(ll) = XmModule::load(&mod_data) {ll}
+        let xm = if let Ok(ll) = Oxdz::new(&mod_data, 44100, "") {ll}
         else {
             return Err(GameError::FilesystemError(format!("Could not parse module")))
         };
 
-        let module = xm.to_module();
-        drop(xm);
-        let module = Box::new(Rc::new(module));
-        //let m = &*module.borrow().as_ref();
-
-        let mut push = TrackerPlaybackEngine {
-            player: None,
-            curr_music: module,
-            output_format: WavFormat{channels: 2, sample_rate: 41000, bit_depth: 16},
+        let push = TrackerPlaybackEngine{
+            player: Some(xm),
+            output_format: WavFormat { channels: 2, sample_rate: 44100, bit_depth: 16 },
             position: (0,0),
-            buffer: vec![0; 16],
+            buffer: Vec::with_capacity(4096),
         };
-
-        let player = Some(XmrsPlayerMod::new(
-            module.as_ref().clone(),
-            41000 as f32,
-            false
-        ));
-
-        push.player = player;
-
-
         Ok(push)
 
         //player: Option<XmrsPlayerMod<'a>>, //Option<Arc<RwLock<XmrsPlayerMod>>>
