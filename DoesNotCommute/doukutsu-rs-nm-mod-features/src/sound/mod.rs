@@ -7,6 +7,8 @@ use std::sync::mpsc::{Receiver, Sender};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 #[cfg(feature = "ogg-playback")]
 use lewton::inside_ogg::OggStreamReader;
+#[cfg(feature = "tracker-playback")]
+use xmrs::module::Module;
 use num_traits::clamp;
 //#[cfg(feature = "tracker-playback")]
 
@@ -19,7 +21,7 @@ use crate::framework::filesystem;
 use crate::framework::filesystem::File;
 use crate::game::settings::Settings;
 #[cfg(feature = "tracker-playback")]
-use crate::sound::tracker_playback::{TrackerPlaybackEngine, SavedTrackerPlaybackState, Module};
+use crate::sound::tracker_playback::{TrackerPlaybackEngine, SavedTrackerPlaybackState};
 #[cfg(feature = "ogg-playback")]
 use crate::sound::ogg_playback::{OggPlaybackEngine, SavedOggPlaybackState};
 use crate::sound::org_playback::{OrgPlaybackEngine, SavedOrganyaPlaybackState};
@@ -30,6 +32,9 @@ use crate::sound::wave_bank::SoundBank;
 mod fir;
 #[cfg(feature = "tracker-playback")]
 mod tracker_playback;
+#[cfg(feature = "tracker-playback")]
+mod xmrs_player;
+
 #[cfg(feature = "ogg-playback")]
 mod ogg_playback;
 mod org_playback;
@@ -408,7 +413,7 @@ impl SoundManager {
                             // we're sure that there's one element
                             let path = unsafe { paths.get_unchecked(0) };
 
-                            match filesystem::open(ctx, path).map(Module::load_from) {
+                            match filesystem::open(ctx, path).map(TrackerPlaybackEngine::load_from) {
                                 Ok(Ok(module_s)) => {
                                     log::info!("Playing Tracker: {} {}", song_id, path);
 

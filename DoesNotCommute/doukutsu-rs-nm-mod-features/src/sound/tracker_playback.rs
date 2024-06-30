@@ -1,15 +1,8 @@
 use std::{
-    ffi::{c_void, CStr},
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-        RwLock,
-    },
-    time::Duration,
-    io,
+    borrow::Borrow, ffi::{c_void, CStr}, io, cell::RefCell, rc::Rc, sync::{
+        atomic::{AtomicBool, Ordering}, Arc, Mutex, RwLock
+    }
 };
-
-use openmpt_sys;
 
 use crate::{framework::filesystem::File, game::Game};
 use crate::framework::error::{GameError, GameResult};
@@ -18,61 +11,43 @@ use crate::sound::stuff::cubic_interp;
 use crate::sound::wav::WavFormat;
 
 
-//get log messages from openmpt
-extern "C" fn logfunc(message: *const ::std::os::raw::c_char, _user: *mut ::std::os::raw::c_void) {
-    let openmpt_log_msg = unsafe { CStr::from_ptr(message) };
-    //dbg!(openmpt_log_msg);
+use xmrs::prelude::*;
+use xmrs::xm::xmmodule::XmModule;
+use crate::sound::xmrs_player::player::XmrsPlayerMod;
 
-    log::info!("MPT INFO");
-}
+//use xmrsplayer::prelude::*;
 
-pub struct Module {
-    handle: *mut openmpt_sys::openmpt_module,
-}
-impl Module {
-        
-    pub fn load_from<R: io::Read + io::Seek>(mut f: R) -> GameResult<Module> {
+// pub struct Runner {
+//     module: Option<Module>
+// }
+// impl Runner {
 
-        //get file size
-        let file_len = f.seek(io::SeekFrom::End(0))?;
-        let _ = f.seek(io::SeekFrom::Start(0));
+//     pub fn load_from<R: io::Read + io::Seek>(mut f: R) -> GameResult<Module> {
 
-        let mut mod_data = vec![0; file_len as usize];
-        f.read(&mut mod_data)?;
+//         //get file size
+//         let file_len = f.seek(io::SeekFrom::End(0))?;
+//         let _ = f.seek(io::SeekFrom::Start(0));
 
-        let mod_handle = unsafe {
-            openmpt_sys::openmpt_module_create_from_memory2(
-                mod_data.as_ptr() as *const c_void,
-                mod_data.len(),
-                Some(logfunc),
-                std::ptr::null_mut(),
-                None,
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                std::ptr::null(),
-            )
-        };
+//         let mut mod_data = vec![0; file_len as usize];
+//         f.read(&mut mod_data)?;
 
-        if mod_handle.is_null() {
-            return Err(GameError::ResourceLoadError(format!("Failed to load tracker file!")));
-        }
+//         let xm = XmModule::load(&mod_data)?;
 
-        //let playback_over = Arc::new(AtomicBool::new(false));
+//         let module = xm.to_module();
 
-        Ok( Module {
-            handle: mod_handle,
-        })
+//         Ok(module)
 
-    }
+//     }
 
 
-}
-unsafe impl Send for Module {}
-unsafe impl Sync for Module {}
+// }
+// unsafe impl Send for Runner {}
+// unsafe impl Sync for Runner {}
 
-pub(crate) struct TrackerPlaybackEngine {
-    curr_music: Option<Arc<RwLock<Box<Module>>>>,
+pub(crate) struct TrackerPlaybackEngine<'a> {
+
+    player: Option<XmrsPlayerMod<'a>>, //Option<Arc<RwLock<XmrsPlayerMod>>>
+    curr_music: Box<Rc<Module>>, //Rc<RefCell<Box<Module>>>,
     output_format: WavFormat,
     //position: f64, // seconds
     position: (i32, i32), //order, row
@@ -81,15 +56,17 @@ pub(crate) struct TrackerPlaybackEngine {
 }
 
 pub struct SavedTrackerPlaybackState {
-    curr_music: Option<Arc<RwLock<Box<Module>>>>,
+    curr_music: Box<Rc<Module>>,   //Option<Arc<RwLock<Box<Module>>>>,
     //position: u64,
     position: (i32, i32), //order, row
 }
 
 
-impl TrackerPlaybackEngine {
-    pub fn new() -> TrackerPlaybackEngine {
+impl<'a> TrackerPlaybackEngine<'a> {
+
+    pub fn new() -> TrackerPlaybackEngine<'a> {
         TrackerPlaybackEngine {
+            player: None,
             curr_music: None,
             output_format: WavFormat { channels: 2, sample_rate: 44100, bit_depth: 16 },
             position: (0,0),
@@ -103,7 +80,7 @@ impl TrackerPlaybackEngine {
 
     pub fn get_state(&self) -> SavedTrackerPlaybackState {
         SavedTrackerPlaybackState {
-            curr_music: self.curr_music.clone(),
+            curr_music: self.curr_music,
             position: self.position,
         }
     }
@@ -114,9 +91,25 @@ impl TrackerPlaybackEngine {
     }
 
     pub fn start_song(&mut self, music: Box<Module>) {
+
+
+
+        //create new tracker player object
+        let comment = &music.as_ref().comment;
+        let is_ft2 = comment == "FastTracker v2.00 (1.04)";
+
         //self.music = music
         self.position = (0,0);
-        self.curr_music = Some(Arc::new(RwLock::new(music)));
+        self.curr_music = Some(music);
+        //let mm = self.curr_music.as_ref();
+
+
+        self.player = Some(XmrsPlayerMod::new(
+            self.borrow().curr_music.as_ref().unwrap(),
+            self.output_format.sample_rate as f32,
+            is_ft2
+        ));
+
         self.rewind();
 
     }
@@ -124,18 +117,23 @@ impl TrackerPlaybackEngine {
     //send music back to start of file
     pub fn rewind(&mut self) {
 
-        unsafe {
-            if let Some(music) = &self.curr_music {
-                let module = music.write().unwrap();
-                let _ = openmpt_sys::openmpt_module_set_position_order_row(
-                    module.handle,
-                    0,
-                    0,
-                );
-            }
+        if let Some(music) = &self.curr_music {
+            let module = music.write().unwrap();
+
         }
 
 
+
+        // unsafe {
+        //     if let Some(music) = &self.curr_music {
+        //         let module = music.write().unwrap();
+        //         let _ = openmpt_sys::openmpt_module_set_position_order_row(
+        //             module.handle,
+        //             0,
+        //             0,
+        //         );
+        //     }
+        // }
 
         // if let Some(music) = &self.intro_music {
         //     let _ = music.write().unwrap().seek_absgp_pg(0);
@@ -186,6 +184,50 @@ impl TrackerPlaybackEngine {
     }
 
 
+
+
+    pub fn load_from<R: io::Read + io::Seek>(mut f: R) -> GameResult<TrackerPlaybackEngine<'a>> {
+
+        //get file size
+        let file_len = f.seek(io::SeekFrom::End(0))?;
+        let _ = f.seek(io::SeekFrom::Start(0));
+
+        let mut mod_data = vec![0; file_len as usize];
+        f.read(&mut mod_data)?;
+
+        let xm = if let Ok(ll) = XmModule::load(&mod_data) {ll}
+        else {
+            return Err(GameError::FilesystemError(format!("Could not parse module")))
+        };
+
+        let module = xm.to_module();
+        drop(xm);
+        let module = Box::new(Rc::new(module));
+        //let m = &*module.borrow().as_ref();
+
+        let mut push = TrackerPlaybackEngine {
+            player: None,
+            curr_music: module,
+            output_format: WavFormat{channels: 2, sample_rate: 41000, bit_depth: 16},
+            position: (0,0),
+            buffer: vec![0; 16],
+        };
+
+        let player = Some(XmrsPlayerMod::new(
+            module.as_ref().clone(),
+            41000 as f32,
+            false
+        ));
+
+        push.player = player;
+
+
+        Ok(push)
+
+        //player: Option<XmrsPlayerMod<'a>>, //Option<Arc<RwLock<XmrsPlayerMod>>>
+        //Ok(module)
+
+    }
 
 
 }
