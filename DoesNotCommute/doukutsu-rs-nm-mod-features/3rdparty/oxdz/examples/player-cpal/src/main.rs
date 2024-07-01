@@ -2,6 +2,9 @@ extern crate memmap;
 extern crate oxdz;
 extern crate cpal;
 
+use cpal::traits::HostTrait;
+use cpal::traits::DeviceTrait;
+
 use std::env;
 use std::error::Error;
 use std::fs::File;
@@ -26,20 +29,28 @@ fn main() {
     }
 }
 
-fn run(args: Vec<String>) -> Result<(), Box<Error>> {
+fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
 
     // Set up our audio output
-    let device = cpal::default_output_device().expect("Failed to get default output device");
+    //let device = cpal::default_output_device().expect("Failed to get default output device");
 
     // Create event loop
-    let format = cpal::Format{
-        channels   : 2,
-        sample_rate: cpal::SampleRate(44100),
-        data_type  : cpal::SampleFormat::I16,
-    };
-    let event_loop = cpal::EventLoop::new();
-    let stream_id = event_loop.build_output_stream(&device, &format)?;
-    event_loop.play_stream(stream_id);
+    // let format = cpal::Format{
+    //     channels   : 2,
+    //     sample_rate: cpal::SampleRate(44100),
+    //     data_type  : cpal::SampleFormat::I16,
+    // };
+
+    let host = cpal::default_host();
+
+    let device = host.default_output_device().unwrap();
+    let config = device.default_output_config().unwrap();
+
+    let stream_id = device.build_output_stream(&config, 
+        |data: &mut [T], _: &cpal::OutputCallbackInfo| {
+
+        }
+    );
 
 
     let info = Arc::new(Mutex::new(oxdz::FrameInfo::new()));

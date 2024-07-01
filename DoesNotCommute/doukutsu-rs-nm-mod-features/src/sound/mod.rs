@@ -7,6 +7,8 @@ use std::sync::mpsc::{Receiver, Sender};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 #[cfg(feature = "ogg-playback")]
 use lewton::inside_ogg::OggStreamReader;
+#[cfg(feature = "tracker-playback")]
+use oxdz::Oxdz;
 use num_traits::clamp;
 //#[cfg(feature = "tracker-playback")]
 
@@ -587,7 +589,7 @@ pub(in crate::sound) enum PlaybackMessage {
     #[cfg(feature = "ogg-playback")]
     PlayOggSongMultiPart(Box<OggStreamReader<File>>, Box<OggStreamReader<File>>),
     #[cfg(feature = "tracker-playback")]
-    PlayTrackerSong(Box<Module>),
+    PlayTrackerSong(Box<Vec<u8>>),
     PlaySample(u8),
     LoopSample(u8),
     LoopSampleFreq(u8, f32),

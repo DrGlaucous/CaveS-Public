@@ -5,6 +5,6 @@ authors = ["Claudio Matsuoka <cmatsuoka@gmail.com>"]
 
 [dependencies]
 oxdz = { path = "../.." }
-memmap = "0.6"
-cpal = "0.8"
+memmap = "0.7"
+cpal = "0.15.3"
 
