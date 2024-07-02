@@ -615,16 +615,16 @@ enum PlaybackState {
     PlayingTracker,
 }
 
-enum PlaybackStateType {
+enum PlaybackStateType<'a> {
     None,
     Organya(SavedOrganyaPlaybackState),
     #[cfg(feature = "ogg-playback")]
     Ogg(SavedOggPlaybackState),
     #[cfg(feature = "tracker-playback")]
-    Tracker(SavedTrackerPlaybackState),
+    Tracker(SavedTrackerPlaybackState<'a>),
 }
 
-impl Default for PlaybackStateType {
+impl<'a> Default for PlaybackStateType<'a> {
     fn default() -> Self {
         Self::None
     }

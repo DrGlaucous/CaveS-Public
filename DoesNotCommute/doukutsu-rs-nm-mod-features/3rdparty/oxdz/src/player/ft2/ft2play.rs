@@ -34,8 +34,38 @@ struct SongTyp {
     pos_jump_flag  : bool,
     //song_tab     : Vec<u8>,
     ver            : u16,
-    //name           : String,
+    //name         : String,
 }
+/*
+// I thought that initializing the tempo as 6 would stop the %0 error. I was wrong
+impl Default for SongTyp {
+    fn default() -> SongTyp {
+        SongTyp {
+            len            : 0,
+            rep_s          : 0,
+            ant_chn        : 0,
+            ant_ptn        : 0,
+            ant_instrs     : 0,
+            song_pos       : 0,
+            patt_nr        : 0,
+            patt_pos       : 0,
+            patt_len       : 0,
+            speed          : 0,
+            tempo          : 6,
+            glob_vol       : 0,
+            timer          : 0,
+            patt_del_time  : 0,
+            patt_del_time_2: 0,
+            p_break_flag   : false,
+            p_break_pos    : 0,
+            pos_jump_flag  : false,
+            //song_tab     : Vec<u8>,
+            ver            : 0,
+            //name         : String,
+        }
+    }
+}
+*/
 
 /*
 #[derive(Default)]
@@ -2251,7 +2281,9 @@ impl FormatPlayer for Ft2Play {
         self.main_player(&module);
         self.update_channel_vol_pan_frq(&module, &mut mixer);
 
-        data.frame = ((self.song.tempo - self.song.timer + 1) % self.song.tempo) as usize;
+        //TODO: find where tempo is set to 0 and make sure it's not
+        //data.frame = ((self.song.tempo - self.song.timer + 1) % self.song.tempo) as usize;
+        data.frame = ((self.song.tempo - self.song.timer + 1) % if self.song.tempo == 0 {1} else {self.song.tempo}) as usize;
         data.row = self.song.patt_pos as usize;
         data.pos = self.song.song_pos as usize;
         data.speed = self.song.tempo as usize;
