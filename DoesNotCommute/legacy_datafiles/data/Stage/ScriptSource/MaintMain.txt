@@ -1,0 +1,91 @@
+#0090
+<FLJ4105:0095<MNA<CMU0001<FAI0000<END //changes music based on a flag change
+#0091
+<FLJ4105:0096<MNA<CMU0001<FAI0001<END
+#0092
+<FLJ4105:0097<MNA<CMU0001<FAI0002<END
+#0093
+<FLJ4105:0098<MNA<CMU0001<FAI0003<END
+#0094
+<FLJ4105:0099<MNA<CMU0001<FAI0004<END
+
+#0095
+<MNA<CMU0043<FAI0000<END
+#0096
+<MNA<CMU0043<FAI0001<END
+#0097
+<MNA<CMU0043<FAI0002<END
+#0098
+<MNA<CMU0043<FAI0003<END
+#0099
+<MNA<CMU0043<FAI0004<END
+
+
+#0110
+//h/v trigger
+<KEY<FAO0000<TRA0109:0100:0045:0060
+
+#0111
+//MaintBoss door
+<KEY<SOU0011<CNP0111:0000:0000<FAO0004<TRA0112:0094:0004:0005
+
+
+#0300
+//lefthand terminal
+<KEY<MSG<MTS0118<FAC0043Welcome to the
+Atmosphere Processing
+district!<FC+<NOD<CLR<FAC0041This series of ducts and
+fans is how we are <FAC0039able to
+maintain the air quality.<NOD<CLRWe scrub the air of any
+impurities and send it
+throughout the ship.<NOD<CLR<END
+
+
+
+
+#0700
+//conversion event
+<KEY<DNA0005<DNA0008<DNA0006<DNA0007//delete critters/other NPCs
+<WAI0020//wait for smoke to dissappear
+<FON0701:0001<WAI0002
+<FON0701:0200
+<MNP0701:0092:0007:0000
+<CNP0702:0292:0000//begin quake
+<FAI0004
+<WAI0040
+<CNP0711:0279:3013<WAI0064
+<CNP0712:0279:2013<WAI0064
+<CNP0713:0279:3013<WAI0032
+<FMU<WAI0032//we have to do this now because the island cutscene does not allow music
+<FAO0004
+<TRA0091:0200:0000:0000
+<END
+
+#0701
+//focus target NPC
+#0702
+//quake NPC
+
+
+#0711
+//block 1
+#0712
+//block 2
+#0713
+//block 3
+
+
+
+
+
+
+
+
+
+#1000
+//controller
+<KEY<ANP1001:0000:0001<FON1001:0016<NOD
+<ANP1001:0000:0000<MNP1001:0005:0002:0000<FOM0016<NOD<END
+
+#1001
+//RC block

@@ -1,0 +1,64 @@
+//Flag 6000 was set by me in the profile to see if <LFO works
+#0090
+<MNA<FAI0000<END
+#0091
+<MNA<FAI0001<END
+#0092
+<MNA<FAI0002<END
+#0093
+<MNA<FAI0003<END
+#0094
+<MNA<FAI0004<END
+
+//master init event
+#0100
+<KEY<LFO//loads the flags only
+<SCC0006//includes 0 (for start map)
+<FOX0001//enables FOXtype TSC
+<STP0003//Sets default typer speed to slightly faster
+<ATS0001Does Not Commute ~ CS Edition<ATS<RTN
+<WAI9999<END
+<FNJ4143:0101//if the core is beatten, load in the alternate table
+<SST0001
+<EVE0101
+
+#0101
+<FLJ4160:0105//if the demo room has been reached
+<FLJ4143:0104//if the Reactor Core has been beatten
+<FLJ4133:0103//if Toroko has been dosed (and is sitting on the table)
+<FLJ4114:0102//if the security boss has been beaten
+<TRA0072:0110:0001:0011//normal event
+
+
+#0102
+<KEY<ATS0001You should not be seeing this<ATS<RTN//sets title to 'space story'
+<TRA0101:2000:0092:0017//runs event in NegSecurity
+
+
+#0103
+<KEY<ATS0001You should not be seeing this<ATS<RTN//sets title to 'something'
+<TRA0107:2000:0024:0016//runs event in T4B observation deck
+
+#0104
+<KEY<ATS0001You should not be seeing this<ATS<RTN
+<SST0001//enable AltStageTable
+<TRA0091:0300:0000:0000
+
+#0105
+<KEY<ATS0001You should not be seeing this<ATS<RTN
+<TRA0091:0300:0000:0000
+
+#0110
+<KEY<MNA<WAI0050<FAI0001
+<ANP0300:0010:0000<WAI0097
+<ANP0300:0001:0000<WAI0050
+<ANP0300:0020:0000<WAI0064
+<ANP0300:0001:0000<WAI0016
+<ANP0300:0030:0000<WAI0050
+<ANP0300:0040:0000<WAI0097
+<FAO0001<WAI9999
+
+#0300
+
+
+

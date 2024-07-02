@@ -1,0 +1,155 @@
+#0090
+<MNA<FLJ0341:0095<CMU0019<FAI0000<FNJ4163:0100<END
+
+#0091
+<MNA<FLJ0341:0096<CMU0019<FAI0001<FNJ4163:0100<END
+
+#0092
+<MNA<FLJ0341:0097<CMU0019<FAI0002<FNJ4163:0100<END
+
+#0093
+<MNA<FLJ0341:0098<CMU0019<FAI0003<FNJ4163:0100<END
+
+#0094
+<MNA<FLJ0341:0099<CMU0019<FAI0004<FNJ4163:0100<END
+
+#0095
+<CMU0019<FAI0000<END
+
+#0096
+<CMU0019<FAI0001<END
+
+#0097
+<CMU0019<FAI0002<END
+
+#0098
+<CMU0019<FAI0003<END
+
+#0099
+<CMU0019<FAI0004<END
+
+
+#0100
+//start falling blocks/deleters
+<ANP0300:0140:1045//generator
+<ANP0302:0120:2063//2nd generator
+<ANP0301:0001:0279//deleter
+<ANP0303:0001:0279//2nd deleter
+<END
+
+
+#0110
+//control room door
+<KEY<SOU0011<ANP0110:0000:0002<FAO0004<TRA0118:0094:0006:0010
+
+
+#0111
+//MazeWBM door
+<KEY<FAO0004<TRA0119:0094:0004:0060
+
+
+#0200
+//unused
+
+#0201
+//H/V trigger (death if hit lasers)
+<KEY<HMC<CNP0201:0004:0001//hide user and make smoke
+<MTM0202:0000<CNP0202:0004:0000
+<MTM0203:0000<CNP0203:0004:0000
+<MTM0204:0000<CNP0204:0004:0000
+<MTM0205:0000<CNP0205:0004:0000
+<SOU0017<WAI0030<EVE0040//make death sound and go to event 40 (retry script)
+
+//extra smoke NPCs
+#0202
+#0203
+#0204
+#0205
+
+
+#0299
+//dir indicator (test event)
+<FAO0004<EVE0500
+
+
+<ANP0300:0100:1045//generator
+<ANP0302:0120:2063//2nd generator
+<ANP0301:0001:0279//deleter
+<ANP0303:0001:0279//2nd deleter
+<END
+
+#0300
+//block generator
+
+#0301
+//NPC deleter
+
+#0302
+//right block generator
+
+#0303
+//2nd NPC deleter
+
+#0400
+//shield disable event
+<MNP0503:0065:0030:0000<FON0503:0001//move camera target
+<WAI0010<FAI0004
+<WAI0050
+<SAS0012:0000:2000<CNP0504:0004:0000//smoke all lasers, trying custom sound here
+<WAI0050<FAO0004<TRA0118:0410:0011:0010
+
+
+
+#0500
+//entry event
+<CMU0000<HMC<MOV0009:0009<KEY
+<MSG!!<NOD<CLR.....<NOD<CLRYou hit the ground.<NOD<CLR
+It's......moving?<NOD<CLO
+<MNP0501:0009:0009:0000
+<CNP0501:0150:0000
+<ANP0501:0201:0002//make quote, move him to the conveyor, and splat him
+<FON0501:0016
+<FAI0004
+<WAI0100
+<ANP0502:0002:1045//make big block (only this NPC can create falling blocks that stay put when done falling (it calls the count4 variable)
+<WAI0001
+<ANP0502:0000:0000
+<ANP0301:0001:0279//start deleter
+<ANP0303:0001:0279//2nd deleter
+<FON0503:0016<WAI0200//watch block fall
+<MNP0503:0062:0030:0000
+<ANP0300:0140:1045//start generators
+<ANP0302:0120:2063//2nd generator
+<WAI0045
+<SAS0012:0000:1000//block explodes
+<WAI0105
+<FON0501:0016//back to quote
+<WAI0050
+<MTN0501:0002//move PC to quote, delete quote, and show PC
+<DNP0501<SMC<FOM0016<CMU0018
+<END
+
+
+#0501
+//quote NPC
+
+#0502
+//Falling Block
+
+#0503
+//camera Target
+
+#0504
+//laser grid lasers
+
+
+
+#0550
+//standing blue robot
+<KEY<MSGOh, so that barrier's finally
+been turned off?<NOD<CLRAh... It's not like
+I can get up there, anyhow.<NOD<END
+
+
+
+

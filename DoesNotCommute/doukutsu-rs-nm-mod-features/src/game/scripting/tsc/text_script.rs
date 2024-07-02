@@ -229,7 +229,8 @@ impl Not for ConfirmSelection {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+//#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TextScriptExecutionState {
     Ended,
     Running(u16, u32),
@@ -245,6 +246,8 @@ pub enum TextScriptExecutionState {
     SaveProfile(u16, u32),
     LoadProfile,
     Reset,
+    SaveProfileName(RefCell<u32>, u16, u32),
+    //LoadProfileName(, u16, u32),
 }
 
 #[derive(PartialEq, Copy, Clone)]
@@ -2066,6 +2069,22 @@ impl TextScriptVM {
                 game_scene.lighting_mode = game_scene.background.cache_background_lighting;
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
+            TSCOpCode::SVM => {
+
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string(&mut cursor, len).unwrap();
+
+                exec_state = TextScriptExecutionState::SaveProfile(event, cursor.position() as u32);
+            }
+            TSCOpCode::LDM => {
+
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string(&mut cursor, len).unwrap();
+
+                exec_state = TextScriptExecutionState::LoadProfile;
+            }
+
+
 
 
         

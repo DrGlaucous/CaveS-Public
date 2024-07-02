@@ -1,0 +1,84 @@
+#0090
+<FLJ4105:0095<MNA<CMU0030<FAI0000<END //changes music based on a flag change
+#0091
+<FLJ4105:0096<MNA<CMU0030<FAI0001<END
+#0092
+<FLJ4105:0097<MNA<CMU0030<FAI0002<END
+#0093
+<FLJ4105:0098<MNA<CMU0030<FAI0003<END
+#0094
+<FLJ4105:0099<MNA<CMU0030<FAI0004<END
+
+#0095
+<MNA<CMU0030<FAI0000<END
+#0096
+<MNA<CMU0030<FAI0001<END
+#0097
+<MNA<CMU0030<FAI0002<END
+#0098
+<MNA<CMU0030<FAI0003<END
+#0099
+<MNA<CMU0030<FAI0004<END
+
+
+#0100
+//APSDoor
+<KEY<SOU0011<CNP0100:0000:0000<FAO0004<TRA0106:0094:0010:0015//this takes you to APscience
+
+
+
+#0200
+//h/v trigger that turns on the screen
+<DNP0200
+<ANP0201:0000:0042//top
+<ANP0202:0000:0043//bottom
+<END
+
+#0201
+//top uniNPC
+
+#0202
+//bottom uniNPC
+<KEY<MSG<TURCrew Member Log: UCD 3235.9:<NOD
+Finished transferring my notes to
+paper.<NOD<CLROld school, I know, but this
+guarantees the existence of my work
+in the face of electronic failure.<NOD<CLRBesides, I can use it as an excuse
+to break out my old bookshelf.<NOD<END
+
+#0203
+//Chest with Elec Therapy
+<FLJ4132:0001//if the PC already has opened the chest
+<FL+4132//chest has been opened
+<KEY<CNP0203:0021:0000//change to opened chest
+<GIT0014<AM+0014:0100
+<CMU0010<MS3Got the =Electric Therapy=!<WAI0160<NOD<RMU<CLRThis is Nathan Skyley's
+back scratcher/defense weapon.<NOD<CLR<MS3It will target anything that can
+be shot, though it runs out
+of charge quite quickly.<NOD<END
+
+
+
+
+
+#0210
+//left shelf
+<KEY<MS3Various records line the shelf,
+though none strike you as
+particularly useful.<NOD<END
+
+#0211
+//right shelf
+<FLJ4131:0212
+<KEY<MS3On the top shelf,
+you find a file
+labeled "Project Colonite".<NOD<CLR
+Will you take it?<YNJ0000<CLR<IT+0041<GIT1041Got =Skyley's Notes=.<FL+4131<NOD<GIT0000<END
+
+#0212
+//if you already took the notebook
+<KEY<MS3There is nothing else of
+interest on this shelf.<NOD<END
+
+
+

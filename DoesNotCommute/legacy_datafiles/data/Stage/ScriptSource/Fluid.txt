@@ -1,0 +1,243 @@
+#0090
+<MNA<CMU0038<SSS0400<FAI0000<END
+#0091
+<MNA<CMU0038<SSS0400<FAI0001<END
+#0092
+<MNA<CMU0038<SSS0400<FAI0002<END
+#0093
+<MNA<CMU0038<SSS0400<FAI0003<END
+#0094
+<FNJ4154:0096//if you do NOT have the waterjet
+<MNA<CMU0038<SSS0400<FAI0004<END
+
+#0095
+<CMU0038<FAI0000<END
+
+#0096
+<MMP0044:0008:0155
+<MMP0044:0009:0171
+<MNA<CMU0038<SSS0400<FAI0004<END
+
+
+#0110
+//takes you to ractor airlock
+<KEY<CSS<FAO0004<TRA0046:0094:0009:0009
+
+
+#0200
+//scuba gear panel
+<FLJ4154:0201
+<KEY<MSGThe baseplate reads:<WAI0010<TUR
+PIPELINE MAINTENANCE SCUBA GEAR<NOD<CLR<MSGDo you want to take a set?<YNJ0000<CLO
+<WAI0010
+<MMP0044:0008:0156
+<MMP0044:0009:0172
+<WAI0020<MSG
+<IT+0042<GIT1042Got the Personal Waterjet<NOD<CLR
+<IT+0021<GIT1021Got the Air Tank<NOD<GIT0000<CLO
+<EQ+0528
+<FL+4150//eq waterjet
+<FL+4154//have collected items (for <MMP)
+<END
+
+#0201
+<KEY<MSGThe baseplate reads:<WAI0010<TUR
+PIPELINE MAINTENANCE SCUBA GEAR<NOD<CLR<MSGYou already have a set of these
+items.<NOD<END
+
+#0202
+<KEY<MSGThis set of gear is missing.<NOD<END
+
+
+#0300
+//default event is galc of you went back to MazeI
+//computer in the lobby
+<FLJ4155:0303//Cyndrillica Co.
+<FNJ4161:0301//goto normal event if you did NOT go back to MazeI
+<FLJ4162:0301//skips this if you already experienced it.
+<KEY<MSG<MTS0118<FAC0044Well, THERE you are.<FC+<NOD<CLR<FAC0041It would have been
+much easier just to come
+this way to start...<NOD<CLR<FAC0043Please, no more
+unnecessary diversions,<WAI0010 ok?<NOD<FL+4162<EVE0301
+
+
+
+#0301
+<FLJ4154:0302//galc if you have the gear
+<KEY<MSG<MTS0118<FAC0039Beyond this gate is
+the EE11's water supply
+channels.<FC+<NOD<CLR<FAC0041I suggest you go grab a set
+of SCUBA gear before you
+continue.<NOD<CLR<FAC0040Tha<FAC0043t is unless, of course,
+you prefer to drown
+in a giant pit of water...<NOD<CLR
+<FAC0044No.<NOD<CLR<FAC0039Go get suited up first
+before I let you in.<FC-<NOD<CLO<END
+
+
+
+
+#0302
+<KEY<MSG<MTS0118<FAC0041Have a set of SCUBA gear?<FC+<WAI0030
+<FAC0043Excellent.<NOD<CLRThat pack and tank should
+make transversing the
+pipeline a breeze.<NOD<CLR<FAC0041Try to head down to the
+lower access entrance.<NOD<CLR<FAC0039That should spit
+you out right next to our
+<FAC0043robot repair ward.<FC-<NOD<CLO
+<ANP0310:0010:0001//open shutters
+<WAI0160
+<ANP0310:0001:0001//halt shutters (case 0 is init only: it offsets the shutters)
+<WAI0030
+<FL+4155
+<END
+
+
+#0303
+//Galc not at monitor
+<KEY<MSG<FAC0037<TURCyndrillica Co.<NOD<END
+
+
+#0310
+//1st shutter
+
+
+
+
+#0311
+//Mini shutter Computer
+<KEY
+<FLJ4156:0330//shutter already open
+<MSG<FAC0046<TURShutter Status:<WAI0020
+Closed.<NOD<FAC0000<MSG
+Do you want to open the shutter?<YNJ0000<CLO
+<FON0312:0020<WAI0040
+<ANP0312:0010:0001//open shutter
+<ANP0313:0010:0001//open shutter
+<WAI0160
+<ANP0312:0001:0001//halt shutter (case 0 is init only: it offsets the shutters)
+<ANP0313:0001:0001
+<WAI0030<FOM0016
+<FL+4156//event over
+<END
+
+#0312
+//Mini shutter
+#0313
+//Mini shutter
+
+
+
+
+#0314
+//Lower shutter PC
+<KEY
+<FLJ4157:0330//shutter already open
+<MSG<FAC0046<TURShutter Status:<WAI0020
+Closed.<NOD<FAC0000<MSG
+Do you want to open the shutter?<YNJ0000<CLO
+<FON0315:0020<WAI0040
+<ANP0315:0010:0001//open shutter
+<WAI0160
+<ANP0315:0001:0001//halt shutter (case 0 is init only: it offsets the shutters)
+<WAI0030<FOM0016
+<FL+4157//event over
+<END
+
+#0315
+//lowermost shutter
+
+
+
+
+
+
+#0316
+//current shutter PC
+<KEY
+<FLJ4158:0330//shutter already open
+<MSG<FAC0046<TURShutter Status:<WAI0020
+Closed.<NOD<FAC0000<MSG
+Do you want to open the shutter?<YNJ0000<CLO
+<FON0317:0020<WAI0040
+<ANP0317:0010:0001//open shutter
+<WAI0160
+<ANP0317:0001:0001//halt shutter (case 0 is init only: it offsets the shutters)
+<WAI0030<FOM0016
+<FL+4158//event over
+<END
+
+#0317
+//current shutter
+
+
+#0318
+//Room PC
+<KEY
+<FLJ4159:0330//shutter already open
+<MSG<FAC0046<TURShutter Status:<WAI0020
+Closed.<NOD<FAC0000<MSG
+Do you want to open the shutter?<YNJ0000<CLO
+<FON0319:0020<WAI0040
+<ANP0319:0010:0001//open shutter
+<WAI0160
+<ANP0319:0001:0001//halt shutter (case 0 is init only: it offsets the shutters)
+<WAI0030<FOM0016
+<FL+4159//event over
+<END
+
+#0319
+//air tank shutter
+
+
+
+
+#0330
+//terminal (if event is over)
+<KEY<MSG<FAC0046<TURShutter Status:<WAI0020
+Open.<NOD<END
+
+
+
+
+
+#0400
+//tip sign
+<KEY<MSG<TURTip:<WAI0020
+Press the jump key repeatedly
+to overcome the current.<NOD<END
+
+
+
+#0500
+//trigger that takes you to stream (boss)
+<KEY<FON0502:0016<WAI0010<FAO0000<FOM0016<FLJ0850:0501
+<FL+0850<MSG
+Something's coming!!<NOD<MYD0000<TRA0031:0092:0030:0008
+
+#0501
+//Go directly to destination
+<KEY<TRA0031:0092:0030:0008
+
+#0502
+//focus NPC
+
+
+
+//TEMP EVENTS
+#1100
+//TEMP EVENT: GOTO Stream entrance
+<EQ+0528
+<MOV0154:0049
+<END
+
+
+#2000
+//Key cube
+<KEY<ANP2001:0000:0001<FON2001:0016<NOD
+<ANP2001:0000:0000<MNP2001:0047:0006:0000<FOM0016<NOD<END
+
+#02001
+//RC block
+
+

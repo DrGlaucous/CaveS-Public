@@ -1,0 +1,119 @@
+#0090
+<MNA<FLJ0341:0095<CMU0019<FAI0000<END
+
+#0091
+<MNA<FLJ0341:0096<CMU0019<FAI0001<END
+
+#0092
+<MNA<FLJ0341:0097<CMU0019<FAI0002<END
+
+#0093
+<MNA<FLJ0341:0098<CMU0019<FAI0003<END
+
+#0094
+<MNA<FLJ0341:0099<CMU0019<FAI0004<END
+
+#0095
+<CMU0019<FAI0000<END
+
+#0096
+<CMU0019<FAI0001<END
+
+#0097
+<CMU0019<FAI0002<END
+
+#0098
+<CMU0019<FAI0003<END
+
+#0099
+<CMU0019<FAI0004<END
+
+
+
+
+#0110
+//control room door
+<KEY<SOU0011<ANP0110:0000:0002<FAO0004<TRA0117:0094:0100:0013
+
+
+
+//galc terminal
+#0402
+<KEY<FLJ0641:0403<MSG<MTS0118<FAC0037<WAI0020<FC+<FAC0038<WAI0020<FAC0043<MTS0118Oh, Hello!<FC+<NOD<CLR<FAC0041I did not expect to
+see you at THIS terminal...<NOD<CLR<FAC0042Hmm...<WAI0032<FAC0040 I <FAC0039see...<WAI0032<NOD<CLRYou are currently in the
+<FAC0041waste processing district.<NOD<CLR<FAC0039All of the ship's garbage
+is sent there <FAC0040to <FAC0039be refined
+before it is reclaimed.<NOD<CLR<FAC0043Guess how we reclaim it.<NOD
+<FAC0039We atomize it.<NOD
+<FAC0040In <FAC0043the reactor Core.<NOD<CLR<FAC0043They tried to stop
+your progress,<NOD but they
+unintentionally pushed
+you further.<NOD<CLR<FAC0041The reactor core is
+connected directly to the
+waste processing district.<NOD<CLR<FAC0042...Oh, right.<NOD<CLRThe laser grid is on
+down there,<FAC0039 isn't it?<NOD<CLRLet's turn that off now.<NOD<CLR<MTS0002<FAC0046<TURDisabling
+laser grid system...<FC-<NOD<CLO<FAC0000
+<FL+0641//LabI door is now open
+<FAO0004
+<HMC<TRA0117:0400:0075:0034
+//<FON0202:0064<WAI0150<SOU0043
+//<ANP0204:0010:0000<WAI0008<ANP0502:0000:0002
+//<ANP0205:0010:0002<WAI0028
+//<ANP0500:0000:0000<WAI0100
+//<DNP0204<DNP0205
+//<FOM0032<WAI0100
+//<FOM0016
+//<DNP0500<DNP0502<MYD0000<END
+
+#0403
+<FLJ4160:0404//if you are carrying curly, it goes to 404
+<KEY<MSG<MTS0118<FAC0039That<FC+ machine
+in the<FAC0041 next room?<NOD
+<FAC0039It serves the purpose
+of breaking <FAC0040the <FAC0039larger
+waste into small bits.<NOD<CLR<FAC0043Not really something
+you'd want to fall into
+while it's on.<FC-<NOD<END
+
+
+#0404
+<FLJ4162:0406
+<FLJ4161:0405
+<KEY<MSG<MTS0118<FAC0044WHY are you HERE?!<FC+<NOD<CLRI told you to go through
+the door I opened for you.<NOD<CLR<FAC0041And instead, you drug Curly
+all the way through the
+waste processing disctict.<NOD<CLR<FAC0039WHAT is your intention?!<NOD<CLR<FAC0040Thi<FAC0039s is a serious
+question.<WAI0015 I genuinely
+want to know.<NOD<CLRI cannot think of any
+logical reason why <FAC0044ANYONE
+would do what you just did.<NOD<CLR<FAC0039Please go the the reservoir.<NOD
+We need to get Curly fixed,
+and maybe you, too.<NOD<FL+4161<END
+
+#0405
+<KEY<MSG<MTS0118<FAC0044Go back to the 
+reservoir.<NOD<CLRWe can't do anything with
+you here.<NOD<END
+
+
+#0406
+<KEY<MSG<FSL0001<MTS0118<FAC0044.......................<FC+<NOD<CLR<FAC0040Ok,<FAC0044 clearly, you are doing
+this to get on my nerves.<NOD<CLRI have nothing
+more to say to you on this
+matter.<NOD<FSL0000<END
+
+
+
+#0410
+//return event after turning off lasers
+<KEY<SMC<FOM0016<MYD0003
+<FL+4163//lasers are gone
+<FAI0004
+<MSG<FAC0039<MTS0118Ok. That's done.<FC+<NOD<CLR<FAC0041Continue down the
+channel and you'll end
+up at the Reactor.<NOD<END
+
+
+
+
+

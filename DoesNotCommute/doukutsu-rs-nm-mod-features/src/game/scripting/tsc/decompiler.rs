@@ -156,6 +156,8 @@ impl TextScript {
                         }
                         // String code
                         TSCOpCode::BKG
+                        | TSCOpCode::SVM
+                        | TSCOpCode::LDM
                         => {
                             writeln!(&mut result, "{:?} (String-based code: Not trying to decompile...)", op).unwrap();
                         }

@@ -1,0 +1,114 @@
+#0000
+<END
+
+#0001
+<PRI<MSGEmpty.<NOD<END
+
+#0016
+<PRI<MSG
+Do you want to save?<YNJ0000<FL+0431<SVP<STM0000:0080<CLRGame saved.<NOD<END
+
+#0017
+<PRI<FLJ0201:0018
+<LI+1000<SOU0020<AE+<MSG
+Health refilled.<NOD<END
+#0018
+<PRI
+<LI+1000<SOU0020<AE+<MSG
+Health and missiles refilled.<NOD<END
+
+#0019
+<KEY<MSG
+Do you want to rest?<YNJ0000<FAO0004<CMU0000<WAI0020<CLR.....<NOD<CLO
+<WAI0050
+<LI+1000<SOU0020<MYD0002<MSG
+Health restored.<NOD<CLO<RMU<FAI0004<END
+
+#0030
+<PRI<FLJ0202:0032<FLJ0201:0031<FL+0201<GIT0005<AM+0005:0010
+<CMU0010Got the =Missile Launcher=!<WAI0160<NOD<RMU<CLRThe Missile Launcher is a powerful
+weapon, but its ammo is limited.<NOD
+You can replenish your stockpile
+with items dropped by enemies.<NOD<END
+#0031
+<PRI<AM+0005:0005<MSG
+<GIT0006Max missiles increased by <NUM0000!<NOD<END
+#0032
+<PRI<AM+0010:0005<MSG
+<GIT0011Max missiles increased by <NUM0000!<NOD<END
+
+#0040
+<KLC0000:0000//may be redundant, but I'll add it just to be safe
+<KEY<CMU0000<WAI0040<PRI<WAI0040<CMU0003
+<MSG
+You have died.<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<EVE0048<INI<END
+
+#0041
+<KLC0000:0000
+<KEY<CMU0000<HMC<WAI0040<PRI<WAI0040<CMU0003
+<MSG
+You have drowned.<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<EVE0048<INI<END
+
+#0042
+<KLC0000:0000
+<KEY<CMU0000<WAI0040<PRI<WAI0040<CMU0003
+<MSG<HMC
+You were never seen again...<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<EVE0048<INI<END
+
+
+#0043
+<KEY<CMU0000<WAI0040<PRI<WAI0040<CMU0003
+<MSG
+Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<EVE0048<INI<END
+
+
+#0048
+//decide what profile to load back
+<TCL0000:0000:0043//halt timer
+<FLJ7006:0056//got to EE10 security
+<FLJ7005:0055//got to EE10
+<FLJ7004:0054//got to oside
+<FLJ7003:0053//got to twinD
+<FLJ7002:0052//got to eggs
+<FLJ7001:0051//got to mimi
+<INI
+
+#0049
+<CLO<FAO0004<ESC
+
+#0050
+//Save load init script
+<KEY
+<MEJ1000:0120//commute cave(to mimi)
+<MEJ1000:0123//commute pens
+<MEJ1000:0122//commute eggs(to eggX)
+<MEJ2000:0124//commute eggX(to oside)
+<MEJ1000:0126//commute EE10
+<MEJ2000:0127//commute Security
+<FAI0004
+<END
+
+
+#0051
+//mimi
+<LDM0001
+#0052
+//eggs
+<LDM0002
+#0053
+//twinD
+<LDM0003
+#0054
+//oside
+<LDM0004
+#0055
+//EE10
+<LDM0005
+#0056
+//Security
+<LDM0006
+

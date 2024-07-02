@@ -1,0 +1,295 @@
+#0090
+<ANP0300:0200:0002//noGrav Toroko
+<ANP0301:0300:0002//noGrav King [the only reason this one is different is because I have already used case 200 for the T4B lift]
+<ANP0302:0200:0002//noGrav Sue
+<ANP0303:0200:0002//noGrav Kazuma
+<ANP0304:0200:0002//noGrav Booster
+<ANP0305:0200:0002//noGrav Curly
+<ANP0306:0002:0002//Flip Mahin
+<FLJ4105:0095<MNA<CMU0002<FAI0000<END //changes music based on a flag change
+#0091
+<ANP0300:0200:0002//noGrav Toroko
+<ANP0301:0300:0002//noGrav King [the only reason this one is different is because I have already used case 200 for the T4B lift]
+<ANP0302:0200:0002//noGrav Sue
+<ANP0303:0200:0002//noGrav Kazuma
+<ANP0304:0200:0002//noGrav Booster
+<ANP0305:0200:0002//noGrav Curly
+<ANP0306:0002:0002//Flip Mahin
+<FLJ4105:0096<MNA<CMU0002<FAI0001<END
+#0092
+<ANP0300:0200:0002//noGrav Toroko
+<ANP0301:0300:0002//noGrav King [the only reason this one is different is because I have already used case 200 for the T4B lift]
+<ANP0302:0200:0002//noGrav Sue
+<ANP0303:0200:0002//noGrav Kazuma
+<ANP0304:0200:0002//noGrav Booster
+<ANP0305:0200:0002//noGrav Curly
+<ANP0306:0002:0002//Flip Mahin
+<FLJ4105:0097<MNA<CMU0002<FAI0002<END
+#0093
+<ANP0300:0200:0002//noGrav Toroko
+<ANP0301:0300:0002//noGrav King [the only reason this one is different is because I have already used case 200 for the T4B lift]
+<ANP0302:0200:0002//noGrav Sue
+<ANP0303:0200:0002//noGrav Kazuma
+<ANP0304:0200:0002//noGrav Booster
+<ANP0305:0200:0002//noGrav Curly
+<ANP0306:0002:0002//Flip Mahin
+<FLJ4105:0098<MNA<CMU0002<FAI0003<END
+#0094
+<ANP0300:0200:0002//noGrav Toroko
+<ANP0301:0300:0002//noGrav King [the only reason this one is different is because I have already used case 200 for the T4B lift]
+<ANP0302:0200:0002//noGrav Sue
+<ANP0303:0200:0002//noGrav Kazuma
+<ANP0304:0200:0002//noGrav Booster
+<ANP0305:0200:0002//noGrav Curly
+<ANP0306:0002:0002//Flip Mahin
+<FLJ4105:0099<MNA<CMU0002<FAI0004<END
+
+#0095
+<MNA<CMU0002<FAI0000<END
+#0096
+<MNA<CMU0002<FAI0001<END
+#0097
+<MNA<CMU0002<FAI0002<END
+#0098
+<MNA<CMU0002<FAI0003<END
+#0099
+<MNA<CMU0002<FAI0004<END
+
+
+
+#0150
+//APSci Door
+<KEY<CNP0150:0000:0000<SOU0011<FAO0002
+<TRA0106:0094:0107:0040
+
+//Entities we need to "fix"
+//King 61, Toroko 60, Sue 42, Booster 113, Kazuma 55, Curly 117
+#0200
+//setup NPCs
+<CMU0000
+<ANP0300:0200:0002//noGrav Toroko
+<ANP0301:0300:0002//noGrav King [the only reason this one is different is because I have already used case 200 for the T4B lift]
+<ANP0302:0200:0002//noGrav Sue
+<ANP0303:0200:0002//noGrav Kazuma
+<ANP0304:0200:0002//noGrav Booster
+<ANP0305:0200:0002//noGrav Curly
+<ANP0306:0002:0002//Flip Mahin
+<END
+
+
+#0300
+//Toroko
+<KEY<MSG<MTS0122<FAC0006The Doctor did
+THAT to me!?<NOD<CLRThank goodness that's only
+a movie, right?<WAI0020 ...right?<NOD<END
+
+
+#0301
+//King
+<KEY<MSG<MTS0123<FAC0007What vile enemies...<FC+<NOD
+<FAC0047The nerve of them
+to exploit us like this.<NOD<CLRAt least we were
+able to save Toroko,
+though.<NOD<CLR<FAC0007I couldn't imagine
+what would happen if we
+didn't...<NOD<END
+
+#0302
+//Sue
+<KEY<MSG<MTS0119<FAC0003What was that?<FC+<NOD<CLR<FAC0002This entire demo and
+I didn't even get
+a mention.<NOD<CLR<FAC0001How are we gonna
+get off this island<WAI0020
+...er ship<WAI0010 anyhow?<NOD<END
+
+#0303
+//Kazuma
+<KEY<MSG<MTS0125<FAC0010You know I didn't mean
+to break that
+teleporter, right?<NOD<CLR...Because that demo made
+it look alot like
+it was my fault...<NOD<CLO<FAC0000
+<WAI0030
+<ANP0304:0200:0000//flip booster
+<WAI0030<MSG<MTS0126<FAC0018Ah, but is that really
+the demo's fault?<NOD<CLR<MTS0125<FAC0010Yes!<NOD<CLO
+<ANP0304:0200:0002
+<END
+
+
+#0304
+//Booster
+<KEY<MSG<MTS0126<FAC0018An interesting concept...<NOD<CLRI would love to see how
+it plays out.<NOD<END
+
+#0305
+//Curly
+<KEY<MS3<MTS0120<FAC0019What an adventure!<FC+<NOD<CLR<FAC0048I can't wait for the
+rest!<NOD<END
+
+#0306
+//Mahin
+<KEY<MS3<MTS0124I think I'm all out of popcorn.<NOD<CLR...Oh, don't get me wrong,
+that story was excellent.<NOD<CLROf course,<WAI0020 it would have
+been better,<WAI0020 if I hadn't run
+out of popcorn.<NOD<END
+
+#0307
+//Chitulu
+<KEY<MSGOdd film...<NOD<CLRI'll bet if I tried,
+I could find at least 2
+gaping plot holes in it.<NOD<CLROf course, its not
+worth my time to do that.<NOD<END
+
+#0308
+//Chaco
+<KEY<MSG<MTS0124Oh, wow!<NOD Such heroics!<WAI0010
+Such action!<WAI0010 Such adventure!<NOD<CLRI hope that silver fellow
+finishes it soon!<NOD<END
+
+#0309
+//Balrog
+<KEY<MSG<MTS0121<FAC0005The only thing I don't
+like about it...<NOD<CLRWHY am I depicted
+so weakly?<NOD
+If I weren't so angered, I
+would bust a hole in this
+roof and fly out!<NOD<END
+
+#0310
+//Dr
+<KEY<MSG<MTS0129<FAC0021A spaceship full of
+powerful and dangerous
+weapons...<NOD<CLRHm-hm-hmm...<NOD<END
+
+#0311
+//Momorin
+<KEY<MSG<MTS0125<FAC0022How considerate of you
+to help that
+other fellow out.<FC+<NOD<CLR<FAC0054It's amazing how
+far a little bit of
+kindness can get you.<NOD<END
+
+#0312
+//Santa
+<KEY<MSG<MTS0124So we've been living
+in a giant spaceship.<NOD<CLRI hope this doesn't
+mean I have to move again...<NOD<END
+
+
+#0313
+//Misery
+<KEY<MSG<MTS0128<FAC0015What did I think, you ask?<NOD<CLRWell...<FC+<WAI0020<FAC0026 I couldn't really
+see it sitting behind this
+oaf the whole time!<NOD<END
+
+
+#0398
+//credit event
+<SOU0047
+<DNP0420<DNP0310<DNP0309<DNP0308<DNP0307<DNP0306<DNP0305<DNP0304<DNP0303<DNP0302<DNP0301<DNP0300
+<FMU<WAI0060
+<FAO0002
+<ATS0003The Credits (The best part)<ATS<RTN
+<TRA0000:0100:0001:0015//goto credits
+
+
+
+
+
+#0399
+//quote TSC [also chair entity]
+<KEY<MS3Do you want to return to your
+seat and watch the credits?<YNJ0000<CLO
+<WAI0020
+<HMC<CNP0399:0150:0002<WAI0040
+<FON0420:0016<WAI0020
+<MS3<MTS0127<FAC0030All right, then.<NOD<CLRLet's roll
+the credits!<NOD<CLO<WAI0030<SST0000<TRF9999:0398//credit event (look up)
+
+
+#0400
+//entry
+<CMU0000
+<KEY<MSGWhat happened next?<NOD<CLRDid our hero save Curly,
+beat the Doctor, and help
+Galcota fix his ship?<NOD<CLRStay tuned to find out!<NOD<CLO
+<MTN0399:0002<HMC//move and hide character
+<SST0000<TRF0105:0401<TRA0105:0401:0034:0017
+
+#0401
+<FON0420:0001//focus on Galc
+<WAI0001<FON0420:0016
+<DNP0420<DNP0310<DNP0309<DNP0308<DNP0307<DNP0306<DNP0305<DNP0304<DNP0303<DNP0302<DNP0301<DNP0300
+<FAI0002<WAI0060<SST0001
+<TRF9999:0402<END
+
+
+#0402
+//setup NPCs
+<CMU0000
+<ANP0300:0200:0002//noGrav Toroko
+<ANP0301:0300:0002//noGrav King [the only reason this one is different is because I have already used case 200 for the T4B lift]
+<ANP0302:0200:0002//noGrav Sue
+<ANP0303:0200:0002//noGrav Kazuma
+<ANP0304:0200:0002//noGrav Booster
+<ANP0305:0200:0002//noGrav Curly
+<ANP0306:0002:0002//Flip Mahin
+<CNP0399:0150:0002//spawn quote
+<SOU0047
+<WAI0048
+//Galcota Intro
+<KEY<MS3<MTS0127<FAC0030...And so that's that.<FC+<NOD<CLR<FAC0032You've<FAC0030 reached the end of
+our little demo.<NOD<CLR<FAC0034Don't worry, more is
+yet to come.<NOD<CLR<FAC0030Of course, I would hate
+to develop a complete mod
+and not get any feedback.<NOD<CLRThat's why you're all
+here, in this theatre,
+experiencing this story.<NOD<CLRSo.<NOD How did we do?<NOD
+Now's your chance to
+influence the outcome
+of this game.<NOD<CLO
+<CNP0399:0382:0000<MTN0399:0002<SMC//show quote
+<FL+4160//demo title screen and other things
+<ATS0004CS Plotbomb ~ DEMO 1<ATS<RTN//demo bannertext
+<FOM0016
+<CMU0002
+<END
+
+
+#0420
+//GalcTSC
+<KEY<MS3<MTS0127<FAC0030I hope you liked what
+you saw.<FC+<NOD<CLR<FAC0032A lot<FAC0034 of effort
+went into making it
+that way.<NOD<CLR<FAC0030If you want to watch the
+credits, just return to
+your seat.<NOD<CLR<FAC0032I'll<FAC0030 fire them up
+when you're ready.<NOD<END
+
+
+#0500
+//lower door
+<KEY<MS3This door will take you to the
+unfinished sections of the mod.<NOD<CLR
+Do you wish to proceed?<YNJ0000
+<CNP0500:0000:0000<SOU0011<FAO0004
+<TRA0115:0410:0016:0012//travel to the reservoir
+<END
+
+#3000
+//testCredit Door
+<KEY<CNP3000:0000:0000<SOU0011<CRE
+<MSG<SIL0001Test action...<NOD<CLRLet's try to turn it off.<NOD<CLR<CRXIs it off?<NOD
+<END
+
+
+#4000
+//test event
+<KEY<MSGTest<NOD<FAO0004<TRA0105:0400:0003:0005
+<END
+
+
+
+
+

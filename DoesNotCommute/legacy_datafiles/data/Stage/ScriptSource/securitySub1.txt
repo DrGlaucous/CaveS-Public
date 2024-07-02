@@ -1,0 +1,207 @@
+#0090
+<FON0100:0016//lock to the door NPC
+<FLJ4105:0095<MNA<CMU0023<FAI0000<END //changes music based on a flag change
+#0091
+<FON0100:0016//lock to the door NPC
+<FLJ4105:0096<MNA<CMU0023<FAI0001<END
+#0092
+<FON0100:0016//lock to the door NPC
+<FLJ4105:0097<MNA<CMU0023<FAI0002<END
+#0093
+<FON0100:0016//lock to the door NPC
+<FLJ4105:0098<MNA<CMU0023<FAI0003<END
+#0094
+<FON0100:0016//lock to the door NPC
+<FLJ4105:0099<MNA<CMU0023<FAI0004<END
+
+#0095
+<MNA<CMU0019<FAI0000<END
+#009
+<MNA<CMU0019<FAI0001<END
+#0097
+<MNA<CMU0019<FAI0002<END
+#0098
+<MNA<CMU0019<FAI0003<END
+#0099
+<MNA<CMU0019<FAI0004<END
+
+
+#0100
+<KEY<SOU0011<CNP0100:0000:0000<FAO0004<FOM0016<TRA0101:0094:0056:0022 //this takes you to the TP hall
+
+
+
+#0110
+//computer that lets you go to the testing area
+<KEY<MSG<TURDeveloper Message:<NOD
+Do you want to see where I test
+ingame mechanics?<YNJ0000<FOM0016
+<MMP0017:0008:0002//create hole in the wall
+<MMP0018:0008:0002
+<MMP0019:0008:0002
+<MMP0020:0008:0002<END
+
+#0111
+//save load script (locks camera to NPC)
+////<DNP0111//delete HV trigger
+//<FON0100:0016//lock camera to the door NPC
+<END
+
+#0150
+<KEY<MSGPre-live state<BOA0008<NOD<CLRShields on.<BOA0010<NODHot!<BOA0012<NOD<BSL0000<END
+
+
+#0151
+<KEY<MTS0124<MSGThis is Test 1:<NOD<CLR<MSG<MTS0118Running TMS:<NOD
+<TMS0102:0000:0118:0012:9999:9999:0002:0031:9999:9999:0000//right now, this command changes the background to green rock + scroll
+
+
+
+#0200
+//Key cube
+<KEY<ANP0201:0000:0001<FON0201:0016
+
+<ANP0403:0050:0000//generator
+<ANP0404:0001:0279//deleter
+
+<NOD
+<ANP0201:0000:0000<MNP0201:0036:0010:0000<FOM0016
+
+<ANP0403:0000:0000
+<ANP0404:0000:0000
+<NOD<END
+
+#0201
+//RC block
+
+#0300
+<KEYWhat does it sound like?
+This is an =MTS=
+TSC command test:<NOD<CLR<MTS0118<FAC0039<MSGNow is the time for all
+good men to come to the
+aid of their country.<NOD<CLR<MTS0127<FAC0031Now is the time for all
+good men to come to the
+aid of their country.<NOD<CLR<FAC0001Now is the time for all
+good men to come to the
+aid of their country.<NOD<CLR<FAC0007Now is the time for all
+good men to come to the
+aid of their country.<NOD<CLR<FAC0005Now is the time for all
+good men to come to the
+aid of their country.<NOD<CLR<FAC0039Now is the time for all
+good men to come to the
+aid of their country.<NOD<CLR
+
+
+<END
+
+
+
+#0400
+<KEY<MSG<TURHow well does this work?<NOD<CLRHow about
+with multiple
+lines?<NOD<CLRWith Yes/No jumps?<YNJ0401<EVE0401
+
+#0401
+<KEY<MSG<FC+<FAC0031<TURWhat happens when we
+get a face?<NODOr a NOD
+midway?<NOD<CLR
+Does it all work?<NOD<CLR<FAC0039This is a large section
+<FAC0007with face switches
+<FAC0030at each line.<NOD<CLR
+do they all work?<NOD<CLRLet's try more midway nods<NOD I think that these overlap<NOD
+But these don't...<NOD
+What if we put all of the TSC<NOD<CLRWhat if we put all of the TSC
+within a While Statement?<NOD<CLR
+Hmm...<NOD<CLR<END
+
+
+
+#0403
+//block generator
+#0404
+//deleter
+
+#0500
+<KEY<MSGStarting Noise...<NOD<CLR<SAS0100:0001:0000//start sound loop
+<NODStopping Noise...<NOD<CLR<SAS0100:0002:0000//stop sound loop
+<NODStarting it faster...<NOD<CLR<SAS0100:0001:6000
+<NODStopping Noise...<NOD<CLR<SAS0100:0002:0000//stop sound loop
+<NODStarting it slower...<NOD<CLR<SAS0100:0001:0100
+<NODStopping Noise...<NOD<CLR<SAS0100:0002:0000//stop sound loop
+<NODStarting it 1x...<NOD<CLR<SAS0100:0000:0000
+<NODStopping Noise...<NOD<CLR<SAS0100:0002:0000//stop sound loop
+<END
+
+
+
+<KEY<MSGSome classic text displayed
+on your screen...<NOD<CLRNow is the time for all
+good men to come to the
+aid of their country<NOD<CLR<STP0000Now is the time for all
+good men to come to the
+aid of their country<NOD<CLR<STP0003<FSL0001Now is the time for all
+good men to come to the
+aid of their country<NOD<CLR<STP0003<END
+
+
+
+
+#0600
+//TEST recording keystrokes
+<MOV0101:0012
+<AM+0015:0000
+<KEY<MS3Starting Keylogging...<NOD<CLO
+<KLC0002:0001//reset file and begin logging
+<END
+
+
+
+#0601
+//stop
+<KEY<MS3Stopping Keylogging...<NOD<CLO
+<KLC0000:0001
+<END
+
+
+#0650
+//TEST recording keystrokes
+<KEY<MS3Starting Playback...<NOD<CLO
+<MNP0700:0101:0012:0002//move to start
+<NEQ0700:0001:0044//equip NPC with User's items
+<NAM0700:0000:0002:0000//give the NPC some guns
+<NAM0700:0001:0005:0000
+<NAM0700:0002:0003:0000
+<NAM0700:0003:0007:0100
+<NAM0700:0004:0014:0100
+<NAM0700:0005:0015:0000
+<WAI0001
+<KRC0700:0002:0001//reset reader and begin callback
+<FRE
+<END
+
+
+#0700
+//FakeChar
+
+
+#0800
+//TEST countdown timer
+<AM+0015:0000
+<EQ+1024
+<TCL0001:0020:0801
+<TRF0102:0000
+<END
+
+#0801
+<KEY<MS3Out of time.<NOD<END
+
+
+
+#1000
+<KEY<BOA0003<MS3Boss defeated<NOD<CLRSetting to case 5 (G takeover)<NOD<BOA0005<END
+
+
+
+
+
+

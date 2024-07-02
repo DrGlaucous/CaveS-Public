@@ -1,0 +1,144 @@
+
+#0090
+<MNA<CMU0002<FAI0000<END
+#0091
+<MNA<CMU0002<FAI0001<END
+#0092
+<MNA<CMU0002<FAI0002<END
+#0093
+<MNA<CMU0002<FAI0003<END
+#0094
+<MNA<CMU0002<FAI0004<END
+
+
+
+
+#0100
+<KEY<SOU0011<ANP0100:0000:0002<FAO0000<MYD0000
+<FLJ0703:0101
+<TRA0119:0094:0027:0016
+#0101
+<FL+0704<TRA0119:0094:0027:0016
+
+#0105
+<KEY<SOU0011<ANP0105:0000:0002<FAO0004<TRA0119:0094:0032:0012
+
+#0200
+<KEY<MSGThe mysterious robot,
+Monster X...<NOD
+Your chance to attack
+is when its hatch opens.<NOD<END
+
+
+#0300
+<KEY<MSGI'm a physician.<NOD
+Here, let me refill your health.<NOD<CLO<LI+1000<SOU0020
+<FLJ4146:0305//if you have curly
+<FLJ0704:0304
+<FLJ0702:0303
+<ITJ0016:0302
+<FLJ0700:0301<FL+0700<WAI0050
+<MSGNo, no, no charge, don't worry.<NOD<CLRIn return, though, there's
+something I'd like to ask of you.<NOD<CLRThere's an old clinic near here.<NOD
+Go and see if there isn't
+any medicine left in there.<NOD<CLR
+<GIT1017<IT+0017Got the =Clinic Key=.<NOD<GIT0000<END
+#0301
+<KEY<MSGThe clinic isn't too far.<NOD
+Go look for some medicine that
+looks usable.<NOD<END
+#0302
+<KEY<MSG<IT-0016<FL+0702
+<GIT1016Handed over the =Cure-All=.<NOD<CLR<GIT0000Oh, you found it!<NOD
+Thank you.<NOD
+Just let me handle the rest.<NOD<END
+#0303
+<KEY<MSGThank you.<NOD
+Just let me handle the rest.<NOD<END
+#0304
+<KEY<MSGLooks like the medicine's
+working.<NOD
+She'll be back in action in
+no time.<NOD
+All thanks to you, of course.<NOD<END
+#0305
+<KEY<MSGOh, what happened to
+her?<NOD<CLRI'm afraid that type
+of damage is a bit beyond
+my skill level.<NOD<CLR-And we used
+up the last of the =Cure-All=, too.<NOD<END
+
+#0310
+<FLJ4146:0314//have curly on back
+<FLJ0704:0313
+<FLJ0702:0312
+<FLJ0701:0311
+<KEY<MSGI'm a nurse.<NOD
+I used to work in the old
+clinic nearby,<NOD
+but it was seized by ghosts,
+and I fled here.<NOD<END
+#0311
+<KEY<MSGAre you a friend of hers?<NOD
+If you care about her, I'd
+advise you to do as the doctor
+says.<NOD<END
+#0312
+<KEY<MSGGood job.<NOD
+You didn't see any ghosts,
+did you?<NOD<END
+#0313
+<KEY<MSGOh, did you come to check
+up on that girl?<NOD<CLRShe went off towards the
+"Boulder Chamber".<NOD<END
+#0314
+<KEY<MSGShe looks terrible.<NOD
+What did that?<NOD
+Was it ghosts?<NOD<END
+
+#0320
+<FLJ0702:0322
+<FLJ0701:0321<FL+0701
+<KEY<MSG<MTS0120<FAC0019Oh, hey!<FC+<NOD<CLRHaven't seen YOU in
+a while.<NOD
+You're looking good!<NOD<CLR<FAC0020I'm kicking myself
+for not fighting back
+sooner.<NOD<CLR<FAC0049That witch
+teleported us too fast.<NOD<CLR<FAC0050I shudder to think what
+that she's done with
+those children.<NOD<CLRA<FAC0049t least you made it
+in one piece.<NOD<FAC0020
+I was not so lucky.<NOD<CLRI was nearly ground
+to a pulp the second I
+arrived.<NOD<CLR<FAC0050I'm just glad that
+doctor was able to find me.<NOD<CLREven then,<NOD<FAC0020
+the shape I'm in now,
+I won't be leaving
+anytime soon...<FC-<NOD<END
+
+#0321
+<KEY<MSG<MTS0120<FAC0049I <FC+survived, yeah, but
+now what?<NOD<CLR<FAC0020Guess I'm just going
+to sit here and rot...<FC-<NOD<END
+
+#0322
+<KEY<MSG<MTS0120<FAC0025So this is the legendary
+Labyrinth.<FC+<NOD<CLR<FAC0049Waste processing, huh?<NOD
+That makes sense.<NOD<FAC0048
+It really IS the trash
+heap of the island, then.<NOD<CLR<FAC0025As far as I know,
+there's only one way out.<NOD
+You have to get past
+the giant rock in the
+Boulder Chamber.<NOD<CLR<FAC0050I'd go with you,<NOD<FAC0049
+but with the state I'm
+in, I'd just get in
+your way...<NOD<FL+0760<FL+0703<FC-<END
+
+
+
+#0400
+<KEY<FLJ0705:0001<FL+0705<SOU0022<CNP0400:0021:0000
+<MSGOpened the treasure chest.<NOD<GIT1019<IT+0019<EQ+0004<CLR
+<CMU0010Got the =Arms Barrier=!<WAI0160<NOD<RMU<END
+

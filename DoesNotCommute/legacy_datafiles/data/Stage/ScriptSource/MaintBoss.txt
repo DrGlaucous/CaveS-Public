@@ -1,0 +1,376 @@
+#0090
+<FLJ4138:0095<MNA<CMU0000<FAI0000<END //changes music based on a flag change
+#0091
+<FLJ4138:0096<MNA<CMU0000<FAI0001<END
+#0092
+<FLJ4138:0097<MNA<CMU0000<FAI0002<END
+#0093
+<FLJ4138:0098<MNA<CMU0000<FAI0003<END
+#0094
+<FLJ4138:0099<MNA<CMU0000<FAI0004<END
+
+#0095
+<MNA<CMU0002<FAI0000<END
+#0096
+<MNA<CMU0002<FAI0001<END
+#0097
+<MNA<CMU0002<FAI0002<END
+#0098
+<MNA<CMU0002<FAI0003<END
+#0099
+<MNA<CMU0002<FAI0004<END
+
+
+#0110
+//MaintMain door
+<KEY<SOU0011<CNP0110:0000:0000<FAO0004<TRA0111:0094:0089:0072
+
+
+#0200
+//H/V trigger when the PC jumps down
+<KEY<DNP0200
+<MYD0002
+<WAI0108//waits for PC to hit the ground
+<HMC//hide the PC
+<MTM0201:0000//move actor to PC
+<CNP0201:0150:0002//change to quote
+<ANP0201:0010:0002//splat
+<QUA0030
+<WAI0030
+<FON0202:0016//look at curly
+<WAI0010
+<ANP0202:0000:0000//walk to quote
+<MS3<FAC0025<MTS0120
+!!<NOD<CLO<FAC0000
+<ANP0202:0003:0000
+<WAI0144//walk next to quote
+<ANP0202:0000:0000<WAI0020
+<SMC
+<CNP0201:0000:0000//get quote NPC out of here
+<MNP0201:0004:0008:0000
+<ANP0202:0070:0000<WAI0010//curly moonwalk
+<ANP0202:0000:0000
+<MNN0240:0230<CNP0240:0122:0000<DNP0230//change the colonites to attack mode
+<MNN0241:0231<CNP0241:0122:0000<DNP0231
+<MNN0242:0232<CNP0242:0122:0000<DNP0232
+<MNN0243:0233<CNP0243:0122:0000<DNP0233
+<CMU0000<MS3<FAC0019
+Look what dropped in!!<FC+<NOD<CLR<FAC0049I know what it is
+you're looking for!<NOD<FAC0019
+But wake up!<NOD
+Mimigas aren't your
+enemies!<NOD
+They're harmless!<NOD<CLR<FAC0048You must have
+traveled quite a way
+in order to find us...<NOD
+<FAC0049It really is too bad,<NOD<MNN0220:0202<CNP0220:0118:0000<FON0220:0016<DNP0202<FAC0019//Move curly actor out and replace it with curly BOSS
+but I'm on their side!<NOD<CNP0250:0013:0000<CLRYou're going down!<NOD<CLO<FC-
+<BSL0220//give boss bar to curly
+<ANP0240:0010:0000//enable curly and the colonites (will begin attacking)
+<ANP0241:0010:0000
+<ANP0242:0010:0000
+<ANP0243:0010:0000
+<ANP0220:0010:0000
+<CMU0004
+<FOM0016<END
+
+#0201
+//quote Actor
+
+#0202
+//curly actor
+<FLJ4139:0224//did the player say NOKILL to curly?
+<EVE0222
+
+#0203
+//Camera Target
+
+#0220
+//curly BOSS
+//rule of thumb: you can't have interactable entities that are also shootable! doing so will really mess up flags'n such
+<KEY
+<MYD0220//I believe this little hidden feature makes the PC face the NPC of this number
+<FON0203:0016//focus on the middle of the room
+<CNP0250:0004:0000//smokes the barriers
+<ANP0240:0020:0005//disable colonites
+<ANP0241:0020:0005
+<ANP0242:0020:0005
+<ANP0243:0020:0005
+<CNP0220:0117:0005//change curly to, umm... whatever this is... (curly TSC, but why the direction? does it face the player?)
+<ANP0220:0005:0005<WAI0002
+<ANP0220:0030:0004<SOU0070
+<WAI0100<PRI<CMU0015<MS3
+Victory!<WAI0140<CMU0000<NOD<CLO
+<WAI0050<CMU0002
+<KEY<ANP0220:0006:0005<WAI0002<PRI//make curly sit up, defeated and freeze game action so the colonites don't reactivate
+<WAI0050<CMU0002<FL+4138//beat curly
+<MS3<MTS0120<FAC0020You win...<FC+<NOD
+I can't fight anymore...<NOD<CLRI suppose you're going
+to kill all the Mimigas,<NOD<FAC0049
+just like the other
+robots?<YNJ0221<FAC0020<CLRI see...<NOD<CLRWhat a pity...<NOD<PRI<CLO<FC-
+<FAO0004<FOM0016<TRF0112:0094
+
+
+
+
+#0221
+//if you said 'NOKILL' to curly off the bat
+<KEY<MS3<MTS0120<FAC0019Oh!<NOD<FAC0000<CLO
+<ANP0220:0010:0000<WAI0050
+<MS3<FAC0048You're with the Mimigas
+too?<FC+<NOD<CLR<FAC0019That's right, there's
+nothing bad about them!<NOD<CLRI'm Curly.
+Curly Brace.<NOD<FAC0025
+When I woke up, I was
+with these children.<NOD<CLR<FAC0049I don't have any memories
+before that...<NOD<FAC0050
+Amnesia, you might say.<NOD<CLR<FAC0020I was...probably a
+Mimiga-butcher just like
+the other robots...<NOD<CLO<FC-
+<DNA0013//remove forcefields (the ones keeping you in if you did not make up with Curly)
+<FL+4139//said NOKILL to curly
+<FAO0004<FOM0016<TRF0112:0094
+<END
+
+
+#0222
+//when you talk to curly after you tell her yes
+<KEY<MS3<MTS0120<FAC0025Huh?<FC+<NOD<CLR<FAC0049Oh, if it isn't Mr.
+Killing Machine.<NOD<CLR<FAC0050Are you still planning
+on killing the Mimigas?<YNJ0223<CLR<FAC0020I see...<NOD<CLRWhat a pity...<NOD<FC-<END
+
+
+#0223
+//if you said 'NOKILL' to curly after saying 'yesKILL'
+<KEY<MS3<MTS0120<FAC0019Oh!<FC+<NOD<CLR<FAC0048You're with the Mimigas
+too?<NOD<CLR<FAC0019That's right, there's
+nothing bad about them!<NOD<CLRI'm Curly.
+Curly Brace.<NOD<FAC0025
+When I woke up, I was
+with these children.<NOD<CLR<FAC0049I don't have any memories
+before that...<NOD<FAC0050
+Amnesia, you might say.<NOD<CLR<FAC0020I was...probably a
+Mimiga-butcher just like
+the other robots...<NOD<CLO
+<DNA0013//remove forcefields (the ones keeping you in if you did not make up with Curly)
+<FL+4139//said NOKILL to curly
+<WAI0030<EVE0224//Curly MGun Swap
+
+
+
+
+#0224
+//Curly says this when you interact with her after telling her NOKILL
+<FLJ0563:0227//got the Mgun from curly
+<FLJ4140:0225//if you already said no, this skips all the dialogue and goes right to the question.
+<KEY<MS3<MTS0120<FAC0019This island seems more
+dangerous than ever.<FC+<NOD<CLR<FAC0048All these corridors
+and utility shafts,<NOD<FAC0019
+and they were all hidden
+right behind a door
+in our house!<NOD<CLR<FAC0025You need a good weapon to
+defend yourself down here.<NOD<CLR<FAC0019Can I see what you have?<NOD<CLO<WAI0030<MS3Oh, wow.<NOD<CLR<FAC0048That Polar Star of yours
+is in awful shape.<NOD<FAC0019
+Do you want to trade
+it for my machine gun?<FC-<YNJ0226<FL+0563<FAC0000<CLR<MTS0002
+<TAM0002:0004:0100<GIT0002Handed over the =Polar Star=.<NOD<CLR
+<CMU0010<GIT0004Got the =Machine Gun=!<WAI0160<NOD<RMU<END
+
+#0225
+//if you did not get the MGUN from curly but you ask for it again
+<KEY<MS3<MTS0120<FAC0019Do you want to trade
+your Polar Star for
+for my machine gun?<YNJ0226<FL+0563<FAC0000<CLR<MTS0002
+<TAM0002:0004:0100<GIT0002Handed over the =Polar Star=.<NOD<CLR
+<CMU0010<GIT0004Got the =Machine Gun=!<WAI0160<NOD<RMU<END
+
+#0226
+<FL+4140//said you did not want to make the trade
+<KEY<MS3<MTS0120<FAC0019Really?<FC+<NOD<CLR<FAC0048Well, if you ever change
+your mind, I'll be here.<NOD<FC+<END
+
+#0227
+<KEY<MS3<MTS0120<FAC0025It's the humans who're
+the real bad guys!<FC+<NOD<FAC0050
+The Mimigas were just
+used by them.<NOD<FC-<END
+
+
+
+
+
+
+
+
+
+
+
+
+//the 4 colonites
+#0230
+//colon1
+<KEY<MS3<MTS0124We lived happily together in the
+Sand Zone...<NOD<CLRBut a hidden door
+in the wall opened up
+inside our house.<NOD<CLRWe followed it
+and wound up here.<NOD<END
+
+#0231
+//colon2
+<KEY<MS3<MTS0124Our real mommies were
+killed by robots.<NOD<CLRWe hadn't even opened our
+eyes yet...<NOD
+But Curly raised us.<NOD<END
+
+#0232
+//colon1
+<KEY<MS3<MTS0124This place is so big...<NOD<CLRI had no idea any of it
+existed.<NOD<END
+
+#0233
+//colon2
+<KEY<MS3<MTS0124You say this is a spaceship?<NOD<CLRI wouldn't have believed you
+until now, but look at it...<NOD<END
+
+
+//4 colonites (attack mode)
+#0240
+#0241
+#0242
+#0243
+
+
+#0250
+//force fields
+
+//4 bubbles (from Misery)
+#0260
+#0261
+#0262
+#0263
+
+
+#0300
+//Quote positioning NPC
+
+#0301
+//camera focus target
+
+#0302
+//Misery
+
+#0303
+//Balrog
+
+#0304
+//! mark over curly
+
+#0305
+//grounding coil that will be hidden behind balrog (to give the bullets something to hit)
+
+
+#0320
+//cutscene NPC trigger
+//<FNJ4139:0000//if you still have to reconcile with curly, it halts at event 0
+<FNJ4139:0000//if you did NOT make up with curly, this event will not run.
+<DNP0320
+<KEY<FON0301:0016<MYD0002<WAS//stop forward movement
+<TMS0112:0321:0035:0028:9999:9999:9999:9999:9999:0014:9999
+<END//these events will swap the NPC tileset 2 for the one from Barr (with balrog in it)
+
+
+#0321
+//2nd event after the <TMS
+<KEY<FON0301:0001
+<MNF0300:0569:0448:0000//move quote target
+<MTN0300:0002//shift quote over to it
+<MNP0202:0026:0028:0002//move curly just out of frame
+<DNP0320//delete h/v trigger (again)
+<ANP0202:0003:0002<WAI0048
+<MS3<MTS0120<FAC0019Wait up!<MYD0000<WAI0048<ANP0202:0000:0002<NOD<CLRWhere are you going?<NOD<CLRHmm...<WAI0030
+Fixing the reactor core?<NOD<CLO
+<MNP0230:0026:0028:0002//colon move
+<CNP0230:0120:0012
+<ANP0230:0003:0012<WAI0016
+
+<MNP0231:0026:0028:0002//colon move
+<CNP0231:0120:0012
+<ANP0231:0003:0012<WAI0016
+
+<MNP0232:0026:0028:0002//colon move
+<CNP0232:0120:0012
+<ANP0232:0003:0012<WAI0016
+
+<MNP0233:0026:0028:0002//colon move
+<CNP0233:0120:0012
+<ANP0233:0003:0012<WAI0008
+
+<ANP0230:0005:0012<WAI0008//stop colonites at random intervals
+<ANP0231:0005:0012
+<ANP0232:0005:0012<WAI0012
+<ANP0233:0005:0012<WAI0004
+
+
+
+<MS3Maybe we could be of
+some help.<NOD<CLRYou could have quite some
+distance to go, yet.<NOD<CLR-And who knows what
+you'll encounter on
+the way.<NOD<FAC0000<CLR<FMU<MTS0128She's right, you know.<NOD<CMU0000<CLR<MYD0002<CNP0302:0067:0000<WAI0100<ANP0302:0013:0000<WAI0050<FAC0015It's very dangerous
+out there.<NOD<CLRYou might just get hurt.<NOD<FAC0000<CLR<MTS0121Huzzah!<CMU0000<NOD<CLO
+<CNP0303:0009:0000<WAI0090//balrog drop in sequence
+<CNP0303:0012:0000<CMU0011
+<MNN0304:0202//move the ? to curly, will activate it later
+<CNP0302:0082:0000//change misery to miseryStand
+<MS3<MTS0128<FAC0015Balrog.<NOD
+Collect the Mimigas.<NOD<CNP0304:0372:0002<ANP0303:0030:0000<CLR<FAC0014<MTS0121With pleasure!<NOD<CLO<FAC0000
+<ANP0303:0060:0000<WAI0020
+<ANP0303:0200:0000<ANP0202:0080:0002<MS3<MTS0120<FAC0049Stop!<FC+<NOD<CLR<FAC0025Don't you make another
+move.<FC-<NOD<CLO//balrog stops and curly gets out her weapon
+<MNN0305:0303//hide the Gcoil behind Balrog
+<ANP0303:0030:0000<MS3<MTS0121<FAC0014What?<FC+<WAI0020 Really?<NOD<CLR<FAC0005It's going to take more
+than that puny weapon to
+defeat me...<FC-<NOD<CLO<FAC0000
+<ANP0202:0090:0002<SOU0049<WAI0002//each ANP here fires 1 bullet
+<ANP0202:0090:0002<SOU0049<WAI0002
+<ANP0202:0090:0002<SOU0049<WAI0002
+<ANP0303:0020:0000//balrog reacts and flies away
+<ANP0202:0090:0002<SOU0049<WAI0002
+<ANP0202:0090:0002<SOU0049<WAI0002
+<ANP0202:0090:0002<SOU0049<WAI0002
+<WAI0030<DNP0305//remove the invisible target.
+<WAI0140<MS3<MTS0128<FAC0026Errgh!<FC+<NOD
+That good-for-nothing...<WAI0030<NOD<CLRFine!<NOD
+I'll take care of you
+myself!<NOD<CLR<FAC0051To the labyrinth with
+you two!<FC-<NOD<CLO<FAC0000
+<CNP0300:0150:0002//change the location-locking NPC to quote actor
+<ANP0302:0030:0000<WAI0050//misery blows bubble
+<ANP0202:0081:0002<HMC<WAI0001//put away gun, this needs 1 tick to process entities (since this is an act from the curly TSC)
+<ANP0300:0020:0002//Quote TPS out
+<ANP0202:0100:0002//Curly TPS out
+<MS3<FAC0016And as for all of you...<NOD<CLO<FAC0000
+
+<ANP0232:0003:0010<WAI0004//colons begin running to the left
+<ANP0233:0003:0010<WAI0004
+<ANP0230:0003:0010<WAI0004
+<ANP0231:0003:0010<WAI0004
+<MS3<FAC0051The Doctor has big
+things planned for
+all of you...<NOD<CLO
+<ANP0302:0030:0000<WAI0050//misery blows bubble
+<MNP0260:0043:0024:0000//move the NULLS
+<MNP0261:0042:0025:0000
+<MNP0262:0042:0024:0000
+<MNP0263:0042:0023:0000<WAI0004
+<CNP0260:0066:0002<SAS0021:0000:0000<WAI0008//shoot the bubbles 66
+<CNP0261:0066:0002<SAS0021:0000:3000<WAI0004
+<CNP0262:0066:0002<SAS0021:0000:1000<WAI0012
+<CNP0263:0066:0002<SAS0021:0000:3300<WAI0050<FAO0002
+<FOM0016<TRA0117:0500:0009:0009
+
+
+#1000
+//target NPC (for misery bubbles)
+

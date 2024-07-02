@@ -1,0 +1,745 @@
+//Flag List
+//Flag 5000: 
+//Flag 5001: sue reached door
+//Flag 5002: booster reached door
+//Flag 5003: gero reached door
+//Flag 5004: quote reached door
+//Flag 5005: stanley reached door
+//Flag 5006: curly reached door
+//
+//
+//
+//Flag 6001: on ONLY when sue is active
+//Flag 6002: on ONLY when booster is active
+//Flag 6003: on ONLY when gero is active
+//Flag 6004: on ONLY when quote is active
+//Flag 6005: on ONLY when stanley is active
+//Flag 6006: on ONLY when curly is active
+//
+
+//event range:
+//$0200 = intro doors, each character gets 10 (210, 220, etc)
+//$0300 = exit doors, each door gets 1, starting at 300, 350 is common wrong door script
+//$0400 = 400 for arrow + any other ingame elements
+//$0500 = fakechars, each gets 1, starting at 500
+//$0600 = watch all event and any other post-play events
+//$1000 = save load init script
+
+
+//98 seconds total for a good run
+//125 seconds up for grabs
+//Sue takes 24 seconds [given 30] *
+//Booster takes 16 seconds [given 15] *
+//gero takes 11 seconds [given 10] *
+//quote takes 13 seconds [given 15 + 5] *
+//stanley takes 14 seconds [20] *
+//curly takes 20 seconds [given 30]
+
+#0090
+<MNA<CMU0046<FAI0000<END
+#0091
+<MNA<CMU0046<FAI0001<END
+#0092
+<MNA<CMU0046<FAI0002<END
+#0093
+<MNA<CMU0046<FAI0003<END
+#0094
+<MNA<CMU0046<FAI0004<END
+
+
+
+
+
+#0110
+//entry event
+<ATS0001Level: Get Outside<ATS<RTN
+<TCL0001:0000:0043//Begin timer: only for the 1st event in each map
+<KEL0001<CMU0053
+<HMC<FAI0004
+//<EVE0250//skip to
+<EVE0200
+<TCL0000:0001:0000//TEST for finding time travel
+<EQ+0256<EQ-1024
+<FL+5005<FL+6006
+
+#0115
+<KEY<MSG<FAC0008Marcus<NOD<END
+
+
+
+
+#0120
+//fall script
+<EVE0042//fall execution
+<MIM0005//booster
+<MLS0050:0050
+<MOV0017:0033
+<EQ+0032<END
+
+
+
+
+
+
+
+
+
+#0130
+//TEMPLATE EVENT
+<TCL0001:0030:0043//Begin timer: only for the 1st event in each map
+<MLS0009:0009//SET current player's life
+<MOV0000:0000<MYD0000//MOVE TO DOOR AND FACE THE RIGHT WAY
+<IT-0000<EQ-0000//REMOVE ITEMS
+<IT+0020<EQ+0008//GIVE ITEMS
+<AM-0000//REMOVE GUN
+<AM+0000:0000//GIVE THE PC THE CORRECT GUN
+<AML0001:0003:0012//SET WEAPON LEVEL
+<MIM0000//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0302:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0302:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSG<NOD<CLO//PART 1 MESSAGE
+<FON0303:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0056:0004:0002//MOVE ARROW
+<MSG<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0500:0101:0012:0002//MOVE AI
+<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0500:0000:0002:0000//give the NPC some guns
+<NPS0500:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0500:0002:0001//reset reader and begin callback
+
+
+<KLC0002:0000//reset file and begin logging
+<END
+
+
+
+#0131
+//TEMPLATE END EVENT (DESTINATION DOOR)
+<FNJ5000:0350//PREVIOUS PLAYER's FLAG
+<FLJ5001:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0303:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0303:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5001//CURRENT PLAYER's FLAG
+<FL-6001//PLAYER's ACTIVE FLAG
+<FL+6002//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0210//NEXT INTRO EVENT
+
+
+
+
+
+
+
+//event range:
+//$0200 = intro doors, each character gets 10 (210, 220, etc)
+//$0300 = exit doors, each door gets 1, starting at 300, 350 is common wrong door script
+//$0400 = 400 for arrow + any other ingame elements
+//$0500 = fakechars, each gets 1, starting at 500
+//$0600 = watch all event and any other post-play events
+//$1000 = save load init script
+
+
+
+
+#0200
+//sue 24
+//<MLS0009:0009//SET current player's life
+<MOV0002:0044<MYD0002//MOVE TO DOOR AND FACE THE RIGHT WAY
+//<AM-0000
+//<AM+0016:0000//GIVE THE PC THE CORRECT GUN
+//<AML0001:0003:0012//SET WEAPON LEVEL
+//<MIM0013//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0303:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0303:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGAh, yes. There are
+enemies-a-plenty here, but also
+drops-a-plenty, too.<NOD<CLRSue begins to realize that
+no amount of big guns will stop
+the thing they call gravity.<NOD<CLO//PART 1 MESSAGE
+<FON0304:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0064:0012:0002//MOVE ARROW
+<MSGShe has a sudden desire to get
+somewhere with a little bit more...<WAI0040floor.<NOD<CLO//PART 2 MESSAGE (odd case where the TSC box auto-wraps)
+<FOM0016<WAI0040
+
+<KLC0002:0017//reset file and begin logging
+<END
+
+#0210
+//booster 16
+<MLS0009:0009//SET current player's life
+<MOV0002:0034<MYD0002//MOVE TO DOOR AND FACE THE RIGHT WAY
+<IT-0020<EQ-0008//REMOVE ITEMS
+<IT+0023<EQ+0032<FL+0743<EQ-0001<EQ-0512<FL-0742<FL-4150//equip booster and set according flags
+<AM-0014//REMOVE ARMS
+//<AM+0000:0000//GIVE THE PC THE CORRECT GUN
+//<AML0001:0003:0012//SET WEAPON LEVEL
+<MIM0005//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0302:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0302:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGBooster's boosting of his booster
+has been such a success that he's
+decided to raise the steaks.<NOD<CLO//PART 1 MESSAGE
+<FON0307:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0063:0024:0000//MOVE ARROW
+<MSGAfter all, what fun is a jetpack
+if you aren't in immediate danger
+of falling to your death?<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0501:0002:0044:0002//MOVE AI sue
+<NEQ0501:0001:0008//equip NPC with User's items
+<NAM0501:0000:0014:0100//give the NPC some guns
+<NAM0501:0001:0016:0000//TEEEEST
+<NPS0501:0003//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0017//reset reader and begin callback
+
+
+<KLC0002:0018//reset file and begin logging
+<END
+
+
+#0220
+//gero 11
+<MLS0015:0015//SET current player's life
+<MOV0058:0020<MYD0000//MOVE TO DOOR AND FACE THE RIGHT WAY
+<IT-0023<EQ-0032<FL-0743//remove booster
+<IT+0016//<EQ+0000//GIVE ITEMS
+//<AM-0000//REMOVE GUN
+<AM+0010:0050//GIVE THE PC THE CORRECT GUN
+<AML0010:0003:0010//SET WEAPON LEVEL
+<MIM0007//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0305:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0305:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGDr. Gero is happy to have the
+SuperMissile(TM) back in his hands.<NOD<CLRHe almost wants something
+to attack him so he has an excuse
+to show off its =Power(TM)=.<NOD<CLRLike whoever keeps slicing
+the island's inhabitants into
+minced meat.<NOD<CLO//PART 1 MESSAGE
+<FON0301:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0011:0022:0000//MOVE ARROW
+<MSGGero can't complain though.
+That mad stabber is
+good for buisness.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0502:0002:0034:0002//MOVE AI Booster
+<NEQ0502:0001:0032//equip NPC with User's items
+//<NAM0502:0000:0002:0000//give the NPC some guns
+<NPS0502:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0018//reset reader and begin callback
+
+<MNP0501:0002:0044:0002//MOVE AI sue
+<NEQ0501:0001:0008//equip NPC with User's items
+<NAM0501:0000:0014:0100//give the NPC some guns
+<NPS0501:0003//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0017//reset reader and begin callback
+
+
+<KLC0002:0019//reset file and begin logging
+<END
+
+
+
+
+
+
+#0230
+//quote 13
+<MLS0013:0013//SET current player's life
+<MOV0057:0025<MYD0000//MOVE TO DOOR AND FACE THE RIGHT WAY
+<IT-0016//<EQ-0000//REMOVE ITEMS
+<IT+0035//<EQ+0008//GIVE ITEMS
+<AM-0010//REMOVE GUN
+<AM+0002:0000//GIVE THE PC THE CORRECT GUN
+<AML0002:0003:0010//SET WEAPON LEVEL
+<MIM0000//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0306:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0306:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGSomething seems to have
+caught quote's eye.<NOD<CLO//PART 1 MESSAGE
+<FON0301:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0011:0022:0000//MOVE ARROW
+<MSGWhatever it is, it's through
+this door here.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0503:0101:0012:0002//MOVE AI gero
+//<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0503:0000:0010:0050//give the NPC some guns
+<NPS0503:0007//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0019//reset reader and begin callback
+
+<MNP0502:0002:0034:0002//MOVE AI Booster
+<NEQ0502:0001:0032//equip NPC with User's items
+//<NAM0502:0000:0002:0000//give the NPC some guns
+<NPS0502:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0018//reset reader and begin callback
+
+<MNP0501:0002:0044:0002//MOVE AI sue
+<NEQ0501:0001:0008//equip NPC with User's items
+<NAM0501:0000:0014:0100//give the NPC some guns
+<NPS0501:0003//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0017//reset reader and begin callback
+
+<KLC0002:0020//reset file and begin logging
+<END
+
+
+
+#0240
+//stanley 14
+<MLS0013:0013//SET current player's life
+<MOV0010:0023<MYD0002//MOVE TO DOOR AND FACE THE RIGHT WAY
+<IT-0035//<EQ-0000//REMOVE ITEMS
+//<IT+0020<EQ+0008//GIVE ITEMS
+<AM-0002//REMOVE GUN
+<AM+0016:0000//GIVE THE PC THE CORRECT GUN
+<AML0016:0002:0000//SET WEAPON LEVEL
+<MIM0013//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0301:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0301:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGThis is NOT the story of a man
+named Stanley,<NOD who worked in a big
+building where he was employee
+number 427.<NOD<CLRDespite this, Stanley somehow
+managed to worm his way into this
+story, too.<NOD What an attention hog.<NOD<CLO//PART 1 MESSAGE
+<FON0306:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0056:0025:0002//MOVE ARROW
+<MSGFortunately, he didn't stay
+long, for Stanley, eager to find
+his missing co-workers,<NOD entered the third door on his right.<NOD<CLO//PART 2 MESSAGE (another case of auto-wrapping)
+<FOM0016<WAI0040
+
+<MNP0504:0057:0025:0000//MOVE AI quote
+//<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0504:0000:0002:0000//give the NPC some guns
+<NPS0504:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0504:0002:0020//reset reader and begin callback
+
+<MNP0503:0101:0012:0002//MOVE AI gero
+//<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0503:0000:0010:0050//give the NPC some guns
+<NPS0503:0007//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0019//reset reader and begin callback
+
+<MNP0502:0002:0034:0002//MOVE AI Booster
+<NEQ0502:0001:0032//equip NPC with User's items
+//<NAM0502:0000:0002:0000//give the NPC some guns
+<NPS0502:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0018//reset reader and begin callback
+
+<MNP0501:0002:0044:0002//MOVE AI sue
+<NEQ0501:0001:0008//equip NPC with User's items
+<NAM0501:0000:0014:0100//give the NPC some guns
+<NPS0501:0003//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0017//reset reader and begin callback
+
+
+<KLC0002:0021//reset file and begin logging
+<END
+
+
+
+
+#0250
+//curly 20
+<MLS0015:0015//SET current player's life
+<MOV0061:0025<MYD0002//MOVE TO DOOR AND FACE THE RIGHT WAY
+//<IT-0000<EQ-0000//REMOVE ITEMS
+//<IT+0020<EQ+0008//GIVE ITEMS
+<AM-0016//REMOVE GUN
+<AM+0004:0100//GIVE THE PC THE CORRECT GUN
+<AML0004:0003:0010//SET WEAPON LEVEL
+<MIM0002//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0307:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0307:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGHere comes Curly, with a big gun
+that can stop the thing they
+call gravity. (don't tell Sue)<NOD<CLRI presume
+she's still looking for the
+perpetrator of the panty-raid.<NOD<CLO//PART 1 MESSAGE
+<FON0300:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0012:0005:0000//MOVE ARROW
+<MSGCurly never really struck
+me as the type to hold a grudge.<NOD
+Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0505:0010:0023:0002//MOVE AI stanley
+//<NEQ0505:0000:0000//equip NPC with User's items
+<NAM0505:0000:0016:0000//give the NPC some guns
+<NPS0505:0013//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0505:0002:0021//reset reader and begin callback
+
+<MNP0504:0057:0025:0000//MOVE AI quote
+//<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0504:0000:0002:0000//give the NPC some guns
+<NPS0504:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0504:0002:0020//reset reader and begin callback
+
+<MNP0503:0101:0012:0002//MOVE AI gero
+//<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0503:0000:0010:0050//give the NPC some guns
+<NPS0503:0007//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0019//reset reader and begin callback
+
+<MNP0502:0002:0034:0002//MOVE AI Booster
+<NEQ0502:0001:0032//equip NPC with User's items
+//<NAM0502:0000:0002:0000//give the NPC some guns
+<NPS0502:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0018//reset reader and begin callback
+
+<MNP0501:0002:0044:0002//MOVE AI sue
+<NEQ0501:0001:0008//equip NPC with User's items
+<NAM0501:0000:0014:0100//give the NPC some guns
+<NPS0501:0003//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0017//reset reader and begin callback
+
+
+<KLC0002:0022//reset file and begin logging
+<END
+
+
+
+
+
+//Flag 5001: sue reached door
+//Flag 5002: booster reached door
+//Flag 5003: gero reached door
+//Flag 5004: quote reached door
+//Flag 5005: stanley reached door
+//Flag 5006: curly
+
+//doors
+#0300
+//leftTop [curly]
+<FLJ6005:0360
+<FNJ5005:0350//PREVIOUS PLAYER's FLAG
+<FLJ5006:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0300:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5006//CURRENT PLAYER's FLAG
+<FL-6006//PLAYER's ACTIVE FLAG
+//<FL+6002//NEXT PLAYER ACTIVE FLAG
+<FAO0004
+<TRF9999:0600//NEXT INTRO EVENT
+
+
+#0301
+//leftMid [gero]
+<FLJ6005:0361
+<FNJ5002:0311//PREVIOUS PLAYER's FLAG
+<FLJ5003:0311//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0301:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0301:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5003//CURRENT PLAYER's FLAG
+<FL-6003//PLAYER's ACTIVE FLAG
+<FL+6004//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0230//NEXT INTRO EVENT
+
+#0302
+//leftLoMid
+<FLJ6005:0362
+<EVE0350
+#0303
+//leftBottom
+<FLJ6005:0363
+<EVE0350
+
+#0304
+//caveTop [sue]
+<FLJ6005:0364
+//<FNJ5000:0350//PREVIOUS PLAYER's FLAG
+<FLJ5001:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0304:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0304:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5001//CURRENT PLAYER's FLAG
+<FL-6001//PLAYER's ACTIVE FLAG
+<FL+6002//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0210//NEXT INTRO EVENT
+
+
+#0305
+//caveBottom
+<FLJ6005:0365
+<EVE0350
+#0306
+//nookLeft [stanley]
+<FNJ5004:0350//PREVIOUS PLAYER's FLAG
+<FLJ5005:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0306:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0306:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5005//CURRENT PLAYER's FLAG
+<FL-6005//PLAYER's ACTIVE FLAG
+<FL+6006//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0250//NEXT INTRO EVENT
+
+#0307
+//nookRight [booster]
+<FLJ6005:0367
+<FNJ5001:0350//PREVIOUS PLAYER's FLAG
+<FLJ5002:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0307:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0307:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5002//CURRENT PLAYER's FLAG
+<FL-6002//PLAYER's ACTIVE FLAG
+<FL+6003//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0220//NEXT INTRO EVENT
+
+
+
+#0311
+//leftMid2 [quote]
+<FNJ5003:0350//PREVIOUS PLAYER's FLAG
+<FLJ5004:0350//CURRENT PLAYER's FLAG
+<KLC0000:0020//stop key logging
+<KEY<ANP0301:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0301:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5004//CURRENT PLAYER's FLAG
+<FL-6004//PLAYER's ACTIVE FLAG
+<FL+6005//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0240//NEXT INTRO EVENT
+
+
+
+#0350
+//NotYourDoor
+<PRI<MSGThis is not your door!<NOD<END
+
+
+//handling stanley's wrong door
+
+#0360
+//leftTop
+<KLC0000:0000//stop key logging
+<KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0300:0000:0000<SOU0011<WAI0060//close DOOR
+<EVE0370
+#0361
+//leftMid
+<KLC0000:0000//stop key logging
+<KEY<ANP0301:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0301:0000:0000<SOU0011<WAI0060//close DOOR
+<EVE0370
+#0362
+//leftLoMid
+<KLC0000:0000//stop key logging
+<KEY<ANP0302:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0302:0000:0000<SOU0011<WAI0060//close DOOR
+<EVE0370
+#0363
+//leftBottom
+<KLC0000:0000//stop key logging
+<KEY<ANP0303:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0303:0000:0000<SOU0011<WAI0060//close DOOR
+<EVE0370
+#0364
+//caveTop
+<KLC0000:0000//stop key logging
+<KEY<ANP0304:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0304:0000:0000<SOU0011<WAI0060//close DOOR
+<EVE0370
+#0365
+//caveBottom
+<KLC0000:0000//stop key logging
+<KEY<ANP0305:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0305:0000:0000<SOU0011<WAI0060//close DOOR
+<EVE0370
+#0367
+//nookRight
+<KLC0000:0000//stop key logging
+<KEY<ANP0307:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0307:0000:0000<SOU0011<WAI0060//close DOOR
+<EVE0370
+
+
+
+#0370
+//stanley's wrong door event
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5005//CURRENT PLAYER's FLAG
+<FL-6005//PLAYER's ACTIVE FLAG
+<FL+6006//NEXT PLAYER ACTIVE FLAG
+<MSGThis was not the correct way
+to the...<WAI0050
+You know what? I don't care.<NOD<CLR
+He's someone else's problem, now.<NOD<CLO
+<TRF9999:0250//NEXT INTRO EVENT
+
+
+
+
+
+
+#0400
+//indicator arrow
+
+
+#0402
+//camera target
+
+
+
+
+#0501
+//su
+#0502
+//boost
+#0503
+//gero
+#0504
+//quote
+#0505
+//stan
+#0506
+//curly
+
+
+
+#0600
+//watch all players event
+<MOV0008:0006<MYD0002<HMC
+<TCL0000:0000:0043//Stop Timer
+<MNP0402:0029:0019:0000//move camera target
+<FON0402:0001<FAI0004//look at target
+<CNP0620:0375:0506//setup NPC trigger
+<WAI0020
+<KEY<MS2Here is what everyone did:<NOD<CLO
+<KEL0000//free keybound entities
+
+<MNP0506:0061:0025:0002//MOVE AI curly
+//<NEQ0506:0001:0000//equip NPC with User's items
+<NAM0506:0000:0004:0100//give the NPC some guns
+<NPS0506:0002//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0506:0002:0022//reset reader and begin callback
+
+<MNP0505:0010:0023:0002//MOVE AI stanley
+//<NEQ0505:0000:0000//equip NPC with User's items
+<NAM0505:0000:0016:0000//give the NPC some guns
+<NPS0505:0013//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0505:0002:0021//reset reader and begin callback
+
+<MNP0504:0057:0025:0000//MOVE AI quote
+//<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0504:0000:0002:0000//give the NPC some guns
+<NPS0504:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0504:0002:0020//reset reader and begin callback
+
+<MNP0503:0101:0012:0002//MOVE AI gero
+//<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0503:0000:0010:0050//give the NPC some guns
+<NPS0503:0007//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0019//reset reader and begin callback
+
+<MNP0502:0002:0034:0002//MOVE AI Booster
+<NEQ0502:0001:0032//equip NPC with User's items
+//<NAM0502:0000:0002:0000//give the NPC some guns
+<NPS0502:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0018//reset reader and begin callback
+
+<MNP0501:0002:0044:0002//MOVE AI sue
+<NEQ0501:0001:0008//equip NPC with User's items
+<NAM0501:0000:0014:0100//give the NPC some guns
+<NPS0501:0003//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0017//reset reader and begin callback
+<EVE0610
+
+#0610
+//loopback event
+<FON0501:0016//sue
+<WAI0150
+<FON0502:0016//booster
+<WAI0150
+<FON0503:0016//gero
+<WAI0150
+<FON0504:0016//quote
+<WAI0150
+<FON0505:0016//stanley
+<WAI0150
+<FON0506:0016//curly
+<WAI0150
+<EVE0610//restart loop
+
+#0620
+//NPC trigger
+<DNP0620<FMU
+<KEY<FON0300:0020
+<WAI0060
+<FAO0004<FOM0016<SMC<MYD0000
+<FL+6001//PLAYER's ACTIVE FLAG
+<CMU0000<MSGLevel: 6<NOD<CLO
+<TRA0126:0110:0003:0039
+
+
+
+
+
+

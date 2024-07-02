@@ -1,0 +1,23 @@
+
+#0100
+<KEY<CMU0000<XX10000<EQ-0256<TRA0071:0100:0001:0001
+#0110
+<KEY<CMU0000<XX10001<EQ-0256<TRA0092:0500:0008:0052
+
+#0200
+<KEY<CMU0000
+<ATS0003Fixing the Story ~ Now we're getting somewhere<ATS<RTN
+<XX10002
+<SST0001//change tile table
+<FL+4143//core fight is over
+<FOM0016
+<TRA0113:1001:0059:0013
+
+
+#0300
+//intro cutscene
+<KEY
+<EQ-0256//remove the timer in case of a reset (because the main menu equips it)
+<CMU0000<XX10003//mode 3 allows skipability
+<FAO0004<TRA0113:2000:0025:0011
+<WAI9999<END

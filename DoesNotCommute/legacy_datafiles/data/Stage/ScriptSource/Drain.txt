@@ -1,0 +1,294 @@
+
+#0090
+<FLJ4149:0095//WTR doors open
+<MNA<CMU0014<FAI0000<END
+#0091
+<FLJ4149:0096//WTR doors open
+<MNA<CMU0014<FAI0001<END
+#0092
+<FLJ4149:0097//WTR doors open
+<MNA<CMU0014<FAI0002<END
+#0093
+<FLJ4149:0098//WTR doors open
+<MNA<CMU0014<FAI0003<END
+#0094
+<FLJ4149:0099//WTR doors open
+<MNA<CMU0014<FAI0004<END
+
+
+
+#0095
+<MMP0009:0008:0144//door is now open
+<MMP0010:0008:0145
+<MMP0009:0009:0160
+<MMP0010:0009:0161
+<MNA<CMU0014<FAI0000<END
+#0096
+<MMP0009:0008:0144//door is now open
+<MMP0010:0008:0145
+<MMP0009:0009:0160
+<MMP0010:0009:0161
+<MNA<CMU0014<FAI0002<END
+#0097
+<MMP0009:0008:0144//door is now open
+<MMP0010:0008:0145
+<MMP0009:0009:0160
+<MMP0010:0009:0161
+<MNA<CMU0014<FAI0003<END
+#0098
+<MMP0009:0008:0144//door is now open
+<MMP0010:0008:0145
+<MMP0009:0009:0160
+<MMP0010:0009:0161
+<MNA<CMU0014<FAI0004<END
+#0099
+<MMP0009:0008:0144//door is now open
+<MMP0010:0008:0145
+<MMP0009:0009:0160
+<MMP0010:0009:0161
+<MNA<CMU0014<FAI0000<END
+
+
+
+#0100
+<KEY
+<FLJ0800:0101
+<SOU0011<ANP0100:0000:0002<FAO0000<TRA0045:0090:0081:0053
+#0101
+<KEY<MSGIt won't open.<NOD<END
+
+#0110
+<KEY<SOU0011<ANP0110:0000:0002<FAO0002<TRA0113:0092:0019:0008
+
+#0120
+<FLJ4149:0121//if 2nd airlock event has finished
+<KEY<MSGA posted sign reads:<WAI0010<TUR
+WARNING: HIGH PRESSURE FLUIDS<NOD<CLR<MSGYou hear the sound of rushing
+water from within.<NOD<END
+
+#0121
+<KEY<FAO0004<TRA0114:0094:0048:0009
+<KEY<FAO0003<TRA0031:0092:0030:0008
+
+#0150
+<KEY
+<FLJ4141:0092//go to normal fadeIn
+<MNA
+<MTM0201:0000
+<HMC<CNP0201:0150:0002
+<CMU0008<WAI0005<CNP0300:0117:0002<FAI0002
+<WAI0010
+<ANP0300:0003:0002<WAI0016
+<ANP0300:0001:0002
+<MSG<MTS0120<FAC0025This room looks
+different...<NOD<FAC0000<CLO
+<ANP0300:0003:0002<WAI0080//walk
+<ANP0300:0020:0002<WAI0050//back turned
+<ANP0300:0001:0000//back turned, face left
+<MSG<FAC0025That's locked.<NOD
+We'll have to keep
+moving ahead.<NOD<CLO
+<ANP0300:0003:0002<WAI0044//walk some more
+<ANP0300:0020:0002<WAI0050//turn back again
+<MSG<FAC0025What's this?<NOD<CLR<FAC0000<WAI0050<ANP0200:0001:0000<SOU0043<WAI0010<FAC0043<MTS0118Hello, there!<NOD<CLR<MTS0120<FAC0019Hi!<NOD<CLR<MTS0118<FAC0039Wait...<FC+<WAI0020<FAC0041 you're not who
+I expected,<WAI0020<FAC0039 though you do
+look quite similar to him.<FC-<NOD<CLR<ANP0300:0000:0000<MTS0120<FAC0048Oh? You mean him?<NOD<CLO<FAC0000
+<ANP0201:0050:0002<WAI0116//PC needs to move to the terminal now
+<ANP0201:0000:0002
+<MSG<MTS0118<FAC0043<MTS0118Oh, yes! there he is!<FC+<NOD<ANP0201:0080:0002<CLR<FAC0041I didn't know you picked
+<ANP0300:0020:0002up some help.<NOD<CLR<FAC0039What's your name,
+ma'am?<FC-<NOD<CLR<MTS0120<FAC0019I'm Curly.<NOD
+Curly Brace.<NOD<CLR<MTS0118<FAC0039Pleased to meet you,
+Curly.<NOD<CLRI am Galcota.<NOD<CLRI serve as this ship's AI,
+managing it's well-being
+and baseline functions.<NOD<CLR<MTS0120<FAC0048Gee, that's a mouthful.<NOD<CLR<MTS0118<FAC0043Yes, but it's an important
+mouthful.<FC+<NOD<CLR<FAC0039Our current <FAC0040obj<FAC0039ective is
+restoring the main power
+system.<FC-<NOD<CLR<MTS0120<FAC0048I see.<FC+<NOD<FAC0019 Are you
+suck in these computers,
+then?<FC-<NOD<CLR<MTS0118<FAC0039Partally.<FC+<NOD<CLR<FAC0041Right now, I am speaking
+to you remotely.<NOD<CLR<FAC0040I am<FAC0039 currently busy fixing
+the central power
+distribution node.<NOD<CLR<FAC0042I had originally
+thought that was the main
+source of power loss.<NOD<CLR<FAC0039Although it had some needed
+repairs,<NOD<FAC0041 it is not the
+biggest culprit.<NOD<CLR<FAC0039I now see that we're
+loosing power at the<FAC0044
+reactor itself.<NOD<CLR<FAC0039Could you go into
+the next room and give
+things a lookover?<NOD<CLRI will head in your
+direction as soon
+as possible.<FC-<NOD<CLR<MTS0120<FAC0019Alright.<NOD<CLO<FAC0000<WAI0020
+<MSG<FAC0019-Oh, wait.<FC+<NOD<FAC0048
+Since you control this
+ship,<WAI0010<FAC0019 could tell us if
+there's a way out of here?<FC-<NOD<CLR<MTS0118<FAC0039Of course.<FC+<NOD<FAC0041
+The door on my left leads
+to the coolant reservoir<NOD
+<FAC0040and<FAC0042 the teleporter on my
+right leads just about
+anywhere.<NOD<CLR<FAC0039Though, that is
+currently offline.<NOD<CLR<FAC0041The teleportation grid
+needs more power than the
+reactor is providing now.<FC-<NOD<CLR<MTS0120<FAC0019Well, maybe we can
+fix that.<NOD<CLO
+<ANP0300:0003:0002<WAI0086//curly walk
+<ANP0300:0020:0002<WAI0010//halt at door
+<SOU0011<ANP0110:0000:0002<WAI0020
+<DNP0300<WAI0020
+<SOU0011<ANP0110:0000:0000
+<FL+4141//airlock event is over
+<FL+0820//what does this flag do?
+<FL-0781//curlyAI no longer in mazeM
+<MTN0201:0002<SMC<DNP0201//put PC back where the actor was
+<END
+
+
+#0200
+//GalcPC
+<FLJ4148:0210//check for curly
+<FLJ4142:0202
+<KEY<MSG<MTS0118<FAC0039If you see anything
+striking,<FC+<WAI0010<FAC0041 hang tight.<NOD<CLR<FAC0039I am on my way right now.<NOD<FC-<END
+
+#0201
+//QuoteTSC
+//OR GalcTSC (used later)
+
+
+#0202
+//OUT OF ORDER: GalcPC if you finished the 1st observation room cutscene (or, inherently the 2nd, if curly check is disabled)
+<KEY<MSG<FAC0037<TURCyndrillica Co.<NOD<END
+
+
+#0210
+<FLJ4153:0211//skips this if it already happened
+<KEY<MTS0118<FAC0038<MSG<WAI0050<FC+<FAC0043I told you not to worry
+about me.<FC+<NOD<CLR<FAC0041I AM a computer after
+all...<NOD<CLR<FL+4153
+<EVE0211
+
+#0211
+//post-fight talk with galcota
+<FNJ4146:0212//if you dont have curly, this runs
+<KEY<MSG<MTS0118<FAC0039You have Ms. Brace?<FC+<WAI0020<FAC0043 Good.<NOD<CLR<FAC0039Wow... She's <FAC0040in 
+te<FAC0039rrible shape.<NOD<CLRWe have to get her to
+the repair ward<FAC0041 as
+soon as possible.<NOD<CLR<FAC0039The tools there can
+fix the damage,<WAI0010<FAC0044 but time is
+now of the essence.<NOD<CLR<FAC0041The teleporters are still
+booting up.<NOD<FAC0040 The<FAC0039re is not
+enough time to wait
+for them.<NOD<CLRYour fastest option is to 
+take the <FAC0041water supply
+channels.<NOD<FAC0000<CLO
+<WAI0020
+<MMP0009:0008:0144//door is now open
+<MMP0010:0008:0145
+<MMP0009:0009:0160
+<MMP0010:0009:0161
+<SOU0012<WAI0020<MSG<FAC0039Just step through
+this door.<NOD<CLO
+<FL+4149//2nd airlock event is over
+<FL-4148//curly check disabled
+<END
+
+#0212
+<FLJ4152:0213
+<KEY<MSG<MTS0118<FC+<FAC0040Wai<FAC0039t a minute...<NOD<CLR<FAC0044You don't have Curly
+with you.<NOD<CLR<FAC0040Don't<FAC0039 tell me that I
+destroyed <FAC0044myself for
+nothing.<NOD<CLRPlease go back in there
+and bring her to safety.<NOD<CLO
+<FL+4152//galc will say the shorter thing if you talk to him again
+<END
+
+#0213
+<KEY<MSG<MTS0118<FAC0039Please<FC+ go collect Curly
+from the<FAC0041 reactor core.<NOD<END
+
+
+
+#0250
+//Teleporter
+<FLJ4144:0251
+<KEY<MS3This teleporter is offline.<NOD
+It doesn't seem to have enough
+power.<NOD<END
+
+#0251
+<KEY<MSG
+The teleporter is booting up...<NOD<CLRYou can't use it at the
+moment.<NOD<END
+
+
+#0300
+//curly TSC
+
+
+#0330
+//unused command
+<PRI<MSGYou see a button.<NOD<SOU0043<CLR<MSGPressed it.<NOD<CLO
+<WAI0050
+<SOU0071
+<CMP0007:0035:0000
+<CMP0008:0035:0000
+<CMP0026:0031:0111
+<WAI0050<END
+<END
+
+
+
+
+
+
+#0404
+//old TSC Event (now unused)
+//H/V trigger
+<DNP0400
+<FNJ4143:0000//prevents running before core is beaten
+<KEY<MM0<WAS
+<FL-4148//lower door no longer needs to check for carried curly
+//Galc comes in
+<MNP0201:0017:0009:0000//servs as GALC
+<ANP0110:0000:0002//open door
+<WAI0020
+<CNP0201:0361:0000//galc appears
+<WAI0020
+<ANP0110:0000:0000//close door
+<ANP0201:0050:0000<WAI0032
+<ANP0201:0000:0000<WAI0032<MYD0002
+<MSG<MTS0127<FAC0031I should have known
+that would happen.<FC+<NOD<CLR<FAC0035Ms.<FAC0033 Brace looks like she
+is in terrible shape.<NOD<FAC0031
+We need to get her to
+the repair ward.<NOD<CLRThe <FAC0035tool<FAC0031s there can
+fix the damage,<WAI0010 but time is
+now of the essence.<FC-<NOD<CLO<FAC0000
+<ANP0201:0050:0000<WAI0016
+<ANP0201:0080:0000//Galcota inspects teleporter
+<WAI0016<MSG<FAC0033This is still booting up.<FC+<NOD
+<FAC0031It will take some time to
+do so.<NOD<CLR<ANP0201:0000:0000<FAC0033We have to get there
+more quickly than that.<WAI0010.<WAI0010.<NOD<CLROur fastest option is to 
+take the water supply
+channels.<FC-<NOD<CLO<FAC0000
+<ANP0201:0050:0000//galc opens the door
+<WAI0064
+<ANP0201:0080:0000<WAI0020
+<MMP0009:0008:0144//door is now open
+<MMP0010:0008:0145
+<MMP0009:0009:0160
+<MMP0010:0009:0161
+<ANP0201:0000:0002<WAI0032
+<MSG<FAC0031Come along, please.<NOD<CLO
+<ANP0201:0080:0000<WAI0016
+<CNP0201:0000:0000//hide galc
+<FL+4149//2nd airlock event is over
+<END
+
+
+
+
+

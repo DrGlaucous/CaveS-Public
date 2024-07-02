@@ -1,0 +1,487 @@
+#0090
+//lower up elevator arrival
+<HMC<FLJ4105:0095<MNA<CMU0023<FAI0001<EVE0150 //changes music based on a flag change
+#0091
+//lower down elevator arrival
+<HMC<FLJ4105:0096<MNA<CMU0023<FAI0003<EVE0151
+
+
+#0092
+<HMC<FLJ4105:0097<MNA<CMU0023<FAI0001<EVE0130<END
+//up elevator arrival
+#0093
+//down elevator arrival
+<HMC<FLJ4105:0098<MNA<CMU0023<FAI0003<EVE0131<END
+
+
+#0094
+//no tied event (vent)
+<FLJ4105:0099<MNA<CMU0023<FAI0004<EVE0219
+
+
+#0095
+//lower up elevator arrival
+<MNA<CMU0020<FAI0000<EVE0150
+#0096
+//lower down elevator arrival
+<MNA<CMU0020<FAI0003<EVE0151
+
+
+#0097
+//up elevator arrival
+<HMC<MNA<CMU0020<FAI0002<EVE0130<END
+#0098
+//down elevator arrival
+<HMC<MNA<CMU0020<FAI0003<EVE0131<END
+
+
+#0099
+//no tied event
+<SMC<MNA<CMU0020<FAI0004<EVE0219
+
+
+
+#0100
+<KEY<FAO0004<TRA0099:0094:0015:0068 //takes you to the elevator shaft
+
+
+#0101
+//door
+<KEY<SOU0011<CNP0101:0000:0000<FAO0004<TRA0109:0094:0041:0004//this takes you to APMaint
+
+#0102
+//Maint door sign
+<KEY<MSG<TURMaintanence access<NOD<END
+
+
+#0103
+//Skyley door
+<KEY<SOU0011<CNP0103:0000:0000<FAO0004<TRA0110:0094:0004:0010//this takes you to N. Skyley's office
+
+#0104
+//Sky door sign
+<KEY<MSG<TURDr. Nathaniel A. Skyley<NOD<END
+
+
+//////Elevator scripts: Will work with every map so long as the following values are used for each NPC:
+//up left door 120
+//up right door 121
+//down left door 122
+//down right door 123
+//up NULL 124
+//down NULL 125
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Leave Scripts
+//The following are elevator doors:
+
+//Up elevator
+#0120
+//upleft
+<EVE0121
+#0121
+//upright
+<KEY<FNJ4114:0126<MSGWould you like to go to
+the Security District?<YNJ0000<CLO
+<ANP0124:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<CNP0124:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<FAO0004<TRA0101:0092:0004:0028//fade out and go to negSecurity (92 is UP)
+
+//Down Elevator
+#0122
+//downleft
+<EVE0123
+#0123
+//downright
+<KEY<FNJ4114:0126
+<FNJ4121:0127//if APSci completed
+<MSGWould you like to go to
+lower Applied Science?<YNJ0000<CLO
+<ANP0125:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<CNP0125:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<FAO0004<TRA0106:0091:0123:0061//goes to applied Science (93 is DOWN)
+
+
+#0124
+//UpQuoteElevator
+#0125
+//DownQuoteElevator
+
+#0126
+<KEY<MSGThe lifts appear to be out of
+commission.<NOD<END
+
+#0127
+<KEY<MSGThis is as far down as you
+can go right now.<NOD<END
+
+#0128
+<KEY<MSGThis is as far up as you
+can go right now.<NOD<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of elevator leave scripts
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Arrival Scripts
+#0130
+//arrive from the UP elevator
+<KEY<ANP0124:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0124:0150:0002//unhide the quote NPC
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0124:0000:0000//hide the quote NPC
+<ANP0124:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<END//Ready to go
+
+#0131
+//arrive from the DOWN elevator
+<KEY<ANP0125:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0125:0150:0002//unhide the quote NPC
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0125:0000:0000//hide the quote NPC
+<ANP0125:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070
+<FNJ4119:0220//If the player has already seen the cutscene down below...
+<FLJ4119:0221<END//Ready to go {event 600 is used only for negSecurity}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of Elevator Arrival Scripts
+
+
+
+
+//\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+//LOWER ELEVATORS
+//\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+
+
+
+//////Elevator scripts: Will work with every map so long as the following values are used for each NPC:
+//up left door 140
+//up right door 141
+//down left door 142
+//down right door 143
+//up NULL 144
+//down NULL 145
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Leave Scripts
+//The following are elevator doors:
+
+//Up elevator
+#0140
+//upleft
+<EVE0141
+#0141
+//upright
+<KEY<FNJ4114:0146<MSGWould you like to go to
+the top of
+Applied Science?<YNJ0000<CLO
+<ANP0144:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0140:0020:0000//open elevator
+<ANP0141:0020:0002
+<WAI0070
+<MTN0144:0002//moves PC to NPC
+<CNP0144:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0140:0040:0000//close elevator doors
+<ANP0141:0040:0002
+<WAI0070<FAO0004<TRA0106:0092:0004:0005//fade out and go to negSecurity (92 is UP)<FAO0004
+
+//Down Elevator
+#0142
+//downleft
+<EVE0143
+#0143
+//downright
+<KEY<FNJ4114:0146<MSGWould you like to go to
+the Test Chamber 4B?<YNJ0000<CLO
+<ANP0145:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0142:0020:0000//open elevator
+<ANP0143:0020:0002
+<WAI0070
+<MTN0145:0002//moves PC to NPC
+<CNP0145:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0142:0040:0000//close elevator doors
+<ANP0143:0040:0002
+<WAI0070<FAO0004<TRA0107:0093:0011:0014//goes to applied Science (93 is DOWN)
+
+
+#0144
+//UpQuoteElevator
+#0145
+//DownQuoteElevator
+
+#0146
+<KEY<MSGThe lifts appear to be out of
+commission.<NOD<END
+
+#0147
+<KEY<MSGThis is as far down as you
+can go right now.<NOD<END
+
+#0148
+<KEY<MSGThis is as far up as you
+can go right now.<NOD<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of elevator leave scripts
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Arrival Scripts
+#0150
+//arrive from the UP elevator
+<KEY<ANP0144:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0144:0150:0002//unhide the quote NPC
+<ANP0140:0020:0000//open elevator
+<ANP0141:0020:0002
+<WAI0070
+<MTN0144:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0144:0000:0000//hide the quote NPC
+<ANP0144:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0140:0040:0000//close elevator doors
+<ANP0141:0040:0002
+<WAI0070<END//Ready to go
+
+#0151
+//arrive from the DOWN elevator
+<KEY<ANP0145:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0145:0150:0002//unhide the quote NPC
+<ANP0142:0020:0000//open elevator
+<ANP0143:0020:0002
+<WAI0070
+<MTN0145:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0145:0000:0000//hide the quote NPC
+<ANP0145:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0142:0040:0000//close elevator doors
+<ANP0143:0040:0002
+<WAI0070<END//Ready to go {event 600 is used only for negSecurity}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of Elevator Arrival Scripts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#0219
+//if the player comes in through the vent:
+<FNJ4114:0000//if security is not beaten
+<FLJ4119:0221//if Galc has already talked
+<ANP0500:0000:0002
+<MSG<MTS0127<FAC0030<FC+What...<MYD0000<NOD<CLR
+Why <FAC0032did<FAC0030 you come in through
+there?<NOD<CLR<FAC0034The elevators work now.<NOD<CLR<WAI0010<FAC0031<WAI0010Anyway...<NOD<EVE0220
+
+
+#0220
+<MSG<MTS0127<FAC0030<FC+Welcome to the Applied<ANP0500:0000:0000//galc faces PC (if they entered through the vent, this may seem off)
+Science district.<NOD<CLR<FAC0034This was where
+<FAC0032our <FAC0034research was tested,
+or <FAC0030"applied", if you will.<NOD<CLRThe testing chambers in
+this department have great
+tools for,<WAI0010<FAC0034 well,<WAI0010<FAC0030 testing.<NOD<CLR<FAC0033I don't know what those
+creatures are or how they
+got here, but they must go.<NOD<CLRTheir presence is no good
+for our tests.<NOD<CLR<FAC0031Test chamber 4B is down
+towards the bottom.<NOD<CLR<FAC0035The<FAC0031re is where we will
+find the Doctor.<NOD<CLO
+<FL+4119//event is finished
+<CNP0500:0374:0002//change galcTSC to galcAI
+<ANP0500:0020:0002//initialize galcAI
+<CNP0520:0375:0000<ANP0520:0000:0500//sets up the NPC trigger to check for contact with Galc (entity 500)
+<END
+
+//If player has already had the cutscene above
+#0221
+<KEY
+<FLJ4121:0000//if APsci is already completed
+<CNP0500:0374:0002//change galcTSC to galcAI
+<ANP0500:0020:0002//initialize galcAI
+<CNP0520:0375:0000<ANP0520:0000:0500//sets up the NPC trigger to check for contact with Galc (entity 500)
+<END
+
+
+#0230
+//theatre Door
+<KEY<FNJ4160:0231
+<CNP0230:0000:0000<SOU0011<FAO0004
+<TRA0105:0092:0002:0005
+
+#0231
+//if you have not beatten the game yet
+<KEY<MSGThis door is locked from
+the inside.<NOD<END
+
+
+
+
+#0500
+//galcota AI, runs this if far from the player at case 400
+<KEY<DNP0510
+<CNP0500:0361:0002//changes galcAI to galcNPC
+<MNP0500:0106:0051:0002//drops it just out of player window range
+<WAI0020//waits for it to fall
+<ANP0500:0200:0000//send it to 2 blocks to the left of the PC
+<EVE0522//This leads into the next event ===========
+
+
+
+#0510
+//Run this at the end to check and see if Galc is near the PC
+<DNP0510<KEY<MYD0002<WAS
+<FLJ4117:0511//if the flag was already set (galc beat the PC)
+<FL+4117//set the flag if not already set
+<ANP0500:0400:0000//if this case rings true, then the current TSC event will be abandoned and Galcota's event pursued
+<WAI9999//If not, then the program will wait until GalcAI makes it to the PC
+<EVE0500//if something weird happens and Galcota cannot make it to where the PC is, the game will just force the event.
+
+#0511
+//if galc got there first
+<CNP0500:0361:0000<ANP0500:0200:0000//changes galcAI to galcTSC and has it walk until 2 blocks to the left of the PC
+<EVE0522//This leads into the next event ===========
+
+#0520
+//NPC trigger that detects if GalcAI has made it down next to the player
+<DNP0520
+<FLJ4117:0521//if the flag was already set (the PC made it before galc)
+<FL+4117//set the flag
+<END
+
+#0521
+//if the PC made it first
+<CNP0500:0361:0000<ANP0500:0200:0000//changes galcAI to galcTSC and has it walk until 2 blocks to the left of the PC
+<EVE0522//This leads into the next event ==============
+
+#0522
+//The event that the 3 above lead into
+<KEY<CNP0523:0375:0000<ANP0523:0000:0500//sets up the NPC trigger to check for contact with Galc (entity 500)
+<WAI9998<EVE0523//will wait until Galcota has hit the trigger, but if, for some reason, he doesn't, then the program forces the next event
+
+#0523
+//2nd NPC trigger that checks to see if Galcota is 2 blocks away from the PC
+<KEY<DNP0523<WAI0020//if galcota hits the trigger, wait another 20 ticks for him to come to a complete stop
+<MYD0000<MS3<FC+<FAC0030We've made it.<NOD<CLR<FAC0034That lift will take us
+to 4B's observation deck.<NOD
+<FAC0030From there, <FAC0032we<FAC0030 can put a
+stop to that Doctor.<NOD<CLO
+<ANP0142:0020:0000//open elevator
+<ANP0143:0020:0002
+
+<WAI0050//galcota is walking, so the full time is not needed
+<ANP0500:0050:0002<WAI0060//walk to the elevator
+<MYD0002<WAI0016//watch him as he passes
+<ANP0500:0000:0002<WAI0002//pause for a short time
+<ANP0500:0000:0000//look back at PC
+
+<MNN0145:0500<WAI0001//shifts the character NPC to match the location of GalcTSC
+<CNP0145:0361:0000//change to galcota with draw number behind the doors
+<CNP0500:0000:0000<WAI0001//Hides Galcota
+<ANP0142:0040:0000//close elevator
+<ANP0143:0040:0002<WAI0070
+<CNP0145:0000:0000//hide the elevator NPC
+<MNP0145:0123:0061:0000<WAI0001//Shifts the NPC back to the start
+<FL+4121//completed APSci //see malco2 for flag list
+<FL+4122//galc in 4b
+<FL-4123//galc no longer in APsci
+<END
+
+
+
+
+
+#0700
+//conversion event
+<KEY
+//<DNA0051<DNA0057<DNA0135<DNA0134<DNA0044//delete NPCs
+<CNP0750:0000:0000//all entities within cutscene range are changed to NULL (because killing them makes noise)
+<WAI0016//wait for smoke to disappear (maybe)
+<FON0701:0001<WAI0002
+<FON0701:0200
+<MNP0701:0051:0032:0000
+<CNP0702:0292:0000//begin quake
+<FAI0004
+<WAI0050
+<CNP0711:0279:1072<WAI0130
+//<CNP0713:0279:3072<WAI0064
+//<CNP0712:0279:2053<WAI0064
+<FAO0004
+<TRA0006:0700:0134:0016
+<END
+
+#0701
+//focus target NPC
+#0702
+//quake NPC
+
+
+#0711
+//block 1
+#0712
+//block 2
+#0713
+//block 3
+
+
+#0750
+//this will be the common identifier for all NPCs within cutscene range
+
+
+
+
+

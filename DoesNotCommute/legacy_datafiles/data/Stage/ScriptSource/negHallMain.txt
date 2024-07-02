@@ -1,0 +1,154 @@
+#0090
+<SMC<FLJ4105:0095<MNA<CMU0023<FAI0000<END //changes music based on a flag change
+#0091
+<SMC<FLJ4105:0096<MNA<CMU0023<FAI0001<END
+
+
+
+#0092
+//up elevator arrival
+<HMC<FLJ4105:0097<MNA<CMU0023<FAI0001<EVE0130<END
+#0093
+//down elevator arrival
+<HMC<FLJ4105:0098<MNA<CMU0023<FAI0003<EVE0131<END
+#0094
+//center Fade
+<SMC<FLJ4105:0099<MNA<CMU0023<FAI0004<END
+
+#0095
+<SMC<MNA<CMU0019<FAI0000<END
+#0096
+<SMC<MNA<CMU0019<FAI0001<END
+
+
+#0097
+//up elevator arrival
+<HMC<MNA<CMU0019<FAI0002<EVE0130<END
+#0098
+//down elevator arrival
+<HMC<MNA<CMU0019<FAI0003<EVE0131<END
+
+#0099
+<SMC<MNA<CMU0019<FAI0004<END
+
+
+
+
+
+
+
+
+
+
+
+
+
+#0100
+<KEY<SOU0011<CNP0100:0000:0000<FAO0004<TRA0097:0094:0017:0010//this takes you to the TP hall
+
+
+#0102
+<KEY<FLJ4101:0103<MS3A small label reads:
+"Lift Maintanace Access"<NOD<CLRDo you want to climb inside?<YNJ0000<CLO<FL+4101<EVE0103
+
+#0103
+<KEY<FAO0004<TRA0099:0094:0015:0052 //takes you to the elevator shaft
+//<TRA0001:0094:0017:0008//this takes you to the Arthur's house
+
+
+
+//////Elevator scripts: Will work with every map so long as the following values are used for each NPC:
+//up left door 120
+//up right door 121
+//down left door 122
+//down right door 123
+//up NULL 124
+//down NULL 125
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Leave Scripts
+//The following are elevator doors:
+
+//Up elevator
+#0120
+//upleft
+<EVE0121
+#0121
+//upright
+<KEY<FNJ4114:0126<MSGWould you like to go to
+the Bridge?<YNJ0000<CLO
+<ANP0124:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<CNP0124:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<FAO0004<TRA0100:0092:0008:0012//fade out and go to commandBridge (92 is UP)
+
+//Down Elevator
+#0122
+//downleft
+<EVE0123
+#0123
+//downright
+<KEY<FNJ4114:0126<MSGWould you like to go to
+the Security District?<YNJ0000<CLO
+<ANP0125:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<CNP0125:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<FAO0004<TRA0101:0093:0008:0028//goes to security (93 is DOWN)
+
+
+#0124
+//UpQuoteElevator
+#0125
+//DownQuoteElevator
+
+#0126
+<KEY<MSGThe lifts appear to be out of
+commission.<NOD<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of elevator leave scripts
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Arrival Scripts
+#0130
+//arrive from the UP elevator
+<KEY<ANP0124:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0124:0150:0002//unhide the quote NPC
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0124:0000:0000//hide the quote NPC
+<ANP0124:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<END//Ready to go {event 600 is used only for negSecurity}
+
+#0131
+//arrive from the DOWN elevator
+<KEY<ANP0125:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0125:0150:0002//unhide the quote NPC
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0125:0000:0000//hide the quote NPC
+<ANP0125:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<END//Ready to go
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of Elevator Arrival Scripts
+
+
+

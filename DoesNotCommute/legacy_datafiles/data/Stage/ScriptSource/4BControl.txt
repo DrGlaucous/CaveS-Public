@@ -1,0 +1,829 @@
+#0090
+//lower up elevator arrival (USED FOR MAINT ELEVATOR)
+<HMC
+<ANP0402:0080:0002//if This Galcota is here when the PC arrives, spin him around before fade-in
+<ANP0300:0000:0022//make the elevator button shown
+<ANP0421:0000:0002//flip galcota (at the table) around
+<ANP0423:0105:0000//Toroko laying on back (big)
+<MNF0423:0384:0211:0000//Move Toroko+ to the table
+<ANP0426:0122:0000//Toroko laying on back (after being dosed)
+<MNF0426:0384:0211:0000//Move dosed Toro to the table
+<FLJ4130:0095<MNA<CMU0019<FAI0001<EVE0150 //changes music based on a flag change
+#0091
+//lower down elevator arrival
+<HMC<FLJ4130:0096<MNA<CMU0019<FAI0003<EVE0151
+
+
+
+#0092
+//up elevator arrival
+<HMC<FLJ4130:0097<MNA<CMU0019<FAI0001<EVE0130<END
+#0093
+//down elevator arrival
+<HMC//much of the following is done in event 0301 as well (when the PC loads a save)
+<ANP0402:0080:0002//if This Galcota is here when the PC arrives, spin him around before fade-in
+<ANP0300:0000:0022//make the elevator button shown
+<ANP0421:0000:0002//flip galcota (at the table) around
+<ANP0423:0105:0000//Toroko laying on back (big)
+<MNF0423:0384:0211:0000//Move Toroko+ to the table
+<ANP0426:0122:0000//Toroko laying on back (after being dosed)
+<MNF0426:0384:0211:0000//Move dosed Toro to the table
+<FLJ4130:0098<MNA<CMU0019
+<FAI0003<EVE0131<END
+#0094
+//center Fade
+<SMC<FLJ4130:0099<MNA<CMU0019<FAI0004<END
+
+#0095
+//lower up elevator arrival
+<MNA<CMU0002<FAI0001<EVE0150
+#0096
+//lower down elevator arrival
+<MNA<CMU0002<FAI0003<EVE0151
+
+
+#0097
+//up elevator arrival
+<HMC<MNA<CMU0002<FAI0001<EVE0130<END
+#0098
+//down elevator arrival
+<HMC<MNA<CMU0002<FAI0003<EVE0131<END
+
+#0099
+<SMC<MNA<CMU0002<FAI0004<END
+
+
+
+
+
+
+
+//////Elevator scripts: Will work with every map so long as the following values are used for each NPC:
+//up left door 120
+//up right door 121
+//down left door 122
+//down right door 123
+//up NULL 124
+//down NULL 125
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Leave Scripts
+//The following are elevator doors:
+
+//Up elevator
+#0120
+//upleft
+<EVE0121
+#0121
+//upright
+<KEY<FNJ4114:0126<MSGWould you like to go to
+Applied Science?<YNJ0000<CLO
+<ANP0124:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<CNP0124:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<FAO0004<TRA0106:0090:0121:0061//fade out and go to APSci (92 is UP) (90 is UP)
+
+//Down Elevator
+#0122
+//downleft
+<EVE0123
+#0123
+//downright
+<KEY<FNJ4114:0126
+<EVE0127
+<MSGWould you like to go to
+the Security District?<YNJ0000<CLO
+<ANP0125:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<CNP0125:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<FAO0004<TRA0101:0093:0008:0028//goes to security (93 is DOWN) (91 is DOWN)
+
+
+#0124
+//UpQuoteElevator
+#0125
+//DownQuoteElevator
+
+#0126
+<KEY<MSGThe lifts appear to be out of
+commission.<NOD<END
+
+#0127
+<KEY<MSGThis is as far down as you
+can go right now.<NOD<END
+
+#0128
+<KEY<MSGThis is as far up as you
+can go right now.<NOD<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of elevator leave scripts
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Arrival Scripts
+#0130
+//arrive from the UP elevator
+<KEY<ANP0124:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0124:0150:0002//unhide the quote NPC
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0124:0000:0000//hide the quote NPC
+<ANP0124:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<END//Ready to go {event 600 is used only for negSecurity}
+
+#0131
+//arrive from the DOWN elevator
+<KEY<ANP0125:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0125:0150:0002//unhide the quote NPC
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0125:0000:0000//hide the quote NPC
+<ANP0125:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<FLJ4122:0400//is Galcota in 4B?
+<END//Ready to go
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of Elevator Arrival Scripts
+
+//UTILITY ELEVATOR SCRIPTS///////////////////////////////////////////////////
+////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+//////Elevator scripts: Will work with every map so long as the following values are used for each NPC:
+//up left door 140 <- the Utility elevator will use the "up" elevator scripts
+//up right door 141
+//down left door 142
+//down right door 143
+//up NULL 144
+//down NULL 145
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Leave Scripts
+//The following are elevator doors:
+
+//Up elevator
+#0140
+//upleft
+<EVE0141
+#0141
+//upright
+<KEY<FNJ4130:0146<MSGWould you like to take
+the utility elevator
+to maintenance?<YNJ0000<CLO
+<ANP0144:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0140:0020:0000//open elevator
+<ANP0141:0020:0002
+<WAI0070
+<MTN0144:0002//moves PC to NPC
+<CNP0144:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0140:0040:0000//close elevator doors
+<ANP0141:0040:0002
+<WAI0070<FAO0004<TRA0109:0092:0002:0060//fade out and go to negSecurity (92 is UP)<FAO0004
+
+//Down Elevator
+#0142
+//downleft
+<EVE0143
+#0143
+//downright
+<KEY<FNJ4130:0146<MSGWould you like to go to
+the Test Chamber 4B?<YNJ0000<CLO
+<ANP0145:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0142:0020:0000//open elevator
+<ANP0143:0020:0002
+<WAI0070
+<MTN0145:0002//moves PC to NPC
+<CNP0145:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0142:0040:0000//close elevator doors
+<ANP0143:0040:0002
+<WAI0070<FAO0004<TRA0107:0000:0002:0060//goes to apMaint (93 is DOWN)
+
+
+#0144
+//UpQuoteElevator
+#0145
+//DownQuoteElevator
+
+#0146
+<KEY<MSGThis looks like a utility
+elevator.<NOD<END
+
+#0147
+<KEY<MSGThis is as far down as you
+can go right now.<NOD<END
+
+#0148
+<KEY<MSGThis is as far up as you
+can go right now.<NOD<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of elevator leave scripts
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Arrival Scripts
+#0150
+//arrive from the UP elevator
+<KEY<ANP0144:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0144:0150:0002//unhide the quote NPC
+<ANP0140:0020:0000//open elevator
+<ANP0141:0020:0002
+<WAI0070
+<MTN0144:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0144:0000:0000//hide the quote NPC
+<ANP0144:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0140:0040:0000//close elevator doors
+<ANP0141:0040:0002
+<WAI0070<END//Ready to go
+
+#0151
+//arrive from the DOWN elevator
+<KEY<ANP0145:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0145:0150:0002//unhide the quote NPC
+<ANP0142:0020:0000//open elevator
+<ANP0143:0020:0002
+<WAI0070
+<MTN0145:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0145:0000:0000//hide the quote NPC
+<ANP0145:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0142:0040:0000//close elevator doors
+<ANP0143:0040:0002
+<WAI0070<END//Ready to go {event 600 is used only for negSecurity}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of Elevator Arrival Scripts
+
+
+
+
+
+//4B lift scripts-------------------------------------------------------
+#0200
+//departure script
+<FNJ4124:0207//is the elevator enabled yet?
+<ANP0203:0001:0192
+<WAI0004//teeny bit of redundancy to ensure the the PC cannot interact with the button more than 1x
+<END
+
+#0201
+//Nothing right now
+
+
+#0203
+//Elevator
+
+#0204
+//H/V trigger for map transfer event
+<TRF0108:0150
+
+#0205
+//arrival script
+<ANP0402:0080:0002//if This Galcota is here when the PC arrives, spin him around before fade-in
+<ANP0300:0000:0022//make the elevator button shown
+<ANP0421:0000:0002//flip galcota (at the table) around
+<ANP0423:0105:0000//Toroko laying on back (big)
+<MNF0423:0384:0211:0000//Move Toroko+ to the table
+<ANP0426:0122:0000//Toroko laying on back (after being dosed)
+<MNF0426:0384:0211:0000//Move dosed Toro to the table
+
+
+<MNP0204:0027:0016:0000//move hv trigger out of the way
+<MNP0203:0037:0017:0000//moves elevator to location
+<ANP0203:0002:0032<WAI0032//elevator up
+<MNP0204:0036:0016:0000//moves hv trigger back
+<END
+
+#0206
+//redundancy NPC triggers
+//If the PC somehow manages to clip out of the elevator, these will warp them back to the top
+<MOV0035:0014<END
+
+
+#0207
+//Elevator is NOT enabled
+<KEY<MSGThe elevator controls
+are currently inactive.<NOD<END
+
+
+
+//End of 4B lift scripts-------------------------------------------------------
+
+
+//Utility NPCs:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+#0300
+//Universal NPC (elevator button)
+<EVE0200//go to the elevator depart script
+
+#0301
+//initialization script: run when the game is loaded up from a save
+<ANP0402:0080:0002//if This Galcota is here when the PC arrives, spin him around before fade-in
+<ANP0300:0000:0022//make the elevator button shown
+<ANP0421:0000:0002//flip galcota (at the table) around
+<ANP0423:0105:0000//Toroko laying on back (big)
+<MNF0423:0384:0211:0000//Move Toroko+ to the table
+<ANP0426:0122:0000//Toroko laying on back (after being dosed)
+<MNF0426:0384:0211:0000//Move dosed Toro to the table
+<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+#0400
+<KEY<MSG<MTS0127<FAC0033<FC+They're here.<NOD<CLRCome <FAC0035and <FAC0031look out of this
+observation window.<NOD<CLO
+<FRE<ANP0401:0050:0002<WAI0352
+<ANP0401:0000:0002<WAI0010//stop and wait
+<ANP0401:0080:0002//look out window
+<FL+4125//galcota by window
+<FL-4122//galcota no longer next to elevators
+<WAI0001
+<END
+
+
+
+
+#0401
+//by-the elevator Galcota
+<EVE0402
+
+#0402
+//by-the-window Galcota
+<KEY<TRF0107:0403//refreshes the NPC so that we can work with NPC 402 only
+
+#0403
+//Galcota observes what is going on outside
+<ANP0300:0000:0022//make the elevator button show
+<KEY<MYB0002
+<MMP0036:0015:0199//changes these map parts to solid so Galcota can walk on them
+<MMP0037:0015:0200
+<MMP0038:0015:0201
+<FON0404:0016//focus on this NPC for changing maps
+<ANP0402:0000:0000//turn to face PC
+<KEY<MSG<MTS0127<FAC0033<FC+Take a look.<NOD<CLR<MYD0003<ANP0402:0080:0002<FAC0031They've <FAC0035alr<FAC0033eady moved the
+flower seeds.<NOD<CLO<WAI0020<MSG<MYD0002<FAC0031Well...<WAI0020<NOD<ANP0402:0000:0000//Face PC
+You know...<WAI0020<NOD<CLR<FAC0034This chamber actually
+<FAC0032has <FAC0034the tools we need to
+contain<FAC0030 these villains.<NOD<CLRI <FAC0032will <FAC0030need your help to
+set up <ANP0402:0000:0002<FAC0034these control
+panels, though.<NOD
+<FAC0030They're a bit dusty.<NOD<CLO
+<ANP0402:0050:0002//walk towards panels
+<FMU<WAI0032<HMC<TRF0108:0400
+
+#0404
+//camera target (for switching maps)
+
+#0405
+//next text event (right after Dr and Misery TP out)
+<ANP0300:0000:0022//make the elevator button show
+<FON0404:0016//focus on the camera NPC
+<MNP0402:0042:0014:0000//move galcota
+<ANP0402:0080:0000//face back
+<MOV0040:0014//move the PC
+<MYD0002<SMC
+<KEY<WAI0030
+<ANP0402:0000:0000//galc faces the PC
+<MSG<MTS0127<FAC0033<FC+They got away...<NOD<CLR<FAC0031I didn't <FAC0035thi<FAC0031nk that
+anything like that <FAC0033
+would happen...<NOD<CLR<ANP0402:0080:0000<WAI0020Wait...<WAI0010<FAC0031 Something's
+going on down there.<MYD0003<NOD<CLR<FAC0033What in the-<NOD<CLO<TRF0108:0521
+
+
+#0406
+//text event after toroko breaks the Tcoil
+<ANP0300:0000:0022//make the elevator button show
+<FON0404:0016//focus on the camera NPC
+<MNP0402:0042:0014:0000//move galcota
+<ANP0402:0080:0000//face back
+<MOV0040:0014//move the PC
+<MYD0002<SMC
+<KEY<WAI0030<CMU0019
+<MSG<MTS0127<FAC0033Wait a second...<FC+<WAI0030
+Are these...<WAI0030
+No...<WAI0010 They can't be...<WAI0030<NOD
+Can they?<NOD<CLO
+<ANP0203:0001:0192//move the elevator to the bottom of the chamber
+<ANP0402:0000:0000//face quote
+<MSG<FAC0031These creatures...<WAI0020
+Are they <FAC0035the <FAC0031Mimigas that
+you spoke of earlier?<NOD<CLR
+<WAI0010Hmm...<NOD<CLO
+<WAI0032//the next operations allow the TSC to be skipped much faster by instantly moving the elevator to the bottom
+<CNP0203:0000:0000//change elevator to NULL
+<WAI0001//tick for TSC to take effect
+<MNP0203:0037:0027:0000//move it to bottom
+<WAI0001<CNP0203:0377:0000
+<WAI0032
+<ANP0203:0003:0000<WAI0001//add king to the elevator
+<ANP0203:0002:0192//bring the elevator back up
+<MNP0407:0037:0014:0000//move the real king NPC to where the elevator will stop
+<MSG<FAC0033Well...<WAI0010 You see...<WAI0020
+<FAC0031If these are what I think
+they are,<NOD<FAC0035 then<FAC0030 I have a
+pretty good idea on what
+action to take.<NOD<CLO<FAC0000
+<WAI0128
+<MMP0036:0015:0199//changes these map parts to solid so Galcota can walk on them
+<MMP0037:0015:0200
+<MMP0038:0015:0201
+<DNA0061//deletes the elevator king
+<CNP0407:0061:0000<WAI0020//replaces it with NPC0407
+<ANP0407:0000:0002//looks at Galc
+<MSG<MTS0123<FC-<FAC0007What was that?!<NOD<CLR<MYD0000You've ruined my chances of
+revenge!<NOD<CLR<MTS0127<FAC0033With all due respect,<NOD<FC-<CLO
+<ANP0402:0050:0000//galc walk
+<WAI0048//walk for 3 blocks
+<ANP0402:0000:0000
+<MSG<FC+<FAC0031I just watched that man
+easily escape a tool<NOD
+<FAC0035that<FAC0033 was designed to
+handle objects that
+weigh <FAC003130 metric tonnes.<NOD<CLRI feel like you wouldn't
+have been much <FAC0035of <FAC0031a threat
+to him.<NOD<ANP0402:0080:0000<CLRLikewise,<NOD
+that other one you
+tried to protect also
+overpowered the coils<NOD//that ANP above looks out the window
+in a much more
+frightening way.<FC-<NOD<CLR<MTS0123<FAC0047That poor toroko,<FC+<NOD<ANP0402:0000:0000
+<FAC0007I vowed to protect her
+after what happened
+to her brother,<NOD
+and look at what has
+become of her now.<FC-<NOD<CLR<MTS0127<FAC0030Well, that's another
+reason I brought you up
+here.<FC+<NOD<CLRBecause <FAC0032now<FAC0030 that I see
+you up close, I know what
+you are.<NOD<CLR<FAC0034-And I know that it is
+possible<NOD to reverse the
+effects of those red 
+flowers.<FC-<NOD<CLR<MTS0123<FAC0047You mean that
+you can <FC+<WAI0010<FAC0007fix<WAI0010 Toroko?<FC+<NOD<CLR<MTS0127<FAC0030I believe we can.<NOD
+<FAC0033-Though we need her up <FAC0035here<FAC0031
+before we can begin
+any sort of treatment.<NOD<CLR-And as <FAC0035we <FAC0031have already
+seen,<WAI0010 Toroko is too strong
+for the <FAC0033restraining shield
+alone.<NOD<CLR<FAC0031We need to weaken her, <FAC0030or
+tire her <FAC0032out, <FAC0034so to speak.<NOD<CLR<FAC0033Someone will have
+to go down there and do
+just that.<NOD<CLR<FAC0031I would,<NOD
+but I have to <FAC0035stay<FAC0033 up here
+and man the chamber control
+system.<NOD<CLR<FAC0035As much<FAC0033 as I hate to
+ask something like this
+from other people,<NOD<CLR<FAC0031One of you
+will have to
+weaken Toroko.<FC-<NOD<CLR<MTS0123<FAC0007I could never hurt her,<FC+<NOD
+not even as she is
+now.<FC-<NOD<CLR<FAC0000<WAI0010<ANP0402:0000:0002<MTS0127<FAC0031I <FC+guess that leaves
+you as <FAC0035our<FAC0031 only option,
+then.<NOD<CLR<FAC0033I know you have
+done much for this ship
+already,<NOD<FAC0031
+but appears we have
+no other choice.<NOD<CLRIf <FAC0035you<FAC0031 decide to
+once again provide us your
+aid,<NOD<FAC0030
+you can use that button
+to take the lift down
+when you are ready.<NOD<CLO
+<FOM0016<FRE
+<ANP0402:0050:0002<WAI0016//galc walks back to control panel
+<ANP0407:0008:0000<WAI0031//king walks off the elevator {does each AMP take an extra tick?}
+<ANP0402:0000:0000<WAI0015//galc stops
+<ANP0407:0000:0002//king stops
+<FL+4124//can use 4B lift
+<FL-4125//galc no longer next to window
+<FL+4126//pre-boss NPCs and locations
+<FL+4129//Save stations are visible
+<CNP0016:0016:0002//generate the save points
+<CNP0017:0017:0002
+<WAI0040
+<TRF0107:0301//Refresh map and characters
+<END
+
+
+
+#0407
+//King NPC
+<KEY<MSG<MTS0123<FAC0047Please be careful.<FC+<NOD<CLR<FAC0007You have no idea how
+much Toroko means to me.<FC-<NOD<END
+
+
+#0408
+//Pre-Boss Galcota
+<KEY<MSG<MTS0127<FAC0030<FC+If you decide to go,<NOD
+I will try <FAC0032my <FAC0030best to get
+Toroko subdued as soon as
+she is <FAC0034weak enough.<NOD<END
+
+
+
+
+#0420
+//Post-Boss script: Galc quests the retrival of N.Skyley's notes
+<KEY<ANP0300:0000:0022//make the elevator button shown
+<ANP0421:0000:0002//flip him around
+<MYD0000//flip player
+<ANP0423:0105:0000//Toroko laying on back (big)
+<MNF0423:0384:0211:0000//Move Toroko+ to the table
+<ATS0002BackStory ~ The Origins<ATS<RTN//change name
+<FON0423:0001
+<FAI0003
+<MSG<MTS0127<FAC0031...We actually referred to
+these hybrids as
+Colonites.<NOD<CLR<MTS0123<FAC0007What do you mean,
+"Hybrids"?<NOD<CLR<MTS0127<FAC0030I mean you.<FC+<NOD<CLRYou, <FAC0034Toroko on the table,
+there, <FAC0032and<FAC0030 the rest of
+your species.<NOD<CLR<FAC0034You see,<NOD
+<FAC0030you are actually <FAC0032the<FAC0030 result
+of biogenetic research
+done on <FAC0034this very ship.<NOD
+<FAC0030The purpose was to create a
+being capable <FAC0032of <FAC0030weathering
+harsh environments.<NOD
+You would be sent to
+colonize remote places
+too <FAC0034harsh for humans.<NOD<FAC0030
+For this reason,
+we named you
+"colonites".<FC-<NOD<FAC0000<CLO<WAI0060<MSG<FAC0030The <FC+eventual goal of
+the Colonite Project was
+to create a species <FAC0032that<FAC0030
+would help the<NOD<FAC0034
+Cyndrillica Alliance
+establish a foothold in
+remote border worlds.<NOD<CLR<FAC0031Of course, that never
+happened due to <FAC0035that<FAC0031
+strange anomaly.<NOD<CLRThe one that knocked out
+the entire ship's crew,<FAC0033
+including me.<NOD<CLR<FAC0035In <FAC0031fact,<WAI0010 I'm surprised 
+that you continued
+to survive on this ship<NOD
+for all those years in its<FAC0033
+current state.<FC-<NOD<FAC0000<CLO<WAI0060<MSG<FAC0030Believe it or not,<FC+<NOD
+We have actually had
+experience with <FAC0034this type
+of infection before.<NOD<CLR<FAC0030Dr. Nathaniel Skyley,<NOD
+our head researcher,<NOD
+docu<FAC0032ment<FAC0030ed
+a process for reversing
+the effects <FAC0034you see here.<NOD<CLR<FAC0031Unfortunately, this process
+is in his notes, <FAC0035which<FAC0033 I
+do not have a record of.<NOD<CLR<FAC0030They should be in his
+office, though.<NOD<FAC0034
+I saw it coming down here,<NOD
+<FAC0035but <FAC0033years of neglect
+has caused the stairs
+there to collapse.<NOD<CLR<FAC0031You must take the
+maintenance elevator<FAC0035 to<FAC0031
+find another way in.<NOD
+I will have to stay behind
+to ensure the <FAC0030stability of
+our patient.<NOD<CLO<CMU0002
+<FL+4130//can now use the 3rd elevator
+<FOM0016
+<END
+
+
+Hybrids, you ask?
+Well, you see, they
+were actually bio-engineered
+by us to quickly and
+effectively create colonies
+on remote uninhabited worlds,
+hence their name.
+I'm surprised that they continued
+to survive on this ship for all
+those years in its current state.
+Believe it or not,
+we've had experience with
+this type of infection before.
+Our head researcher,
+Dr Nathaniel Skyley, developed
+and documented a process for
+reversing the effects
+you see here.
+Unfortunately, this process
+is in his notes, which I do
+not have a record of.
+They should be in his office,
+though. I saw it coming down here,
+but years of dilapidation
+has caused the standard
+access point to collapse.
+You must take the maintenance
+elevator to find another way
+there.
+I will have to stay behind to
+ensure the stability of our
+patient.
+
+
+
+#0421
+//Galcota at the table
+<FLJ4133:0427//this may not be needed: galc may leave in the event that sets this flag
+<ITJ0041:0424
+<KEY<MSG<MTS0127<FAC0030The<FC+ maintenance elevator
+<FAC0032will<FAC0030 take you where
+you need to go.<NOD<CLR<FAC0034I need to ensure Toroko's
+stability as long as she
+is <FAC0030in this state.<NOD
+<END
+
+#0422
+//King at the table
+<FLJ4133:0427//gives you sword if torko has been dosed
+<ITJ0041:0425
+<KEY<MSG<MTS0123<FAC0047I can't stand to
+see her this way.<FC+<NOD<CLR<FAC0007Please hurry and
+find those notes.<NOD<CLR<END
+
+#0423
+//Toroko+ at the table
+
+
+#0424
+//Galcota if you have the notes
+<KEY<MYB0002<FON0432:0016
+<ANP0421:0000:0000//look at PC
+<MSG<MTS0127<FAC0030Excellent!<FC+<NOD<CLRMay I see them?<NOD<FAC0000<SOU0038<GIT1041<MTS0002<CLRGave Galcota the notebook.<NOD<GIT0000<FAC0031<CLR<MTS0127
+.<WAI0010.<WAI0010.<WAI0010.<WAI0010<FAC0030<CLROk.<NOD I found it.<NOD<ANP0421:0000:0002<CLR<FAC0032We <FAC0034should have everything
+we need to complete the
+procedure.<NOD<CLR<FAC0030Let's get started!<NOD<CLO
+<FAO0004<WAI0050<FAI0004
+<WAI0010<ANP0423:0120:0000//toroko shrink animation
+<WAI0100
+<MSG<FAC0031Things seem to be going
+well.<NOD<CLR<WAI0020<FAC0035It <FAC0033will be some time before
+Toroko wakes up, though.<NOD<CLR<FAC0030I have the machine
+set to notify me the moment
+<FAC0034she does.<NOD<CLR<FAC0030<SOU0038<GIT1041You can have the
+notes back.<NOD<GIT0000<CLRIf you haven't read it
+already, there<FAC0032 is<FAC0030 some
+good information inside.<NOD<CLR<FAC0031There is still much to do
+to this ship <FAC0035if<FAC0031 we
+want it running properly.<FC-<NOD<CLR<MTS0123<FAC0007I won't leave Toroko's
+side until I am certain
+she is completely safe.<NOD<CLR<MTS0127<FAC0034Understood.<FC+<NOD<ANP0421:0000:0000<CLR<FAC0030I guess that just leaves
+you and me, then.<NOD<CLO
+<WAI0060
+<MSG<FAC0031With this immediate threat
+out of the way, our next
+goal is waking up the crew.<NOD<CLRDes<FAC0035pite<FAC0031 being offline for
+such a long time,<NOD<FAC0030
+this ship has still
+maintained its stasis
+chambers.<NOD<CLR<FAC0034The entire crew appears
+to be inside them.<NOD<CLR<FAC0030Normally, <FAC0032the<FAC0030 EE10's manned
+staff enters stasis on
+2 conditions:<NOD
+<FAC0034long journeys
+or <FAC0030extreme emergencies<NOD<CLRUsually, I remain online
+even after the crew enters
+stasis.<NOD<CLR<FAC0031But this time, I was
+offline, too.<NOD<FAC0033
+What happened then<WAI0005.<WAI0005.<WAI0005.<WAI0005.<WAI0005?<NOD<CLR<WAI0030<FAC0031Anyway,<WAI0010<FAC0030 to wake them up,
+we need a <FAC0034significant
+amount of power.<NOD<CLR<FAC0032For<FAC0030 this reason, our next
+step is getting the reactor
+core back online.<NOD<CLR<FAC0031Ship sensors tell<FAC0035 me<FAC0031 that
+the core is working at 98%
+efficiency.<NOD
+Despite this, the
+other sensors only
+report a<FAC0033 15% flow rate.<NOD<CLRSomewhere, that power is
+being lost.<NOD<FAC0031 We need to
+find out where...<NOD<CLR<FAC0034I'll head to the main
+distro node.<NOD<FAC0030 That is where
+I feel the problem is.<NOD<CLRI <FAC0032wou<FAC0030ld like you to check
+out the core.<NOD<CLRIf the readings are
+correct, <FAC0034there shouldn't be
+any sort of issue there.<NOD<FAC0030
+I just need a visual status
+to com<FAC0032plet<FAC0030ely iron out that
+option.<NOD<CLRLike previously,<NOD
+the most direct route to
+our destinations is the<FAC0034
+maintenance district.<NOD<CLR<FAC0030If you have any questions,
+you can contact me<FAC0032 on<FAC0030
+the terminals like before.<NOD<CLO
+<FON0421:0016//focus on galc
+
+<ANP0140:0020:0000//open elevator
+<ANP0141:0020:0002
+
+<WAI0050//galcota is walking, so the full time is not needed
+<ANP0421:0050:0000<WAI0032//walk to the elevator
+<MYD0000<WAI0084//watch him as he passes
+<ANP0421:0000:0000<WAI0002//pause for a short time
+<ANP0421:0000:0002//look back at PC
+<MNN0144:0421<WAI0001//shifts the character NPC to match the location of GalcTSC
+<CNP0144:0361:0002//change to galcota with draw number behind the doors
+<CNP0421:0000:0000<WAI0001//Hides Galcota
+<ANP0140:0040:0000//close elevator
+<ANP0141:0040:0002<WAI0070
+<CNP0144:0000:0000//hide the elevator NPC
+<MNP0144:0014:0014:0000<WAI0001//Shifts the NPC back to the start
+<FL-4128//king and galc no longer next to table
+<FL+4133//toroko has been dosed (is small with king next to it)
+<FL+4136//Can talk to Glac in APMaint
+<FOM0016
+<END
+
+#0425
+//King if you have the notes
+<KEY<MSG<MTS0123<FAC0007What? You have the notes?<NOD<CLRWhat are you waiting for,
+then? Let's get going!<NOD<END
+
+
+#0426
+//Toroko after being dosed
+
+#0427
+//king after toro has been dosed
+<FLJ4135:0428//jumps if you have the sword
+<KEY<MSG<MTS0123<FAC0007Here, take this.<NOD<FAC0000<CLR<AM+0009:0000<GIT0009<CMU0010<MTS0002
+Got the =Blade=.<WAI0160<NOD<RMU<CLR<MTS0123<FAC0007It was Arthur's.<FC+<NOD
+<FAC0047I found it left behind in
+a cave after he was killed.<NOD<CLR<FAC0007You will have a better
+chance to avenge him
+than me.<NOD<FL+4135<FC-<END
+
+#0428
+//king if he has already given you the sword
+<KEY<MSG<MTS0123<FAC0047Arthur was an excellent
+warrior.<FC+<NOD<CLR<FAC0007It is fitting that his
+sword will help end the
+reign of this tyrant.<NOD<END
+
+#0430
+//galc if you have read the notes
+
+
+#0431
+//galc if you have not read the notes
+
+#0440
+//next events (after the note branch)
+
+
+
+
+
+//remember to set this slurry of flags after the events
+<FL+0596<FL+0594<IT-0014<FL-0274
+<FL+0620<FL+0621
+
+
+#0600
+<IT+0041
+<TRF0108:05500521
+//TEST interactable entity
+//<KEY<ANP0601:0100:0002<NOD//die script
+//<CNP0601:0000:0000<WAI0001
+//<MNP0601:0050:0014:0000<NOD//move back
+<KEY<CNP0601:0381:0002<NOD//starts Toroko
+<ANP0601:0009:0602<NOD//target the NPC
+<ANP0601:0050:0000<NOD//throw a block at the NPC
+<ANP0601:0100:0002<NOD//die script
+<CNP0601:0000:0000<WAI0001
+<MNP0601:0050:0014:0000<NOD//move back
+<END
+
+
+#2000
+//title screen script, 374 tick allowance
+//initialization script: run when the game is loaded up from a save
+<KEY<ANP0402:0080:0002//if This Galcota is here when the PC arrives, spin him around before fade-in
+<ANP0300:0000:0022//make the elevator button shown
+<ANP0421:0000:0002//flip galcota (at the table) around
+<ANP0423:0105:0000//Toroko laying on back (big)
+<MNF0423:0384:0211:0000//Move Toroko+ to the table
+<ANP0426:0122:0000//Toroko laying on back (after being dosed)
+<MNF0426:0384:0211:0000//Move dosed Toro to the table
+<FON0426:0001//focus on dosed toroko
+<MNA<WAI0050<FAI0001
+<WAI0330<FAO0001//fade out
+<WAI9999<END
+

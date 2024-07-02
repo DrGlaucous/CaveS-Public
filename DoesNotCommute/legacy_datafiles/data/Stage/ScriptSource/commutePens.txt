@@ -1,0 +1,71 @@
+
+#0090
+<MNA<CMU0050<FAI0000<END
+#0091
+<MNA<CMU0050<FAI0001<END
+#0092
+<MNA<CMU0050<FAI0002<END
+#0093
+<MNA<CMU0050<FAI0003<END
+#0094
+<MNA<CMU0050<FAI0004<END
+
+
+#0116
+//save point
+<SVC0001:0002//compare with file 1
+<PRI<MSG
+Do you want to save?<CMU0000<YNJ0117<FL+7002<SVM0002<SVC0000:0000<WAI0001<SVC0001:0002<CLRGame saved.<NOD<CLR<EVE0117//refresh compare chart
+#0117
+<RMU
+<SVC0000:0000<END//close chart
+
+
+#0140
+//door
+<KEY<MSGQuote finds that for some
+strange reason, the door is
+stuck closed.<NOD<CLRCould it be that the
+game is trying to tell
+him something?<NOD<END
+<KEY<CMU0043<NOD
+<CMU0044<NOD
+<CMU0045<NOD
+<CMU0046<NOD
+<CMU0047<NOD<END
+
+
+
+
+
+#0300
+//TP NPC
+
+#0301
+//TP NPC
+
+
+
+
+#0500
+//Teleporter
+<KEY<MSGA teleporter.<NOD<CLRDo you want to go to the
+Egg Corridor?<YNJ0000<CLO
+<KEY<CNP0300:0111:0002<HMC<WAI0060<ANP0500:0001:0000
+<WAI0100<FAO0004<CMU0045
+<ATS0001Level: Egg Corridor<ATS<RTN
+<MSG
+Level 3:<NOD<CLO
+<FL-5001<FL-5002<FL-5003<FL-5004<FL-5005<FL-5006//RESET FLAGS FOR REUSE
+<FL-6002<FL-6003<FL-6004<FL-6005<FL-6006
+<FL+6001//ACTIVE PLAYER FLAG (for lvl3 quote)
+<TRA0122:0110:0003:0004
+
+
+
+#1000
+//save load init script
+<TCL0000:0000:0043//Stop Timer
+<CMU0050
+<FAI0004
+<END

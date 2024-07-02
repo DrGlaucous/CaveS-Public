@@ -1,0 +1,44 @@
+
+#0090
+<MNA<CMU0008<FAI0000<END
+#0091
+<MNA<CMU0008<FAI0001<END
+#0092
+<MNA<CMU0008<FAI0002<END
+#0093
+<MNA<CMU0008<FAI0003<END
+#0094
+<MNA<CMU0008<FAI0004<END
+
+#0100
+<PRI<CNP0100:0000:0000
+<SOU0011<FAO0001
+<TRA0120:0200:0008:0028
+
+
+#0200
+<TCL0000:0030:0000//put the correct start time on the timer, even if we set it again in the next map
+<AM+0002:0000<ML+0006
+<EQ+1024
+<FL+6001//NEXT PLAYER ACTIVE FLAG
+<EVE0094
+<KEY<SKJ0005:0091<PRI<CMU0000<MSG
+From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
+
+#0300
+//save station
+<KEY<MSGReally? You're trying to save?<NOD<CLRWhat?<NOD What are you trying
+to save?<NOD<CLRYou haven't done anything yet.<NOD<END
+
+#0400
+//health server
+<KEY<MSGHealth could not be refilled
+because you already have full
+health.<NOD<CLRYou knew dang well this wouldn't
+benefit you in any way, but you
+still used it, didn't you?<NOD<CLR
+Just go already.<NOD<END
+
+
+#1000
+<END

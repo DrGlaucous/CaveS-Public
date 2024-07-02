@@ -1,0 +1,847 @@
+//Flag List
+//Flag 5000: 
+//Flag 5001: quote reached door
+//Flag 5002: curly reached door
+//Flag 5003: bluebot reached door
+//Flag 5004: hasumi reached door
+//Flag 5005: booster reached door
+//Flag 5006: headman reached door
+//Flag 5006: sue reached door
+//
+//
+//Flag 6001: on ONLY when quote is active
+//Flag 6002: on ONLY when curly is active
+//Flag 6003: on ONLY when bluebot is active
+//Flag 6004: on ONLY when hasumi is active
+//Flag 6005: on ONLY when booster is active
+//Flag 6006: on ONLY when headman is active
+//Flag 6007: on ONLY when sue is active
+//
+
+
+
+
+
+
+#0090
+<MNA<CMU0045<FAI0000<END
+#0091
+<MNA<CMU0045<FAI0001<END
+#0092
+<MNA<CMU0045<FAI0002<END
+#0093
+<MNA<CMU0045<FAI0003<END
+#0094
+<MNA<CMU0045<FAI0004<END
+
+
+
+#0100
+//Teleporter
+//<TRA0123:0000:0015:0005
+<PRI<MSGThis teleporter just
+dosen't seem to let you
+regress in your progress.<NOD<CLRBummer.<NOD<END
+
+#0110
+//TP in event
+<KEY<MNA<CMU0045
+<ANP0100:0001:0000
+<ANP0120:0001:0000//prevent basil from clipping underneath the PC
+<FAI0004
+<TCL0001:0000:0043//Start Timer (will not begin until the PC is free)
+<CNP0116:0112:0002<WAI0100
+<ANP0100:0000:0000
+<MYD0002<DNP0116<SMC
+<EVE0200//quote intro
+
+#0115
+//TP out NPC (300)
+
+#0116
+//TP in NPC (301)
+
+
+#0120
+//Basil (snaps to player, so we need to move it back)
+
+#0130
+//TEMPLATE EVENT
+<TCL0001:0030:0043//Begin timer: only for the 1st event in each map
+<MLS0009:0009//SET current player's life
+<MOV0000:0000<MYD0000//MOVE TO DOOR AND FACE THE RIGHT WAY
+<AM-0000
+<AM+0000:0000//GIVE THE PC THE CORRECT GUN
+<AML0001:0003:0012//SET WEAPON LEVEL
+<MIM0000//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0302:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0302:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSG<NOD<CLO//PART 1 MESSAGE
+<FON0303:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0056:0004:0002//MOVE ARROW
+<MSG<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0500:0101:0012:0002//MOVE AI
+<NEQ0500:0001:0000//equip NPC with User's items
+<NAM0500:0000:0002:0000//give the NPC some guns
+<NPS0500:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0500:0002:0001//reset reader and begin callback
+
+
+<KLC0002:0000//reset file and begin logging
+<END
+
+
+
+#0131
+//TEMPLATE END EVENT (DESTINATION DOOR)
+<FNJ5000:0350//PREVIOUS PLAYER's FLAG
+<FLJ5001:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0303:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0303:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5001//CURRENT PLAYER's FLAG
+<FL-6001//PLAYER's ACTIVE FLAG
+<FL+6002//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0210//NEXT INTRO EVENT
+
+
+
+
+#0200
+//Intro quote
+//with pstar
+//<HMC<EVE0600//TEST SKIP TO END
+<MLS0011:0011//SET current player's life
+//<AM-0000
+//<AM+0000:0000//GIVE THE PC THE CORRECT GUN
+//<AML0001:0003:0012//SET WEAPON LEVEL
+<MIM0000//GIVE PLAYER CORRECT SKIN
+//<HMC<WAI0060
+//<ANP0302:0000:0002//OPEN DOOR
+//<SOU0011<WAI0010<SMC<WAI0010
+//<ANP0302:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGQuote seems rushed.<NOD<CLO//PART 1 MESSAGE
+<FON0302:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0040:0019:0000//MOVE ARROW
+<MS3He wants
+to duck into this door here
+for a bit and lay low.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<KLC0002:0010//reset file and begin logging
+<END
+
+
+
+
+
+#0210
+//Intro curly
+//mgun
+<MLS0013:0013//SET current player's life
+<MOV0103:0009<MYD0000//MOVE TO DOOR AND FACE THE RIGHT WAY
+<AM-0002
+<AM+0004:0120//GIVE THE PC THE CORRECT GUN
+<AML0004:0003:0010//SET WEAPON LEVEL
+<MIM0002//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0305:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0305:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGSomeone stole Curly's panties.<NOD
+Again.<NOD<CLRThis is the third time this week
+it's happened.<NOD<CLO//PART 1 MESSAGE
+<FON0301:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0031:0019:0002//MOVE ARROW
+<MS3Curly thinks she is hot
+on the trail, though.<NOD<CLRShe followed the
+track to somewhere
+around this door.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0501:0101:0012:0002//MOVE AI Quo
+<NEQ0501:0001:0000//equip NPC with User's items
+<NAM0501:0000:0002:0000//give the NPC some guns
+<NPS0501:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0010//reset reader and begin callback
+
+
+<KLC0002:0011//reset file and begin logging
+<END
+
+
+
+
+#0220
+//Intro bluebot
+//snake
+<MLS0008:0008//SET current player's life
+<MOV0092:0014<MYD0000//MOVE TO DOOR AND FACE THE RIGHT WAY
+<AM-0004
+<AM+0001:0000//GIVE THE PC THE CORRECT GUN
+<AML0001:0002:0030//SET WEAPON LEVEL
+<MIM0006//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0304:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0304:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGThis blue robot is tired
+of standing around looking at
+eggs.<NOD<CLRHe heard that another
+robot across the island
+is great at making tea.<NOD<CLO//PART 1 MESSAGE
+<FON0303:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0062:0002:0000//MOVE ARROW
+<MSGHe decides to pay a
+visit.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0501:0101:0012:0002//MOVE AI Quo
+<NEQ0501:0001:0000//equip NPC with User's items
+<NAM0501:0000:0002:0000//give the NPC some guns
+<NPS0501:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0010//reset reader and begin callback
+
+
+<MNP0502:0101:0012:0002//MOVE AI Curl
+<NEQ0502:0001:0000//equip NPC with User's items
+<NAM0502:0000:0004:0120//give the NPC some guns
+<NPS0502:0002//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0011//reset reader and begin callback
+
+
+<KLC0002:0012//reset file and begin logging
+<END
+
+
+
+
+
+
+
+
+#0230
+//Intro hasumi
+//maxxed out super missile (50 rounds)
+<MLS0009:0009//SET current player's life
+<MOV0038:0020<MYD0000//MOVE TO DOOR AND FACE THE RIGHT WAY
+<AM-0001
+<AM+0010:0050//GIVE THE PC THE CORRECT GUN
+<AML0010:0003:0010//SET WEAPON LEVEL
+<MIM0009//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0302:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0302:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MS3Nurse Hasumi noticed that
+Dr. Gero forgot his weapon
+before leaving.<NOD<CLRHasumi is not a fan
+of guns, and the doctor,
+due to his generous income,<NOD
+happens to own the
+=Super Missile(TM)= deluxe with
+=Ultra-Xplode(TM)= technology.<NOD
+-Guaranteed to redefine power
+as you know it!(TM)<NOD<CLO//PART 1 MESSAGE
+<FON0300:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0004:0007:0000//MOVE ARROW
+<MSGEven so, she knows
+that he will be better off
+if he has it.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0501:0101:0012:0002//MOVE AI Quo
+<NEQ0501:0001:0000//equip NPC with User's items
+<NAM0501:0000:0002:0000//give the NPC some guns
+<NPS0501:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0010//reset reader and begin callback
+
+
+<MNP0502:0101:0012:0000//MOVE AI Curl
+<NEQ0502:0001:0000//equip NPC with User's items
+<NAM0502:0000:0004:0120//give the NPC some guns
+<NPS0502:0002//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0011//reset reader and begin callback
+
+
+<MNP0503:0092:0014:0000//MOVE AI bbot
+<NEQ0503:0001:0000//equip NPC with User's items
+<NAM0503:0000:0001:0000//give the NPC some guns
+<NPS0503:0006//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0012//reset reader and begin callback
+
+
+<KLC0002:0013//reset file and begin logging
+<END
+
+
+
+
+#0240
+//Intro booster
+//nothing
+<MLS0006:0006//SET current player's life
+<MOV0060:0003<MYD0002//MOVE TO DOOR AND FACE THE RIGHT WAY
+<IT+0023<EQ+0032<FL+0743<EQ-0001<EQ-0512<FL-0742<FL-4150//equip booster and set according flags
+<AM-0010
+<AM+0000:0000//GIVE THE PC THE CORRECT GUN
+//<AML0001:0003:0012//SET WEAPON LEVEL
+<MIM0005//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0303:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0303:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGProfessor Booster is testing
+his new jetpack.<NOD<CLO//PART 1 MESSAGE
+<MNP0402:0085:0015:0000//move camera focus NPC
+<FON0402:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0090:0015:0000//MOVE ARROW
+<MSGAbout halfway through his
+joyride, he decided to check
+out the inside of this egg.<NOD<CLRFor some reason.<NOD
+This egg in particular.<NOD
+Egg No.8<NOD<MNP0402:0080:0015:0000//move camera target
+Wait... come to think of it,
+aren't all these eggs
+egg No.8?<NOD<CLRI smell a lazy
+game developer...<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0501:0101:0012:0002//MOVE AI Quo
+<NEQ0501:0001:0000//equip NPC with User's items
+<NAM0501:0000:0002:0000//give the NPC some guns
+<NPS0501:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0010//reset reader and begin callback
+
+
+<MNP0502:0101:0012:0000//MOVE AI Curl
+<NEQ0502:0001:0000//equip NPC with User's items
+<NAM0502:0000:0004:0120//give the NPC some guns
+<NPS0502:0002//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0011//reset reader and begin callback
+
+
+<MNP0503:0092:0014:0000//MOVE AI bbot
+<NEQ0503:0001:0000//equip NPC with User's items
+<NAM0503:0000:0001:0000//give the NPC some guns
+<NPS0503:0006//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0012//reset reader and begin callback
+
+<MNP0504:0038:0020:0000//MOVE AI hasum
+<NEQ0504:0001:0000//equip NPC with User's items
+<NAM0504:0000:0010:0050//give the NPC some guns
+<NPS0504:0009//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0504:0002:0013//reset reader and begin callback
+
+
+<KLC0002:0014//reset file and begin logging
+<END
+
+Sounds like
+a lazy game developer to
+me...<NOD<CLR
+
+
+#0250
+//intro headman
+//bubbler
+<MLS0009:0009//SET current player's life
+<MOV0033:0020<MYD0002//MOVE TO DOOR AND FACE THE RIGHT WAY
+<AM-0000
+<AM+0007:0100//GIVE THE PC THE CORRECT GUN
+<AML0007:0003:0005//SET WEAPON LEVEL
+<MIM0010//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0301:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0301:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MS3Part head, part man,
+though not completely either,
+Headman makes his appearance.<NOD<CLO//PART 1 MESSAGE
+<FON0304:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0094:0014:0000//MOVE ARROW
+<MSGI don't know how he got here,
+and I'd be willing to bet that
+he wouldn't know either.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0501:0101:0012:0002//MOVE AI Quo
+<NEQ0501:0001:0000//equip NPC with User's items
+<NAM0501:0000:0002:0000//give the NPC some guns
+<NPS0501:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0010//reset reader and begin callback
+
+
+<MNP0502:0101:0012:0000//MOVE AI Curl
+<NEQ0502:0001:0000//equip NPC with User's items
+<NAM0502:0000:0004:0120//give the NPC some guns
+<NPS0502:0002//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0011//reset reader and begin callback
+
+
+<MNP0503:0092:0014:0000//MOVE AI bbot
+<NEQ0503:0001:0000//equip NPC with User's items
+<NAM0503:0000:0001:0000//give the NPC some guns
+<NPS0503:0006//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0012//reset reader and begin callback
+
+<MNP0504:0038:0020:0000//MOVE AI hasum
+<NEQ0504:0001:0000//equip NPC with User's items
+<NAM0504:0000:0010:0050//give the NPC some guns
+<NPS0504:0009//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0504:0002:0013//reset reader and begin callback
+
+
+<MNP0505:0060:0003:0002//MOVE AI booster
+<NEQ0505:0001:0032//equip NPC with User's items
+<NAM0505:0000:0000:0000//give the NPC some guns
+<NPS0505:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0505:0002:0014//reset reader and begin callback
+
+
+
+<KLC0002:0015//reset file and begin logging
+<END
+
+
+
+
+#0260
+//Intro sue
+//electric therapy
+<ANP0120:0001:0000//prevent basil from clipping underneath the PC
+<MLS0007:0007//SET current player's life
+<MOV0002:0008<MYD0002//MOVE TO DOOR AND FACE THE RIGHT WAY
+<AM-0007
+<AM+0014:0100//GIVE THE PC THE CORRECT GUN
+<IT+0020<EQ+0008//add turbocharge
+<AML0014:0003:0010//SET WEAPON LEVEL
+<MIM0003//GIVE PLAYER CORRECT SKIN
+<HMC<WAI0060
+<ANP0300:0000:0002//OPEN DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0300:0000:0000<SOU0011<WAI0020//CLOSE DOOR
+<KEY<MSGAlways one to pick fights
+with things bigger than her,<NOD
+Sue found this strange and
+dangerous weapon.<NOD<CLRNow all she needs
+is a foe big enough to
+give her a challenge.<NOD<CLO//PART 1 MESSAGE
+<FON0306:0020<WAI0020//FOCUS ON DESTINATION
+<MNP0400:0106:0019:0002//MOVE ARROW
+<MS3How about a dragon?<NOD<CLRThere should be at
+least one that is hatchworthy
+inside this door...<NOD<CLR(Also Sue doesn't give
+a diddle about poaching
+endangered species...)<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+
+<MNP0501:0101:0012:0002//MOVE AI Quo
+<NEQ0501:0001:0000//equip NPC with User's items
+<NAM0501:0000:0002:0000//give the NPC some guns
+<NPS0501:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0010//reset reader and begin callback
+
+
+<MNP0502:0101:0012:0000//MOVE AI Curl
+<NEQ0502:0001:0000//equip NPC with User's items
+<NAM0502:0000:0004:0120//give the NPC some guns
+<NPS0502:0002//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0011//reset reader and begin callback
+
+
+<MNP0503:0092:0014:0000//MOVE AI bbot
+<NEQ0503:0001:0000//equip NPC with User's items
+<NAM0503:0000:0001:0000//give the NPC some guns
+<NPS0503:0006//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0012//reset reader and begin callback
+
+<MNP0504:0038:0020:0000//MOVE AI hasum
+<NEQ0504:0001:0000//equip NPC with User's items
+<NAM0504:0000:0010:0050//give the NPC some guns
+<NPS0504:0009//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0504:0002:0013//reset reader and begin callback
+
+
+<MNP0505:0060:0003:0002//MOVE AI booster
+<NEQ0505:0001:0032//equip NPC with User's items
+<NAM0505:0000:0000:0000//give the NPC some guns
+<NPS0505:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0505:0002:0014//reset reader and begin callback
+
+
+<MNP0506:0033:0020:0002//MOVE AI headman
+<NEQ0506:0001:0000//equip NPC with User's items
+<NAM0506:0000:0007:0000//give the NPC some guns
+<NPS0506:0010//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0506:0002:0015//reset reader and begin callback
+
+
+
+<KLC0002:0016//reset file and begin logging
+<END
+
+
+
+
+
+
+//doors
+#0300
+//leftmost door [hasumi]
+<FNJ5003:0350//PREVIOUS PLAYER's FLAG
+<FLJ5004:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0300:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5004//CURRENT PLAYER's FLAG
+<FL-6004//PLAYER's ACTIVE FLAG
+<FL+6005//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0240//NEXT INTRO EVENT
+
+
+#0301
+//bottom building left [curly]
+<FNJ5001:0350//PREVIOUS PLAYER's FLAG
+<FLJ5002:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0301:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0301:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5002//CURRENT PLAYER's FLAG
+<FL-6002//PLAYER's ACTIVE FLAG
+<FL+6003//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0220//NEXT INTRO EVENT
+
+
+
+#0302
+//bottom building right [quote]
+//<FNJ5000:0350//PREVIOUS PLAYER's FLAG
+<FLJ5001:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0302:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0302:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5001//CURRENT PLAYER's FLAG
+<FL-6001//PLAYER's ACTIVE FLAG
+<FL+6002//NEXT PLAYER ACTIVE FLAG
+<IT-0035//take away the panties
+<TRF9999:0210//NEXT INTRO EVENT
+
+
+
+#0303
+//top building [bluebot]
+<FNJ5002:0350//PREVIOUS PLAYER's FLAG
+<FLJ5003:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0303:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0303:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5003//CURRENT PLAYER's FLAG
+<FL-6003//PLAYER's ACTIVE FLAG
+<FL+6004//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0230//NEXT INTRO EVENT
+
+
+
+
+#0304
+//hanging door right [headman]
+<FNJ5005:0350//PREVIOUS PLAYER's FLAG
+<FLJ5006:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0304:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0304:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5006//CURRENT PLAYER's FLAG
+<FL-6006//PLAYER's ACTIVE FLAG
+<FL+6007//NEXT PLAYER ACTIVE FLAG
+<TRF9999:0260//NEXT INTRO EVENT
+
+#0305
+//far building top
+<EVE0350
+
+#0306
+//far building bottom [sue]
+<FNJ5006:0350//PREVIOUS PLAYER's FLAG
+<FLJ5007:0350//CURRENT PLAYER's FLAG
+<KLC0000:0000//stop key logging
+<KEY<ANP0306:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0306:0000:0000<SOU0011<WAI0060//close DOOR
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5007//CURRENT PLAYER's FLAG
+<FL-6007//PLAYER's ACTIVE FLAG
+//<FL+6002//NEXT PLAYER ACTIVE FLAG
+<FAO0004
+<TRF9999:0600//NEXT INTRO EVENT [Final event]
+
+#0307
+//egg HV trigger [booster]
+<FNJ5004:0000//PREVIOUS PLAYER's FLAG
+<FLJ5005:0000//CURRENT PLAYER's FLAG
+<DNP0307
+<KLC0000:0000//stop key logging
+<KEY<HMC//hide PC
+<WAI0040
+<MNP0400:0000:0000:0000//hide arrow
+<FL+5005//CURRENT PLAYER's FLAG
+<FL-6005//PLAYER's ACTIVE FLAG
+<FL+6006//NEXT PLAYER ACTIVE FLAG
+<IT-0023<EQ-0032<EQ-0032<FL-0743//remove booster
+<TRF9999:0250//NEXT INTRO EVENT
+
+
+
+
+#0350
+//Wrong door
+<PRI<MSGThis is not your door!<NOD<END
+
+
+
+
+
+
+
+#0400
+//direction indicator
+
+#0401
+//blast door
+
+#0402
+//camera target
+
+
+
+
+
+
+
+
+//FakeChars:
+#0501
+//quote
+
+#0502
+//curly
+
+#0503
+//bluebot
+
+#0504
+//hasumi
+
+#0505
+//booster
+
+#0506
+//sue
+
+
+#0600
+//watch all players event
+<ANP0120:0001:0000//prevent basil from clipping underneath the PC
+<MOV0110:0020<MYD0002<HMC
+<TCL0000:0000:0043//Stop Timer
+<MNP0402:0025:0008:0000//move camera target
+<FON0402:0001<FAI0004//look at target
+<CNP0620:0375:0507//setup NPC trigger
+<WAI0020
+<KEY<MS2Here is what everyone did:<NOD<CLO
+
+
+<MNP0501:0101:0012:0002//MOVE AI Quo
+<NEQ0501:0001:0000//equip NPC with User's items
+<NAM0501:0000:0002:0000//give the NPC some guns
+<NPS0501:0000//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0501:0002:0010//reset reader and begin callback
+
+
+<MNP0502:0101:0012:0000//MOVE AI Curl
+<NEQ0502:0001:0000//equip NPC with User's items
+<NAM0502:0000:0004:0120//give the NPC some guns
+<NPS0502:0002//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0502:0002:0011//reset reader and begin callback
+
+
+<MNP0503:0092:0014:0000//MOVE AI bbot
+<NEQ0503:0001:0000//equip NPC with User's items
+<NAM0503:0000:0001:0000//give the NPC some guns
+<NPS0503:0006//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0503:0002:0012//reset reader and begin callback
+
+<MNP0504:0038:0020:0000//MOVE AI hasum
+<NEQ0504:0001:0000//equip NPC with User's items
+<NAM0504:0000:0010:0050//give the NPC some guns
+<NPS0504:0009//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0504:0002:0013//reset reader and begin callback
+
+
+<MNP0505:0060:0003:0002//MOVE AI booster
+<NEQ0505:0001:0032//equip NPC with User's items
+<NAM0505:0000:0000:0000//give the NPC some guns
+<NPS0505:0005//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0505:0002:0014//reset reader and begin callback
+
+
+<MNP0506:0033:0020:0002//MOVE AI headman
+<NEQ0506:0001:0000//equip NPC with User's items
+<NAM0506:0000:0007:0000//give the NPC some guns
+<NPS0506:0010//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0506:0002:0015//reset reader and begin callback
+
+
+<MNP0507:0002:0008:0002//MOVE AI sue
+<NEQ0507:0001:0008//equip NPC with User's items
+<NAM0507:0000:0014:0100//give the NPC some guns
+<NPS0507:0003//GIVE NPC CORRECT SKIN
+<WAI0001
+<KRC0507:0002:0016//reset reader and begin callback
+
+<EVE0610
+
+
+#0610
+//Focus Loop (look at all characters)
+<FON0501:0016//quote
+<WAI0150
+<FON0502:0016//curly
+<WAI0150
+<FON0503:0016//bbot
+<WAI0150
+<FON0504:0016//hasumi
+<WAI0150
+<FON0505:0016//booster
+<WAI0150
+<FON0506:0016//headman
+<WAI0150
+<FON0507:0016//sue
+<WAI0150
+<EVE0610//restart loop
+//
+//Quote takes 15 seconds [given 15]
+//Curly takes 20 seconds [given 20/25 per route | 35 total]
+//BBot takes 25 secpnds (generous) [given 15]
+//Hasumi takes 15 seconds [given 15]
+//Booster takes 15 seconds [given 15]
+//Headman takes ??? seconds [given 20]
+//Sue takes 30 seconds [given 20/20 | 35 total]
+//120 seconds total
+//
+//
+//Flag 6001: on ONLY when quote is active
+//Flag 6002: on ONLY when curly is active
+//Flag 6003: on ONLY when bbot is active
+//Flag 6004: on ONLY when hasumi is active
+//Flag 6005: on ONLY when booster is active
+//Flag 6006: on ONLY when headman is active
+//Flag 6007: on ONLY when sue is active
+//
+//
+//
+//
+
+
+
+
+
+#0620
+//NPC trigger
+<DNP0620
+<KEY<FON0306:0020
+<WAI0060
+<FAO0004<FOM0016<SMC<MYD0000
+<CMU0000
+<SVC0001:0003//compare with file 3
+<PRI<MSG
+Do you want to save?<CMU0000<YNJ0621<FL+7003<SVM0003<SVC0000:0000<WAI0001<SVC0001:0003<CLRGame saved.<NOD<CLR<EVE0621//refresh compare chart
+
+#0621
+<SVC0000:0000//close compare
+<ATS0001Level: Double Dilemma<ATS<RTN
+<FL-5001<FL-5002<FL-5003<FL-5004<FL-5005<FL-5006//RESET FLAGS FOR REUSE
+<FL-6001<FL-6002<FL-6003<FL-6004<FL-6005<FL-6006
+<TRA0124:0300:0001:0008
+
+
+//old dead-end script
+<KEY<MSGLevel 4:<NOD<CLRWait...<NOD<ATS0001Level: 4?<ATS<RTN That's the last
+one?<NOD<CLRSurely, it-<WAI0030 Hold on
+a second...<WAI0040<SOU0011<WAI0010<SOU0024<WAI0010<SOU0024<WAI0010<SOU0024<WAI0010<SOU0024<WAI0040<WAI0010<SOU0024<WAI0010<SOU0024<WAI0010<SOU0024<WAI0010<SOU0011<WAI0030//sound FX
+Hmm...<NOD Dang.<NOD
+I guess that's it.<NOD
+For now anyway...<NOD<CLR-Oh, but while I
+have you here,<NOD
+let me tell you that it is
+very likely that I'll add more
+on to this little game.<NOD<CLRFor now, though,<NOD
+just content yourself to this
+little arrangement of
+"Techno Trousers" that I made.<CMU0048<NOD<CLRUntil Next time.<TCL0001:0000:0043<ATS0001Level: End (Or is it?)<ATS<RTN<WAI9999<END//"Start" timer so it can be seen onscreen (it will not count, the event is still running)
+
+
+
+
+#1000
+//Load init event
+<ATS0001Level: Double Dilemma<ATS<RTN
+<CMU0000<KEY<MSG
+Level 4:<NOD<CLO
+<FL-5001<FL-5002<FL-5003<FL-5004<FL-5005<FL-5006//RESET FLAGS FOR REUSE
+<FL-6001<FL-6002<FL-6003<FL-6004<FL-6005<FL-6006
+<TRA0124:0300:0001:0008//to next map
+<END
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,505 @@
+#0090
+<MNA<FLJ0341:0095<CMU0037<FAI0000<EVE0150<END
+
+#0091
+<MNA<FLJ0341:0096<CMU0037<FAI0001<EVE0150<END
+
+#0092
+<MNA<FLJ0341:0097<CMU0037<FAI0002<EVE0150<END
+
+#0093
+<MNA<FLJ0341:0098<CMU0037<FAI0003<EVE0150<END
+
+#0094
+<MNA<FLJ0341:0099<CMU0037<FAI0004<EVE0150<END
+
+#0095
+<CMU0037<FAI0000<EVE0150<END
+
+#0096
+<CMU0037<FAI0001<EVE0150<END
+
+#0097
+<CMU0037<FAI0002<EVE0150<END
+
+#0098
+<CMU0037<FAI0003<EVE0150<END
+
+#0099
+<CMU0037<FAI0004<EVE0150<END
+
+
+
+
+
+
+#0111
+//MazeIBM door
+<KEY<FAO0004<TRA0117:0094:0013:0037
+
+
+#0112
+//MazeB door
+<FLJ0740:0113//if booster event happened, goto normal entry (I removed the booster event)
+<KEY<SOU0011<ANP0112:0000:0002<FAO0002<TRA0043:0092:0004:0013<TRA0043:0500:0004:0013
+#0113
+<KEY<SOU0011<ANP0112:0000:0002<FAO0002<TRA0043:0092:0004:0013
+
+
+#0114
+//camp door
+<PRI<SOU0011<DNP0114<FAO0004<TRA0040:0092:0004:0005
+
+#0115
+//camp top door
+<KEY<SOU0011<ANP0115:0000:0002<FAO0004<TRA0040:0094:0012:0002
+
+
+#0116
+//clinic door
+<FLJ0681:0118
+<ITJ0017:0117
+<PRI<MSGLocked.<NOD<END
+#0117
+<PRI<SOU0022<GIT1017<FL+0681
+<MSGUsed the =Clinic Key=.<NOD<CLO<EVE0118
+#0118
+<PRI<SOU0011<DNP0116<FAO0002<TRA0041:0090:0015:0009
+
+
+#0119
+//shop door
+<KEY<SOU0011<ANP0119:0000:0002<FAO0000<TRA0042:0094:0005:0009
+
+
+
+#0150
+//entry Event (Starts all Generators and deleters)
+<ANP0200:0140:1045//start generators
+<ANP0201:0120:2063
+<ANP0202:0120:1045
+<ANP0203:0140:1045
+<ANP0210:0001:0279//start deleters
+<ANP0211:0001:0279
+<ANP0212:0001:0279
+<ANP0213:0001:0279
+<ANP0214:0001:0279
+<ANP0220:0001:0279
+<ANP0221:0001:0279
+//show elevator buttons
+<ANP0610:0000:0179
+<ANP0601:0000:0179
+<FNJ0680:0151//Show X (original Xdefeated flag)
+<END
+
+#0151
+//Load in X
+<BOA0001//snap to position
+<END
+
+
+
+
+#0200
+//Leftmost Block Generator
+
+#0201
+//Lower Block Generator
+
+#0202
+//Tall Drop Block generator
+
+#0203
+//Long Conveyor Block generator
+
+
+
+#0210
+//Leftmost Block Deleter
+
+#0211
+//Lower Block Deleter
+#0212
+//Tall Drop Block Deleter
+
+#0213
+//Long Conveyor Block Deleter
+
+#0214
+//2nd tall drop block deleter
+
+#0220
+//Absolute Left Block Deleter
+
+#0221
+//1st puzzle room Block Deleter
+
+
+
+#0300
+//H/V trigger (death if hit lasers)
+<KEY<HMC<CNP0300:0004:0001//hide user and make smoke
+<MTM0301:0000<CNP0301:0004:0000
+<MTM0302:0000<CNP0302:0004:0000
+<MTM0303:0000<CNP0303:0004:0000
+<MTM0304:0000<CNP0304:0004:0000
+<SOU0017<WAI0030<EVE0040//make death sound and go to event 40 (retry script)
+
+//extra smoke NPCs
+#0301
+#0302
+#0303
+#0304
+
+
+
+//crane room NPCs
+#0400
+//crane 1 entry door
+<KEY
+<SOU0011
+<ANP0400:0000:0002<WAI0010<HMC//open door
+<CNP0700:0000:0000//hide curly
+<ANP0400:0000:0000//close door
+<MOV0067:0047<WAI0050//move to new door
+<SOU0011
+<ANP0401:0000:0002<MYD0002<SMC<WAI0010//open door
+<ANP0401:0000:0000<END//close door
+
+
+
+#0401
+//crane 1 exit door
+<KEY
+<SOU0011
+<ANP0401:0000:0002<WAI0010<HMC//open door
+<ANP0401:0000:0000//close door
+<MOV0064:0051<WAI0050//move to new door
+<SOU0011
+<ANP0400:0000:0002<MYD0002<SMC<WAI0010//open door
+<CNP0700:0259:0000//show curly
+<ANP0400:0000:0000<END//close door
+//some extra room in case we need more than 1 event with these doors
+
+
+
+
+
+
+#0404
+//c1 ex2/e2
+<KEY
+<SOU0011
+<ANP0404:0000:0002<WAI0010<HMC//open door
+<CNP0700:0000:0000//hide curly
+<ANP0404:0000:0000//close door
+<MOV0096:0050<WAI0050//move to new door
+<SOU0011
+<ANP0405:0000:0002<MYD0000<SMC<WAI0010//open door
+<ANP0405:0000:0000<END//close door
+
+
+#0405
+//c1 ex2/e2
+<KEY
+<SOU0011
+<ANP0405:0000:0002<WAI0010<HMC//open door
+<ANP0405:0000:0000//close door
+<MOV0097:0045<WAI0050//move to new door
+<SOU0011
+<ANP0404:0000:0002<MYD0000<SMC<WAI0010//open door
+<CNP0700:0259:0000//show curly
+<ANP0404:0000:0000<END//close door
+//more room
+
+
+
+
+
+
+#0408
+//c2 ex1/e1
+<KEY
+<SOU0011
+<ANP0408:0000:0002<WAI0010<HMC//open door
+<CNP0700:0000:0000//hide curly
+<ANP0408:0000:0000//close door
+<MOV0098:0015<WAI0050//move to new door
+<SOU0011
+<ANP0409:0000:0002<MYD0000<SMC<WAI0010//open door
+<ANP0409:0000:0000<END//close door
+
+
+#0409
+//c2 ex1/e1
+<KEY
+<SOU0011
+<ANP0409:0000:0002<WAI0010<HMC//open door
+<ANP0409:0000:0000//close door
+<MOV0099:0021<WAI0050//move to new door
+<SOU0011
+<ANP0408:0000:0002<MYD0000<SMC<WAI0010//open door
+<CNP0700:0259:0000//show curly
+<ANP0408:0000:0000<END//close door
+//more room
+
+
+
+#0412
+//c3 ex1/e2
+<KEY
+<SOU0011
+<ANP0412:0000:0002<WAI0010<HMC//open door
+<CNP0700:0000:0000//hide curly
+<ANP0412:0000:0000//close door
+<MOV0067:0014<WAI0050//move to new door
+<SOU0011
+<ANP0413:0000:0002<MYD0002<SMC<WAI0010//open door
+<ANP0413:0000:0000<END//close door
+
+#0413
+//c3 ex2/e2
+<KEY
+<SOU0011
+<ANP0413:0000:0002<WAI0010<HMC//open door
+<ANP0413:0000:0000//close door
+<MOV0062:0015<WAI0050//move to new door
+<SOU0011
+<ANP0412:0000:0002<MYD0002<SMC<WAI0010//open door
+<CNP0700:0259:0000//show curly
+<ANP0412:0000:0000<END//close door
+
+
+
+
+#0416
+//c2 ex1/e1
+<KEY
+<SOU0011
+<ANP0416:0000:0002<WAI0010<HMC//open door
+<CNP0700:0000:0000//hide curly
+<ANP0416:0000:0000//close door
+<MOV0048:0021<WAI0050//move to new door
+<SOU0011
+<ANP0417:0000:0002<MYD0000<SMC<WAI0010//open door
+<ANP0417:0000:0000<END//close door
+
+
+#0417
+//c2 ex1/e1
+<KEY
+<SOU0011
+<ANP0417:0000:0002<WAI0010<HMC//open door
+<ANP0417:0000:0000//close door
+<MOV0047:0017<WAI0050//move to new door
+<SOU0011
+<ANP0416:0000:0002<MYD0000<SMC<WAI0010//open door
+<CNP0700:0259:0000//show curly
+<ANP0416:0000:0000<END//close door
+
+
+
+
+
+
+
+
+#0498
+//galc tutorial
+<KEY<MSG<FAC0043<MTS0118Oh, you made it!<FC+<NOD<CLR<FAC0039This is a crane control
+room.<NOD<FAC0041
+You can use these controls
+to operate that cranehead
+outside the window.<NOD<CLR<FAC0040We<FAC0039 use that to move
+the waste blocks that
+fall down here.<NOD<CLRNormally, the cranehead
+will slip behind the
+blocks, unaffecting them.<NOD<CLR<FAC0043When it is in
+this state, the cranehead
+will display a =0=.<NOD<CLR<FAC0041However, if you
+hold the =Shoot Key=, it
+will display a =1=.<NOD<CLR<FAC0042When in this state, the
+cranehead will be able to
+push and lift the blocks.<NOD<CLR
+<FAC0039Got it?<YNJ0499//replay the tutorial
+<FAC0043All right, then.<NOD<FL+4164//tutorial completed
+Move the blocks to help
+you on your way.<NOD<CLO<EVE0500//goto crane start
+
+
+#0499
+//replay tutorial
+<KEY<MSG<FAC0044<MTS0118Again?<FC+<NOD<FAC0039 Fine.<NOD<CLRHold the =Shoot Key= to
+make the cranehead solid.<NOD<CLR<FAC0041When solid, it
+will display a =1=.<NOD<CLR<FAC0039If the =Shoot Key= is
+not held, the crane will
+display a =0=.<NOD<CLR<FAC0044You will not be able
+to move blocks while
+the cranehead is =0=.<NOD<CLR<FAC0042When done, press the
+=Jump Key= to exit.<NOD<CLR<FAC0039Got it?<YNJ0499<FAC0043 Good.<NOD<CLRIt really is
+quite simple.<NOD<FL+4164<CLRMove the blocks to help
+you on your way.<NOD<CLO<EVE0500//goto crane start
+
+
+
+
+#0500
+//1st/2nd terminal
+<FNJ4164:0498//go to tutorial
+<KEY
+<ANP0502:0501:0002//tell the limiter to target the cranehead, vertical
+<ANP0503:0501:0000//horizontal
+<ANP0504:0501:0002//vert
+<ANP0501:0000:0001<FON0501:0016//activate and focus on crane
+<NOD
+<MNP0501:0074:0047:0000//move and lock cranehead
+<FOM0016//focus on PC
+<END
+
+#0501
+//Crane Head
+//press x
+
+#0502
+//crane limiter 1
+
+#0503
+//crane limiter 2
+
+#0504
+//crane limiter 3
+
+
+
+#0520
+//3rd/4th (upper) terminal
+<KEY
+<ANP0522:0521:0002//tell the limiter to target the cranehead
+<ANP0523:0521:0002//
+<ANP0524:0521:0000//
+<ANP0525:0521:0000//
+<ANP0521:0000:0001<FON0521:0016//activate and focus on crane
+<NOD
+<MNP0521:0091:0015:0000//move and lock cranehead
+<FOM0016//focus on PC
+<END
+
+#0521
+//Crane head
+
+#0522
+//right limiter
+
+#0523
+//left limiter
+
+#0524
+//top limiter
+
+#0525
+//bottom limter
+
+
+
+#0530
+//5th (upperLeft) terminal
+<KEY
+<ANP0532:0531:0002//tell the limiter to target the cranehead
+<ANP0533:0531:0000//
+<ANP0534:0531:0000//
+<ANP0531:0000:0001<FON0531:0016//activate and focus on crane
+<NOD
+<MNP0531:0042:0021:0000//move and lock cranehead
+<FOM0016//focus on PC
+<END
+
+
+
+#0531
+//cranehead
+
+#0532
+//left limiter
+
+#0533
+//top limiter
+
+#0534
+//bottom limiter
+
+
+
+#0600
+//lift
+
+#0601
+//bottom button (ascend)
+<FNJ4166:0603//lift is NOT enabled yet
+<FNJ4165:0602//Lift is up top
+<ANP0600:0002:0208//send the lift up by 208 pixels
+<WAI0208//prevent other actons from running (prevent it from triggering 2x
+<FL-4165//lift now at the top
+<END
+
+#0602
+//bottom button (descend)
+<ANP0600:0001:0208//send the lift down by 208 pixels
+<WAI0208//prevent other actons from running (prevent it from triggering 2x
+<FL+4165//lift is now at the bottom
+<END
+
+
+#0603
+//if the lift is up
+<KEY<MSGThe lift must be called down
+in order to use it.<NOD<END
+
+
+#0610
+//top button
+<FL+4166//enable lift
+<FLJ4165:0611//Lift is down below (this may not be used because it is impossible to interact with the button when the lift isnt there to support you.
+<ANP0600:0001:0208//send the lift down by 208 pixels
+<WAI0208//prevent other actons from running (prevent it from triggering 2x, may not be needed here because you can't hit this button 2x
+<FL+4165//lift is now at the bottom
+<END
+
+#0611
+//if the lift is down
+<ANP0600:0002:0208//send the lift up by 208 pixels
+<WAI0208//prevent other actons from running (prevent it from triggering 2x
+<FL-4165//lift now at the top
+<END
+
+
+#0700
+//curly (carried)
+
+
+#0900
+//start X
+<DNP0900<CMU0007<BOA0010<CNP1101:0013:0000<BSL0000<END
+
+
+#0901
+//TEST Initialize X
+<DNP0301<BOA0001<FL-0680<END
+
+
+#1000
+//X die event
+<KEY<FOB0000:0016<WAI0250<CMU0000
+<MS3<CMU0015
+Defeated Monster X.<FOM0016<WAI0160<NOD<CLO<CMU0037
+<CNP1101:0000:0000<FL+0680<END
+
+#1100
+//All conveyors and arrows that are controlled by X
+
+#1101
+//X lasers
+<EQ+0046
+
+
+
+

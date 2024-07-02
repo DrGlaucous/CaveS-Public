@@ -283,6 +283,11 @@ pub enum TSCOpCode {
     /// <BKR, Restores background to default parameters for the map, simmilar to a TRA command
     BKR,
 
+    /// <SVMname_of_profile$, saves profile to location: name_of_profile
+    SVM,
+    /// <LDMname_of_profile$, loads profile from location: name_of_profile
+    LDM,
+
 
 
 }

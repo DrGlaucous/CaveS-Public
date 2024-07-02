@@ -1,0 +1,152 @@
+#0090
+<MNA<CMU0046<FAI0000<END
+#0091
+<MNA<CMU0046<FAI0001<END
+#0092
+<MNA<CMU0046<FAI0002<END
+#0093
+<MNA<CMU0046<FAI0003<END
+#0094
+<MNA<CMU0046<FAI0004<END
+
+
+
+
+
+#0110
+//intro event
+<KEY
+<ATS0001I command you play my other mod!<ATS<RTN
+<CMU0051
+<HMC<MYD0002<FAI0004<WAI0020
+<ANP0120:0000:0002<SOU0011<WAI0020//open DOOR
+<SMC<WAI0020
+<ANP0120:0000:0000<SOU0011<WAI0060//close DOOR
+<BOA0008//make boss idle
+<MS3What?<WAI0020 More?<NOD
+We were supposed to be done with
+the developer's self plug!<NOD<CLRWhy'd they add more?<NOD<CLRHonestly, I'm not sure how much
+more of this shenanigans I can put
+up with-<WAI0070 -Oh, wait.<NOD<CLR
+This is just a hallway.<NOD<FON0200:0020
+The exit is right over there.<NOD<FON0250:0020
+Just through this big
+computer room.<NOD<CLR<FOM0016<END
+
+
+
+#0120
+//in door
+<FLJ5001:0121
+<FL+5001
+<KEY<MS3The gunsmith must have hit his
+head while out on his errands,<NOD
+for this obviously the door he
+entered a just few moments earlier.<NOD<CLRMaybe he should
+go home and lie down for a bit.<NOD<END
+
+#0121
+<KEY<MS3Yes, a nice nap is exactly
+what he needs.<NOD Far.<WAI0020 Away.<WAI0020 From.<WAI0020
+This.<WAI0020 Level.<WAI0020<NOD<END
+
+
+
+#0150
+//save point
+<SVC0001:0006//compare with file 6
+<PRI<MS3
+Do you want to save?<CMU0000<YNJ0151<FL+7006<SVM0006<SVC0000:0000<WAI0001<SVC0001:0006<CLRGame saved.<NOD<CLR<EVE0151//refresh compare chart
+#0151
+<RMU
+<SVC0000:0000<END//close chart
+
+
+#0160
+//debug event
+<AM+0014:0000<END
+
+
+#0170
+//try to leave the computer room
+<DNP0170
+<KEY<MS3Unfortunately, this door
+will not open.<NOD<CLRDuring the fight, its mechanism
+conveniently broke such
+that it can only go down.<NOD<CLR
+Such a shame.<NOD<END
+
+
+#0200
+//exit door
+<KEY
+<ANP0200:0000:0002<SOU0011<WAI0020<FAO0004<CMU0000//open DOOR
+<ATS0001Dang... Out of levels again.<ATS<RTN
+<MSGLevel 8:<NOD<CLRWait...<NOD Not again...<NOD<CLR
+We've run out of levels!<NOD<CLRIt happened before, but that
+was understandable.<NOD
+Now it's just embarrassing.<NOD<CLRAnd of all the places to end it,
+too.<NOD Just when it was getting
+good.<NOD<CLR.<WAI0030.<WAI0030.<WAI0030Well...<NOD<CLR
+I think you know what this means.<NOD<CLR
+Cue up the Techno Trousers!<CMU0048<NOD<CLR
+Until Next Time.<WAI9999<END
+
+#0250
+//NULL entity for camera focus
+
+
+//room blast doors
+#0400
+#0401
+
+
+//boss init event (H/V Trigger)
+#0500
+<DNP0500
+<ANP0401:0003:0000
+<ANP0400:0003:0000<QUA0060<WAI0060//close doors
+<KEY<MS3No no no!<NOD<CLRWe were so close to leaving
+this whole mess behind.<NOD<CLRWhy did that happen?<NOD<CLRLet's see...<NOD
+According to the script,
+the computer apparently caught
+the gunsmith stealing parts.<NOD<MYD0000<CLRLooks like he
+"conveniently" forgot to disable
+the security cameras earlier.<NOD<CLRWell, that's just great.<NOD<CLO
+<FMU<FON0250:0020<SOU0065<BOA0010<WAI0050<CMU0000//boss script 10
+<MS2
+COMPONENT EMBEZZLEMENT ATTEMPT
+DISCOVERED.<NOD<CLR
+TERMINATING OFFENDER...<NOD<CLO
+<TCL0001:0000:0043
+//originally had close doors here
+<FOM0016<BOA0012<BSL0000<CMU0054<WAI0010<END
+
+
+#1000
+<KEY<BOA0003<FLA<FMU<QUA0100<WAI0100
+<TCL0000:0000:0043//disable timer
+<FLA<BOA0005<CMU0015<SOU0025
+<MS3Yes!<WAI0020 You beat it!<NOD
+We can finally leave!<NOD<CLO
+<MYD0002<FON0400:0020<ANP0400:0001:0000<QUA0060<WAI0060<SOU0026//open door
+<FOM0016
+<MNP0170:0082:0028:0000<CNP0170:0046:0002
+<CMU0050<MS3The gunsmith happily went on his
+way, eager to put these parts to
+good use.<NOD<END
+
+
+
+#2000
+//save load event
+<ATS0001I command you play my other mod!<ATS<RTN
+<WAI0001
+<BOA0008//we need that 1 tick of delay here
+<CMU0051<MIM0008
+<FAI0004
+<END
+
+
+
+

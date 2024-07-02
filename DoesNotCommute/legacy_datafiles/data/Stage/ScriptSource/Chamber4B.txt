@@ -1,0 +1,382 @@
+#0090
+<FLJ4105:0095<MNA<CMU0000<FAI0000<END //changes music based on a flag change
+#0091
+<FLJ4105:0096<MNA<CMU0000<FAI0001<END
+#0092
+<FLJ4105:0097<MNA<CMU0000<FAI0002<END
+#0093
+<FLJ4105:0098<MNA<CMU0000<FAI0003<END
+#0094
+<FLJ4105:0099<MNA<CMU0000<FAI0004<END
+
+#0095
+<MNA<CMU0019<FAI0000<END
+#0096
+<MNA<CMU0019<FAI0001<END
+#0097
+<MNA<CMU0019<FAI0002<END
+#0098
+<MNA<CMU0019<FAI0003<END
+#0099
+<MNA<CMU0019<FAI0004<END
+
+
+
+
+
+////////////////////////MAP EVENTS////////////////////////////
+
+
+
+#0100
+//door
+<FLJ4127:0101//goto fight event
+//dramatized sand zone event
+<KEY<MSGThe door is closed from
+the outside. There is no way to
+open it...<WAI0020 Yet?<NOD<END
+<FAO0004<TRA0037:0600:0033:0014
+
+#0101
+//if fight is happening
+<PRI<MSGYou can't leave!<NOD<END
+#0102
+//normal exit
+<FAO0004<TRA0010:0094:0225:0036
+
+
+
+#0150
+//Elevator arrival event
+<FLJ4126:0523//Is it time for the Toroko+ boss fight?
+<DNP0421//deletes the middle restrain coil (Toro destroyed it)
+<ANP0201:0000:0113//make the elevator button
+<MNP0151:0027:0016:0000//move hv trigger out of the way
+<ANP0152:0001:0176//elevator DOWN
+<WAI0176//PC cant trigger any more events until the elevator has reached the gound
+<FL-4120//say the elevator has arrived
+<END
+
+#0151
+//H/V trigger
+<TRF0107:0205<END
+
+#0152
+//Elevator NPC
+
+#0153
+//Elevator departure event
+<FLJ4127:0155//is the Toroko+ fight happening?
+<FLJ4120:0000//is the elevator moving?
+<FL+4120//say it is
+<CNP0154:0375:0152//changes NULL into NPC trigger looking for entity 0152
+<ANP0154:0000:0152<WAI0001
+<MNP0151:0035:0016:0000//moves hv trigger back
+<ANP0152:0002:0192<END
+
+
+#0154
+//NPC trigger: Detects if the elevator reached the top without the PC on it
+<CNP0154:0000:0000//changes the NPC trigger back to NULL
+<MNP0151:0027:0016:0000//move hv trigger out of the way
+<WAI0032//wait for the elevator to stop
+<ANP0152:0000:0000<WAI0001//sends the elevator back down if the PC wasnt on it
+<ANP0152:0001:0192
+<WAI0192//make sure nothing else can happen until the elevator has arrived
+<FL-4120//say it is not
+<END
+
+
+#0155
+//If the Toro+ fight is happening and the user tries to leave
+<PRI<MSGYou cannot leave!<NOD<END
+
+
+
+
+
+///////////////////////////////////UTILITIES///////////////////////////////////////////////////
+#0200
+//Initialization script: run on save reloads or map switches (may not be used here as there is no save points)
+<ANP0201:0000:0113//make the elevator button
+<END
+
+
+#0201
+//Universal NPC (elevator button)
+<EVE0153//elevator departure script
+//////////////GAME EVENTS/////////////////////////////
+
+#0400
+//comes from event 403 in 4Bcontrol
+<ANP0201:0000:0113//make the elevator button
+<KEY<MNP0152:0018:0010:0000//hide the elevator somewhere
+<FON0401:0016//focus on this NPC for changing maps
+<MOV0026:0010//clip the PC into the ground somewhere
+<WAI0032
+<FON0503:0048
+<WAI0064<EVE0520//we dont need skipflags because the player will have a chance to save before the Toroko+ fight
+
+#0401
+//camera target
+
+
+
+#0420
+//left TCOIL
+#0421
+//middle TCOIL
+#0422
+//right TCOIL
+
+
+
+
+#0500
+<KEY<SKJ0003:0501<SK+0003<EVE0520//sets up the skip flag.
+#0501
+<KEY<SAT<EVE0520//if the player had died, then all text will be instantaneous (to save them cutscene time)
+
+#0501
+#0502
+#0503
+//Toroko Die event
+<KEY<FL+0623<DNA0141<DNA0142
+<FON0503:0016<ANP0503:0100:0005
+<WAI0400<CMU0000
+<MSG
+Defeated Frenzied Toroko.<WAI0050<NOD<CLO
+<ANP0503:0140:0005<WAI0150<FOM0016<END
+#0504
+#0505
+<FLJ0622:0601
+<FLJ0623:0600
+<PRI<MSGTo...<NODToroko...<NOD<END
+#0506
+#0507
+
+
+
+
+#0520
+//this event is now 520 as to not interfere with other NPChars
+<MYD0002<MNA<CMU0017<HMC<FON0503:0016
+<WAI0050<MSG<MTS0128<FAC0015My lord.<NOD
+I have brought all the
+seeds as you requested.<NOD<CLR<MTS0129
+<FAC0021Well done.<NOD<CLRBy the by...<NOD
+The flowers that bloom
+there.<NOD<CLO
+<WAI0030<ANP0502:0000:0000<WAI0030
+<MSGAre those the demon
+flowers?<NOD<FAC0000<CLO
+<WAI0030<ANP0502:0000:0002<MTS0128
+<MSG<FAC0015Indeed.<NOD<CLR<MTS0129<FAC0021My, my...<NOD<CLRThey're more uncanny
+than even I had
+imagined...<NOD<CLR<MTS0128<FAC0015My lord...<NOD
+Shall I consume one as a
+test?<NOD<CLR<MTS0129<FAC0021...No, let us not do
+that.<NOD<CLR
+.....<NOD<CLRHmmmm...<NOD
+Instead, let us test
+the reaction on a Mimiga.<NOD<CLR<MTS0128<FAC0016Yes, my lord.<NOD<FAC0000<CLO
+<ANP0502:0030:0000<WAI0050
+<CNP0503:0144:0000<WAI0110
+<MTS0122<MSGOof!<WAI0050<NOD<CLR<CNP0503:0060:0000<FAC0006.....<NOD<CLRWhere am...?<NOD<FAC0000<CLO
+<WAI0030<ANP0503:0000:0002<MSG<FAC0008Waah!<NOD<FAC0000<CLO
+<ANP0503:0006:0000<CNP0504:0009:0002<WAI0100
+<CNP0504:0012:0002<ANP0503:0010:0002
+<ANP0504:0030:0002
+<MSG<MTS0121<FAC0014Oh-oh.<NOD
+Where do you think
+you're going?<NOD<FON0506:0016<CLR<MTS0128<FAC0016Balrog.<NOD
+Feed this one a flower.<NOD<CLR<FAC0014<ANP0504:0030:0002<MTS0121
+You got it.<NOD<FAC0000<CLO
+<ANP0504:0060:0002<WAI0032
+<ANP0504:0050:0002<WAI0050
+<MSG<MTS0122<FAC0008No! Stop!<NOD<CLR<MTS0121
+<FAC0005Eat it. Eat it!<NOD<CLR<MTS0123
+<CMU0000<FAC0000Get your hands off her!!<NOD<CLO
+<FON0505:0016<WAI0030<CMU0018
+<CNP0505:0061:0002<ANP0505:0020:0002<WAI0050<MYD0050
+<ANP0505:0010:0002<WAI0024
+<ANP0505:0060:0002<WAI0025
+<ANP0504:0020:0000<WAI0050//504 is balrog
+<ANP0505:0000:0020<WAI0200//505 is King
+<MSG<FAC0007Toroko!
+Are you okay?!<NOD<CLR<MTS0122<FAC0011...K...King...?<NOD<CLROoohhhh...<NOD
+My...my head...<NOD<CLR<MTS0123<FAC0007
+!!<NOD<CLRNo!!<NOD<FON0501:0016<CLRYou! You're that
+Doctor!<NOD<FAC0000<CLO
+<WAI0050<MSG<MTS0129<FAC0021.....<NOD<CLRWhy, yes.<NOD
+I am the Doctor.<NOD<CLRAnd from now on, I am
+your new leader.<NOD<CLRPleased to make your
+acquaintance.<NOD<CLRNow, what exactly is
+it you plan to do with
+that sword?<NOD<CLRHm-hm-hmm...<NOD<CLR<MTS0123<FAC0007I'll kill you!!<NOD<FAC0000<CLO
+<ANP0420:0000:0505//left TGUN targets king
+<ANP0421:0000:0502//center TGUN targets misery
+<ANP0422:0000:0501//left TGUN targets the Dr
+<ANP0505:0010:0002<WAI0040//king runs
+<ANP0420:0002:0505//TGUNS attack targets
+<ANP0421:0002:0502
+<ANP0422:0002:0501
+<SAS0100:0000:0000<WAI0020//set sound loop (or just 1x?)
+<MSG<MTS0123<FAC0007Gaah!<NOD<CLR<FAC0026Eergh!<WAI0020 Can't.<WAI0010 Move.<NOD<CLR<MTS0129<FAC0056Impossible!<NOD<CLO
+<MNP0401:0039:0017:0000//moves that cube slightly down so that the MS2 words can be read
+<FON0401:0016//focus on the window above
+<MS2<MTS0118<FAC0044All right.<FC+<WAI0020 I've had enough!<NOD<CLRIt's time for this to end.<NOD<CLO<FAC0000<FC-
+<FON0502:0016//focus back on Misery
+<MSG<MTS0128<FAC0026Hurry! We need to get
+away while we have time.<NOD<CLR<MTS0129<FAC0021We will see about this.<NOD<CLO
+<FON0507:0016//focus back down on the Dr and Misery
+<ANP0502:0060:0000//misery TPs out
+<ANP0501:0030:0000<WAI0100//Dr TPs out
+<DNA0380//deletes ray shield
+<ANP0420:0005:0505//attack King again (as the original shield was destroyed via the command above)
+<ANP0421:0000:0503//center TGUN [ALL TGUNS target Toroko]
+<ANP0422:0000:0503//left TGUN
+<MNP0401:0039:0014:0000//moves the cube back
+<WAI0020
+<FON0401:0016
+<WAI0030
+<SAS0100:0002:0000//stop sound loop
+<TRF0107:0405//Look inside the window for the next event
+
+#0521
+//comes from event 405 in 4Bcontrol
+<ANP0201:0000:0113//make the elevator button
+<HMC<KEY<MNP0152:0018:0010:0000//hide the elevator somewhere
+<FON0401:0016//focus on this NPC for changing maps
+<MOV0026:0010//clip the PC into the ground somewhere
+<DNP0501//deletes the dr and misery
+<DNP0502
+<CNP0522:0060:0000//make it toroko
+<ANP0522:0012:0002//make it collapsed
+<MNP0505:0043:0026:0000//move King to position
+<CNP0505:0061:0002//change it to King
+<ANP0505:0200:0000//change king to stunned state
+<ANP0420:0000:0505//tgun set to target King
+<ANP0421:0000:0522//center TGUN targets toroko
+<WAI0001//waits exactly 1 tick
+<ANP0420:0005:0505//attack king
+<WAI0064
+<FON0522:0048//focus on toro
+<WAI0032
+<CNP0522:0381:0421//become toroko TSC
+//<ANP0522:0000:0000//run morph script
+<WAI0120
+<ANP0522:0009:0421//target the 2nd coil
+<WAI0020
+<ANP0522:0030:0002//toroko jumps without throwing block
+<WAI0064
+<MS3<MTS0127<FAC0031<FC+OK.<WAI0020 I'm going to
+contain it.<NOD<CLO//Fires restraining bolt at Toroko, Toroko breaks the coil with a block
+<ANP0421:0002:0522//Tgun attacks Toroko
+<WAI0064
+<ANP0522:0050:0002//toroko throws a block at the tgun
+<WAI9999//waits until the block hits its target
+<END
+
+#0522
+//toroko TSC (NOT THE BOSS)
+<DNA0380//delete toroko shield
+<ANP0420:0005:0505//attack king (again, because the previous command removed the ray shield around him
+<CNP0421:0004:0000//delete Tcoil
+<WAI0020
+<KEY<MS3<MTS0127<FAC0031<FC+What?!<WAI0020<FAC0033 How did...<NOD<CLR<FAC0031I'm bringing <FAC0035that<FAC0031 other
+one up on the lift
+to where it's safer.<NOD<FMU
+<FON0401:0016<WAI0016<TRF0107:0406
+
+
+#0523
+//Setup Boss Fight
+<FL+4127//Boss fight is now happening
+<FL-4126//No longer time to spawn Toroko+ (which actually spawns with this flag)
+<ANP0550:0010:0000//toroko skips grow animation
+<DNP0421//delete the middle Tcoil (toroko broke it, remember?)
+<ANP0201:0000:0113//make the elevator button
+<MNP0151:0027:0016:0000//move hv trigger out of the way
+<ANP0152:0001:0176//elevator DOWN
+<BSL0550//put a boss bar on Toroko
+<CMU0004//cue boss music
+<WAI0176//PC cant trigger any more events until the elevator has reached the gound
+<FL-4120//say the elevator has arrived
+<END
+
+
+
+
+
+#0550
+//Toroko+ death script
+<KEY<FL+0623
+<FL-4127<FL+4128//remove boss happening script and add boss done script
+<DNA0141<DNA0142//remove cubs and cubes
+<ANP0422:0000:0550//right TGUN targets toroko
+<FON0550:0016<ANP0550:0100:0005//Die
+<FMU<WAI0200<CMU0000//Silence
+<ANP0422:0002:0550//Tgun attacks Toroko
+<MNP0401:0039:0017:0000//moves that cube slightly down so that the MS2 words can be read
+<WAI0040
+<FON0401:0016//focus on the window above
+<MS2<MTS0118<FAC0043Great Job!<FC+<NOD<FAC0041 Let's get
+Toroko up here so
+we can treat her.<NOD<FAO0003//fades up?
+<TRA0107:0420:0026:0014//quote goes to the 4B table
+<END
+
+
+
+
+
+
+<ANP0502:0020:0000<WAI0015//misery floats up and out
+<ANP0501:0010:0000//doctor chuckles
+<CNP0507:0146:0002<WAI0015//makes lightning
+<MS2<FAC0044<FC+Violators please stand
+down.<NOD<CLRYou <FAC0040have <FAC0041breached a
+secure containment area.<NOD
+<FAC0044Be prepared to be retained
+for questioning.<NOD<CLO<FC-
+//This is the break in standard operation: NEEDED NPCs [Shield bubble: target shot: toroko+ TSC: ray shield emitter]
+//Galctoa will ray-shield the entites (need shield bubbles and something that will target the NPCs)
+//The doctor and Misery will TP out
+//Toroko will become rabid (we may need a TSC flavor of toroko+ for this)
+//Galcota tries to contain toroko with a ray shield, but Toroko throws a block at the Emitter
+//Cuts back inside the chamber, Galcota brings King up in the Elevator
+//Quote must go down and weaken Toroko so Galcota can contain it and bring it up
+
+
+
+
+<END
+//because these events are next in line, the TSC reader will hit them next, despite other events sharing their numbers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#0600
+<KEY<FL+0622<MSG<FAC0007Ergh...<NOD<CLRIt's too late for me.<NOD
+Will you...avenge me...?<NOD<CLO
+<ANP0505:0040:0005<MYB0000<WAI0100<END
+#0601
+<KEY<FL-0621<DNP0505<AM+0009:0000
+<MSG<GIT0009<CMU0010
+Got the =Blade=.<WAI0160<NOD<RMU<END
+
+
+

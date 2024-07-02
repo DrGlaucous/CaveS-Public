@@ -1,0 +1,82 @@
+//This is where I will list my custom flags, starting at 4100.
+//Flag 4100: if this flag is enabled, then the sand zone teleporter runs its dramatized event.
+//Flag 4101: If set, the dialouge for entering the lift maintanace grate is disabled
+//Flag 4102: Galcota's sarcastic reamrk if the user says they did not turn him on
+//Flag 4103: Galcota's 1st finished flag, where he says "lets do it right"
+//Flag 4104: Galcota's 2nd finished flag, where he tells you to go to the security district
+//Flag 4105: Change music when finished talking to Galcota
+//Flag 4106: Have talked to Galcota's terminal 1x in the security district
+//Flag 4107: Used the key on the 1st shield
+//Flag 4108: Used the key on the 1st elevator
+//Flag 4109: Used the key on the 2nd shield
+//Flag 4110: Used the key on the 2nd elevator
+//Flag 4111: Used the key on the 3rd shield
+//Flag 4112: Boss has started
+//Flag 4113: Boss has been killed
+//Flag 4114: Boss key has been inserted
+//Flag 4115: Talked to Galcota while holding a key
+//Flag 4116: Passed the yellow laser end zone (used to trigger pre-boss dialouge)
+//Flag 4117: Has the player or Galcota hit the end of APscience?
+//Flag 4118: Galcota is next to the NegSecurity Elevator
+//Flag 4119: Galcota finished pre-APscience talk
+//Flag 4120: TestChamber is the elevator moving?
+//Flag 4121: Completed Applied Science
+//Flag 4122: Galcota in Test Chamber 4B
+//Flag 4123: Galcota next to upper APsci elevators [out of order]
+//Flag 4124: Can Use 4B chamber lift
+//Flag 4125: Galcota next to window
+//Flag 4126: Pre-Toroko fight: Galc next to Control pannel, King next to elevator
+//Flag 4127: Toroko+ Fight is happening
+//Flag 4128: Toroko+ was beatten (King and Galcota next to table)
+//Flag 4129: Save stations are in 4BControl
+//Flag 4130: Can use the Maint** Elevator
+//Flag 4131: Took N. Skyley's notes from his shelf
+//Flag 4132: Got the Electric Therapy
+//Flag 4133: Troko has been treated (king and toro sitting in 4B control)
+//Flag 4134: Read Skyley's notes
+//Flag 4135: Got the sword from King
+//Flag 4136: Can talk to Glac in APMaint
+//Flag 4137: Galc opened blast door
+//Flag 4138: Defeated Curly
+//Flag 4139: Told curly you would not kill the colonites
+//Flag 4140: Told curly you did NOT want to trade for the Mgun
+//Flag 4141: Airlock event is over
+//Flag 4142: Reactor Observation Window event is over
+//Flag 4143: Core Fight is Over (PRE-cutscene, used mainly for the brobot)
+//Flag 4144: Characters no longer in Reactor CORE (used post cutscene)
+//Flag 4145: Has the tow Rope
+//Flag 4146: Is Carrying Curly
+//Flag 4147: Carry prompt quick dialouge
+//Flag 4148: Should the airlock check for carriedCurly
+//Flag 4149: 2nd Airlock event is finished (after core fight)
+//Flag 4150: Waterjet is equipped
+//Flag 4151: Curly's body is no longer in the CORE (if you try to leave without picking her up, this ensures that she is still there) [come to think of it, this kind of replaces 4148 but also doesn't... it's weird]
+//Flag 4152: Galc's shortened command to get curly
+//Flag 4153: Galc told you not to worry
+//Flag 4154: Have collected WaterJet and Air Tank
+//Flag 4155: 1st shutter is open (1st cutscene over)
+//Flag 4156: 2 little shutters are open
+//Flag 4157: lowermost shutter over
+//Flag 4158: current shutter over
+//Flag 4159: air tank shutter over
+//Flag 4160: Demo Mode (game has been completed as much as possible)
+//Flag 4161: You took Curly back to Galc's terminal in MazeI (WHY?)
+//Flag 4162: Talked to the waterway terminal after taling curly to mazeI (prevents redundant speaking)
+//Flag 4163: Crusher room laser grid OFF
+//Flag 4164: Recieved tutorial from Galc on how to use the crane
+//Flag 4165: The lift is at the bottom
+//Flag 4166: Lift has been enabled
+
+
+
+//Flag 4155:
+
+
+
+//Flag 4125: Galcota in NEXT SPOT
+
+
+#0100
+<KEY<QUA0030<WAI0030<CNP0101:0004:0000<SOU0012<WAI0030<TRA0025:0318:0006:0007
+
+#0101

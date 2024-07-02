@@ -1,0 +1,728 @@
+#0090
+<SMC<FLJ4105:0095<MNA<CMU0023<FAI0000<EVE0600<END //changes music based on a flag change
+#0091
+<SMC<FLJ4105:0096<MNA<CMU0023<FAI0001<EVE0600<END
+
+
+
+#0092
+//up elevator arrival
+<HMC<FLJ4105:0097<MNA<CMU0023<FAI0001<EVE0130<END
+#0093
+//down elevator arrival
+<HMC<FLJ4105:0098<MNA<CMU0023<FAI0003<EVE0131<END
+#0094
+//vent arrival
+<SMC<FLJ4105:0099
+<CNP0302:0000:0000//first Force field
+<CNP0305:0000:0000//2nd force field
+<CNP0400:0000:0000//1st shootable PSU
+<CNP0401:0000:0000//2nd shootable PSU
+<CNP0402:0000:0000//3rd shootable PSU
+<DNA0364<DNP0103<DNA0366<MMP0021:0025:0143<MMP0044:0025:0143
+<MNA<CMU0023<FAI0004<EVE0600<END //If you did not turn galcota on, the security implements will be removed
+
+#0095
+<SMC<MNA<CMU0044<FAI0000<EVE0600<END
+#0096
+<SMC<MNA<CMU0044<FAI0001<EVE0600<END
+
+
+#0097
+//up elevator arrival
+<HMC<MNA<CMU0044<FAI0002<EVE0130<END
+#0098
+//down elevator arrival
+<HMC<MNA<CMU0044<FAI0003<EVE0131<END
+
+#0099
+<SMC<MNA<CMU0044<FAI0004<EVE0600<END
+
+
+//Let's organize this.
+//entity group 0-99 will be system processes and fades
+//entity group 0100 will relate to entry/exit doors (save room and vent/elevator)
+//entity group 0200 will relate to Galcota's terminals (text events)
+//entity group 0300 will relate to keys, lasers, and blast doors
+//entity group 0400 will relate to moving lasers and generators
+//entity group 0500 will relate to lifts
+//entity group 0600 will relate to things that need to be done on fade in/out
+//entity group 0700 will relate to the boss fight
+//====================================================================
+
+
+
+
+//Group 100 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//entity group 0100 will relate to entry/exit doors (save room and vent/elevator)
+#0100
+//0100 group 100 ++
+//Vent (correct number)
+<KEY<FAO0004<TRA0099:0094:0015:0060 //takes you to the elevator shaft
+
+
+#0101
+//0112 group 100 ++
+<KEY<SOU0011<CNP0101:0000:0000<FAO0004<TRA0102:0094:0010:0008 //Door to the 1st save room
+
+
+
+//////Elevator scripts: Will work with every map so long as the following values are used for each NPC:
+//up left door 120
+//up right door 121
+//down left door 122
+//down right door 123
+//up NULL 124
+//down NULL 125
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Leave Scripts
+//The following are elevator doors:
+
+//Up elevator
+#0120
+//upleft
+<EVE0121
+#0121
+//upright
+<KEY<FNJ4114:0126<MSGWould you like to go to
+the Main Hall?<YNJ0000<CLO
+<ANP0124:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<CNP0124:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<FAO0004<TRA0098:0092:0124:0012//fade out and go to main hall (92 is UP)
+
+//Down Elevator
+#0122
+//downleft
+<EVE0123
+#0123
+//downright
+<KEY<FNJ4114:0126<MSGWould you like to go to
+Applied Science?<YNJ0000<CLO
+<ANP0125:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<CNP0125:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<FAO0004<TRA0106:0093:0004:0005//goes to applied Science (93 is DOWN)
+
+
+#0124
+//UpQuoteElevator
+#0125
+//DownQuoteElevator
+
+#0126
+<KEY<MSGThe lifts appear to be out of
+commission.<NOD<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of elevator leave scripts
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Arrival Scripts
+#0130
+//arrive from the UP elevator
+<KEY<ANP0124:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0124:0150:0002//unhide the quote NPC
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0124:0000:0000//hide the quote NPC
+<ANP0124:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<EVE0600<END//Ready to go {event 600 is used only for negSecurity}
+
+#0131
+//arrive from the DOWN elevator
+<KEY<ANP0125:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0125:0150:0002//unhide the quote NPC
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0125:0000:0000//hide the quote NPC
+<ANP0125:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<EVE0600<END//Ready to go
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of Elevator Arrival Scripts
+
+
+
+
+//Group 200 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//entity group 0200 will relate to Galcota's terminals (text events)
+
+#0200
+//0103 group 200 ++
+//h/v trigger for the 'hey' bubble
+<DNP0200
+<FLJ4106:0000//already talked to the terminal in the security district
+<FNJ4103:0000//if galcota has not been talked to
+<CNP0201:0106:0000<END
+
+#0201
+//0104 group 200 ++
+//the "Hey" bubble
+
+
+#0202
+//0105 group 200 ++
+//Galcota's terminal
+<KEY
+<FLJ4114:0212//boss transfer has been completed
+<ITJ0040:0204//if you have a key, galcota tells you to plug it in
+<FLJ4116:0210//jump to 210 if the user is talking to the pre-boss PC
+<FNJ4103:0203//if the room has been visited before galcota has been turned on
+<FLJ4107:0205//what galcota says if you have plugged the 1st key into the shield
+<FC+<MS3<MTS0118<FAC0039They don't call it
+<FAC0041"security" for nothing.<NOD<FAC0040
+The<FAC0039 shield gates have been
+activated.<NOD<CLR<FAC0043Luckily I can turn them
+off,<NOD<FAC0044 but I need a physical
+connection in order to
+do so.<NOD<CLR<FAC0039Here.<IT+0040<NOD<GIT1040<FAC0040 Take<FAC0039 this dongle
+and <FAC0042plug it into that key
+slot<FAC0039 over there.<NOD<CLR<GIT0000<FL+4106
+<FC-<END
+
+#0203
+//0137 group 200 ++
+//the event that runs if the hall is visited before galcota has been activated
+<KEY<MSGThe screen is lit, but it is
+filled with garbled text.<NOD<END
+
+
+#0204
+//The event that happens if user talks to galocta before the key
+<FLJ4116:0211//jump to 211 if the user is talking to the pre-boss PC
+<FLJ4107:0206//If the 1st shield is done
+//This happens if it is the 1st key
+<KEY<FC+<MTS0118<MS3<FAC0039The slot in question
+is on the <FAC0042right side<FAC0039
+of this terminal.<NOD<FC-<END
+
+
+#0205
+//0106 group 200 ++
+//just temp stuff that galcota says after the 1st event, intended to be expanded upon
+<KEY
+<FLJ4109:0208//If the user used the key on the 2nd shield
+<FC+<MS3<MTS0118<FAC0043Great!<NOD
+<IT+0040<GIT1040Here is another.<NOD<GIT0000<CLR<FAC0039Unfortunately, <FAC0040due to<FAC0039 the
+<FAC0044limitations of these
+terminals,<NOD<FAC0039 I cannot
+maintain a connection to
+more than<NOD
+1 dongle at a time.<NOD<CLR<FAC0041Inefficient, I know,
+<FAC0040but <FAC0039there is no way around
+it.<NOD<CLR<FAC0043(I've already checked.)<NOD<FC-<END
+
+
+#0206
+//User still has the 2nd shield key (applies to 2nd shield onward)
+<KEY
+<FLJ4115:0207<FC+<MTS0118<FAC0039<MS3It appears <FAC0040that <FAC0039you still
+have a dongle.<NOD<CLRYou'll have to use it
+before I can give you
+another one.<NOD<CLR<FAC0044I wish it wasn't that way,
+too, but<FAC0040 we <FAC0043can't wish away
+our problems,<WAI0010 now can we?<NOD<FC-<FL+4115<END
+
+#0207
+//If you keep talking to Galcota with a key in hand
+<KEY<FC+<MTS0118<MS3<FAC0039Please use the <FAC0040dong<FAC0039le
+that I've provided
+you with.<NOD<CLR<FAC0043Once you do, I can
+provide another.<NOD<FC-<END
+
+
+#0208
+<KEY
+<FLJ4108:0209//used a key on the 1st elevator
+<FC+<MTS0118<MS3<FAC0043Excellent work so far.<NOD<CLR<IT+0040<GIT1040<FAC0039Just a few more of these
+unitll <FAC0040we<FAC0043 reach the
+mainframe computer.<NOD<GIT0000<FC-<END 
+
+#0209
+<KEY
+<FLJ4111:0213//A cheap way to make the user go to the pre-boss PC to get their last dongle
+<FC+<MTS0118<MS3<FAC0042Another Key?<NOD<CLR<FAC0043<IT+0040<GIT1040Here you go!<NOD<GIT0000<FC-<END
+
+#0210
+//Galcota's pree-boss dialogue
+<KEY<FC+<MS3<MTS0118<FAC0039The main security computer
+is in <FAC0041the next room.<NOD<CLR<FAC0039If you can plug <FAC0040<IT+0040<GIT1040this<FAC0039 key
+into the <FAC0042slot on the side,<NOD<GIT0000
+<FAC0039I can take over and
+<FAC0043neutralize the threat.<NOD<CLR<FAC0042Of course...<WAI0010
+<FAC0039If the computer registers
+<FAC0041foriegn activity...<NOD
+<FAC0040It <FAC0039may go into
+defense mode.<NOD<CLRIf that happens, disable
+its defense power by
+<FAC0041shooting at the<NOD
+electric bolt in the
+middle of the column.<NOD<CLR<FAC0039Enough hits should make it
+vulnrible to<FAC0040 a<FAC0043
+script takeover.<NOD<FC-<END
+
+
+#0211
+<KEY<MTS0118<FAC0039<MS3Good luck.<NOD<END
+
+#0212
+//Galcota's screen if you beat the boss
+<KEY<MS3<FAC0037<TURCyndrillica Co.<NOD<END
+
+
+#0213
+//When I want you to move on to the next computer
+<FC+<MTS0118<MS3<FAC0039This computer is out of
+keys.<NOD<CLR<FAC0041You will have to proceed
+forward to find one that
+still has a few.<NOD<END
+
+
+#0220
+//trigger for the 2nd hey bubble
+<DNP0220<FLJ4114:0000<CNP0221:0106:0000<END
+
+#0221
+//2nd 'hey' bubble
+
+
+#0222
+//Galcota's warning about the yellow lasers
+<FLJ4114:0000//boss transfer has been completed
+<KEY<FC+<MTS0118<MS3<FAC0039Use caution in this next
+room.<NOD<CLRThe <FAC0041Yellow laser will
+instantly disintegrate<FAC0040
+anyt<FAC0039hing it touches.<NOD<FC-<END
+
+
+
+#0230
+//Galcota himself
+
+#0231
+//Galcota's box
+
+
+#0240
+//Galcota standing next to the elevator
+
+#0241
+//H/V trigger for the elevator cutscene
+<KEY<DNP0241<MYD0000<WAS
+<MS3<MTS0127<FAC0030<FC+The elevators are
+b<FAC0032ack<FAC0030 online.<NOD<CLR<FAC0034Take the down elevator
+to get to
+<FAC0030Applied Sciences.<NOD<CLO
+<ANP0240:0000:0000//face left
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<ANP0240:0050:0000<WAI0024//walk left 24 pixels
+<ANP0240:0000:0000//stop walk
+<WAI0020
+<ANP0240:0000:0002//face right
+<ANP0122:0040:0000//close elevator
+<ANP0123:0040:0002<WAI0070
+<DNP0240//hide galcota
+<FL-4118//event has finished
+<FL+4123//galcota ready for next event
+<END
+
+
+
+
+
+
+
+
+//Group 300 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//entity group 0300 will relate to keys, lasers, and blast doors
+
+#0300
+//0101 group 300 ++
+//1st key cube
+<FLJ4107:0000<ITJ0040:0301<KEY
+<MS3It looks like you need
+a key of some sort for this hole.<NOD<END
+
+#0301
+//0102 group 300 ++
+<PRI<GIT1040<IT-0040<MS3Used the dongle on the slot.<NOD<GIT0000<CLO<FRE<KEY<ANP0300:0003:0000<WAI0060//keycube blink green
+<FL+4107<ANP0300:0000:0002<SOU0012<CNP0302:0004:0000<END
+
+#0302
+//0107 group 300 ++
+//1st shield NPCs
+
+#0303
+//0117 group 300 ++
+//the event for the 2nd key cube
+<FLJ4109:0000<ITJ0040:0304<KEY
+<MS3It looks like you need
+a key of some sort for this hole.<NOD<END
+
+#0304
+//0118 group 300 ++
+<PRI<GIT1040<IT-0040<MS3Used the dongle on the slot.<NOD<GIT0000<CLO<FRE<KEY<ANP0303:0003:0000<WAI0060//keycube blink green
+<FL+4109<ANP0303:0000:0002
+<FON0305:0020<WAI0040
+<SOU0012<CNP0305:0004:0000<WAI0020
+<FOM0016<END
+
+#0305
+//0119 group 300 ++
+//2nd shield NPCs
+
+
+#0306
+//0126 group 300 ++
+//the event for the 3rd key cube
+<FLJ4111:0000<ITJ0040:0307<KEY
+<MS3It looks like you need
+a key of some sort for this hole.<NOD<END
+
+#0307
+//0127 group 300 ++
+//doubles as the 3rd shields
+<PRI<GIT1040<IT-0040<MS3Used the dongle on the slot.<NOD<GIT0000<CLO<FRE<KEY<ANP0306:0003:0000<WAI0060//keycube blink green
+<FL+4111<ANP0306:0000:0002
+<FON0307:0020<WAI0040
+<SOU0012<CNP0307:0004:0000<WAI0020
+<FOM0016<END
+
+
+
+#0330
+//0133 group 300 ++
+//test event: will the blast door move up as recommended?
+<KEY<ATS0000<RTN//default name
+<END
+
+<END
+
+
+#0331
+//0134 group 300 ++
+//lets have some fun. Move it down.
+<ATS0001<RTN//modified name
+<ANP0332:0000:0001
+<ANP0333:0000:0001<END
+
+
+#0332
+//0135 group 300 ++
+//blast door NPC
+
+#0333
+//0136 group 300 ++
+//other blast door NPC (because ANPs apparently only affect the lowest drawn NPC with that event #)
+
+#0334
+//3rd blast door NPC (found on the right)
+
+#0335
+//Hidden blast door used for the cutscene (because the other ones disappear with flag 4114)
+//Desapwns with the activation of flag 4121 for no reason other than to lessen the amount of entities in the stage
+
+
+//Group 400 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//entity group 0400 will relate to moving lasers and generators
+
+#0400
+//0111 group 400 ++
+<CNP0400:0004:0000<SOU0012<END //1st shootable PSU
+
+#0401
+//0113 group 400 ++
+<CNP0401:0004:0000<SOU0012<END //2nd shootable PSU
+
+#0402
+//0125 group 400 ++
+<CNP0402:0004:0000<SOU0012<END //3rd shootable PSU
+
+
+#0410
+//0128 group 400 ++
+//start shieldRun trigger
+<DNP0410<CNP0411:0368:0002<END
+
+#0411
+//0129 group 400 ++
+//Yellow Shields
+
+#0412
+//0130 group 400 ++
+//end shieldRun trigger
+<DNP0412
+<CNP0414:0000:0000
+<CNP0411:0004:0000
+<FOM0016
+<WAI0030
+<FL+4116
+<FL-4114//flag 4114 likes to set itself with these triggers. This one (since it also depends on the flag) needs to ensure it stays unset.
+<FOM0016<END
+
+#0413
+//0131 group 400 ++
+//focus on the target cube
+<DNP0413<CNP0414:0369:0000<FON0414:0020<WAI0030
+<FON0414:0016<END
+
+#0414
+//0132 group 400 ++
+//target npc
+
+
+//Group 500 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//entity group 0500 will relate to lifts
+
+
+#0500
+//0109 group 500 ++
+//key cube for the 1st lift
+<FLJ4108:0000<ITJ0040:0501<KEY
+<MS3It looks like you need
+a key of some sort for this hole.<NOD<END
+
+#0501
+//0110 group 300 (or 500) ++
+//2nd event for the 1st lift
+<PRI<GIT1040<IT-0040<MS3Used the dongle on the slot.<NOD<GIT0000<CLO<FRE<KEY<ANP0500:0003:0000<WAI0060
+<ANP0500:0000:0002<FL+4108
+<ANP0502:0012:0000<END //if the elevator starts stationary, get it moving with 0001 or 0012. If it starts moving, stop it with 0009
+
+#0502
+//0108 group 500 ++
+//The lift
+
+#0503
+//0121 group 500 ++
+//The key cube for the 2nd elevator
+<FLJ4110:0000<ITJ0040:0504<KEY
+<MS3It looks like you need
+a key of some sort for this hole.<NOD<END
+
+#0504
+//0122 group 500 ++
+//relates to the 2nd lift
+<PRI<GIT1040<IT-0040<MS3Used the dongle on the slot.<NOD<GIT0000<CLO<FRE<KEY<ANP0503:0003:0000<WAI0060//keycube
+<ANP0503:0000:0002<FL+4110<WAI0020
+<ANP0505:0012:0000<END //if the elevator starts stationary, get it moving with 0001 or 0012. If it starts moving, stop it with 0009
+
+#0505
+//0123 group 500 ++
+//The 2nd Lift
+
+//Group 600 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//entity group 0600 will relate to things that need to be done on fade in/out
+
+#0600
+<DNP0600//deletes the h/v trigger with this event (the trigger is used if the PC saves in this room without having first left)
+<DNP0600//does it 2x (one per each trigger, as there are 2)
+//0115 group 600 ++
+//event 0115 covers all the initialization on the map after the player loads it in
+//All tesla guns that need to face Left
+<CNP0620:0362:0001
+//All tesla guns that need to face right
+<CNP0621:0362:0003
+<FLJ4108:0601
+<FLJ4110:0602//this second one may not be needed, as the player will always activate the other first (unless they are cheating ;])
+<END
+
+#0601
+//0116 group 600 ++
+//the elevator needs to turn on when the map is entered
+<ANP0502:0012:0000
+<FLJ4110:0602<END
+
+#0602
+//0124 group 600 ++
+//the 2nd elevator needs to turn on when the map is entered
+<ANP0505:0012:0000
+<FNJ4118:0000//If galcota is by the elevator, spin him around
+<ANP0240:0000:0002
+<END
+
+#0620
+//0120 group 600 ++
+//Left facing Tesla guns
+
+#0621
+//0120 group 600 ++
+//Right facing Tesla guns
+
+
+//Group 700 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//entity group 0700 will relate to the boss fight
+
+#0700
+//h/v trigger that puts the main boss into waiting mode (shields off)
+<DNP0700<BOA0008<ANP0701:0005:0000<FL-4114<END//flag 4114 seems to set itself with the ANP here, so it is unset right after by me.
+
+#0701
+//Key cube connected to the boss
+<KEY<FLJ4114:0000<FLJ4113:0705<FLJ4112:0704<ITJ0040:0702<MS3It looks like you need
+a key of some sort for this hole.<NOD<END
+
+#0702
+<KEY<FL+4112<CNP0703:0371:0000<BOA0010<MYB0000<WAI0050<MTM0720:0000<CNP0720:0372:0002<MS2SECURITY BREACH ATTEMPT
+DISCOVERED.<NOD<CLRTERMINATING OFFENDER...<NOD<CLO
+<FON0334:0020<WAI0030
+<ANP0334:0003:0000<QUA0060<WAI0060
+<FOM0016<BOA0012<BSL0000<CMU0032<WAI0010<END
+
+#0703
+//The shield that covers the key cube above
+
+#0704
+//This is read if the key cube is interacted with during the fight
+<PRI<MS3The slot is covered by a
+protective shield.<NOD You cannot
+insert the dongle.<NOD<END
+
+#0705
+<PRI<GIT1040<IT-0040<MS3Used the dongle on the slot.<NOD<GIT0000<CLO<FRE<KEY<ANP0701:0003:0000<WAI0060//keycube
+<ANP0701:0000:0002<WAI0020<FRE<KEY
+<BOA0005<CMU0000<WAI0020<MS2Reconfiguring Settings...<NOD<WAI0040<CLRPreparing for handoff<WAI0010.<WAI0010.<WAI0010.<WAI0020<CLRError:<WAI0010 Preferences corrupted!<WAI0020
+Cleaning...<NOD
+<MS2<TURResetting Admin list.<WAI0020
+Resetting Security Preferences.<WAI0020
+Resetting Door State...<NOD<CLO//doors open here, Curly enters, science team enters, Doctor's minions enter storehouse
+<FAO0004<FL+4118<FL+4114<TRA0103:0105:0016:0009
+
+
+#0706
+<KEY
+<MNP0335:0081:0027:0000//move hidden door
+<MYD0000<ATS0001Spaceship Story ~ Not an Island<ATS<RTN<FON0333:0001<FAI0004<FON0333:0020<WAI0030//ATS and RTN refresh the title screen
+<MNP0335:0081:0027:0000
+<ANP0335:0001:0000//used as a stand-in for the other doors (which are now not here due to despawning with flag 4114)
+<ANP0334:0001:0000
+<ANP0333:0001:0000
+<ANP0332:0001:0000
+<QUA0060<WAI0048<SOU0026<WAI0012
+<FOM0016<WAI0010
+<MS2Prefrence wipe completed!<NOD
+Performing handoff<WAI0010.<WAI0010.<WAI0010.<NOD<CLRSuccess!<NOD
+Administrative permissions
+permitted for Galcota...<NOD<CLR<WAI0032<MTS0118<FAC0043<FC+It feels <MYD0003good to finally
+have my admin status back...<NOD<CLR<FAC0040Now<FAC0039 there is just one more
+thing for <FAC0041me to do...<NOD<CLO<FC-<MYD0000<FAC0000
+<QUA0032<ANP0231:0001:0000<WAI0032<SOU0026<WAI0032//gbox comes up
+<ANP0231:0005:0000//activates galcota
+<CNP0240:0000:0000<WAI0064//changes the ElevatorGalc to a NULL so that the DNA will not delete it.
+<DNA0361<CNP0230:0361:0000<ANP0230:0103:0000<WAI0001//galcota replaced with a controllable entity, 1 tick of delay is needed for the offset code to be completed before the next action
+<ANP0230:0001:0000<WAI0016//entity puts hands on hips
+<ANP0230:0080:0000<WAI0008//looks at box
+<QUA0032<ANP0231:0003:0000<WAI0032<SOU0026//box descends
+<ANP0230:0001:0000<WAI0016
+<ANP0230:0001:0002<WAI0016
+<ANP0230:0050:0002<WAI0168
+<CNP0240:0361:0000//changng NPC 240 back, it doesnt matter where I do it, so I do it here
+<ANP0230:0001:0002<WAI0032<MS3<FAC0030<FC+<MTS0127It's nice to finally
+see you <FAC0032in a<FAC0030 respectable
+definition.<NOD<CLR<FAC0034Thank you for helping
+me out.<NOD<CLR<FAC0032However,<FAC0031 I fear that our
+work here may have just
+begun.<NOD<CLR<FAC0033I can now see that
+things are far worse off<NOD
+than <FAC0031I had originally
+predicted.<NOD<CLR<FAC0035The <FAC0031reactor core is only
+functioning at <FAC0033
+15% capacity,<NOD
+<FAC0031just enough for this ship
+to stay afloat,<NOD<FAC0035 but any
+<FAC0033less and the whole
+thing will plummet.<NOD<CLR<FAC0030The core is located
+near waste management,<NOD
+<FAC0032which could also
+use some<FAC0034 work...<NOD<CLR<FAC0033<WAI0010.<WAI0010.<WAI0010.<NOD<CLR<FAC0031Oh, no.<NOD
+<FAC0035All this <FAC0031thinking about
+repairs made me forget<NOD
+about that
+<FAC0033dangerous doctor.<NOD
+<FAC0035-Who,<FAC0031 by the way, I have
+just been alerted<NOD has
+breached high-se<FAC0035curi<FAC0031ty test
+chamber 4B.<NOD<CLR<FAC0030You won't believe this,<NOD<FAC0032 but
+that<FAC0034 chamber was last
+logged to contain an<FAC0030
+experimental seed.<NOD<CLRA seed that grows
+flowers <FAC0032of the<FAC0031
+red veriety.<NOD<CLR<FAC0033If what you say is true,<WAI0015
+<FAC0031then we must waste no time!<NOD<CLRThe TP network is <FAC0035still<FAC0031
+malfunctioning,<NOD
+so the quickest way to
+Applied Sciences would be
+the <FAC0033elevator shaft.<NOD<CLR<FAC0030The Applied Sciences
+department is <FAC0032located<FAC0034 1
+floor beneath the <FAC0030security
+district.<NOD<CLR<FAC0034Let's go!<NOD<CLO
+<ANP0230:0050:0000<WAI0096//galc walk
+<ANP0230:0060:0000<WAI0016//galc run
+<ANP0230:0070:0000<WAI0096//galc jump
+<CNP0230:0000:0000//galc turns into NULL offscreen
+<EVE0600//re-enable all elevators
+<END
+
+
+#0720
+//The '!' emote that appears in the script above
+
+#1000
+//boss die event
+<BOA0003<FLA<CNP0703:0004:0000<DNP0367<FL+4113<QUA0030<FMU
+<FL-4103//removes tesla shooters
+<END
+
+
+
+
+#2000
+//IntroScreen event
+<KEY<FON2001:0001<MNA<WAI0050<FAI0001
+<QUA0032<ANP0231:0001:0000<WAI0032<SOU0026<WAI0032//gbox comes up
+<ANP0231:0005:0000<WAI0064//activates galcota
+<DNA0361<CNP0230:0361:0000<ANP0230:0103:0000<WAI0016
+<ANP0230:0003:0000<WAI0016//entity puts hands on hips
+<WAI0032
+<QUA0032<ANP0231:0003:0000<WAI0032<SOU0026//box descends
+<WAI0112
+<FAO0001<WAI9999<END
+
+
+#2001
+//camera focus target
+
+
+
+
+
+
+
+
+
+
+
+
+
+

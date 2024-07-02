@@ -1,0 +1,289 @@
+#0090
+<SMC<FLJ4105:0095<MNA<CMU0023<FAI0000<END //changes music based on a flag change
+#0091
+<SMC<FLJ4105:0096<MNA<CMU0023<FAI0001<END
+
+
+
+#0092
+//up elevator arrival
+<HMC<FLJ4105:0097<MNA<CMU0023<FAI0001<EVE0130<END
+#0093
+//down elevator arrival
+<HMC<FLJ4105:0098<MNA<CMU0023<FAI0003<EVE0131<END
+#0094
+//center Fade
+<SMC<FLJ4105:0099<MNA<CMU0023<FAI0004<END
+
+#0095
+<SMC<MNA<CMU0019<FAI0000<END
+#0096
+<SMC<MNA<CMU0019<FAI0001<END
+
+
+#0097
+//up elevator arrival
+<HMC<MNA<CMU0019<FAI0002<EVE0130<END
+#0098
+//down elevator arrival
+<HMC<MNA<CMU0019<FAI0003<EVE0131<END
+
+#0099
+<SMC<MNA<CMU0019<FAI0004<END
+
+
+
+
+
+
+
+
+
+
+#0100
+<KEY<FAO0004<TRA0099:0094:0015:0004 //takes you to the elevator shaft
+
+#0101
+<KEY<TRA0001:0094:0017:0008//this takes you to the Arthur's house
+
+#0102
+<KEY<FLJ4104:0108<FLJ4103:0107<MS3Words light up the screen...<NOD<FAC0046<CLR<TURInitiate System?<YNJ0000<CLRStarting System...
+System boot check pass
+System keys pass<WAI0010<CLR<MS3<TURSystem Permission fail!!
+Error...
+No controller permissions!<WAI0010<CLR<MS3<TURBooting in rootless mode...
+Booting<WAI0025
+Boo--<CLO<CNP0102:0020:0000<WAI0060<QUA0020<WAI0030
+<CNP0102:0020:0001<MS3<FC+<FAC0046......<WAI0050<CLR..=..<WAI0030<CLRGALCOTA Initalized.<WAI0020<FAC0036<WAI0005<FAC0038<WAI0020<CLR
+<MTS0118<FAC0039Where...<FAC0040<WAI0010<FAC0039 am I?<NOD
+<FAC0041Performing systems check...<NOD
+<FAC0044...Denied?<NOD
+<FAC0042That's odd...<NOD
+<FAC0041...Hmm<NOD<FAC0040<WAI0010
+<FAC0039How was I activated?<NOD
+<FAC0038Checking<FAC0036 webcam...<FAC0046<NOD<CLR<TURInitiating Webcam...<NOD<CLR<FAC0036<MS3Oh!<FAC0038 when did <FAC0043you get here?<NOD
+<FAC0040Did you <FAC0043activate me?<YNJ0103
+<FAC0042Oh?<NOD
+<FAC0043Well thank you, then.<NOD<FC-<EVE0104
+
+#0103
+<KEY<MS3<MTS0118<FAC0044Oh, no?<NOD
+<FAC0043I feel like that's
+not true.<NOD<FL+4102
+<FC-<EVE0104
+
+#0104
+<KEY<FC+<MS3<MTS0118<FAC0039I'm embarrassed, really.<NOD<CLR<FAC0040I sho<FAC0039uldn't have even been
+<FAC0041de-activated in the first
+place...<NOD<CLR...and I <FAC0044KNOW I should
+have more permissions than
+<FAC0039I currently do...<NOD<CLRWhat happened?<NOD<CLR<FAC0042Hmm...<NOD
+Mimigas?<NOD<FAC0041 Robots?<NOD
+<FAC0044Mad Doctors and
+red flowers?<NOD<CLR<FAC0040I'm sorry.<FAC0039 None of that
+hits home for me...<NOD<CLR<FAC0041You say all of that is
+happening <FAC0040right<FAC0039 on
+this ship?<NOD
+<FAC0042"Floating Island"?<NOD
+<FAC0039I'm sorry, but you're
+mistaken.<NOD<CLR<FAC0040You are<FAC0043 currently on board
+the <FAC0045EE10,<NOD an intergalactic
+research frigate under the
+<FAC0037Cyndrillica Alliance.<NOD<CLR<FAC0044You look confused.<NOD<CLR<FAC0039I don't blame you,
+I don't know <FAC0040how long<FAC0039 I was
+offline,<NOD<CLR<FAC0043but surely,<NOD you
+can see that this is a
+spaceship, right?<NOD<CLR<FAC0041
+...I mean...<NOD<CLR<FAC0042well...<NOD
+<FAC0041now that you say it...<NOD
+things <FAC0039DO look rather
+neglected.<NOD<CLR<FAC0040<WAI0005<FAC0038<WAI0020<FAC0036<WAI0005<FAC0046<TURChecking security system...<WAI0030<NOD<CLR<FAC0036<WAI0005<FAC0038<WAI0020<FAC0039<MS3Oh, wow. <FAC0042I hardly
+recognize it.<NOD<CLR<FAC0044The entire ship...<WAI0020
+<FAC0039covered in rock...<WAI0020
+<FAC0040how <FAC0039did that...<NOD<CLR<FAC0041OK, something needs
+to be done about this.<NOD
+<FAC0042...well...<NOD
+<FAC0043this and the 
+whole evil Doctor thing,<NOD<CLR<FAC0044-which I am sure is causing
+all sorts of havoc on
+the superstructure.<NOD<CLR<FAC0040-But <FAC0039in my current state,
+I am <FAC0041little to no <FAC0039help
+to you.<NOD<CLR<FAC0039We need,<FAC0040 if <FAC0042you
+are willing, to restore
+<FAC0043my administrative access<NOD
+of this ship's systems.<NOD<CLR<FAC0039Once I can
+control it again,<NOD<FAC0044
+We can isolate and disarm
+the Doctor.<NOD<CLR<FAC0039OK...<NOD
+<FAC0043To do that is simple,<NOD<CLR<FAC0039There is a <FAC0042hard-<FAC0041wired
+switch in the security
+district<NOD
+that <FAC0040will <FAC0039restore
+my permissions.<NOD<FLJ4102:0105
+<FAC0042Unfortunately, when you
+activated me just now,<NOD<EVE0106
+
+#0105
+<KEY<FC+<MS3<MTS0118<FAC0044Unfortunately, when you
+<FAC0043"totally didn't" activate
+me just now,<NOD<EVE0106
+
+
+#0106
+<KEY<FC+<MS3<MTS0118<FAC0041You also activated the
+emergency security system.<NOD<CLR<FAC0042Which, from as far
+as I can tell,<FAC0040
+is <FAC0039corrupted, too.<NOD<CLR<FAC0041It is currently programmed
+to shoot at nearly anything
+that <FAC0039moves.<NOD<CLR<FAC0043Now normally, I could
+just turn it off, but<NOD
+<FAC0041I need root access to
+do so, <FAC0044which is currently
+broken.<NOD<CLR<FAC0040Please, <FAC0039I'm counting on
+your ability.<NOD<CLR<FAC0043Let's set this right!<NOD
+<CNP0016:0016:0002
+<CNP0017:0017:0002
+<FL+4103<FL+4105<CMU0019<FC-<END //music changes here
+
+
+#0107
+<KEY<FC+<MS3<MTS0118<FAC0039You can access<FAC0040 the <FAC0039security
+district from the elevator
+you took to get here.<NOD<CLR<FAC0044What?<WAI0020<FAC0041 That's broken, too?<NOD
+<FAC0042...Well...<WAI0020
+<FAC0039that makes sense.<NOD<CLR<FAC0040Anyway,<FAC0039 it should be 2
+floors beneath<FAC0042 the main
+hall.<NOD<CLR<FAC0040Once <FAC0039you get there,<NOD
+<FAC0043I can give you aid through
+the various terminals
+found throughout the ship.<NOD<FL+4104<FC-<END
+
+
+#0108
+<KEY<FLJ4114:0109<FC+<MS3<MTS0118<FAC0039Take the elevator shaft<FAC0041
+2 floors beneath
+the Main Hall.<NOD<CLR<FAC0040That's<FAC0043 where you can access
+the security district.<NOD<FC-<END
+
+#0109
+//Galcota's screen if you beat the boss
+<KEY<MS3<FAC0037<TURCyndrillica Co.<NOD<END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////Elevator scripts: Will work with every map so long as the following values are used for each NPC:
+//up left door 120
+//up right door 121
+//down left door 122
+//down right door 123
+//up NULL 124
+//down NULL 125
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Leave Scripts
+//The following are elevator doors:
+
+//Up elevator
+#0120
+//upleft
+<EVE0121
+#0121
+//upright
+<KEY<FNJ4114:0126
+<MSGThis is as far up as the
+elevator goes.<NOD<END
+<MSGWould you like to go to
+the Bridge?<YNJ0000<CLO
+<ANP0124:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<CNP0124:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<FAO0004<TRA0100:0092:0008:0012//fade out and go to commandBridge (92 is UP)
+
+//Down Elevator
+#0122
+//downleft
+<EVE0123
+#0123
+//downright
+<KEY<FNJ4114:0126<MSGWould you like to go to
+the Main Hall?<YNJ0000<CLO
+<ANP0125:0200:0000//shifts the character NPC over by 8 pixels
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<CNP0125:0150:0002//unhide the quote NPC
+<HMC//hides PC
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<FAO0004<TRA0098:0093:0124:0012//fade out and go to main hall (93 is DOWN)
+
+
+#0124
+//UpQuoteElevator
+#0125
+//DownQuoteElevator
+
+#0126
+<KEY<MSGThe lifts appear to be out of
+commission.<NOD<END
+
+#0127
+<KEY<MSGThis is as far down as you
+can go right now.<NOD<END
+
+#0128
+<KEY<MSGThis is as far up as you
+can go right now.<NOD<END
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of elevator leave scripts
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Elevator Arrival Scripts
+#0130
+//arrive from the UP elevator
+<KEY<ANP0124:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0124:0150:0002//unhide the quote NPC
+<ANP0120:0020:0000//open elevator
+<ANP0121:0020:0002
+<WAI0070
+<MTN0124:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0124:0000:0000//hide the quote NPC
+<ANP0124:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0120:0040:0000//close elevator doors
+<ANP0121:0040:0002
+<WAI0070<END//Ready to go {event 600 is used only for negSecurity}
+
+#0131
+//arrive from the DOWN elevator
+<KEY<ANP0125:0200:0000<WAI0001//shifts the character NPC over by 8 pixels
+<CNP0125:0150:0002//unhide the quote NPC
+<ANP0122:0020:0000//open elevator
+<ANP0123:0020:0002
+<WAI0070
+<MTN0125:0002//moves PC to NPC
+<SMC//unhides PC
+<CNP0125:0000:0000//hide the quote NPC
+<ANP0125:0300:0000//Shifts the NPC back to the left by 8 pixels
+<ANP0122:0040:0000//close elevator doors
+<ANP0123:0040:0002
+<WAI0070<END//Ready to go
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~End of Elevator Arrival Scripts
+
+

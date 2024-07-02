@@ -321,7 +321,9 @@ impl TextScript {
             }
 
             //parses string delimited by $, no additional arguments
-            TSCOpCode::BKG =>
+            TSCOpCode::BKG 
+            | TSCOpCode::SVM
+            | TSCOpCode::LDM =>
             {
 
                 //stow opcode
