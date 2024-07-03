@@ -229,8 +229,7 @@ impl Not for ConfirmSelection {
     }
 }
 
-//#[derive(Debug, PartialEq, Copy, Clone)]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TextScriptExecutionState {
     Ended,
     Running(u16, u32),
@@ -246,7 +245,7 @@ pub enum TextScriptExecutionState {
     SaveProfile(u16, u32),
     LoadProfile,
     Reset,
-    SaveProfileName(RefCell<u32>, u16, u32),
+    SaveProfileName(u16, u32, ),
     //LoadProfileName(, u16, u32),
 }
 
@@ -284,6 +283,9 @@ pub struct TextScriptVM {
     pub illustration_state: IllustrationState,
     prev_char: char,
     pub substitution_rect_map: [(char, Rect<u16>); TSC_SUBSTITUTION_MAP_SIZE],
+
+    // holds the location of the profile to save or load from
+    save_filepath: String,
 }
 
 pub struct Scripts {
@@ -360,6 +362,8 @@ impl TextScriptVM {
             illustration_state: IllustrationState::Hidden,
             prev_char: '\x00',
             substitution_rect_map: [('=', Rect::new(0, 0, 0, 0))],
+
+            save_filepath: String::new(),
         }
     }
 
@@ -783,6 +787,12 @@ impl TextScriptVM {
                 }
                 TextScriptExecutionState::MapSystem => {
                     break;
+                }
+
+                TextScriptExecutionState::SaveProfileName(_ip, _str) => {
+
+
+
                 }
             }
         }

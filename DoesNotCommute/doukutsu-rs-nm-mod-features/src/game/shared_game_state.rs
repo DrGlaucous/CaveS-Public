@@ -674,6 +674,28 @@ impl SharedGameState {
         Ok(())
     }
 
+    //save profile to a custom location
+    pub fn save_game_name(
+        &mut self,
+        game_scene: &mut GameScene,
+        ctx: &mut Context,
+        target_player: Option<TargetPlayer>,
+    ) -> GameResult {
+        if let Some(save_path) = self.get_save_filename(self.save_slot) {
+            if let Ok(data) = filesystem::open_options(ctx, save_path, OpenOptions::new().write(true).create(true)) {
+                let profile = GameProfile::dump(self, game_scene, target_player);
+                profile.write_save(data)?;
+            } else {
+                log::warn!("Cannot open save file.");
+            }
+        } else {
+            log::info!("Mod has saves disabled.");
+        }
+
+        Ok(())
+    }
+
+
     pub fn load_or_start_game(&mut self, ctx: &mut Context) -> GameResult {
         if let Some(save_path) = self.get_save_filename(self.save_slot) {
             if let Ok(data) = filesystem::user_open(ctx, save_path) {
