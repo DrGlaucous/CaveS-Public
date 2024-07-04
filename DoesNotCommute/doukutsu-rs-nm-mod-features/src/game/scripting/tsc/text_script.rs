@@ -2101,17 +2101,17 @@ impl TextScriptVM {
 
                 //get mode
                 let player_num = read_cur_varint(&mut cursor)? as usize;
-                
-                if player_num == 0 {
-
-                    game_scene.player1.load_skin(String::from("AIM"), state, ctx);
-                } else {
-                    game_scene.player2.load_skin(String::from("AIM"), state, ctx);
-                }
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filepath = read_string(&mut cursor, len).unwrap();
+                let filepath = String::from("Skins/") + read_string(&mut cursor, len).unwrap().as_str();
+                
+                if player_num == 0 {
+                    game_scene.player1.load_skin(String::from(filepath), state, ctx);
+                } else {
+                    game_scene.player2.load_skin(String::from(filepath), state, ctx);
+                }
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             TSCOpCode::TCL => {
                 
