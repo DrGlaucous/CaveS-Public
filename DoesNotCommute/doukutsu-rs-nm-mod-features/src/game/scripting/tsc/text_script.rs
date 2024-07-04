@@ -245,8 +245,8 @@ pub enum TextScriptExecutionState {
     SaveProfile(u16, u32),
     LoadProfile,
     Reset,
-    SaveProfileName(u16, u32, ),
-    //LoadProfileName(, u16, u32),
+    SaveProfileName(u16, u32),
+    LoadProfileName,
 }
 
 #[derive(PartialEq, Copy, Clone)]
@@ -285,7 +285,7 @@ pub struct TextScriptVM {
     pub substitution_rect_map: [(char, Rect<u16>); TSC_SUBSTITUTION_MAP_SIZE],
 
     // holds the location of the profile to save or load from
-    save_filepath: String,
+    pub save_filepath: String,
 }
 
 pub struct Scripts {
@@ -789,11 +789,19 @@ impl TextScriptVM {
                     break;
                 }
 
-                TextScriptExecutionState::SaveProfileName(_ip, _str) => {
+                TextScriptExecutionState::SaveProfileName(event, ip) => {
 
-
-
+                    let path = state.textscript_vm.save_filepath.clone();
+                    state.save_game_name(game_scene, ctx, Some(state.textscript_vm.executor_player), path.as_str())?;
+                    state.textscript_vm.state = TextScriptExecutionState::Running(event, ip);
+                    break;
                 }
+                TextScriptExecutionState::LoadProfileName => {
+                    let path = state.textscript_vm.save_filepath.clone();
+                    state.load_or_start_game_name(ctx, path.as_str())?;
+                    break;
+                }
+
             }
         }
 
@@ -2080,18 +2088,36 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             TSCOpCode::SVM => {
-
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filepath = read_string(&mut cursor, len).unwrap();
-
+                state.textscript_vm.save_filepath = read_string(&mut cursor, len).unwrap();
                 exec_state = TextScriptExecutionState::SaveProfile(event, cursor.position() as u32);
             }
             TSCOpCode::LDM => {
+                let len = read_cur_varint(&mut cursor)? as usize;
+                state.textscript_vm.save_filepath = read_string(&mut cursor, len).unwrap();
+                exec_state = TextScriptExecutionState::LoadProfile;
+            }
+            TSCOpCode::MIM => {
 
+                //get mode
+                let player_num = read_cur_varint(&mut cursor)? as usize;
+                
+                if player_num == 0 {
+
+                    game_scene.player1.load_skin(String::from("AIM"), state, ctx);
+                } else {
+                    game_scene.player2.load_skin(String::from("AIM"), state, ctx);
+                }
+
+                //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
                 let filepath = read_string(&mut cursor, len).unwrap();
-
-                exec_state = TextScriptExecutionState::LoadProfile;
+            }
+            TSCOpCode::TCL => {
+                
+            }
+            TSCOpCode::SLT => {
+                
             }
 
 

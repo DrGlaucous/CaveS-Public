@@ -680,16 +680,15 @@ impl SharedGameState {
         game_scene: &mut GameScene,
         ctx: &mut Context,
         target_player: Option<TargetPlayer>,
+        path: &str,
     ) -> GameResult {
-        if let Some(save_path) = self.get_save_filename(self.save_slot) {
-            if let Ok(data) = filesystem::open_options(ctx, save_path, OpenOptions::new().write(true).create(true)) {
-                let profile = GameProfile::dump(self, game_scene, target_player);
-                profile.write_save(data)?;
-            } else {
-                log::warn!("Cannot open save file.");
-            }
+        
+        let save_path = String::from("/") + path;
+        if let Ok(data) = filesystem::open_options(ctx, save_path.as_str(), OpenOptions::new().write(true).create(true)) {
+            let profile = GameProfile::dump(self, game_scene, target_player);
+            profile.write_save(data)?;
         } else {
-            log::info!("Mod has saves disabled.");
+            log::warn!("Cannot open save file {}.", save_path);
         }
 
         Ok(())
@@ -725,6 +724,35 @@ impl SharedGameState {
 
         self.start_new_game(ctx)
     }
+
+    pub fn load_or_start_game_name(&mut self, ctx: &mut Context, path: &str) -> GameResult {
+        let save_path = String::from("/") + path;
+        if let Ok(data) = filesystem::user_open(ctx, save_path) {
+            match GameProfile::load_from_save(data) {
+                Ok(profile) => {
+                    self.reset();
+                    let mut next_scene = GameScene::new(self, ctx, profile.current_map as usize)?;
+
+                    profile.apply(self, &mut next_scene, ctx);
+
+                    #[cfg(feature = "discord-rpc")]
+                    self.discord_rpc.update_difficulty(self.difficulty)?;
+
+                    self.next_scene = Some(Box::new(next_scene));
+                    return Ok(());
+                }
+                Err(e) => {
+                    log::warn!("Failed to load save game, starting new one: {}", e);
+                }
+            }
+        } else {
+            log::warn!("No save game found, starting new one...");
+        }
+
+        self.start_new_game(ctx)
+    }
+
+
 
     pub fn reset(&mut self) {
         self.control_flags.0 = 0;

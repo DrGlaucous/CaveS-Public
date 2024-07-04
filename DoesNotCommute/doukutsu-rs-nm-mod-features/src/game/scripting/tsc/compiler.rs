@@ -268,6 +268,7 @@ impl TextScript {
             | TSCOpCode::INJ
             | TSCOpCode::SML
             | TSCOpCode::BKP
+            | TSCOpCode::TCL
             => {
                 let operand_a = read_number(iter)?;
                 if strict {
@@ -359,6 +360,60 @@ impl TextScript {
                 out.append(&mut char_buf);
 
             }
+        
+            // parses 1 operand + string delimited by $
+            TSCOpCode::SLT
+            | TSCOpCode::MIM
+            =>
+            {
+
+                //get music type
+                let operand_a = read_number(iter)?;
+
+                //colon delimiter
+                if strict {
+                    expect_char(b':', iter)?;
+                } else {
+                    iter.next().ok_or_else(|| ParseError("Script unexpectedly ended.".to_owned()))?;
+                }
+                //stow opcode
+                put_varint(instr as i32, out);
+                put_varint(operand_a as i32, out);
+
+
+                //terminates with < or end of file
+
+                //holds directory string
+                let mut char_buf = Vec::with_capacity(64);
+                while let Some(&chr) = iter.peek() {
+                    match chr
+                    {
+                        //i give up on terminating with <CRF. Nasty iterators. just end at any command.
+                        b'<' | b'$' => {
+                            break;
+                        }
+                        //move reader forward
+                        b'\r' => {
+                            iter.next();
+                        }
+                        //add char to holding tank
+                        _ => {
+                            char_buf.push(chr);
+                            iter.next();
+                        }
+                    }
+                }
+                //TODO: make a fancy decoder for the fancy encoder
+                //stow the filepath string (starting with string count)
+                //put_string(&mut char_buf, out, TextScriptEncoding::UTF8);
+                
+                //don't use fancy encoding for now: the string goes directly into the compiled code
+                put_varint(char_buf.len() as i32, out);
+                out.append(&mut char_buf);
+
+
+            }
+        
         }
 
         Ok(())

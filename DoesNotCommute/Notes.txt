@@ -14,7 +14,7 @@ NIM: NPc MIMiga mask	Set the skin rect offset for Commute NPCs. <NIM[NPC]:[Skin 
 MIM: MIMiga mask num	Set the offset of the player's skin rect. <PMS[Skin offset]
 KLC: Key Logger Control	Starts and stops the logging of PC action <KLC[stop/start/reset]:[fileNum]
 KRC: Key Reader Control	Starts and stops the readback of PC action <KLC[NPCNum]:[stop/start/reset][filenumber]
-SVM: SaVe profile Manual	Save to a specified profile number (used for selecting levels on the title screen) <SVM[profileNum]
+SLT: SaVe profile Manual	Save to a specified profile number (used for selecting levels on the title screen) <SVM[profileNum]
 
 
 

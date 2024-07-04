@@ -288,6 +288,14 @@ pub enum TSCOpCode {
     /// <LDMname_of_profile$, loads profile from location: name_of_profile
     LDM,
 
+    /// <MIMwwww:name_of_skin$, (multi-MIMiga-mask) Load in a player skin to player wwww with name_of_skin (note: starting directory is ./data/Skins)
+    MIM,
+
+    /// <TCLwwww:xxxx:yyyy, TimerControL, [0000/1|enable]:[start time (seconds)]:[event to run when timer is 0]
+    TCL,
+    /// <STMwwww:name_of_file$, SaveLoadTime, Saves/loads the current time to/from the file specified by the name
+    SLT,
+
 
 
 }
