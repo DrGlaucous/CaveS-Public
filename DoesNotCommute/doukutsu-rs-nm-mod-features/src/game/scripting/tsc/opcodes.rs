@@ -291,9 +291,9 @@ pub enum TSCOpCode {
     /// <MIMwwww:name_of_skin$, (multi-MIMiga-mask) Load in a player skin to player wwww with name_of_skin (note: starting directory is ./data/Skins)
     MIM,
 
-    /// <TCLwwww:xxxx:yyyy, TimerControL, [0000/1|enable]:[start time (seconds)]:[event to run when timer is 0]
+    /// <TCLwwww:xxxx, TimerControL, [start time (seconds)]:[event to run when timer is 0] (starting and stopping is part of the equp list: 0512)
     TCL,
-    /// <STMwwww:name_of_file$, SaveLoadTime, Saves/loads the current time to/from the file specified by the name
+    /// <STMwwww:name_of_file$, SaveLoadTime, Saves/loads the current time to/from the file specified by the name [0000S/1L]
     SLT,
 
 

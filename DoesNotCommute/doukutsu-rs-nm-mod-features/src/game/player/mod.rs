@@ -127,7 +127,7 @@ pub struct Player {
 impl Player {
     pub fn new(state: &mut SharedGameState, ctx: &mut Context) -> Player {
         let constants = &state.constants;
-        let skin = Box::new(BasicPlayerSkin::new("Skins/MyChar".to_string(), state, ctx));
+        let skin = Box::new(BasicPlayerSkin::new("MyChar".to_string(), state, ctx));
 
         Player {
             x: 0,

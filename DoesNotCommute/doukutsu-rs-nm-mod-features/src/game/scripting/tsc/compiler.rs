@@ -246,7 +246,9 @@ impl TextScript {
             | TSCOpCode::SMP
             | TSCOpCode::PSp
             | TSCOpCode::IpN
-            | TSCOpCode::FFm => {
+            | TSCOpCode::FFm
+            | TSCOpCode::TCL
+            => {
                 let operand_a = read_number(iter)?;
                 if strict {
                     expect_char(b':', iter)?;
@@ -268,7 +270,6 @@ impl TextScript {
             | TSCOpCode::INJ
             | TSCOpCode::SML
             | TSCOpCode::BKP
-            | TSCOpCode::TCL
             => {
                 let operand_a = read_number(iter)?;
                 if strict {

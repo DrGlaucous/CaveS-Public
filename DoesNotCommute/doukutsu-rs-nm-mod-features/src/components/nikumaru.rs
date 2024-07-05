@@ -17,11 +17,41 @@ use crate::util::rng::RNG;
 pub struct NikumaruCounter {
     pub tick: usize,
     pub shown: bool,
+    pub event: u16,
 }
 
 impl NikumaruCounter {
     pub fn new() -> NikumaruCounter {
-        NikumaruCounter { tick: 0, shown: false }
+        NikumaruCounter { tick: 0, shown: false, event: 0}
+    }
+
+    //save current time to an open file pointer
+    fn load_time_file(&mut self, ctx: &mut Context, fp: File) -> GameResult<u32> {
+
+        let mut ticks: [u32; 4] = [0; 4];
+
+        for iter in 0..=3 {
+            ticks[iter] = data.read_u32::<LE>()?;
+        }
+
+        let random = data.read_u32::<LE>()?;
+        let random_list: [u8; 4] = random.to_le_bytes();
+
+        for iter in 0..=3 {
+            ticks[iter] = u32::from_le_bytes([
+                ticks[iter].to_le_bytes()[0].wrapping_sub(random_list[iter]),
+                ticks[iter].to_le_bytes()[1].wrapping_sub(random_list[iter]),
+                ticks[iter].to_le_bytes()[2].wrapping_sub(random_list[iter]),
+                ticks[iter].to_le_bytes()[3].wrapping_sub(random_list[iter] / 2),
+            ]);
+        }
+
+        if ticks[0] == ticks[1] && ticks[0] == ticks[2] {
+            return Ok(ticks[0]);
+        }
+
+
+        Ok(2)
     }
 
     fn load_time(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult<u32> {
@@ -100,25 +130,76 @@ impl NikumaruCounter {
         }
         Ok(false)
     }
+
+
+    //convert seconds to "ticks" relative to the passed-in timing
+    pub fn seconds_to_ticks(seconds: usize, timing_mode: TimingMode) -> usize {
+
+        match timing_mode {
+            TimingMode::_60Hz => { 60 * seconds}
+            _ => { 50 * seconds}
+        }
+        //timer behavior: equipping counter 
+        /*
+            two player equips: counter and timer
+            equipping timer has counter count down
+            equipping the counter starts/stops the counter
+
+            if timer is equipped and the tick hits 0, it un-equips the counter and runs the event
+        */
+
+        // let (one_tenth, second, minute) = match state.settings.timing_mode {
+        //     TimingMode::_60Hz => (6, 60, 3600), //units: 1/10, 1, *6
+        //     _ => (5, 50, 3000),
+        // };
+
+    }
+
 }
 
-impl GameEntity<&Player> for NikumaruCounter {
-    fn tick(&mut self, state: &mut SharedGameState, player: &Player) -> GameResult {
-        if !player.equip.has_nikumaru() {
-            self.tick = 0;
-            self.shown = false;
-            return Ok(());
+impl GameEntity<&mut Player> for NikumaruCounter {
+    fn tick(&mut self, state: &mut SharedGameState, player: &mut Player) -> GameResult {
+
+        
+        if player.equip.has_timer() {
+
+            self.shown = true;
+
+            //don't run if the player doesn't have the timer (but still show)
+            if !player.equip.has_nikumaru() {
+                return Ok(());
+            }
+
+            if state.control_flags.control_enabled() {
+                let _ = self.tick.saturating_sub(1);
+            }
+
+            //check for timeout, halt timer and run event if true
+            if self.tick == 0 && player.equip.has_nikumaru() {
+                player.equip.set_nikumaru(false);
+                state.textscript_vm.start_script(self.event);
+            }
+        } else {
+
+            if !player.equip.has_nikumaru() {
+                self.tick = 0;
+                self.shown = false;
+                return Ok(());
+            }
+    
+            self.shown = true;
+    
+            if state.control_flags.control_enabled() {
+                self.tick += 1;
+            }
+    
+            if self.tick >= 300000 {
+                self.tick = 300000;
+            }
+
         }
 
-        self.shown = true;
 
-        if state.control_flags.control_enabled() {
-            self.tick += 1;
-        }
-
-        if self.tick >= 300000 {
-            self.tick = 300000;
-        }
 
         Ok(())
     }
@@ -144,7 +225,7 @@ impl GameEntity<&Player> for NikumaruCounter {
         const PRIME: Rect<u16> = Rect { left: 128, top: 104, right: 160, bottom: 112 };
 
         let (one_tenth, second, minute) = match state.settings.timing_mode {
-            TimingMode::_60Hz => (6, 60, 3600),
+            TimingMode::_60Hz => (6, 60, 3600), //units: 1/10, 1, *6
             _ => (5, 50, 3000),
         };
 

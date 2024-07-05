@@ -84,7 +84,7 @@ bitfield! {
     pub has_whimsical_star, set_whimsical_star: 7; // 0x080 / 0128
     pub has_nikumaru, set_nikumaru: 8; // 0x100 / 0256
     // for custom equips
-    pub unused_1, set_unused_1: 9; // 0x200 / 0512
+    pub has_timer, set_has_timer: 9; // 0x200 / 0512
     pub unused_2, set_unused_2: 10; // 0x400 / 1024
     pub unused_3, set_unused_3: 11; // 0x800 / 2048
     pub unused_4, set_unused_4: 12; // 0x1000 / 4096

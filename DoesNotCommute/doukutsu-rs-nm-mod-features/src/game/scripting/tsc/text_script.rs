@@ -13,6 +13,7 @@ use num_traits::{clamp, FromPrimitive};
 use crate::bitfield;
 use crate::common::Direction::{Left, Right};
 use crate::common::{Direction, FadeDirection, FadeState, Rect};
+use crate::components::nikumaru::NikumaruCounter;
 use crate::engine_constants::EngineConstants;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
@@ -25,6 +26,7 @@ use crate::game::scripting::tsc::encryption::decrypt_tsc;
 use crate::game::scripting::tsc::opcodes::TSCOpCode;
 use crate::game::shared_game_state::ReplayState;
 use crate::game::shared_game_state::SharedGameState;
+use crate::game::shared_game_state::TimingMode;
 use crate::game::weapon::WeaponType;
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
@@ -2114,7 +2116,12 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             TSCOpCode::TCL => {
-                
+                let start_time = read_cur_varint(&mut cursor)? as usize;
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+
+                NikumaruCounter::seconds_to_ticks(start_time, state.settings.timing_mode);
+                game_scene.nikumaru.event = event_num;
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             TSCOpCode::SLT => {
                 

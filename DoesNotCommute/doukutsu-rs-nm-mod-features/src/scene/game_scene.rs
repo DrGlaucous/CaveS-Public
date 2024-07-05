@@ -1342,7 +1342,7 @@ impl GameScene {
     fn tick_world(&mut self, state: &mut SharedGameState) -> GameResult {
 
 
-        self.nikumaru.tick(state, &self.player1)?;
+        self.nikumaru.tick(state, &mut self.player1)?;
         self.background.tick(state, &self.stage, &self.frame)?;
         self.hud_player1.visible = self.player1.cond.alive();
         self.hud_player2.visible = self.player2.cond.alive();

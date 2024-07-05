@@ -585,7 +585,7 @@ impl TextureSet {
         if ctx.headless {
             return Ok(&mut self.dummy_batch);
         }
-
+        // first try to see if a loaded texture exists for this name (if not, add it in)
         if !self.tex_map.contains_key(name) {
             let batch = self.load_texture(ctx, constants, name)?;
             self.tex_map.insert(name.to_owned(), batch);
