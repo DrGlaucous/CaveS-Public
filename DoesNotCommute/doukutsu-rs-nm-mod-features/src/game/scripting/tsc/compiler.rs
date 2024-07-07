@@ -247,7 +247,6 @@ impl TextScript {
             | TSCOpCode::PSp
             | TSCOpCode::IpN
             | TSCOpCode::FFm
-            | TSCOpCode::TCL
             => {
                 let operand_a = read_number(iter)?;
                 if strict {
@@ -270,6 +269,8 @@ impl TextScript {
             | TSCOpCode::INJ
             | TSCOpCode::SML
             | TSCOpCode::BKP
+            | TSCOpCode::ADT
+            | TSCOpCode::TCL
             => {
                 let operand_a = read_number(iter)?;
                 if strict {
@@ -325,7 +326,8 @@ impl TextScript {
             //parses string delimited by $, no additional arguments
             TSCOpCode::BKG 
             | TSCOpCode::SVM
-            | TSCOpCode::LDM =>
+            | TSCOpCode::LDM
+            =>
             {
 
                 //stow opcode
@@ -363,8 +365,8 @@ impl TextScript {
             }
         
             // parses 1 operand + string delimited by $
-            TSCOpCode::SLT
-            | TSCOpCode::MIM
+            TSCOpCode::MIM
+            | TSCOpCode::SLT
             =>
             {
 

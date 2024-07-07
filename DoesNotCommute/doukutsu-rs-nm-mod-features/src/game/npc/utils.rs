@@ -88,6 +88,8 @@ impl NPC {
             rng: Xoroshiro32PlusPlus::new(0),
             popup: NumberPopup::new(),
             splash: false,
+
+            recorder: None,
         }
     }
 

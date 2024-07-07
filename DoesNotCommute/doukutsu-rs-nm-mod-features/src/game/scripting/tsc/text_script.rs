@@ -2092,12 +2092,12 @@ impl TextScriptVM {
             TSCOpCode::SVM => {
                 let len = read_cur_varint(&mut cursor)? as usize;
                 state.textscript_vm.save_filepath = read_string(&mut cursor, len).unwrap();
-                exec_state = TextScriptExecutionState::SaveProfile(event, cursor.position() as u32);
+                exec_state = TextScriptExecutionState::SaveProfileName(event, cursor.position() as u32);
             }
             TSCOpCode::LDM => {
                 let len = read_cur_varint(&mut cursor)? as usize;
                 state.textscript_vm.save_filepath = read_string(&mut cursor, len).unwrap();
-                exec_state = TextScriptExecutionState::LoadProfile;
+                exec_state = TextScriptExecutionState::LoadProfileName;
             }
             TSCOpCode::MIM => {
 
@@ -2116,15 +2116,57 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             TSCOpCode::TCL => {
-                let start_time = read_cur_varint(&mut cursor)? as usize;
-                let event_num = read_cur_varint(&mut cursor)? as u16;
 
-                NikumaruCounter::seconds_to_ticks(start_time, state.settings.timing_mode);
-                game_scene.nikumaru.event = event_num;
+                let mode = match read_cur_varint(&mut cursor)? as usize {
+                    50 => TimingMode::_50Hz,
+                    60 => TimingMode::_60Hz,
+                    _ => state.settings.timing_mode,
+                };
+
+                let seconds = read_cur_varint(&mut cursor)? as usize;
+                game_scene.nikumaru.event = read_cur_varint(&mut cursor)? as u16;
+                game_scene.nikumaru.tick = NikumaruCounter::seconds_to_ticks(seconds, mode);
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
+            TSCOpCode::ADT => {
+
+                let mode = match read_cur_varint(&mut cursor)? as usize {
+                    50 => TimingMode::_50Hz,
+                    60 => TimingMode::_60Hz,
+                    _ => state.settings.timing_mode,
+                };
+
+                let sign = read_cur_varint(&mut cursor)?;
+                let seconds = read_cur_varint(&mut cursor)? as usize;
+
+
+                let ticks = NikumaruCounter::seconds_to_ticks(seconds, mode);
+
+                if sign == 0 {
+                    let _ = game_scene.nikumaru.tick.saturating_add(ticks);
+                } else {
+                    let _ = game_scene.nikumaru.tick.saturating_sub(ticks);
+                }
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
             TSCOpCode::SLT => {
-                
+
+                //get mode
+                let is_read = (read_cur_varint(&mut cursor)? as usize) != 0;
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let timer_name = read_string(&mut cursor, len).unwrap();
+            
+                if is_read {
+                    game_scene.nikumaru.tick = game_scene.nikumaru.load_time(state, ctx, Some(&timer_name.as_str()))? as usize;
+                } else {
+                    let _ = game_scene.nikumaru.save_time(state, ctx, game_scene.nikumaru.tick as u32, Some(&timer_name.as_str()))?;
+                }
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            
             }
 
 

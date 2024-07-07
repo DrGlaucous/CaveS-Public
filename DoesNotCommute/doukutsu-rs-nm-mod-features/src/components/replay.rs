@@ -139,6 +139,7 @@ impl GameEntity<(&mut Context, &mut Player)> for Replay {
                 self.keylist.push(inputs);
             }
             ReplayState::Playback(_) => {
+                //hit pause button and the time since last pause is > 3
                 let pause = ctx.keyboard_context.is_key_pressed(ScanCode::Escape) && (self.tick - self.resume_tick > 3);
 
                 let next_input = if pause { 1 << 10 } else { *self.keylist.get(self.tick).unwrap_or(&0) };
@@ -153,7 +154,7 @@ impl GameEntity<(&mut Context, &mut Player)> for Replay {
                 } else {
                     self.resume_tick = self.tick;
                 };
-
+                //E.O.F, halt playback and hand back control
                 if self.tick >= self.keylist.len() {
                     state.replay_state = ReplayState::None;
                     player.controller = state.settings.create_player1_controller();

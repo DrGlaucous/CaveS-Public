@@ -24,6 +24,7 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::{Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
 use crate::util::rng::Xoroshiro32PlusPlus;
+use crate::components::record::Record;
 
 pub mod ai;
 pub mod boss;
@@ -127,6 +128,8 @@ pub struct NPC {
     pub rng: Xoroshiro32PlusPlus,
     pub popup: NumberPopup,
     pub splash: bool,
+
+    pub recorder: Option<Record>,
 }
 
 impl NPC {
@@ -171,6 +174,8 @@ impl NPC {
             rng: Xoroshiro32PlusPlus::new(0),
             popup: NumberPopup::new(),
             splash: false,
+            
+            recorder: None,
         }
     }
 

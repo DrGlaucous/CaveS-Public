@@ -1,13 +1,13 @@
-Booster v0.8
-Map System
-Arms Barrier
-Turbocharge
-Curly's Air Tank
-Booster v2.0
-Mimiga Mask
-Whimsical Star
-Nikumaru Counter
-Waterjet
+1 - Booster v0.8
+2 - Map System
+4 - Arms Barrier
+8 - Turbocharge
+16 - Curly's Air Tank
+32 - Booster v2.0
+64 - Mimiga Mask
+128 - Whimsical Star
+256 - Nikumaru Counter (starts/stops the timer)
+512 - Nikumaru Timer (counts down, not up)
 11th Equip
 12th Equip
 13th Equip

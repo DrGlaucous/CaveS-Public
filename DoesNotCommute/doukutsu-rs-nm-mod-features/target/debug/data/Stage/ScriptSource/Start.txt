@@ -22,12 +22,25 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 
 
 #0300
-<MIM0000:AIM$
+<EQ+0512//set egg timer mode
+<NOD
+<TCL0000:0032:0301<NOD
+//<STC<NOD
+<SLT0000:haha.rec$
+<TCL0000:0000:0301<NOD
+<EQ-0512
+//<EQ+0256//start timer
+//<SVMProfile_Picture.dat$
+//<MIM0000:AIM$
 <END
 
 #0301
-<MIM0000:MyChar$
-
+//<KEY<MSGTime's up<NOD<CLO
+<EQ+0512
+<SLT0001:haha.rec$
+//<LDMProfile_Picture.dat$
+//<MIM0000:MyChar$
+<END
 
 #1000
 <END

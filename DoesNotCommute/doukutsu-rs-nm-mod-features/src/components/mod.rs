@@ -11,6 +11,7 @@ pub mod inventory;
 pub mod map_system;
 pub mod nikumaru;
 pub mod number_popup;
+pub mod record;
 pub mod replay;
 pub mod stage_select;
 pub mod text_boxes;
