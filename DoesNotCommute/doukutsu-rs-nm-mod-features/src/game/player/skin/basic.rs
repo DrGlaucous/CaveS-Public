@@ -7,8 +7,8 @@ use crate::framework::filesystem::File;
 use crate::game::player::skin::{PlayerAnimationState, PlayerAppearanceState, PlayerSkin};
 use crate::game::shared_game_state::SharedGameState;
 
-#[derive(Default, Clone, serde_derive::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Default, Clone, serde_derive::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")] //json file requires camel case
 pub struct SkinMeta {
     #[serde(default)]
     pub name: String,
@@ -82,6 +82,7 @@ pub struct BasicPlayerSkin {
     metadata: SkinMeta,
     tick: u16,
     skinsheet_offset: u16,
+    frame: u16,
 }
 
 impl BasicPlayerSkin {
@@ -113,6 +114,7 @@ impl BasicPlayerSkin {
             metadata,
             tick: 0,
             skinsheet_offset: state.get_skinsheet_offset(),
+            frame: 0,
         }
     }
 
@@ -125,8 +127,9 @@ impl BasicPlayerSkin {
 }
 
 impl PlayerSkin for BasicPlayerSkin {
-    fn animation_frame_for(&self, state: PlayerAnimationState, direction: Direction, tick: u16) -> Rect<u16> {
-        let frame_id = match state {
+
+    fn animation_frame_for(&mut self, state: PlayerAnimationState, direction: Direction, tick: u16) -> Rect<u16> {
+        self.frame = match state {
             PlayerAnimationState::Idle => 0u16,
             PlayerAnimationState::Walking => {
                 const WALK_INDEXES: [u16; 4] = [1, 0, 2, 0];
@@ -162,14 +165,14 @@ impl PlayerSkin for BasicPlayerSkin {
         };
 
         Rect::new_size(
-            frame_id.saturating_mul(self.metadata.frame_size_width),
+            self.frame.saturating_mul(self.metadata.frame_size_width),
             y_offset,
             self.metadata.frame_size_width,
             self.metadata.frame_size_height,
         )
     }
 
-    fn animation_frame(&self) -> Rect<u16> {
+    fn animation_frame(&mut self) -> Rect<u16> {
         self.animation_frame_for(self.state, self.direction, self.tick)
     }
 
@@ -223,6 +226,7 @@ impl PlayerSkin for BasicPlayerSkin {
         &self.texture_name
     }
 
+    //we need to fix this:
     fn get_mask_texture_name(&self) -> &str {
         ""
     }
@@ -266,4 +270,17 @@ impl PlayerSkin for BasicPlayerSkin {
     fn set_skinsheet_offset(&mut self, offset: u16) {
         self.skinsheet_offset = offset;
     }
+
+
+    fn get_raw_frame_index(&self) -> u16 {
+        self.frame
+    }
+    fn set_raw_frame_index(&mut self, frame: u16) {
+        self.frame = frame;
+    }
+
+
+
+
+
 }

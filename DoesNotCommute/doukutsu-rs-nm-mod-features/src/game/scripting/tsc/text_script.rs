@@ -19,7 +19,7 @@ use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::game::frame::UpdateTarget;
-use crate::game::npc::NPC;
+use crate::game::npc::{NPC, PCSkin};
 use crate::game::player::{ControlMode, TargetPlayer};
 use crate::game::scripting::tsc::bytecode_utils::{read_cur_varint, read_string};
 use crate::game::scripting::tsc::encryption::decrypt_tsc;
@@ -2101,7 +2101,7 @@ impl TextScriptVM {
             }
             TSCOpCode::MIM => {
 
-                //get mode
+                //get player
                 let player_num = read_cur_varint(&mut cursor)? as usize;
 
                 //get path
@@ -2110,6 +2110,7 @@ impl TextScriptVM {
                 
                 if player_num == 0 {
                     game_scene.player1.load_skin(String::from(filepath), state, ctx);
+                    game_scene.whimsical_star.init(&game_scene.player1); //re-skin whimsical stars
                 } else {
                     game_scene.player2.load_skin(String::from(filepath), state, ctx);
                 }
@@ -2168,6 +2169,30 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             
             }
+
+            TSCOpCode::NIM => {
+
+                //get NPC
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = String::from("Skins/") + read_string(&mut cursor, len).unwrap().as_str();
+                
+
+                for npc in game_scene.npc_list.iter_alive() {
+                    if npc.event_num == event_num {
+                        //de-init skin if string is empty
+                        if len == 0 {
+                            npc.pc_skin = None;
+                        } else {
+                            npc.pc_skin = Some(PCSkin::new(filepath.clone(), state, ctx));
+                        }
+                    }
+                }
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
 
 
 

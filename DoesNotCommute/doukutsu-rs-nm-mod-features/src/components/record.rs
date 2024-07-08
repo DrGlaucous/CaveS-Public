@@ -227,45 +227,45 @@ impl Record {
         Ok(())
     }
 
+
+    //automatically takes the variables out of the player struct and packages a RecordFrame
+    //because we can't do it in tick since we get multi-borrow errors
+    pub fn extract_player_rec_frame(player: &Player) -> RecordFrame {
+        let mut flags = RecordStateFlags(0);
+        flags.set_shock_frame(player.shock_counter / 2 % 2 != 0);
+        flags.set_trigger_frame(player.controller.trigger_shoot());
+
+        RecordFrame {
+            flags: flags,
+            current_weapon: player.current_weapon,
+            x: player.x,
+            y: player.y,
+            anim_num: player.anim_num,
+        }
+    }
+
 }
 
 //custom args: player and NPC
-impl GameEntity<(Option<&mut Player>, Option<&mut NPC>)> for Record {
+impl GameEntity<(Option<RecordFrame>)> for Record {
 
-    fn tick(&mut self, _state: &mut SharedGameState, (player, npc): (Option<&mut Player>, Option<&mut NPC>)) -> GameResult {
+    fn tick(&mut self, _state: &mut SharedGameState, frame_to_save: Option<RecordFrame>) -> GameResult {
 
         match self.record_state {
             RecordState::Idle => {},
             RecordState::Playing => {
-                //only play if NPC is defined
-                if let Some(_npc) = npc {
-                    self.current_frame = if let Some(frame) = self.frame_list.get(self.index) {
-                        self.index += 1;
-                        Some(frame.clone())
-                    } else { //finished, halt reader
-                        self.stop_playback();
-                        None
-                    };
-                }
+                self.current_frame = if let Some(frame) = self.frame_list.get(self.index) {
+                    self.index += 1;
+                    Some(frame.clone())
+                } else { //finished, halt reader
+                    self.stop_playback();
+                    None
+                };
             },
             RecordState::Recording => {
-                //only record if PC is defined
-                if let Some(player) = player {
-
-                    let mut flags = RecordStateFlags(0);
-                    flags.set_shock_frame(player.shock_counter / 2 % 2 != 0);
-                    flags.set_trigger_frame(player.controller.trigger_shoot());
-
-                    let inputs = RecordFrame {
-                        flags: flags,
-                        current_weapon: player.current_weapon,
-                        x: player.x,
-                        y: player.y,
-                        anim_num: player.anim_num,
-                    };
-
-                    self.frame_list.push(inputs);
-
+                //only record if we passed in a frame to save
+                if let Some(frame) = frame_to_save {
+                    self.frame_list.push(frame);
                 }
             },
         }

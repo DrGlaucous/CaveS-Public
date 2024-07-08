@@ -367,6 +367,7 @@ impl TextScript {
             // parses 1 operand + string delimited by $
             TSCOpCode::MIM
             | TSCOpCode::SLT
+            | TSCOpCode::NIM
             =>
             {
 

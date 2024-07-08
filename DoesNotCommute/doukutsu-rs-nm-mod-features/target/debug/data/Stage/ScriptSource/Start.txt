@@ -15,6 +15,8 @@
 <SOU0011<FAO0001
 <TRA0012:0091:0037:0011
 
+//quote standee
+#0150
 
 #0200
 <KEY<SKJ0005:0091<PRI<CMU0000<MSG
@@ -22,25 +24,38 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 
 
 #0300
-<EQ+0512//set egg timer mode
-<NOD
-<TCL0000:0032:0301<NOD
+//<EQ+0512//set egg timer mode
+//<NOD
+//<TCL0000:0032:0301<NOD
 //<STC<NOD
-<SLT0000:haha.rec$
-<TCL0000:0000:0301<NOD
-<EQ-0512
+//<SLT0000:haha.rec$
+//<TCL0000:0000:0301<NOD
+//<EQ-0512
 //<EQ+0256//start timer
 //<SVMProfile_Picture.dat$
-//<MIM0000:AIM$
+<EQ+0128<AM+0013:0000
+<MIM0000:AIM$
+<NIM0150:AIM$
 <END
 
 #0301
 //<KEY<MSGTime's up<NOD<CLO
-<EQ+0512
-<SLT0001:haha.rec$
+//<EQ+0512
+//<SLT0001:haha.rec$
 //<LDMProfile_Picture.dat$
-//<MIM0000:MyChar$
+<MIM0000:MyChar$
+<NIM0150:MyChar$
 <END
 
 #1000
 <END
+
+
+
+
+
+
+
+
+
+

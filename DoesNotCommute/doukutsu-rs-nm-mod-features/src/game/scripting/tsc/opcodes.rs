@@ -298,6 +298,8 @@ pub enum TSCOpCode {
     /// <SLTwwww:name_of_file$, SaveLoadTime, Saves the current time to the file specified by the name `<SLT[0000Save/1Load]:name_of_file`, starts in the user save directory
     SLT,
 
+    /// <NIMwwww:name_of_skin$, (NPC mIMiga-mask) initialize NPC wwww's skin to use a cusom player skin (like <MIM), leave empty to un-initialize it
+    NIM
 
 
 }

@@ -44,10 +44,10 @@ pub enum PlayerAppearanceState {
 /// Represents an interface for implementations of player skin providers.
 pub trait PlayerSkin: PlayerSkinClone {
     /// Returns animation frame bounds for specified state.
-    fn animation_frame_for(&self, state: PlayerAnimationState, direction: Direction, tick: u16) -> Rect<u16>;
+    fn animation_frame_for(&mut self, state: PlayerAnimationState, direction: Direction, tick: u16) -> Rect<u16>;
 
     /// Returns animation frame bounds for current state.
-    fn animation_frame(&self) -> Rect<u16>;
+    fn animation_frame(&mut self) -> Rect<u16>;
 
     /// Updates internal animation counters, must be called every game tick.
     fn tick(&mut self);
@@ -99,6 +99,11 @@ pub trait PlayerSkin: PlayerSkinClone {
 
     /// Sets the spritesheet's offset
     fn set_skinsheet_offset(&mut self, offset: u16);
+
+    /// Returns raw frame index of the skin
+    fn get_raw_frame_index(&self) -> u16;
+
+    fn set_raw_frame_index(&mut self, frame: u16);
 }
 
 pub trait PlayerSkinClone {

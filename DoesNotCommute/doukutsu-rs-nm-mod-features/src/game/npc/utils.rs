@@ -7,6 +7,7 @@ use crate::game::caret::CaretType;
 use crate::game::map::NPCData;
 use crate::game::npc::{NPC, NPCFlag, NPCLayer, NPCTable};
 use crate::game::npc::list::NPCList;
+use crate::game::physics::PhysicalEntity;
 use crate::game::player::Player;
 use crate::game::shared_game_state::{SharedGameState, TileSize};
 use crate::game::weapon::bullet::Bullet;
@@ -88,8 +89,9 @@ impl NPC {
             rng: Xoroshiro32PlusPlus::new(0),
             popup: NumberPopup::new(),
             splash: false,
-
+            //running this is entirely up to the NPC: it has to be done in the NPC's AI code
             recorder: None,
+            pc_skin: None,
         }
     }
 
@@ -153,6 +155,8 @@ impl NPC {
         player_idx
     }
 
+    //I can't think of a good reason why one of these would be used over the other...
+
     /// Returns a reference to closest player.
     pub fn get_closest_player_mut<'a>(&self, players: [&'a mut Player; 2]) -> &'a mut Player {
         let idx = self.get_closest_player_idx_mut(&players);
@@ -167,6 +171,84 @@ impl NPC {
         &players[idx]
     }
 
+
+
+    /// Returns a refrence to the closest player/fake player (physical entity)
+    pub fn get_closest_pseudo_player_mut<'a>(&self, players: [&'a mut Player; 2], npc_list: &'a NPCList) ->&'a mut dyn PhysicalEntity {
+        //get closest player
+        let pc_idx = self.get_closest_player_idx_mut(&players);
+
+        //get closest fake player
+        let mut return_player = true;
+        let pcx = players[pc_idx].x as f64;
+        let pcy = players[pc_idx].y as f64;
+        let mut max_dist = (pcx * pcx + pcy * pcy).sqrt();
+        let mut npc_idx = 0;
+        for (idx, npc) in npc_list.iter().enumerate() {
+            if !npc.cond.alive() || npc.cond.hidden() {
+                continue;
+            }
+
+            let dist_x = abs(self.x - npc.x) as f64;
+            let dist_y = abs(self.y - npc.y) as f64;
+            let dist = (dist_x * dist_x + dist_y * dist_y).sqrt();
+
+            if dist < max_dist {
+                max_dist = dist;
+                npc_idx = idx;
+                return_player = false;
+            }
+        }
+
+        if return_player == true {
+            players[pc_idx]
+        } else {
+            npc_list.get_npc(npc_idx).unwrap()
+        }
+
+    }  
+
+    /// Returns a refrence to the closest player/fake player (physical entity)
+    //pub fn get_closest_pseudo_player_ref<'a, 'b: 'a>(&self, players: &'a [&'a mut Player; 2], npc_list: &'a NPCList) -> &'b &'a mut dyn PhysicalEntity {
+    /*
+    pub fn get_closest_pseudo_player_ref<'a, 'b: 'a>(&self, players: &'a [&'a mut Player; 2], npc_list: &'a NPCList) -> &'b &'a mut Player {
+        //get closest player
+        let pc_idx = self.get_closest_player_idx_mut(&players);
+
+        //get closest fake player
+        let mut return_player = true;
+        let pcx = players[pc_idx].x as f64;
+        let pcy = players[pc_idx].y as f64;
+        let mut max_dist = (pcx * pcx + pcy * pcy).sqrt();
+        let mut npc_idx = 0;
+        for (idx, npc) in npc_list.iter().enumerate() {
+            if !npc.cond.alive() || npc.cond.hidden() {
+                continue;
+            }
+
+            let dist_x = abs(self.x - npc.x) as f64;
+            let dist_y = abs(self.y - npc.y) as f64;
+            let dist = (dist_x * dist_x + dist_y * dist_y).sqrt();
+
+            if dist < max_dist {
+                max_dist = dist;
+                npc_idx = idx;
+                return_player = false;
+            }
+        }
+
+        &players[pc_idx]
+        // if return_player == true {
+        //     &players[pc_idx]
+        // } else {
+        //     &npc_list.get_npc(npc_idx).unwrap()
+        // }
+
+    }  
+    */
+
+
+    
     /// Sets direction of NPC to face towards Player.
     pub fn face_player(&mut self, player: &Player) {
         self.direction = if self.x > player.x { Direction::Left } else { Direction::Right };

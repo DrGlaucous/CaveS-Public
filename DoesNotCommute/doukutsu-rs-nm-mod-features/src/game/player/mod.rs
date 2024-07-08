@@ -5,6 +5,7 @@ use num_traits::clamp;
 
 use crate::common::{interpolate_fix9_scale, Condition, Direction, Equipment, Flag, Rect};
 use crate::components::number_popup::NumberPopup;
+use crate::components::record::Record;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
@@ -122,6 +123,8 @@ pub struct Player {
     dog_stack: Vec<DogStack>,
     pub has_dog: bool,
     pub teleport_counter: u16,
+
+    pub recorder: Record,
 }
 
 impl Player {
@@ -176,6 +179,8 @@ impl Player {
             dog_stack: Vec::new(),
             has_dog: false,
             teleport_counter: 0,
+
+            recorder: Record::new(),
         }
     }
 
@@ -205,11 +210,11 @@ impl Player {
                 } else if state.get_flag(4000) {
                     state.textscript_vm.start_script(1100);
                 } else {
-                    // Switch uses player sprite for drowned effect
-                    if !state.constants.is_switch {
-                        self.cond.set_hidden(true);
-                        state.create_caret(self.x, self.y, CaretType::DrownedQuote, self.direction);
-                    }
+                    // Switch uses player sprite for drowned effect (ha! now they all do it!)
+                    // if !state.constants.is_switch {
+                    //     self.cond.set_hidden(true);
+                    //     state.create_caret(self.x, self.y, CaretType::DrownedQuote, self.direction);
+                    // }
                     state.textscript_vm.start_script(41);
                 }
             } else {
@@ -857,7 +862,8 @@ impl Player {
             PlayerAppearanceState::Default
         });
 
-        if state.constants.is_switch && self.air == 0 && self.flags.in_water() && !state.get_flag(4000) {
+        //removed: `state.constants.is_switch &&`
+        if self.air == 0 && self.flags.in_water() && !state.get_flag(4000) {
             self.skin.set_appearance(PlayerAppearanceState::Default);
             self.skin.set_state(PlayerAnimationState::Drowned, self.anim_counter);
         }
@@ -983,6 +989,10 @@ impl GameEntity<&NPCList> for Player {
                 dog.tick();
             }
         }
+
+        //save player state for this frame
+        let record = Record::extract_player_rec_frame(self);
+        self.recorder.tick(state, Some(record))?;
 
         Ok(())
     }

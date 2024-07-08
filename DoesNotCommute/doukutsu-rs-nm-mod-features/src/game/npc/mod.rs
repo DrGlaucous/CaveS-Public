@@ -12,9 +12,12 @@ use crate::common::Direction;
 use crate::common::Flag;
 use crate::components::flash::Flash;
 use crate::components::number_popup::NumberPopup;
+use crate::components::record::Record;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
+use crate::framework::filesystem;
+use crate::framework::filesystem::File;
 use crate::game::frame::Frame;
 use crate::game::npc::boss::BossNPC;
 use crate::game::npc::list::NPCList;
@@ -24,7 +27,9 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::{Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
 use crate::util::rng::Xoroshiro32PlusPlus;
-use crate::components::record::Record;
+
+use crate::game::player::skin::basic::{SkinMeta, DEFAULT_SKINMETA, SUPPORTED_SKINMETA_VERSIONS};
+//use crate::game::player::skin::PlayerSkin;
 
 pub mod ai;
 pub mod boss;
@@ -67,6 +72,48 @@ bitfield! {
     pub hide_unless_flag_set, set_hide_unless_flag_set: 14;
     /// Represented by 0x8000
     pub show_damage, set_show_damage: 15;
+}
+
+#[derive(Debug, Clone)]
+pub struct PCSkin {
+    metadata: SkinMeta,
+    texture_name: String,
+}
+impl PCSkin {
+
+    pub fn new(texture_name: String, state: &SharedGameState, ctx: &mut Context) -> PCSkin {
+        let mut metadata = DEFAULT_SKINMETA.clone();
+
+        let meta_path = format!("{}.dskinmeta", texture_name);
+        if let Ok(file) = filesystem::open_find(ctx, &state.constants.base_paths, &meta_path) {
+            match serde_json::from_reader::<File, SkinMeta>(file) {
+                Ok(meta) if SUPPORTED_SKINMETA_VERSIONS.contains(&meta.version) => {
+                    metadata = meta;
+                }
+                Ok(meta) => {
+                    log::warn!("{}: Unsupported skin metadata file version: {}", meta_path, meta.version);
+                }
+                Err(err) => {
+                    log::warn!("Failed to load skin metadata file: {:?}", err);
+                }
+            }
+        }
+        PCSkin{
+            texture_name,
+            metadata,
+        }
+    }
+
+
+    /// Gets the current rect, offset by complete animation frames
+    pub fn get_anim_rect(&self, x_offset: u16, y_offset: u16) -> Rect<u16> {
+        Rect::new_size(
+            x_offset.saturating_mul(self.metadata.frame_size_width),
+            y_offset.saturating_mul(self.metadata.frame_size_height),
+            self.metadata.frame_size_width,
+            self.metadata.frame_size_height,
+        )
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialOrd, PartialEq)]
@@ -130,6 +177,7 @@ pub struct NPC {
     pub splash: bool,
 
     pub recorder: Option<Record>,
+    pub pc_skin: Option<PCSkin>,
 }
 
 impl NPC {
@@ -174,8 +222,9 @@ impl NPC {
             rng: Xoroshiro32PlusPlus::new(0),
             popup: NumberPopup::new(),
             splash: false,
-            
+
             recorder: None,
+            pc_skin: None,
         }
     }
 
@@ -623,6 +672,8 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             368 => self.tick_n368_gclone(state, players, npc_list),
             369 => self.tick_n369_gclone_curly_clone(state, players, npc_list),
             370 => self.tick_n370_second_quote(state, players, npc_list),
+            371 => self.tick_n371_fake_pc(state, players, npc_list),
+
             _ => Ok(()),
         }?;
 
@@ -656,7 +707,14 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
 
         let texture_ref = state.npc_table.get_texture_ref(self.spritesheet_id);
 
-        let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, &*texture_ref)?;
+        //if the custom skin is configured, use that instead of the default texture ID
+        let tex_name = if let Some(skin) = &self.pc_skin {
+            skin.texture_name.as_str()
+        } else {
+            &*texture_ref
+        };
+
+        let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, tex_name)?;
 
         let off_x =
             if self.direction == Direction::Left { self.display_bounds.left } else { self.display_bounds.right } as i32;
@@ -928,6 +986,7 @@ impl NPCTable {
     }
 
     pub fn get_texture_ref(&self, spritesheet_id: u16) -> TexRef<'_> {
+    //pub fn get_texture_ref(&self, spritesheet_id: u16) -> TexRef<'_> {
         match spritesheet_id {
             0 => TexRef::from_str("Title"),
             2 => TexRef { variant: TexRefVariant::StageTileset(self.stage_textures.deref().borrow()) },
