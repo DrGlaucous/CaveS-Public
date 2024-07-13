@@ -16,7 +16,7 @@ use crate::game::npc::NPC;
 use crate::game::player::skin::basic::BasicPlayerSkin;
 use crate::game::player::skin::{PlayerAnimationState, PlayerAppearanceState, PlayerSkin};
 use crate::game::shared_game_state::SharedGameState;
-use crate::game::weapon::{Shooter, TargetShooter};
+use crate::game::weapon::Shooter;
 use crate::input::dummy_player_controller::DummyPlayerController;
 use crate::input::player_controller::PlayerController;
 use crate::util::rng::RNG;
@@ -1129,66 +1129,83 @@ impl GameEntity<&NPCList> for Player {
 
 
 impl Shooter for Player {
+    
+    #[inline(always)]
     fn shoot(&self) -> bool {
         self.controller.shoot()
     }
-
+    
+    #[inline(always)]
     fn trigger_shoot(&self) -> bool {
         self.controller.trigger_shoot()
     }
-
+    
+    #[inline(always)]
     fn cond(&self) -> Condition {
         self.cond
     }
-
+    
+    #[inline(always)]
     fn x(&self) -> i32 {
         self.x
     }
-
+    
+    #[inline(always)]
     fn y(&self) -> i32 {
         self.y
     }
-
+    
+    #[inline(always)]
     fn vel_x(&self) -> i32 {
         self.x
     }
-
+    
+    #[inline(always)]
     fn vel_y(&self) -> i32 {
         self.y
     }
-
+    
+    #[inline(always)]
     fn set_vel_x(&mut self, num: i32) {
         self.vel_x = num;
     }
-
+    
+    #[inline(always)]
     fn set_vel_y(&mut self, num: i32) {
         self.vel_y = num;
     }
-
+    
+    #[inline(always)]
     fn equip(&self) -> Equipment {
         self.equip
     }
-
+    
+    #[inline(always)]
     fn direction(&self) -> Direction {
         self.direction
     }
-
+    
+    #[inline(always)]
     fn up(&self) -> bool {
         self.up
     }
-
+    
+    #[inline(always)]
     fn down(&self) -> bool {
         self.down
     }
-
+    
+    #[inline(always)]
     fn stars(&self) -> u8 {
         self.stars
     }
-
+    
+    #[inline(always)]
     fn set_stars(&mut self, num: u8) {
         self.stars = num;
     }
-
+    
+    #[inline(always)]
     fn set_xp_counter(&mut self, num: u8) {
         self.xp_counter = num;
     }  

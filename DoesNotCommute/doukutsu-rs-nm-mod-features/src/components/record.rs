@@ -31,6 +31,8 @@ bitfield! {
 
     pub trigger_frame, set_trigger_frame: 0; // 0x01
     pub shock_frame, set_shock_frame: 1; // 0x02
+    pub up, set_up: 2; // 0x04
+    pub down, set_down: 3; // 0x08
 
 }
 
@@ -62,6 +64,7 @@ pub enum RecordState {
 pub struct RecordFrame {
     pub flags: RecordStateFlags,
     pub current_weapon: u8,
+    pub weapon_level: u8,
     pub x: i32,
     pub y: i32,
     pub anim_num: u16,
@@ -221,6 +224,7 @@ impl Record {
                         RecordFrame{
                             flags: RecordStateFlags(f.read_u8()?),
                             current_weapon: f.read_u8()?,
+                            weapon_level: 0,
                             x: f.read_i32::<LE>()?,
                             y: f.read_i32::<LE>()?,
                             anim_num: f.read_u16::<LE>()?,
@@ -259,6 +263,7 @@ impl Record {
         RecordFrame {
             flags: flags,
             current_weapon: player.current_weapon,
+            weapon_level: 0,
             x: player.x,
             y: player.y,
             anim_num: player.skin.get_raw_frame_index(),

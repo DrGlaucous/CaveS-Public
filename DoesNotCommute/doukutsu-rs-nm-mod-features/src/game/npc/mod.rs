@@ -26,7 +26,7 @@ use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::{Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
-use crate::game::weapon::{Shooter, TargetShooter};
+use crate::game::weapon::Shooter;
 use crate::util::rng::Xoroshiro32PlusPlus;
 
 use crate::game::player::skin::basic::{SkinMeta, DEFAULT_SKINMETA, SUPPORTED_SKINMETA_VERSIONS};
@@ -179,6 +179,7 @@ pub struct NPC {
 
     pub recorder: Option<Record>,
     pub pc_skin: Option<PCSkin>,
+    pub shooter_vals: ShooterVals,
 }
 
 impl NPC {
@@ -226,6 +227,7 @@ impl NPC {
 
             recorder: None,
             pc_skin: None,
+            shooter_vals: ShooterVals::new(),
         }
     }
 
@@ -859,69 +861,125 @@ impl PhysicalEntity for NPC {
     }
 }
 
+
+//struct that contains values to be passed into the "Shooter" implementation
+//this is this way so that the npc's actions have complete control over what goes in here
+#[derive(Debug, Clone)]
+#[repr(C)]
+pub struct ShooterVals {
+    shoot: bool,
+    trigger_shoot: bool,
+    cond: Condition,
+    x: i32,
+    y: i32,
+    vel_x: i32,
+    vel_y: i32,
+    equip: Equipment,
+    direction: Direction,
+    up: bool,
+    down: bool,
+    stars: u8,
+}
+impl ShooterVals {
+    fn new() -> ShooterVals {
+        ShooterVals{
+            shoot: false,
+            trigger_shoot: false,
+            cond: Condition(0),
+            x: 0,
+            y: 0,
+            vel_x: 0,
+            vel_y: 0,
+            equip: Equipment(0),
+            direction: Direction::Left,
+            up: false,
+            down: false,
+            stars: 0,
+        }
+    }
+}
+
 impl Shooter for NPC {
+    
+    #[inline(always)]
     fn shoot(&self) -> bool {
-        false
+        self.shooter_vals.shoot
     }
-
+    
+    #[inline(always)]
     fn trigger_shoot(&self) -> bool {
-        false
+        self.shooter_vals.trigger_shoot
     }
-
+    
+    #[inline(always)]
     fn cond(&self) -> Condition {
-        Condition(0)
+        self.shooter_vals.cond
     }
-
+    
+    #[inline(always)]
     fn x(&self) -> i32 {
-        0
+        self.shooter_vals.x
     }
-
+    
+    #[inline(always)]
     fn y(&self) -> i32 {
-        0
+        self.shooter_vals.y
     }
-
+    
+    #[inline(always)]
     fn vel_x(&self) -> i32 {
-        0
+        self.shooter_vals.x
     }
-
+    
+    #[inline(always)]
     fn vel_y(&self) -> i32 {
-        0
+        self.shooter_vals.y
     }
-
-    fn set_vel_x(&mut self, _num: i32) {
-
+    
+    #[inline(always)]
+    fn set_vel_x(&mut self, num: i32) {
+        self.shooter_vals.vel_x = num;
     }
-
-    fn set_vel_y(&mut self, _num: i32) {
-
+    
+    #[inline(always)]
+    fn set_vel_y(&mut self, num: i32) {
+        self.shooter_vals.vel_y = num;
     }
-
+    
+    #[inline(always)]
     fn equip(&self) -> Equipment {
-        Equipment(0)
+        self.shooter_vals.equip
     }
-
+    
+    #[inline(always)]
     fn direction(&self) -> Direction {
-        Direction::Left
+        self.shooter_vals.direction
     }
-
+    
+    #[inline(always)]
     fn up(&self) -> bool {
-        false
+        self.shooter_vals.up
     }
-
+    
+    #[inline(always)]
     fn down(&self) -> bool {
-        false
+        self.shooter_vals.down
     }
 
+    #[inline(always)]
     fn stars(&self) -> u8 {
-        0
+        self.shooter_vals.stars
+    }
+    
+    #[inline(always)]
+    fn set_stars(&mut self, num: u8) {
+        self.shooter_vals.stars = num;
     }
 
-    fn set_stars(&mut self, _num: u8) {
-
-    }
-
+    //not really needed since this is for the HUD
+    #[inline(always)]
     fn set_xp_counter(&mut self, _num: u8) {
-
+        
     }  
 
 
