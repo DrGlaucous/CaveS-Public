@@ -368,6 +368,8 @@ impl TextScript {
             TSCOpCode::MIM
             | TSCOpCode::SLT
             | TSCOpCode::NIM
+            | TSCOpCode::ALC
+            | TSCOpCode::ARL
             =>
             {
 

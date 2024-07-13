@@ -257,6 +257,16 @@ impl Direction {
             Direction::FacingPlayer => 0,
         }
     }
+
+    pub const fn as_int(&self) -> usize {
+        match self {
+            Direction::Left => 0,
+            Direction::Up => 1,
+            Direction::Right => 2,
+            Direction::Bottom => 3,
+            Direction::FacingPlayer => 4,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

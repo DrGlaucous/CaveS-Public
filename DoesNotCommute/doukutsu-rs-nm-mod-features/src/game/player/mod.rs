@@ -5,7 +5,7 @@ use num_traits::clamp;
 
 use crate::common::{interpolate_fix9_scale, Condition, Direction, Equipment, Flag, Rect};
 use crate::components::number_popup::NumberPopup;
-use crate::components::record::Record;
+use crate::components::record::{Record, SoundFlags};
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
@@ -16,9 +16,12 @@ use crate::game::npc::NPC;
 use crate::game::player::skin::basic::BasicPlayerSkin;
 use crate::game::player::skin::{PlayerAnimationState, PlayerAppearanceState, PlayerSkin};
 use crate::game::shared_game_state::SharedGameState;
+use crate::game::weapon::{Shooter, TargetShooter};
 use crate::input::dummy_player_controller::DummyPlayerController;
 use crate::input::player_controller::PlayerController;
 use crate::util::rng::RNG;
+
+use super::shared_game_state;
 
 mod player_hit;
 pub mod skin;
@@ -125,6 +128,7 @@ pub struct Player {
     pub teleport_counter: u16,
 
     pub recorder: Record,
+    pub sound_flags: SoundFlags,
 }
 
 impl Player {
@@ -181,6 +185,7 @@ impl Player {
             teleport_counter: 0,
 
             recorder: Record::new(),
+            sound_flags: SoundFlags(0),
         }
     }
 
@@ -405,7 +410,7 @@ impl Player {
                 && !self.flags.force_up()
             {
                 self.vel_y = -physics.jump;
-                state.sound_manager.play_sfx(15);
+                self.play_sound(state, 15);
             }
         }
 
@@ -480,7 +485,7 @@ impl Player {
                                 booster_dir.opposite(),
                             );
                         }
-                        state.sound_manager.play_sfx(113);
+                        self.play_sound(state,113);
                     }
                 }
                 BoosterSwitch::Up => {
@@ -488,12 +493,12 @@ impl Player {
 
                     if self.controller.trigger_jump() || self.booster_fuel % 3 == 1 {
                         state.create_caret(self.x, self.y + 0xc00, CaretType::Exhaust, Direction::Bottom);
-                        state.sound_manager.play_sfx(113);
+                        self.play_sound(state,113);
                     }
                 }
                 BoosterSwitch::Down if self.controller.trigger_jump() || self.booster_fuel % 3 == 1 => {
                     state.create_caret(self.x, self.y - 0xc00, CaretType::Exhaust, Direction::Up);
-                    state.sound_manager.play_sfx(113);
+                    self.play_sound(state,113);
                 }
                 _ => {}
             }
@@ -509,7 +514,7 @@ impl Player {
                     CaretType::Exhaust,
                     Direction::Bottom,
                 );
-                state.sound_manager.play_sfx(113);
+                self.play_sound(state,113);
             }
 
             // bounce off of ceiling
@@ -579,7 +584,7 @@ impl Player {
                     let _ = npc_list.spawn(0x100, droplet.clone());
                 }
 
-                state.sound_manager.play_sfx(56);
+                self.play_sound(state,56);
             }
 
             self.splash = true;
@@ -765,7 +770,7 @@ impl Player {
 
                     self.anim_num += 1;
                     if self.anim_num == 7 || self.anim_num == 9 {
-                        state.sound_manager.play_sfx(24);
+                        self.play_sound(state,24);
                     }
                 }
 
@@ -784,7 +789,7 @@ impl Player {
 
                     self.anim_num += 1;
                     if self.anim_num == 2 || self.anim_num == 4 {
-                        state.sound_manager.play_sfx(24);
+                        self.play_sound(state,24);
                     }
                 }
 
@@ -793,7 +798,7 @@ impl Player {
                 }
             } else if state.control_flags.control_enabled() && (self.controller.move_up() || self.strafe_up) {
                 if self.cond.fallen() {
-                    state.sound_manager.play_sfx(24);
+                    self.play_sound(state,24);
                 }
 
                 self.cond.set_fallen(false);
@@ -802,7 +807,7 @@ impl Player {
                 self.anim_counter = 0;
             } else {
                 if self.cond.fallen() {
-                    state.sound_manager.play_sfx(24);
+                    self.play_sound(state,24);
                 }
 
                 self.cond.set_fallen(false);
@@ -878,7 +883,7 @@ impl Player {
             return;
         }
 
-        state.sound_manager.play_sfx(16);
+        self.play_sound(state,16);
         self.shock_counter = 128;
         self.cond.set_interacted(false);
 
@@ -903,7 +908,7 @@ impl Player {
         self.damage_popup.update_displayed_value();
 
         if self.life == 0 {
-            state.sound_manager.play_sfx(17);
+            self.play_sound(state,17);
             self.cond.0 = 0;
             state.control_flags.set_tick_world(true);
             state.control_flags.set_interactions_disabled(true);
@@ -931,6 +936,22 @@ impl Player {
             self.teleport_counter = 0;
         }
     }
+
+
+    pub fn play_sound(&mut self, state: &mut SharedGameState, id: u8) {
+        state.sound_manager.play_sfx(id);
+        match id {
+            15=>{self.sound_flags.set_jump_15(true)},
+            16=>{self.sound_flags.set_hurt_16(true)},
+            17=>{self.sound_flags.set_die_17(true)},
+            24=>{self.sound_flags.set_walk_24(true)},
+            56=>{self.sound_flags.set_splash_56(true)},
+            113=>{self.sound_flags.set_booster_113(true)},
+            _=>{},
+        }
+    }
+
+
 }
 
 impl GameEntity<&NPCList> for Player {
@@ -945,6 +966,9 @@ impl GameEntity<&NPCList> for Player {
             return Ok(());
         }
 
+        //reset sound flags
+        self.sound_flags.0 = 0;
+        
         if state.textscript_vm.reset_invicibility && state.constants.textscript.reset_invicibility_on_any_script {
             self.shock_counter = 0;
         }
@@ -1100,5 +1124,28 @@ impl GameEntity<&NPCList> for Player {
         }
 
         Ok(())
+    }
+}
+
+
+impl Shooter for Player {
+    fn shoot(&self) -> bool {
+        self.controller.shoot()
+    }
+
+    fn cond(&self) -> Condition {
+        self.cond
+    }
+
+    fn get_x(&self) -> i32 {
+        self.x
+    }
+
+    fn get_y(&self) -> i32 {
+        self.y
+    }
+
+    fn get_equip(&self) -> Equipment {
+        self.equip
     }
 }

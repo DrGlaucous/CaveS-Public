@@ -32,6 +32,7 @@ use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameScene;
 use crate::components::tilemap::TileLayer;
+use crate::components::record::{Record, RecordState};
 
 const TSC_SUBSTITUTION_MAP_SIZE: usize = 1;
 
@@ -2192,8 +2193,57 @@ impl TextScriptVM {
                 }
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
+            TSCOpCode::ALC => {
+                //get action
+                let action = read_cur_varint(&mut cursor)? as u16;
+                //todo: P2(?)
 
 
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filename = read_string(&mut cursor, len).unwrap();
+
+                if action > 0 {
+                    game_scene.player1.recorder.start_recording();
+                } else if game_scene.player1.recorder.get_state() == RecordState::Recording {
+                    
+                    game_scene.player1.recorder.stop_recorder();
+                    game_scene.player1.recorder.write_replay(ctx, filename.as_str())?;
+                    game_scene.player1.recorder.frame_list.clear(); //erase after writeout
+                }
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
+            TSCOpCode::ARL => {
+
+                //get NPC
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filename = read_string(&mut cursor, len).unwrap();
+                
+                
+                for npc in game_scene.npc_list.iter_alive() {
+                    if npc.event_num == event_num {
+
+                        //unload if file is empty
+                        if len == 0 {
+                            npc.recorder = None;
+                        } else {
+                            let mut recorder = Record::new();
+                            recorder.read_replay(ctx, filename.as_str())?;
+                            npc.recorder = Some(recorder);
+                        }
+                        
+                    }
+                }
+            
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            
+            }
 
 
 

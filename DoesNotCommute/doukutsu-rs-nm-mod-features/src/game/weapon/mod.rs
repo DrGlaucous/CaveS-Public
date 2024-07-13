@@ -1,6 +1,6 @@
 use num_derive::FromPrimitive;
 
-use crate::common::Direction;
+use crate::common::{Condition, Direction, Equipment};
 use crate::engine_constants::EngineConstants;
 use crate::game::caret::CaretType;
 use crate::game::player::{Player, TargetPlayer};
@@ -165,18 +165,18 @@ impl Weapon {
     pub fn tick(
         &mut self,
         state: &mut SharedGameState,
-        player: &mut Player,
-        player_id: TargetPlayer,
+        player: &mut Shooter,
+        player_id: TargetShooter,
         bullet_manager: &mut BulletManager,
     ) {
-        if !player.cond.alive() || player.cond.hidden() {
+        if !player.cond().alive() || player.cond().hidden() {
             return;
         }
 
         self.empty_counter = self.empty_counter.saturating_sub(1);
         self.refire_timer = self.refire_timer.saturating_sub(1);
 
-        if player.controller.trigger_shoot() {
+        if player.shoot() {
             if self.refire_timer > 0 {
                 return;
             }
@@ -202,3 +202,37 @@ impl Weapon {
         }
     }
 }
+
+//player or NPC that can shoot
+pub trait Shooter {
+
+    //true if the shooter is shooting
+    fn shoot(&self) -> bool;
+
+    fn cond(&self) -> Condition;
+
+    //shooter's locations
+    fn x(&self) -> i32;
+
+    fn y(&self) -> i32;
+
+    //shooter's equip flags
+    fn equip(&self) -> Equipment;
+
+    //shooter's direction
+    fn direction(&self) -> Direction;
+
+    fn up(&self) -> bool;
+
+    fn down(&self) -> bool;
+
+}
+
+
+#[derive(PartialEq, Eq, Copy, Clone)]
+pub enum TargetShooter {
+    Player1,
+    Player2,
+    NPC(u32),
+}
+

@@ -1,5 +1,6 @@
 use std::io::{Cursor, Read, Write};
 use crate::bitfield;
+use crate::framework::error::GameError;
 
 use byteorder::{LE, ReadBytesExt, WriteBytesExt};
 
@@ -33,6 +34,23 @@ bitfield! {
 
 }
 
+bitfield! {
+    #[derive(Clone, Copy)]
+    #[repr(C)]
+    pub struct SoundFlags(u8);
+    impl Debug;
+
+    pub jump_15, set_jump_15: 0; // 0x01 //jump
+    pub hurt_16, set_hurt_16: 1; // 0x02 //hurt
+    pub die_17, set_die_17: 2; // 0x04 //die
+    pub walk_24, set_walk_24: 3; // 0x08 //walk
+    pub splash_56, set_splash_56: 4; // 0x10 //splash
+    pub booster_113, set_booster_113: 5; // 0x20 //booster
+
+}
+
+
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum RecordState {
     Idle,
@@ -42,24 +60,24 @@ pub enum RecordState {
 
 #[derive(Debug, Clone, Copy)]
 pub struct RecordFrame {
-    flags: RecordStateFlags,
-    current_weapon: u8,
-    x: i32,
-    y: i32,
-    anim_num: u16,
+    pub flags: RecordStateFlags,
+    pub current_weapon: u8,
+    pub x: i32,
+    pub y: i32,
+    pub anim_num: u16,
+    pub direct: u8,
+    pub sound_flags: SoundFlags,
 }
 
 
 #[derive(Debug, Clone)]
 pub struct Record {
     record_version: u16,
-    frame_list: Vec<RecordFrame>,
-    index: usize,
+    pub frame_list: Vec<RecordFrame>,
+    pub index: usize,
     current_frame: Option<RecordFrame>,
     record_state: RecordState,
     last_record_state: RecordState, //for pausing
-    tick: usize,
-    resume_tick: usize,
 }
 
 impl Record {
@@ -71,12 +89,10 @@ impl Record {
             current_frame: None,
             record_state: RecordState::Idle,
             last_record_state: RecordState::Idle,
-            tick: 0,
-            resume_tick: 0,
         }
     }
 
-    //may be redundant (could set this variable directly...) I guess this stops us from trying to record in playback mode (and vice-versa)
+    //puts the recorder in record mode. mode cannot be changed untill stop_recorder is called
     pub fn start_recording(&mut self) {
         if self.record_state == RecordState::Idle
         && self.last_record_state == RecordState::Idle
@@ -85,42 +101,24 @@ impl Record {
         }
     }
 
-    //to pause these, set record_state to RecordState::Idle;
-    pub fn stop_recording(
-        &mut self,
-        ctx: &mut Context,
-        filename: &mut str,
-    ) -> GameResult {
-        self.record_state = RecordState::Idle;
-        self.last_record_state = RecordState::Idle;
-
-        self.write_replay(ctx, format!{"/{}", filename}.as_str())?;
-
-
-        Ok(())
-    }
-
-    pub fn start_playback(
-        &mut self,
-        ctx: &mut Context,
-        filename: &mut str,
-    ) -> GameResult {
+    //resets playback cursor and begins iterating through loaded file (does NOT load file)
+    pub fn start_playback(&mut self) {
         if self.record_state == RecordState::Idle 
         && self.last_record_state == RecordState::Idle
         {
-            self.index = 0;
-            self.read_replay(ctx, format!{"/{}", filename}.as_str())?;
             self.record_state = RecordState::Playing;
         }
-        Ok(())
     }
-    pub fn stop_playback(
+
+    //halts the recorder with the intent of changing modes
+    pub fn stop_recorder(
         &mut self,
     ) {
         self.record_state = RecordState::Idle;
         self.last_record_state = RecordState::Idle;
     }
 
+    //pauses the recorder with the intent of picking up where you left off (enforces same mode)
     pub fn pause_recorder(&mut self) {
         if self.record_state != RecordState::Idle {
             self.last_record_state = self.record_state;
@@ -133,50 +131,60 @@ impl Record {
             self.last_record_state = RecordState::Idle;
         }
     }
+ 
+    //is the recorder paused? recording? playing?
     pub fn get_state(&self) -> RecordState {
         self.record_state
     }
-
+    //get current frame of the recorder when in playback mode
     pub fn get_frame(&self) -> Option<RecordFrame> {
         self.current_frame
     }
 
     //push stored record out to file
-    fn write_replay(&mut self, ctx: &mut Context, custom_filename: &str) -> GameResult {
+    pub fn write_replay(&mut self, ctx: &mut Context, custom_filename: &str) -> GameResult {
 
         //[state.get_rec_filename(), replay_kind.get_suffix()].join("")
         let path = format!{"/{}", custom_filename};
 
-        if let Ok(mut file) = filesystem::open_options(
+        match filesystem::open_options(
             ctx,
             path,
-            OpenOptions::new().write(true).create(true),
+            OpenOptions::new().write(true).truncate(true).create(true),
         ) {
-            file.write_all(MAGIC.as_bytes())?;
+            Ok(mut file) => {
+                file.write_all(MAGIC.as_bytes())?;
 
-            file.write_u16::<LE>(self.record_version)?;
-
-
-            for input in &self.frame_list {
-
-                // flags: RecordStateFlags,
-                // weapon_index: u16,
-                // x: f32,
-                // y: f32,
-                // anim_no: u16,
-
-                file.write_u8(input.flags.0)?;
-                file.write_u8(input.current_weapon)?;
-                file.write_i32::<LE>(input.x)?;
-                file.write_i32::<LE>(input.y)?;
-                file.write_u16::<LE>(input.anim_num)?;
-
+                file.write_u16::<LE>(self.record_version)?;
+    
+    
+                for input in &self.frame_list {
+    
+                    // flags: RecordStateFlags,
+                    // weapon_index: u16,
+                    // x: f32,
+                    // y: f32,
+                    // anim_no: u16,
+    
+                    file.write_u8(input.flags.0)?;
+                    file.write_u8(input.current_weapon)?;
+                    file.write_i32::<LE>(input.x)?;
+                    file.write_i32::<LE>(input.y)?;
+                    file.write_u16::<LE>(input.anim_num)?;
+                    file.write_u8(input.direct)?;
+                    file.write_u8(input.sound_flags.0)?;
+    
+                }
+            },
+            Err(e) => {
+                log::warn!("ERR: {}", e);
             }
         }
+
         Ok(())
     }
     //get stored record from file
-    fn read_replay(&mut self, ctx: &mut Context, custom_filename: &str) -> GameResult {
+    pub fn read_replay(&mut self, ctx: &mut Context, custom_filename: &str) -> GameResult {
 
         //[state.get_rec_filename(), replay_kind.get_suffix()].join("")
         let path = format!{"/{}", custom_filename};
@@ -195,31 +203,39 @@ impl Record {
             let mut data = Vec::new();
             file.read_to_end(&mut data)?;
 
-            let count = data.len() / 2;
+            let count = data.len() / 14;
             let mut inputs = Vec::new();
             let mut f = Cursor::new(data);
 
+            let mut tt = || -> Result<(), GameError> {
+                for _ in 0..count {
 
-            for _ in 0..count {
+                    // file.write_u8(input.flags.0)?;
+                    // file.write_u8(input.weapon_index)?;
+                    // file.write_f32::<LE>(input.x)?;
+                    // file.write_f32::<LE>(input.y)?;
+                    // file.write_u16::<LE>(input.anim_no)?;
+                    //let ttt = RecordStateFlags{0: 5}; //another way to initialize the bifiteld
 
-                // file.write_u8(input.flags.0)?;
-                // file.write_u16::<LE>(input.weapon_index)?;
-                // file.write_f32::<LE>(input.x)?;
-                // file.write_f32::<LE>(input.y)?;
-                // file.write_u16::<LE>(input.anim_no)?;
-                //let ttt = RecordStateFlags{0: 5}; //another way to initialize the bifiteld
+                    inputs.push(
+                        RecordFrame{
+                            flags: RecordStateFlags(f.read_u8()?),
+                            current_weapon: f.read_u8()?,
+                            x: f.read_i32::<LE>()?,
+                            y: f.read_i32::<LE>()?,
+                            anim_num: f.read_u16::<LE>()?,
+                            direct: f.read_u8()?,
+                            sound_flags: SoundFlags(f.read_u8()?),
+                        }
+                    );
 
-                inputs.push(
-                    RecordFrame{
-                        flags: RecordStateFlags(f.read_u8()?),
-                        current_weapon: f.read_u8()?,
-                        x: f.read_i32::<LE>()?,
-                        y: f.read_i32::<LE>()?,
-                        anim_num: f.read_u16::<LE>()?,
-                    }
-                );
-
-                //inputs.push(f.read_u16::<LE>()?);
+                    //inputs.push(f.read_u16::<LE>()?);
+                }
+                Ok(())
+                
+            };
+            if let Err(t) = tt() {
+                log::warn!("ERR {}", t);
             }
 
             self.frame_list = inputs;
@@ -229,25 +245,32 @@ impl Record {
 
 
     //automatically takes the variables out of the player struct and packages a RecordFrame
-    //because we can't do it in tick since we get multi-borrow errors
+    //because we can't do it in "tick" since we get multi-borrow errors
     pub fn extract_player_rec_frame(player: &Player) -> RecordFrame {
         let mut flags = RecordStateFlags(0);
         flags.set_shock_frame(player.shock_counter / 2 % 2 != 0);
         flags.set_trigger_frame(player.controller.trigger_shoot());
+
+        // if player.anim_num == 11 {
+        //     let mut da = flags.0;
+        //     da += 1;
+        // }
 
         RecordFrame {
             flags: flags,
             current_weapon: player.current_weapon,
             x: player.x,
             y: player.y,
-            anim_num: player.anim_num,
+            anim_num: player.skin.get_raw_frame_index(),
+            direct: player.direction.as_int() as u8,
+            sound_flags: player.sound_flags,
         }
     }
 
 }
 
 //custom args: player and NPC
-impl GameEntity<(Option<RecordFrame>)> for Record {
+impl GameEntity<Option<RecordFrame>> for Record {
 
     fn tick(&mut self, _state: &mut SharedGameState, frame_to_save: Option<RecordFrame>) -> GameResult {
 
@@ -258,7 +281,7 @@ impl GameEntity<(Option<RecordFrame>)> for Record {
                     self.index += 1;
                     Some(frame.clone())
                 } else { //finished, halt reader
-                    self.stop_playback();
+                    self.stop_recorder();
                     None
                 };
             },
