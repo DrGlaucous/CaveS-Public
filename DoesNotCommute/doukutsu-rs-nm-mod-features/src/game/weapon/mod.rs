@@ -3,7 +3,7 @@ use num_derive::FromPrimitive;
 use crate::common::{Condition, Direction, Equipment};
 use crate::engine_constants::EngineConstants;
 use crate::game::caret::CaretType;
-use crate::game::player::{Player, TargetPlayer};
+//use crate::game::player::{Player, TargetPlayer};
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::bullet::BulletManager;
 
@@ -130,7 +130,7 @@ impl Weapon {
         (self.experience, max_exp, max)
     }
 
-    pub fn add_xp(&mut self, exp: u16, player: &mut Player, state: &mut SharedGameState) {
+    pub fn add_xp(&mut self, exp: u16, player: &mut dyn Shooter, state: &mut SharedGameState) {
         let curr_level_idx = self.level as usize - 1;
         let lvl_table = state.constants.weapon.level_table[self.wtype as usize];
 
@@ -140,8 +140,8 @@ impl Weapon {
             if self.experience >= lvl_table[2] {
                 self.experience = lvl_table[2];
 
-                if player.equip.has_whimsical_star() && player.stars < 3 {
-                    player.stars += 1;
+                if player.equip().has_whimsical_star() && player.stars() < 3 {
+                    player.set_stars(player.stars() + 1);
                 }
             }
         } else if self.experience >= lvl_table[curr_level_idx] {
@@ -150,11 +150,11 @@ impl Weapon {
 
             if self.wtype != WeaponType::Spur {
                 state.sound_manager.play_sfx(27);
-                state.create_caret(player.x, player.y, CaretType::LevelUp, Direction::Left);
+                state.create_caret(player.x(), player.y(), CaretType::LevelUp, Direction::Left);
             }
         }
 
-        player.xp_counter = if self.wtype != WeaponType::Spur { 30 } else { 10 };
+        player.set_xp_counter(if self.wtype != WeaponType::Spur { 30 } else { 10 });
     }
 
     pub fn reset_xp(&mut self) {
@@ -165,7 +165,7 @@ impl Weapon {
     pub fn tick(
         &mut self,
         state: &mut SharedGameState,
-        player: &mut Shooter,
+        player: &mut dyn Shooter,
         player_id: TargetShooter,
         bullet_manager: &mut BulletManager,
     ) {
@@ -209,12 +209,24 @@ pub trait Shooter {
     //true if the shooter is shooting
     fn shoot(&self) -> bool;
 
+    //true if this is the first shooting frame
+    fn trigger_shoot(&self) -> bool;
+
     fn cond(&self) -> Condition;
 
     //shooter's locations
     fn x(&self) -> i32;
 
     fn y(&self) -> i32;
+
+    fn vel_x(&self) -> i32;
+
+    fn vel_y(&self) -> i32;
+
+    fn set_vel_x(&mut self, num: i32);
+
+    fn set_vel_y(&mut self, num: i32);
+
 
     //shooter's equip flags
     fn equip(&self) -> Equipment;
@@ -225,6 +237,12 @@ pub trait Shooter {
     fn up(&self) -> bool;
 
     fn down(&self) -> bool;
+
+    fn stars(&self) -> u8;
+
+    fn set_stars(&mut self, num: u8);
+
+    fn set_xp_counter(&mut self, num: u8);
 
 }
 

@@ -5,7 +5,8 @@ use crate::framework::error::GameResult;
 use crate::game::caret::CaretType;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
-use crate::game::player::{Player, TargetPlayer};
+use crate::game::player::Player;
+use crate::game::weapon::TargetShooter;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::bullet::BulletManager;
 use crate::util::rng::RNG;
@@ -974,7 +975,7 @@ impl NPC {
                         self.x,
                         self.y,
                         24,
-                        TargetPlayer::Player1,
+                        TargetShooter::Player1,
                         Direction::Left,
                         &state.constants,
                     );

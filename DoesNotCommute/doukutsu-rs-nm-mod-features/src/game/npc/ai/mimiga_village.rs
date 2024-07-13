@@ -6,7 +6,8 @@ use crate::common::Direction;
 use crate::framework::error::GameResult;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
-use crate::game::player::{Player, TargetPlayer};
+use crate::game::player::Player;
+use crate::game::weapon::TargetShooter;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::Stage;
 use crate::game::weapon::bullet::BulletManager;
@@ -688,10 +689,10 @@ impl NPC {
             // Missiles + Blade
             if bullet_manager.count_bullets_multi(
                 &[13, 14, 15, 16, 17, 18, 23, 25, 26, 27, 28, 29, 30, 31, 32, 33],
-                TargetPlayer::Player1,
+                TargetShooter::Player1,
             ) + bullet_manager.count_bullets_multi(
                 &[13, 14, 15, 16, 17, 18, 23, 25, 26, 27, 28, 29, 30, 31, 32, 33],
-                TargetPlayer::Player2,
+                TargetShooter::Player2,
             ) > 0
             {
                 self.npc_flags.set_shootable(false);
@@ -865,10 +866,10 @@ impl NPC {
             // Missiles + Blade
             if bullet_manager.count_bullets_multi(
                 &[13, 14, 15, 16, 17, 18, 23, 25, 26, 27, 28, 29, 30, 31, 32, 33],
-                TargetPlayer::Player1,
+                TargetShooter::Player1,
             ) + bullet_manager.count_bullets_multi(
                 &[13, 14, 15, 16, 17, 18, 23, 25, 26, 27, 28, 29, 30, 31, 32, 33],
-                TargetPlayer::Player2,
+                TargetShooter::Player2,
             ) > 0
             {
                 self.npc_flags.set_shootable(false);

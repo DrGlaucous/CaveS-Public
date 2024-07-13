@@ -7,7 +7,7 @@ use std::rc::Rc;
 use byteorder::{LE, ReadBytesExt};
 
 use crate::bitfield;
-use crate::common::{Condition, interpolate_fix9_scale, Rect};
+use crate::common::{interpolate_fix9_scale, Condition, Equipment, Rect};
 use crate::common::Direction;
 use crate::common::Flag;
 use crate::components::flash::Flash;
@@ -26,6 +26,7 @@ use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::{Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
+use crate::game::weapon::{Shooter, TargetShooter};
 use crate::util::rng::Xoroshiro32PlusPlus;
 
 use crate::game::player::skin::basic::{SkinMeta, DEFAULT_SKINMETA, SUPPORTED_SKINMETA_VERSIONS};
@@ -857,6 +858,75 @@ impl PhysicalEntity for NPC {
         self.npc_flags.ignore_tile_44()
     }
 }
+
+impl Shooter for NPC {
+    fn shoot(&self) -> bool {
+        false
+    }
+
+    fn trigger_shoot(&self) -> bool {
+        false
+    }
+
+    fn cond(&self) -> Condition {
+        Condition(0)
+    }
+
+    fn x(&self) -> i32 {
+        0
+    }
+
+    fn y(&self) -> i32 {
+        0
+    }
+
+    fn vel_x(&self) -> i32 {
+        0
+    }
+
+    fn vel_y(&self) -> i32 {
+        0
+    }
+
+    fn set_vel_x(&mut self, _num: i32) {
+
+    }
+
+    fn set_vel_y(&mut self, _num: i32) {
+
+    }
+
+    fn equip(&self) -> Equipment {
+        Equipment(0)
+    }
+
+    fn direction(&self) -> Direction {
+        Direction::Left
+    }
+
+    fn up(&self) -> bool {
+        false
+    }
+
+    fn down(&self) -> bool {
+        false
+    }
+
+    fn stars(&self) -> u8 {
+        0
+    }
+
+    fn set_stars(&mut self, _num: u8) {
+
+    }
+
+    fn set_xp_counter(&mut self, _num: u8) {
+
+    }  
+
+
+}
+
 
 pub struct NPCTableEntry {
     pub npc_flags: NPCFlag,

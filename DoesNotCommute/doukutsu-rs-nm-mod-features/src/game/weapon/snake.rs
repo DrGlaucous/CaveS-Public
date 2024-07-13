@@ -1,14 +1,14 @@
 use crate::common::Direction;
 use crate::game::caret::CaretType;
-use crate::game::player::{Player, TargetPlayer};
+//use crate::game::player::{Player, TargetPlayer};
+use crate::game::weapon::{Shooter, TargetShooter};
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::{Weapon, WeaponLevel};
-use crate::game::weapon::{Shooter, TargetShooter};
 use crate::game::weapon::bullet::{Bullet, BulletManager};
 
 impl Weapon {
-    pub(crate) fn tick_snake(&mut self, player: &Shooter, player_id: TargetShooter, bullet_manager: &mut BulletManager, state: &mut SharedGameState) {
-        if !player.controller.trigger_shoot() || bullet_manager.count_bullets_multi(&[1, 2, 3], player_id) > 3 {
+    pub(crate) fn tick_snake(&mut self, player: &dyn Shooter, player_id: TargetShooter, bullet_manager: &mut BulletManager, state: &mut SharedGameState) {
+        if !player.trigger_shoot() || bullet_manager.count_bullets_multi(&[1, 2, 3], player_id) > 3 {
             return;
         }
 

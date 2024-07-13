@@ -1133,19 +1133,65 @@ impl Shooter for Player {
         self.controller.shoot()
     }
 
+    fn trigger_shoot(&self) -> bool {
+        self.controller.trigger_shoot()
+    }
+
     fn cond(&self) -> Condition {
         self.cond
     }
 
-    fn get_x(&self) -> i32 {
+    fn x(&self) -> i32 {
         self.x
     }
 
-    fn get_y(&self) -> i32 {
+    fn y(&self) -> i32 {
         self.y
     }
 
-    fn get_equip(&self) -> Equipment {
+    fn vel_x(&self) -> i32 {
+        self.x
+    }
+
+    fn vel_y(&self) -> i32 {
+        self.y
+    }
+
+    fn set_vel_x(&mut self, num: i32) {
+        self.vel_x = num;
+    }
+
+    fn set_vel_y(&mut self, num: i32) {
+        self.vel_y = num;
+    }
+
+    fn equip(&self) -> Equipment {
         self.equip
     }
+
+    fn direction(&self) -> Direction {
+        self.direction
+    }
+
+    fn up(&self) -> bool {
+        self.up
+    }
+
+    fn down(&self) -> bool {
+        self.down
+    }
+
+    fn stars(&self) -> u8 {
+        self.stars
+    }
+
+    fn set_stars(&mut self, num: u8) {
+        self.stars = num;
+    }
+
+    fn set_xp_counter(&mut self, num: u8) {
+        self.xp_counter = num;
+    }  
+
+
 }

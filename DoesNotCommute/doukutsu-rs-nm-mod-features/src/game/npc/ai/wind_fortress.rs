@@ -754,7 +754,7 @@ impl NPC {
         npc_list: &NPCList,
     ) -> GameResult {
         // action_counter3 is used to keep track of grabbed player
-        let mut player = self.get_closest_player_mut(players);
+        let player = self.get_closest_player_mut(players);
 
         match self.action_num {
             0 | 1 | 10 => {

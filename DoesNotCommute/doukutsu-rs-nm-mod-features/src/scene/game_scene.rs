@@ -45,7 +45,7 @@ use crate::game::settings::ControllerType;
 use crate::game::shared_game_state::{CutsceneSkipMode, PlayerCount, ReplayState, SharedGameState, TileSize};
 use crate::game::stage::{BackgroundType, Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
-use crate::game::weapon::{Weapon, WeaponType};
+use crate::game::weapon::{Weapon, WeaponType, TargetShooter};
 use crate::graphics::font::{Font, Symbols};
 use crate::graphics::texture_set::SpriteBatch;
 use crate::input::touch_controls::TouchControlType;
@@ -1460,13 +1460,13 @@ impl GameScene {
             self.inventory_player1.tick_weapons(
                 state,
                 &mut self.player1,
-                TargetPlayer::Player1,
+                TargetShooter::Player1,
                 &mut self.bullet_manager,
             );
             self.inventory_player2.tick_weapons(
                 state,
                 &mut self.player2,
-                TargetPlayer::Player2,
+                TargetShooter::Player2,
                 &mut self.bullet_manager,
             );
         }

@@ -10,6 +10,7 @@ use crate::game::player::{Player, TargetPlayer};
 use crate::game::shared_game_state::{SharedGameState, TileSize};
 use crate::game::stage::Stage;
 use crate::util::rng::{RNG, Xoroshiro32PlusPlus, XorShift};
+use crate::game::weapon::{Shooter, TargetShooter};
 
 pub struct BulletManager {
     pub bullets: Vec<Bullet>,
@@ -32,7 +33,7 @@ impl BulletManager {
         x: i32,
         y: i32,
         btype: u16,
-        owner: TargetPlayer,
+        owner: TargetShooter,
         direction: Direction,
         constants: &EngineConstants,
     ) {
@@ -79,7 +80,7 @@ impl BulletManager {
         }
     }
 
-    pub fn count_bullets(&self, btype: u16, player_id: TargetPlayer) -> usize {
+    pub fn count_bullets(&self, btype: u16, player_id: TargetShooter) -> usize {
         self.bullets.iter().filter(|b| b.owner == player_id && b.btype == btype).count()
     }
 
@@ -87,7 +88,7 @@ impl BulletManager {
         self.bullets.iter().filter(|b| (b.btype.saturating_add(2) / 3) == type_idx).count()
     }
 
-    pub fn count_bullets_multi(&self, btypes: &[u16], player_id: TargetPlayer) -> usize {
+    pub fn count_bullets_multi(&self, btypes: &[u16], player_id: TargetShooter) -> usize {
         self.bullets.iter().filter(|b| b.owner == player_id && btypes.contains(&b.btype)).count()
     }
 }
@@ -109,7 +110,7 @@ pub struct Bullet {
     pub counter1: u16,
     pub counter2: u16,
     pub rng: Xoroshiro32PlusPlus,
-    pub owner: TargetPlayer,
+    pub owner: TargetShooter,
     pub cond: Condition,
     pub weapon_flags: BulletFlag,
     pub flags: Flag,
@@ -130,7 +131,7 @@ impl Bullet {
         x: i32,
         y: i32,
         btype: u16,
-        owner: TargetPlayer,
+        owner: TargetShooter,
         direction: Direction,
         constants: &EngineConstants,
     ) -> Bullet {
@@ -375,7 +376,12 @@ impl Bullet {
         }
     }
 
-    fn tick_fireball(&mut self, state: &mut SharedGameState, players: [&Player; 2], npc_list: &NPCList) {
+    fn tick_fireball(
+        &mut self,
+        state: &mut SharedGameState,
+        players: &dyn Shooter,
+        npc_list: &NPCList
+    ) {
         self.action_counter += 1;
         if self.action_counter > self.lifetime {
             self.cond.set_alive(false);
@@ -414,15 +420,15 @@ impl Bullet {
                     self.vel_x = 0x400;
                 }
                 Direction::Up => {
-                    self.vel_x = players[self.owner.index()].vel_x();
+                    self.vel_x = players.vel_x();
 
                     self.direction = if self.vel_x < 0 { Direction::Left } else { Direction::Right };
 
-                    self.vel_x += players[self.owner.index()].direction().vector_x() * 0x80;
+                    self.vel_x += players.direction().vector_x() * 0x80;
                     self.vel_y = -0x5ff;
                 }
                 Direction::Bottom => {
-                    self.vel_x = players[self.owner.index()].vel_x();
+                    self.vel_x = players.vel_x();
 
                     self.direction = if self.vel_x < 0 { Direction::Left } else { Direction::Right };
 
@@ -566,8 +572,13 @@ impl Bullet {
         }
     }
 
-    fn tick_missile(&mut self, state: &mut SharedGameState, players: [&Player; 2], new_bullets: &mut Vec<Bullet>) {
-        let player = players[self.owner.index()];
+    fn tick_missile(
+        &mut self,
+        state: &mut SharedGameState,
+        players: &dyn Shooter,
+        new_bullets: &mut Vec<Bullet>,
+    ) {
+        let player = players;//[self.owner.index()];
 
         self.action_counter += 1;
         if self.action_counter > self.lifetime {
@@ -617,11 +628,11 @@ impl Bullet {
             if self.btype == 15 {
                 match self.direction {
                     Direction::Left | Direction::Right => {
-                        self.vel_y = if self.y > player.y { 0x100 } else { -0x100 };
+                        self.vel_y = if self.y > player.y() { 0x100 } else { -0x100 };
                         self.vel_x = self.rng.range(-0x200..0x200);
                     }
                     Direction::Up | Direction::Bottom => {
-                        self.vel_x = if self.x > player.x { 0x100 } else { -0x100 };
+                        self.vel_x = if self.x > player.x() { 0x100 } else { -0x100 };
                         self.vel_y = self.rng.range(-0x200..0x200);
                     }
                     _ => {}
@@ -846,24 +857,29 @@ impl Bullet {
         self.anim_rect = state.constants.weapon.bullet_rects.b020_bubble_l2[self.anim_num as usize];
     }
 
-    fn tick_bubble_3(&mut self, state: &mut SharedGameState, players: [&Player; 2], new_bullets: &mut Vec<Bullet>) {
-        let player = players[self.owner.index()];
+    fn tick_bubble_3(
+        &mut self,
+        state: &mut SharedGameState,
+        players: &dyn Shooter,
+        new_bullets: &mut Vec<Bullet>,
+    ) {
+        let player = players;//[self.owner.index()];
 
         self.action_counter += 1;
 
-        if self.action_counter > 100 || !player.controller.shoot() {
+        if self.action_counter > 100 || !player.shoot() {
             self.cond.set_alive(false);
             state.create_caret(self.x, self.y, CaretType::ProjectileDissipation, Direction::Left);
             state.sound_manager.play_sfx(100);
 
             match () {
-                _ if player.up => {
+                _ if player.up() => {
                     new_bullets.push(Bullet::new(self.x, self.y, 22, self.owner, Direction::Up, &state.constants))
                 }
-                _ if player.down => {
+                _ if player.down() => {
                     new_bullets.push(Bullet::new(self.x, self.y, 22, self.owner, Direction::Bottom, &state.constants))
                 }
-                _ => new_bullets.push(Bullet::new(self.x, self.y, 22, self.owner, player.direction, &state.constants)),
+                _ => new_bullets.push(Bullet::new(self.x, self.y, 22, self.owner, player.direction(), &state.constants)),
             }
             return;
         }
@@ -892,8 +908,8 @@ impl Bullet {
             }
         }
 
-        self.vel_x += (player.x - self.x).signum() * 0x20;
-        self.vel_y += (player.y - self.y).signum() * 0x20;
+        self.vel_x += (player.x() - self.x).signum() * 0x20;
+        self.vel_y += (player.y() - self.y).signum() * 0x20;
 
         if self.vel_x < 0 && self.flags.hit_left_wall() {
             self.vel_x = 0x400;
@@ -1195,10 +1211,10 @@ impl Bullet {
     fn tick_super_missile(
         &mut self,
         state: &mut SharedGameState,
-        players: [&Player; 2],
+        players: &dyn Shooter,
         new_bullets: &mut Vec<Bullet>,
     ) {
-        let player = players[self.owner.index()];
+        let player = players; // = players[self.owner.index()];
 
         self.action_counter += 1;
         if self.action_counter > self.lifetime {
@@ -1254,11 +1270,11 @@ impl Bullet {
             if self.btype == 30 {
                 match self.direction {
                     Direction::Left | Direction::Right => {
-                        self.vel_y = if self.y > player.y { 0x100 } else { -0x100 };
+                        self.vel_y = if self.y > player.y() { 0x100 } else { -0x100 };
                         self.vel_x = self.rng.range(-0x200..0x200);
                     }
                     Direction::Up | Direction::Bottom => {
-                        self.vel_x = if self.x > player.x { 0x100 } else { -0x100 };
+                        self.vel_x = if self.x > player.x() { 0x100 } else { -0x100 };
                         self.vel_y = self.rng.range(-0x200..0x200);
                     }
                     _ => {}
@@ -1662,24 +1678,44 @@ impl Bullet {
             return;
         }
 
+        //get owner
+        let shooter: &dyn Shooter = match self.owner {
+            TargetShooter::Player1 => {
+                players[0]
+            },
+            TargetShooter::Player2 => {
+                players[1]
+            },
+            TargetShooter::NPC(num) => {
+                // for npc in npc_list.iter_alive() {
+                //     if npc.event_num == num {
+                //         npc
+                //     }
+                // }
+                npc_list.get_npc(0).unwrap()
+
+                //players[1]
+            },
+        };
+
         match self.btype {
             1 => self.tick_snake_1(state),
             2 | 3 => self.tick_snake_2(state, npc_list),
             4 | 5 | 6 => self.tick_polar_star(state),
-            7 | 8 | 9 => self.tick_fireball(state, players, npc_list),
+            7 | 8 | 9 => self.tick_fireball(state, shooter, npc_list),
             10 | 11 | 12 => self.tick_machine_gun(state, npc_list),
-            13 | 14 | 15 => self.tick_missile(state, players, new_bullets),
+            13 | 14 | 15 => self.tick_missile(state, shooter, new_bullets),
             16 | 17 | 18 => self.tick_missile_explosion(state, npc_list),
             19 => self.tick_bubble_1(state),
             20 => self.tick_bubble_2(state),
-            21 => self.tick_bubble_3(state, players, new_bullets),
+            21 => self.tick_bubble_3(state, shooter, new_bullets),
             22 => self.tick_bubble_spines(state),
             23 => self.tick_blade_slash(state),
             24 => self.tick_spike(),
             25 => self.tick_blade_1(state),
             26 => self.tick_blade_2(state),
             27 => self.tick_blade_3(state, new_bullets),
-            28 | 29 | 30 => self.tick_super_missile(state, players, new_bullets),
+            28 | 29 | 30 => self.tick_super_missile(state, shooter, new_bullets),
             31 | 32 | 33 => self.tick_super_missile_explosion(state, npc_list),
             34 | 35 | 36 => self.tick_nemesis(state, npc_list),
             37 | 38 | 39 => self.tick_spur(state, new_bullets),

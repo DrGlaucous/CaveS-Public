@@ -4,7 +4,8 @@ use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::game::frame::Frame;
 use crate::game::shared_game_state::SharedGameState;
-use crate::game::player::{Player, TargetPlayer};
+use crate::game::player::Player;
+use crate::game::weapon::TargetShooter;
 use crate::game::weapon::bullet::{Bullet, BulletManager};
 
 pub struct WhimsicalStar {
@@ -104,7 +105,7 @@ impl GameEntity<(&Player, &mut BulletManager)> for WhimsicalStar {
                 self.star[self.active_star as usize].x,
                 self.star[self.active_star as usize].y,
                 45,
-                TargetPlayer::Player1,
+                TargetShooter::Player1,
                 Direction::Left,
                 &state.constants,
             );

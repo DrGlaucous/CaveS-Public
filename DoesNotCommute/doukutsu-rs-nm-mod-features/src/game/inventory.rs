@@ -1,7 +1,8 @@
 use std::cmp::Ordering;
 
 use crate::engine_constants::EngineConstants;
-use crate::game::player::{Player, TargetPlayer};
+use crate::game::player::Player;
+use crate::game::weapon::TargetShooter;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::{Weapon, WeaponLevel, WeaponType};
 use crate::game::weapon::bullet::BulletManager;
@@ -266,7 +267,7 @@ impl Inventory {
         self.weapons.iter().any(|weapon| weapon.wtype == wtype)
     }
 
-    pub fn tick_weapons(&mut self, state: &mut SharedGameState, player: &mut Player, player_id: TargetPlayer, bullet_manager: &mut BulletManager) {
+    pub fn tick_weapons(&mut self, state: &mut SharedGameState, player: &mut Player, player_id: TargetShooter, bullet_manager: &mut BulletManager) {
         if let Some(weapon) = self.get_current_weapon_mut() {
             weapon.tick(state, player, player_id, bullet_manager);
         }

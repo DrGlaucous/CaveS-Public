@@ -5,7 +5,8 @@ use crate::framework::error::GameResult;
 use crate::game::caret::CaretType;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
-use crate::game::player::{Player, TargetPlayer};
+use crate::game::player::Player;
+use crate::game::weapon::TargetShooter;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::bullet::BulletManager;
 use crate::util::rng::RNG;
@@ -610,7 +611,7 @@ impl NPC {
                                 self.x + 0x400,
                                 self.y - 0x800,
                                 12,
-                                TargetPlayer::Player1,
+                                TargetShooter::Player1,
                                 Direction::Up,
                                 &state.constants,
                             );
@@ -620,7 +621,7 @@ impl NPC {
                                 self.x - 0x400,
                                 self.y - 0x800,
                                 12,
-                                TargetPlayer::Player1,
+                                TargetShooter::Player1,
                                 Direction::Up,
                                 &state.constants,
                             );
@@ -631,7 +632,7 @@ impl NPC {
                             self.x + 0x800,
                             self.y + 0x600,
                             12,
-                            TargetPlayer::Player1,
+                            TargetShooter::Player1,
                             Direction::Right,
                             &state.constants,
                         );
@@ -641,7 +642,7 @@ impl NPC {
                             self.x - 0x800,
                             self.y + 0x600,
                             12,
-                            TargetPlayer::Player1,
+                            TargetShooter::Player1,
                             Direction::Left,
                             &state.constants,
                         );
@@ -703,7 +704,7 @@ impl NPC {
                                 self.x + 0x400,
                                 self.y - 0x800,
                                 6,
-                                TargetPlayer::Player1,
+                                TargetShooter::Player1,
                                 Direction::Up,
                                 &state.constants,
                             );
@@ -713,7 +714,7 @@ impl NPC {
                                 self.x - 0x400,
                                 self.y - 0x800,
                                 6,
-                                TargetPlayer::Player1,
+                                TargetShooter::Player1,
                                 Direction::Up,
                                 &state.constants,
                             );
@@ -724,7 +725,7 @@ impl NPC {
                             self.x + 0x800,
                             self.y + 0x600,
                             6,
-                            TargetPlayer::Player1,
+                            TargetShooter::Player1,
                             Direction::Right,
                             &state.constants,
                         );
@@ -734,7 +735,7 @@ impl NPC {
                             self.x - 0x800,
                             self.y + 0x600,
                             6,
-                            TargetPlayer::Player1,
+                            TargetShooter::Player1,
                             Direction::Left,
                             &state.constants,
                         );
@@ -940,9 +941,9 @@ impl NPC {
 
             if player.controller.trigger_shoot()
                 && state.control_flags.control_enabled()
-                && bullet_manager.count_bullets_multi(&[43], TargetPlayer::Player1) < 2
+                && bullet_manager.count_bullets_multi(&[43], TargetShooter::Player1) < 2
             {
-                bullet_manager.create_bullet(npc.x, npc.y, 43, TargetPlayer::Player1, self.direction, &state.constants);
+                bullet_manager.create_bullet(npc.x, npc.y, 43, TargetShooter::Player1, self.direction, &state.constants);
                 state.create_caret(npc.x, npc.y, CaretType::Shoot, Direction::Left);
                 state.sound_manager.play_sfx(117);
             }

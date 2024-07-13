@@ -78,7 +78,7 @@ impl NPC {
         */
 
 
-        ttf(self, state);
+        //ttf(self, state);
 
         match self.action_num {
             

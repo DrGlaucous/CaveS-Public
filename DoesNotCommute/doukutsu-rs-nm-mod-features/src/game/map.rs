@@ -79,7 +79,7 @@ impl TilesetAnimConfig {
         }
     }
 
-    pub fn upgrade(mut self, path: &String) -> Self {
+    pub fn upgrade(self, path: &String) -> Self {
 
         let initial_version = self.version;
 
