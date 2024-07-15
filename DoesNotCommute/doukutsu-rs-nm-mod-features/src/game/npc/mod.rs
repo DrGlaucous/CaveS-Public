@@ -26,7 +26,7 @@ use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::{Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
-use crate::game::weapon::Shooter;
+use crate::game::weapon::{Shooter, Weapon};
 use crate::util::rng::Xoroshiro32PlusPlus;
 
 use crate::game::player::skin::basic::{SkinMeta, DEFAULT_SKINMETA, SUPPORTED_SKINMETA_VERSIONS};
@@ -180,6 +180,7 @@ pub struct NPC {
     pub recorder: Option<Record>,
     pub pc_skin: Option<PCSkin>,
     pub shooter_vals: ShooterVals,
+    pub weapon: Option<Weapon>,
 }
 
 impl NPC {
@@ -228,6 +229,8 @@ impl NPC {
             recorder: None,
             pc_skin: None,
             shooter_vals: ShooterVals::new(),
+            weapon: None,
+
         }
     }
 
@@ -675,7 +678,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             368 => self.tick_n368_gclone(state, players, npc_list),
             369 => self.tick_n369_gclone_curly_clone(state, players, npc_list),
             370 => self.tick_n370_second_quote(state, players, npc_list),
-            371 => self.tick_n371_fake_pc(state, players, npc_list),
+            371 => self.tick_n371_fake_pc(state, players, npc_list, bullet_manager),
 
             _ => Ok(()),
         }?;

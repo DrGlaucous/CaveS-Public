@@ -1561,6 +1561,9 @@ impl GameScene {
 
         self.water_renderer.tick(state, (&[&self.player1, &self.player2], &self.npc_list))?;
 
+        self.player1.tick_save_frame(state, &mut self.inventory_player1)?;
+        self.player2.tick_save_frame(state, &mut self.inventory_player2)?;
+
         if self.map_name_counter > 0 {
             self.map_name_counter -= 1;
         }

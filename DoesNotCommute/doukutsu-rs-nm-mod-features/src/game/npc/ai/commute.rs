@@ -1,3 +1,4 @@
+use std::cell::{RefCell};
 use crate::common::{Direction, Rect};
 use crate::entity::GameEntity;
 use crate::framework::error::GameResult;
@@ -5,8 +6,10 @@ use crate::game::caret::CaretType;
 use crate::game::npc::NPC;
 use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
+use crate::game::weapon::{Weapon, WeaponType, WeaponLevel, TargetShooter};
 use crate::util::rng::RNG;
 use crate::game::npc::NPCList;
+use crate::game::weapon::bullet::BulletManager;
 
 
 fn ttf(npc: &mut NPC, state: &mut SharedGameState) {
@@ -21,6 +24,7 @@ impl NPC {
         state: &mut SharedGameState,
         players: [&mut Player; 2],
         npc_list: &NPCList,
+        bullet_manager: &mut BulletManager,
     ) -> GameResult {
 
         /*
@@ -80,6 +84,11 @@ impl NPC {
 
         //ttf(self, state);
 
+        //automatically initialize our weapon
+        if self.weapon.is_none() {
+           self.weapon = Some(Weapon::new(WeaponType::None, WeaponLevel::Level1, 0, 0, 0));
+        }
+
         match self.action_num {
             
             //start recorder + run recorder
@@ -93,9 +102,9 @@ impl NPC {
                         recorder.start_playback();
                     }
                     //run
+
                     //do readback here
                     recorder.tick(state, None)?;
-
                     if let Some(frame) = recorder.get_frame(){
                         self.x = frame.x;
                         self.y = frame.y;
@@ -123,6 +132,43 @@ impl NPC {
                                 state.sound_manager.play_sfx(113);
                             }
                         }
+
+
+                        self.shooter_vals.shoot = frame.flags.shoot();
+                        self.shooter_vals.trigger_shoot = frame.flags.trigger_shoot();
+                        self.shooter_vals.cond = self.cond;
+                        self.shooter_vals.x = self.x;
+                        self.shooter_vals.y = self.y;
+                        //todo: log velx and vely
+                        self.shooter_vals.vel_x = self.vel_x;
+                        self.shooter_vals.vel_y = self.vel_y;
+                        //todo: equip
+                        self.shooter_vals.direction = self.direction;
+                        self.shooter_vals.up = frame.flags.up();
+                        self.shooter_vals.down = frame.flags.down();
+                        //stars variable doesn't need set
+
+                        if self.shooter_vals.trigger_shoot {
+                            let mut adam = self.x;
+                            let mut eve = self.x + adam;
+                        }
+
+                        
+                        
+                        //update weapon
+                        if let Some(mut weapon) = self.weapon.take() {
+
+                            weapon.wtype = frame.weapon;
+                            //weapon.level = frame.weapon_level;
+                            let eve_num = self.event_num as u32;
+                            weapon.tick(state, self, TargetShooter::NPC(eve_num), bullet_manager);
+
+                            //give it back
+                            self.weapon = Some(weapon);
+                        }
+                        //self.weapon.borrow_mut().tick(state, self, TargetShooter::NPC(0 as u32), bullet_manager);
+
+
 
                     } else {
                         //record finished, return to idle

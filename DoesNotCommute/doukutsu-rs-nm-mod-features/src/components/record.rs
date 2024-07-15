@@ -1,4 +1,6 @@
+use std::any::Any;
 use std::io::{Cursor, Read, Write};
+use std::mem::size_of;
 use crate::bitfield;
 use crate::framework::error::GameError;
 
@@ -15,6 +17,8 @@ use crate::game::shared_game_state::SharedGameState; //{ReplayKind, ReplayState,
 //use crate::input::replay_player_controller::{KeyState, ReplayController};
 use crate::game::player::Player;
 use crate::game::npc::NPC;
+use crate::game::inventory::Inventory;
+use crate::game::weapon::{WeaponLevel, WeaponType};
 //use crate::graphics::font::Font;
 
 
@@ -29,10 +33,11 @@ bitfield! {
     pub struct RecordStateFlags(u8);
     impl Debug;
 
-    pub trigger_frame, set_trigger_frame: 0; // 0x01
-    pub shock_frame, set_shock_frame: 1; // 0x02
-    pub up, set_up: 2; // 0x04
-    pub down, set_down: 3; // 0x08
+    pub shoot, set_shoot: 0; // 0x01
+    pub trigger_shoot, set_trigger_shoot: 1; // 0x01
+    pub shock_frame, set_shock_frame: 2; // 0x02
+    pub up, set_up: 3; // 0x04
+    pub down, set_down: 4; // 0x08
 
 }
 
@@ -61,10 +66,11 @@ pub enum RecordState {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[repr(packed(1))]
 pub struct RecordFrame {
     pub flags: RecordStateFlags,
-    pub current_weapon: u8,
-    pub weapon_level: u8,
+    pub weapon: WeaponType,
+    pub weapon_level: WeaponLevel,
     pub x: i32,
     pub y: i32,
     pub anim_num: u16,
@@ -162,15 +168,10 @@ impl Record {
     
     
                 for input in &self.frame_list {
-    
-                    // flags: RecordStateFlags,
-                    // weapon_index: u16,
-                    // x: f32,
-                    // y: f32,
-                    // anim_no: u16,
-    
+        
                     file.write_u8(input.flags.0)?;
-                    file.write_u8(input.current_weapon)?;
+                    file.write_u8(input.weapon as u8)?;
+                    file.write_u8(input.weapon_level as u8)?;
                     file.write_i32::<LE>(input.x)?;
                     file.write_i32::<LE>(input.y)?;
                     file.write_u16::<LE>(input.anim_num)?;
@@ -206,7 +207,9 @@ impl Record {
             let mut data = Vec::new();
             file.read_to_end(&mut data)?;
 
-            let count = data.len() / 14;
+            let size = size_of::<RecordFrame>();
+            let count = data.len() / size;
+            
             let mut inputs = Vec::new();
             let mut f = Cursor::new(data);
 
@@ -223,8 +226,8 @@ impl Record {
                     inputs.push(
                         RecordFrame{
                             flags: RecordStateFlags(f.read_u8()?),
-                            current_weapon: f.read_u8()?,
-                            weapon_level: 0,
+                            weapon: WeaponType::from_u8(f.read_u8()?),
+                            weapon_level: WeaponLevel::from_u8(f.read_u8()?),
                             x: f.read_i32::<LE>()?,
                             y: f.read_i32::<LE>()?,
                             anim_num: f.read_u16::<LE>()?,
@@ -250,20 +253,29 @@ impl Record {
 
     //automatically takes the variables out of the player struct and packages a RecordFrame
     //because we can't do it in "tick" since we get multi-borrow errors
-    pub fn extract_player_rec_frame(player: &Player) -> RecordFrame {
+    pub fn extract_player_rec_frame(player: &Player, inventory: &Inventory) -> RecordFrame {
         let mut flags = RecordStateFlags(0);
         flags.set_shock_frame(player.shock_counter / 2 % 2 != 0);
-        flags.set_trigger_frame(player.controller.trigger_shoot());
+        flags.set_shoot(player.controller.shoot());
+        flags.set_trigger_shoot(player.controller.trigger_shoot());
+        flags.set_up(player.up);
+        flags.set_down(player.down);
 
         // if player.anim_num == 11 {
         //     let mut da = flags.0;
         //     da += 1;
         // }
+        let (weapon_type, weapon_lvl) = if let Some(weapon) = inventory.get_current_weapon() {
+            (weapon.wtype, weapon.level)
+        } else {
+            (WeaponType::None, WeaponLevel::None)
+        };
+
 
         RecordFrame {
             flags: flags,
-            current_weapon: player.current_weapon,
-            weapon_level: 0,
+            weapon: weapon_type,
+            weapon_level: weapon_lvl,
             x: player.x,
             y: player.y,
             anim_num: player.skin.get_raw_frame_index(),

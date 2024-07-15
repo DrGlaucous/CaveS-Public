@@ -34,6 +34,23 @@ pub enum WeaponType {
     Nemesis = 12,
     Spur = 13,
 }
+impl WeaponType {
+    pub fn from_u8(id: u8) -> WeaponType {
+        match id {
+            1 => Self::Snake,
+            2 => Self::PolarStar,
+            3 => Self::Fireball,
+            4 => Self::MachineGun,
+            5 => Self::MissileLauncher,
+            7 => Self::Bubbler,
+            9 => Self::Blade,
+            10 => Self::SuperMissileLauncher,
+            12 => Self::Nemesis,
+            13 => Self::Spur,
+            _ => Self::None,
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
@@ -45,6 +62,15 @@ pub enum WeaponLevel {
 }
 
 impl WeaponLevel {
+    pub fn from_u8(id: u8) -> WeaponLevel {
+        match id {
+            1 => Self::Level1,
+            2 => Self::Level2,
+            3 => Self::Level3,
+            _ => Self::None,
+        }
+    }
+
     pub fn next(self) -> WeaponLevel {
         match self {
             WeaponLevel::None => WeaponLevel::Level1,
@@ -64,7 +90,7 @@ impl WeaponLevel {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Weapon {
     pub wtype: WeaponType,
     pub level: WeaponLevel,

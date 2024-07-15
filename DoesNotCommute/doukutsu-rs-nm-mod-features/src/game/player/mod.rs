@@ -21,7 +21,7 @@ use crate::input::dummy_player_controller::DummyPlayerController;
 use crate::input::player_controller::PlayerController;
 use crate::util::rng::RNG;
 
-use super::shared_game_state;
+use crate::game::inventory::Inventory;
 
 mod player_hit;
 pub mod skin;
@@ -105,7 +105,7 @@ pub struct Player {
     pub down: bool,
     pub shock_counter: u8,
     pub xp_counter: u8,
-    pub current_weapon: u8,
+    pub current_weapon: u8, //inventory drives, this is copied from that
     pub stars: u8,
     pub damage: u16,
     pub air_counter: u16,
@@ -951,6 +951,16 @@ impl Player {
         }
     }
 
+    //runs separately after all the other "tick" processes in game_scene
+    pub fn tick_save_frame(&mut self, state: &mut SharedGameState, inventory: &mut Inventory) -> GameResult {
+
+
+        //save player state for this frame
+        let record = Record::extract_player_rec_frame(self, inventory);
+        self.recorder.tick(state, Some(record))?;
+
+        Ok(())
+    }
 
 }
 
@@ -1013,10 +1023,6 @@ impl GameEntity<&NPCList> for Player {
                 dog.tick();
             }
         }
-
-        //save player state for this frame
-        let record = Record::extract_player_rec_frame(self);
-        self.recorder.tick(state, Some(record))?;
 
         Ok(())
     }

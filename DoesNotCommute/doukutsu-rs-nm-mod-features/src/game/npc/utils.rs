@@ -93,6 +93,7 @@ impl NPC {
             recorder: None,
             pc_skin: None,
             shooter_vals: ShooterVals::new(),
+            weapon: None,
         }
     }
 
