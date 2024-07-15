@@ -202,7 +202,8 @@ impl Weapon {
         self.empty_counter = self.empty_counter.saturating_sub(1);
         self.refire_timer = self.refire_timer.saturating_sub(1);
 
-        if player.shoot() {
+        //wait 4 ticks before allowing another shot
+        if player.trigger_shoot() {
             if self.refire_timer > 0 {
                 return;
             }
