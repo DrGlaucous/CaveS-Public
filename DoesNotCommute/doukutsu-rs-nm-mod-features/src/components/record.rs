@@ -86,7 +86,7 @@ pub struct RecordFrame {
 pub struct Record {
     record_version: u16,
     pub frame_list: Vec<RecordFrame>,
-    pub index: usize,
+    pub index: usize, //set this to 0 to rewind player
     current_frame: Option<RecordFrame>,
     record_state: RecordState,
     last_record_state: RecordState, //for pausing

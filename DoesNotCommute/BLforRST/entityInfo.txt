@@ -376,3 +376,5 @@
 #369	gclone	curly	gclone curly 	0:352:96:366	gclone curly 	CE:Misc ;
 #370	quote	2	quote 2	48:48:64:64	quote 2 (for rust)	;
 #371	FAKE	PC	Fake Player Character	0:0:32:32	Plays back events recorded by the PC	ALL:ALL ;
+#372	sub	a	Fake PC sub a	48:48:64:64	a sub-section of the fake PC	ALL:ALL ;
+#373	sub	b	Fake PC sub b	48:48:64:64	a sub-section of the fake PC	;

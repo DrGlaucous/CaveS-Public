@@ -74,7 +74,7 @@ impl NPCList {
                     self.max_npc.replace(id + 1);
                 }
 
-                return Ok(());
+                return Ok(id);
             }
         }
 

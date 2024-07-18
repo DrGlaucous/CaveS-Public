@@ -15,8 +15,9 @@ use crate::game::weapon::bullet::BulletManager;
 
 impl NPC {
 
+    //manages NPC sub-parts,
     //reads formatted record frames from a file and immitates the player
-    pub(crate) fn tick_n371_fake_pc(
+    pub(crate) fn tick_n371_fake_pc_manager(
         &mut self,
         state: &mut SharedGameState,
         players: [&mut Player; 2],
@@ -24,74 +25,52 @@ impl NPC {
         bullet_manager: &mut BulletManager,
     ) -> GameResult {
 
-        /*
-        match self.action_num {
-            0 | 1 => {
-                if self.action_num == 0 {
-                    self.action_num = 1;
-                    self.action_counter = 0;
-                    self.anim_counter = 0;
-                }
 
-                if self.rng.range(0..120) == 10 {
-                    self.action_num = 2;
-                    self.action_counter = 0;
-                    self.anim_num = 1;
-                }
+        //find NPC of type and return its id in a list of children
+        fn find_npc(
+            id_list: &Vec<u16>,
+            npc_list: &NPCList,
+            npc_type: u16,
+        ) -> Option<u16> {
 
-                let player = self.get_closest_pseudo_player_mut(players, npc_list);
-                if (self.x - player.x()).abs() < 0x4000
-                    && self.y - 0x4000 < player.y()
-                    && self.y + 0x2000 > player.y() {
-                    self.direction = if self.x > player.x() { Direction::Left } else { Direction::Right };
+            for u in id_list.as_slice()
+            {
+                if let Some(npc) = npc_list.get_npc(*u as usize)
+                {
+                    if npc.npc_type == npc_type //matches NPC type
+                    {
+                        return Some(*u);
+                    }
                 }
             }
-            2 => {
-                self.action_counter += 1;
-                if self.action_counter > 8 {
-                    self.action_num = 1;
-                    self.anim_num = 0;
-                }
-            }
-            3 | 4 => {
-                if self.action_num == 3 {
-                    self.action_num = 4;
-                    self.anim_num = 2;
-                    self.anim_counter = 0;
-                }
 
-                self.animate(4, 2, 5);
-
-                self.x += self.direction.vector_x() * 0x200;
-            }
-            10 => {
-                self.anim_num = 6;
-
-                self.action_counter += 1;
-                if self.action_counter > 200 {
-                    self.action_counter = 0;
-
-                    state.create_caret(self.x, self.y, CaretType::Zzz, Direction::Left);
-                }
-            }
-            _ => (),
+            None
         }
-        */
 
 
-        //make sure we've bee initialized
+        //initialize sub-npc parts
         if self.child_ids.len() == 0 {
 
-            let npc = NPC::create(372, &state.npc_table);
-            let other_id = npc_list.spawn(min_id, npc)
-            let us = npc_list.get_npc(self.id).unwrap();
+            //create body
+            let mut body = NPC::create(372, &state.npc_table);
+            body.cond.set_alive(true);
+            body.parent_id = self.id;
+
+            //create gun
+            let mut gun = NPC::create(373, &state.npc_table);
+            gun.cond.set_alive(true);
+            gun.parent_id = self.id;
+
+            if let Ok(body_id) = npc_list.spawn(0x100, gun)
+            {self.child_ids.push(body_id);} //gun is index 0
+            if let Ok(gun_id) = npc_list.spawn(0x100, body)
+            {self.child_ids.push(gun_id);} //body is index 1
 
             //return Ok(())
         }
 
 
-
-        //automatically initialize our weapon
+        //initialize weapon
         if self.weapon.is_none() {
            self.weapon = Some(Weapon::new(WeaponType::None, WeaponLevel::Level1, 0, 0, 0));
         }
@@ -103,7 +82,17 @@ impl NPC {
             //start recorder + run recorder
             1 | 2
             => {
-                if let Some(recorder) = &mut self.recorder {
+                //check for sub-npcs and recorder:
+                if let (
+                    Some(gun),
+                    Some(body),
+                    Some(recorder),
+
+                ) = (
+                    npc_list.get_npc(self.child_ids[0] as usize),
+                    npc_list.get_npc(self.child_ids[1] as usize),
+                    &mut self.recorder
+                ) {  
                     
                     //start
                     if self.action_num == 1 {
@@ -112,13 +101,15 @@ impl NPC {
                     }
                     //run
 
+                    
                     //do readback here
                     recorder.tick(state, None)?;
                     if let Some(frame) = recorder.get_frame(){
-                        self.vel_x = self.x; //use old positions to derive veloctiy
-                        self.vel_y = self.y;
-                        self.x = frame.x;
-                        self.y = frame.y;
+                        body.vel_x = body.x; //use old positions to derive veloctiy
+                        body.vel_y = body.y;
+                        body.x = frame.x;
+                        body.y = frame.y;
+                        
                         self.anim_num = frame.anim_num;
                         self.direction = Direction::from_int(frame.direct as usize).unwrap();
 
@@ -145,28 +136,21 @@ impl NPC {
                         }
 
 
+                        //required for the weapon
                         self.shooter_vals.shoot = frame.flags.shoot();
                         self.shooter_vals.trigger_shoot = frame.flags.trigger_shoot();
                         self.shooter_vals.cond = self.cond;
-                        self.shooter_vals.x = self.x;
-                        self.shooter_vals.y = self.y;
+                        self.shooter_vals.x = body.x;
+                        self.shooter_vals.y = body.y;
                         //velocity is derived from delta D
-                        self.shooter_vals.vel_x = self.x - self.vel_x;
-                        self.shooter_vals.vel_y = self.y - self.vel_y;
+                        self.shooter_vals.vel_x = body.x - body.vel_x;
+                        self.shooter_vals.vel_y = body.y - body.vel_y;
                         //todo: equip
                         self.shooter_vals.direction = self.direction;
                         self.shooter_vals.up = frame.flags.up();
                         self.shooter_vals.down = frame.flags.down();
                         //stars variable doesn't need set
 
-
-                        // if self.shooter_vals.trigger_shoot {
-                        //     let mut adam = self.x;
-                        //     let mut eve = self.x + adam;
-                        // }
-                        //npc_list.spawn(min_id, npc)
-
-                        
                         
                         //update weapon
                         if let Some(mut weapon) = self.weapon.take() {
@@ -182,9 +166,6 @@ impl NPC {
                             //give it back
                             self.weapon = Some(weapon);
                         }
-                        
-
-
 
 
                     } else {
@@ -198,83 +179,74 @@ impl NPC {
 
 
             }
+            //rewind recorder
+            3 => {
+
+            }
             //idle
             0 | _ => {}
         }
 
-        let dir_offset = if self.direction == Direction::Left { 0 } else { 1 };
 
-        /*
-        //don't render unless we've got a skin to render from
-        self.anim_rect = if let Some(skin) = &self.pc_skin {
+        //set sub-part rects
+        if let (
+            Some(gun),
+            Some(body),
 
-            //ensure the display box is correct to match the metadata
-            let rc = skin.metadata.display_box;
-            self.display_bounds = Rect::new(
-                rc.left as u32 * 0x200,
-                rc.top as u32 * 0x200,
-                rc.right as u32 * 0x200,
-                rc.bottom as u32 * 0x200,
-            );
+        ) = (
+            npc_list.get_npc(self.child_ids[0] as usize),
+            npc_list.get_npc(self.child_ids[1] as usize),
+        ) {
 
-
-            skin.get_anim_rect(self.anim_num, dir_offset)
-        } else {
-            Rect::new(0,0,16,16)
-        };*/
-
-        //don't render unless we've got a skin to render from or is not animation number 0
-        self.anim_rect = match (&self.pc_skin, self.action_num != 0) {
-            
-            (Some(skin), true) => {
-                //ensure the display box is correct to match the metadata
-                let rc = skin.metadata.display_box;
-                self.display_bounds = Rect::new(
-                    rc.left as u32 * 0x200,
-                    rc.top as u32 * 0x200,
-                    rc.right as u32 * 0x200,
-                    rc.bottom as u32 * 0x200,
-                );
-                skin.get_anim_rect(self.anim_num, dir_offset)
-            }
-            _ => {
-                //Rect::new(0,0,16,16)
-                Rect::new(0,0,0,0)
+            //give our skin metadata to our "body" child, ensures any new skins set via TSC get passed down
+            if let Some(skin) = self.pc_skin.take() {
+                body.pc_skin = Some(skin);
             }
 
-        };
 
+            let dir_offset = if self.direction == Direction::Left { 0 } else { 1 };
 
-        Ok(())
-    }
+            //don't render unless we've got a skin to render from or is not animation number 0
+            match (&body.pc_skin, self.action_num != 0) {
+                
+                (Some(skin), true) => {
 
+                    //ensure the body npc's skin metadata matches the parent's
+                    
 
-    pub(crate) fn tick_n372_fake_pc_gun(
-        &mut self,
-        state: &mut SharedGameState,
-        players: [&mut Player; 2],
-        npc_list: &NPCList,
-        bullet_manager: &mut BulletManager,
-    ) -> GameResult {
-
-        let weapon_type = WeaponType::from_u8(self.action_num as u8);
-
-        let weapon_rect = Player::get_weapon_rect(
-            self.action_num as u8,
-            false,
-            self.direction,
-            self.shooter_vals.up,
-            self.shooter_vals.down,
-        );
-
-        if let Some(npc) = npc_list.get_npc(self.parent_id as usize) {
+                    //ensure the display box is correct to match the metadata
+                    let rc = skin.metadata.display_box;
+                    body.display_bounds = Rect::new(
+                        rc.left as u32 * 0x200,
+                        rc.top as u32 * 0x200,
+                        rc.right as u32 * 0x200,
+                        rc.bottom as u32 * 0x200,
+                    );
+                    body.anim_rect = skin.get_anim_rect(self.anim_num, dir_offset);
+                }
+                _ => {
+                    //Rect::new(0,0,16,16)
+                    body.anim_rect = Rect::new(0,0,0,0);
+                }
+            }
         }
 
         Ok(())
+
+    }
+
+
+    //main part: is the fPC's body
+    pub(crate) fn tick_n372_n373_fake_pc_sub(
+        &mut self,
+    ) -> GameResult {
+
+        Ok(())
     }
 
 
 
+    
 
 
 

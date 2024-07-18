@@ -680,7 +680,9 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             368 => self.tick_n368_gclone(state, players, npc_list),
             369 => self.tick_n369_gclone_curly_clone(state, players, npc_list),
             370 => self.tick_n370_second_quote(state, players, npc_list),
-            371 => self.tick_n371_fake_pc(state, players, npc_list, bullet_manager),
+            371 => self.tick_n371_fake_pc_manager(state, players, npc_list, bullet_manager),
+            372 => self.tick_n372_n373_fake_pc_sub(),
+            373 => self.tick_n372_n373_fake_pc_sub(),
 
             _ => Ok(()),
         }?;
