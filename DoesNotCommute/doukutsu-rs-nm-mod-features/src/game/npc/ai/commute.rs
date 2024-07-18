@@ -12,13 +12,10 @@ use crate::game::npc::NPCList;
 use crate::game::weapon::bullet::BulletManager;
 
 
-fn ttf(npc: &mut NPC, state: &mut SharedGameState) {
-    npc.x += 2;
-    npc.tick_n021_chest_open(state);
-}
-
 
 impl NPC {
+
+    //reads formatted record frames from a file and immitates the player
     pub(crate) fn tick_n371_fake_pc(
         &mut self,
         state: &mut SharedGameState,
@@ -82,12 +79,24 @@ impl NPC {
         */
 
 
-        //ttf(self, state);
+        //make sure we've bee initialized
+        if self.child_ids.len() == 0 {
+
+            let npc = NPC::create(372, &state.npc_table);
+            let other_id = npc_list.spawn(min_id, npc)
+            let us = npc_list.get_npc(self.id).unwrap();
+
+            //return Ok(())
+        }
+
+
 
         //automatically initialize our weapon
         if self.weapon.is_none() {
            self.weapon = Some(Weapon::new(WeaponType::None, WeaponLevel::Level1, 0, 0, 0));
         }
+
+
 
         match self.action_num {
             
@@ -106,6 +115,8 @@ impl NPC {
                     //do readback here
                     recorder.tick(state, None)?;
                     if let Some(frame) = recorder.get_frame(){
+                        self.vel_x = self.x; //use old positions to derive veloctiy
+                        self.vel_y = self.y;
                         self.x = frame.x;
                         self.y = frame.y;
                         self.anim_num = frame.anim_num;
@@ -139,34 +150,40 @@ impl NPC {
                         self.shooter_vals.cond = self.cond;
                         self.shooter_vals.x = self.x;
                         self.shooter_vals.y = self.y;
-                        //todo: log velx and vely
-                        self.shooter_vals.vel_x = self.vel_x;
-                        self.shooter_vals.vel_y = self.vel_y;
+                        //velocity is derived from delta D
+                        self.shooter_vals.vel_x = self.x - self.vel_x;
+                        self.shooter_vals.vel_y = self.y - self.vel_y;
                         //todo: equip
                         self.shooter_vals.direction = self.direction;
                         self.shooter_vals.up = frame.flags.up();
                         self.shooter_vals.down = frame.flags.down();
                         //stars variable doesn't need set
 
-                        if self.shooter_vals.trigger_shoot {
-                            let mut adam = self.x;
-                            let mut eve = self.x + adam;
-                        }
+
+                        // if self.shooter_vals.trigger_shoot {
+                        //     let mut adam = self.x;
+                        //     let mut eve = self.x + adam;
+                        // }
+                        //npc_list.spawn(min_id, npc)
 
                         
                         
                         //update weapon
                         if let Some(mut weapon) = self.weapon.take() {
 
-                            weapon.wtype = frame.weapon;
-                            //weapon.level = frame.weapon_level;
                             let eve_num = self.event_num as u32;
                             weapon.tick(state, self, TargetShooter::NPC(eve_num), bullet_manager);
+
+                            weapon.wtype = frame.weapon;
+                            weapon.level = frame.weapon_level;
+                            weapon.ammo = frame.ammo;
+                            weapon.max_ammo = frame.max_ammo;
 
                             //give it back
                             self.weapon = Some(weapon);
                         }
-                        //self.weapon.borrow_mut().tick(state, self, TargetShooter::NPC(0 as u32), bullet_manager);
+                        
+
 
 
 
@@ -187,6 +204,7 @@ impl NPC {
 
         let dir_offset = if self.direction == Direction::Left { 0 } else { 1 };
 
+        /*
         //don't render unless we've got a skin to render from
         self.anim_rect = if let Some(skin) = &self.pc_skin {
 
@@ -203,12 +221,57 @@ impl NPC {
             skin.get_anim_rect(self.anim_num, dir_offset)
         } else {
             Rect::new(0,0,16,16)
+        };*/
+
+        //don't render unless we've got a skin to render from or is not animation number 0
+        self.anim_rect = match (&self.pc_skin, self.action_num != 0) {
+            
+            (Some(skin), true) => {
+                //ensure the display box is correct to match the metadata
+                let rc = skin.metadata.display_box;
+                self.display_bounds = Rect::new(
+                    rc.left as u32 * 0x200,
+                    rc.top as u32 * 0x200,
+                    rc.right as u32 * 0x200,
+                    rc.bottom as u32 * 0x200,
+                );
+                skin.get_anim_rect(self.anim_num, dir_offset)
+            }
+            _ => {
+                //Rect::new(0,0,16,16)
+                Rect::new(0,0,0,0)
+            }
+
         };
 
 
         Ok(())
     }
 
+
+    pub(crate) fn tick_n372_fake_pc_gun(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+        bullet_manager: &mut BulletManager,
+    ) -> GameResult {
+
+        let weapon_type = WeaponType::from_u8(self.action_num as u8);
+
+        let weapon_rect = Player::get_weapon_rect(
+            self.action_num as u8,
+            false,
+            self.direction,
+            self.shooter_vals.up,
+            self.shooter_vals.down,
+        );
+
+        if let Some(npc) = npc_list.get_npc(self.parent_id as usize) {
+        }
+
+        Ok(())
+    }
 
 
 

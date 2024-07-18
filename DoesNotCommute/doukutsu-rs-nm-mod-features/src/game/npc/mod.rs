@@ -181,6 +181,7 @@ pub struct NPC {
     pub pc_skin: Option<PCSkin>,
     pub shooter_vals: ShooterVals,
     pub weapon: Option<Weapon>,
+    pub child_ids: Vec<u16>,
 }
 
 impl NPC {
@@ -230,6 +231,7 @@ impl NPC {
             pc_skin: None,
             shooter_vals: ShooterVals::new(),
             weapon: None,
+            child_ids: Vec::new(),
 
         }
     }

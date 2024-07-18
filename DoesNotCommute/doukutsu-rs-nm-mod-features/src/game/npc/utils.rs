@@ -94,6 +94,7 @@ impl NPC {
             pc_skin: None,
             shooter_vals: ShooterVals::new(),
             weapon: None,
+            child_ids: Vec::new(),
         }
     }
 

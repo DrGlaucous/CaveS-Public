@@ -834,31 +834,45 @@ impl Player {
             self.anim_counter = 0;
         }
 
-        self.weapon_offset_y = 0;
-        self.weapon_rect.left = (self.current_weapon as u16 % 13) * 24;
-        self.weapon_rect.top = (self.current_weapon as u16 / 13) * 96;
-        self.weapon_rect.right = self.weapon_rect.left + 24;
-        self.weapon_rect.bottom = self.weapon_rect.top + 16;
 
-        if self.direction == Direction::Right {
-            self.weapon_rect.top += 16;
-            self.weapon_rect.bottom += 16;
-        }
+        /*
+        ////////////////
+        // self.weapon_offset_y = 0;
+        // self.weapon_rect.left = (self.current_weapon as u16 % 13) * 24;
+        // self.weapon_rect.top = (self.current_weapon as u16 / 13) * 96;
+        // self.weapon_rect.right = self.weapon_rect.left + 24;
+        // self.weapon_rect.bottom = self.weapon_rect.top + 16;
 
-        if self.up {
-            self.weapon_offset_y = -4;
-            self.weapon_rect.top += 32;
-            self.weapon_rect.bottom += 32;
-        } else if self.down {
-            self.weapon_offset_y = 4;
-            self.weapon_rect.top += 64;
-            self.weapon_rect.bottom += 64;
-        }
+        // if self.direction == Direction::Right {
+        //     self.weapon_rect.top += 16;
+        //     self.weapon_rect.bottom += 16;
+        // }
 
-        if self.anim_num == 1 || self.anim_num == 3 || self.anim_num == 6 || self.anim_num == 8 {
-            self.weapon_rect.top += 1;
-        }
+        // if self.up {
+        //     self.weapon_offset_y = -4;
+        //     self.weapon_rect.top += 32;
+        //     self.weapon_rect.bottom += 32;
+        // } else if self.down {
+        //     self.weapon_offset_y = 4;
+        //     self.weapon_rect.top += 64;
+        //     self.weapon_rect.bottom += 64;
+        // }
 
+        // if self.anim_num == 1 || self.anim_num == 3 || self.anim_num == 6 || self.anim_num == 8 {
+        //     self.weapon_rect.top += 1;
+        // }
+        ////////////////
+        */
+
+        (self.weapon_rect, self.weapon_offset_y) = Self::get_weapon_rect(
+            self.current_weapon,
+            self.anim_num == 1 || self.anim_num == 3 || self.anim_num == 6 || self.anim_num == 8,
+            self.direction,
+            self.up,
+            self.down,
+        );
+
+        
         self.skin.tick();
         self.skin.set_direction(self.direction);
         self.skin.set_appearance(if self.equip.has_mimiga_mask() {
@@ -961,6 +975,51 @@ impl Player {
 
         Ok(())
     }
+
+
+    pub fn get_weapon_rect(
+        current_weapon: u8,
+        //anim_num: u16,
+        offset_up: bool,
+        direction: Direction,
+        up: bool,
+        down: bool
+    ) -> (Rect<u16>, i8) {
+
+        let mut weapon_rect = Rect::new(0, 0, 0, 0);
+
+        let mut weapon_offset_y = 0;
+
+        weapon_rect.left = (current_weapon as u16 % 13) * 24;
+        weapon_rect.top = (current_weapon as u16 / 13) * 96;
+        weapon_rect.right = weapon_rect.left + 24;
+        weapon_rect.bottom = weapon_rect.top + 16;
+
+        if direction == Direction::Right {
+            weapon_rect.top += 16;
+            weapon_rect.bottom += 16;
+        }
+
+        if up {
+            weapon_offset_y = -4;
+            weapon_rect.top += 32;
+            weapon_rect.bottom += 32;
+        } else if down {
+            weapon_offset_y = 4;
+            weapon_rect.top += 64;
+            weapon_rect.bottom += 64;
+        }
+
+        //if anim_num == 1 || anim_num == 3 || anim_num == 6 || anim_num == 8 {
+        if offset_up {
+            weapon_rect.top += 1;
+        }
+
+        (weapon_rect, weapon_offset_y)
+
+    }
+
+
 
 }
 

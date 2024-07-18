@@ -18,7 +18,7 @@ use crate::game::shared_game_state::SharedGameState; //{ReplayKind, ReplayState,
 use crate::game::player::Player;
 use crate::game::npc::NPC;
 use crate::game::inventory::Inventory;
-use crate::game::weapon::{WeaponLevel, WeaponType};
+use crate::game::weapon::{self, WeaponLevel, WeaponType};
 //use crate::graphics::font::Font;
 
 
@@ -68,14 +68,17 @@ pub enum RecordState {
 #[derive(Debug, Clone, Copy)]
 #[repr(packed(1))]
 pub struct RecordFrame {
-    pub flags: RecordStateFlags,
-    pub weapon: WeaponType,
-    pub weapon_level: WeaponLevel,
-    pub x: i32,
-    pub y: i32,
-    pub anim_num: u16,
-    pub direct: u8,
-    pub sound_flags: SoundFlags,
+    pub flags: RecordStateFlags, //1
+    pub weapon: WeaponType, //1
+    pub weapon_level: WeaponLevel, //1
+    pub ammo: u16, //2
+    pub max_ammo: u16, //2
+    pub x: i32, //4
+    pub y: i32, //4
+    pub anim_num: u16, //2
+    pub direct: u8, //1
+    pub sound_flags: SoundFlags, //1
+    //3+4+8+2+2=19
 }
 
 
@@ -168,10 +171,12 @@ impl Record {
     
     
                 for input in &self.frame_list {
-        
+
                     file.write_u8(input.flags.0)?;
                     file.write_u8(input.weapon as u8)?;
                     file.write_u8(input.weapon_level as u8)?;
+                    file.write_u16::<LE>(input.ammo)?;
+                    file.write_u16::<LE>(input.max_ammo)?;
                     file.write_i32::<LE>(input.x)?;
                     file.write_i32::<LE>(input.y)?;
                     file.write_u16::<LE>(input.anim_num)?;
@@ -222,12 +227,15 @@ impl Record {
                     // file.write_f32::<LE>(input.y)?;
                     // file.write_u16::<LE>(input.anim_no)?;
                     //let ttt = RecordStateFlags{0: 5}; //another way to initialize the bifiteld
+                    
 
                     inputs.push(
                         RecordFrame{
                             flags: RecordStateFlags(f.read_u8()?),
                             weapon: WeaponType::from_u8(f.read_u8()?),
                             weapon_level: WeaponLevel::from_u8(f.read_u8()?),
+                            ammo: f.read_u16::<LE>()?,
+                            max_ammo: f.read_u16::<LE>()?,
                             x: f.read_i32::<LE>()?,
                             y: f.read_i32::<LE>()?,
                             anim_num: f.read_u16::<LE>()?,
@@ -265,17 +273,33 @@ impl Record {
         //     let mut da = flags.0;
         //     da += 1;
         // }
-        let (weapon_type, weapon_lvl) = if let Some(weapon) = inventory.get_current_weapon() {
-            (weapon.wtype, weapon.level)
+        let (
+            weapon_type,
+            weapon_lvl,
+            weapon_ammo,
+            weapon_max_ammo,
+        ) = if let Some(weapon) = inventory.get_current_weapon() {
+            (
+                weapon.wtype,
+                weapon.level,
+                weapon.ammo,
+                weapon.max_ammo
+            )
         } else {
-            (WeaponType::None, WeaponLevel::None)
+            (
+                WeaponType::None,
+                WeaponLevel::None,
+                0,
+                0,
+            )
         };
-
 
         RecordFrame {
             flags: flags,
             weapon: weapon_type,
             weapon_level: weapon_lvl,
+            ammo: weapon_ammo,
+            max_ammo: weapon_max_ammo,
             x: player.x,
             y: player.y,
             anim_num: player.skin.get_raw_frame_index(),

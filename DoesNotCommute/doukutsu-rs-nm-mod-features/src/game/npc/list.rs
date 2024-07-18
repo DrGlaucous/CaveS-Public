@@ -49,7 +49,7 @@ impl NPCList {
     }
 
     /// Inserts NPC into list in first available slot after given ID.
-    pub fn spawn(&self, min_id: u16, mut npc: NPC) -> GameResult {
+    pub fn spawn(&self, min_id: u16, mut npc: NPC) ->  GameResult<u16> {
         let npc_len = unsafe { self.npcs().len() };
 
         if min_id as usize >= npc_len {

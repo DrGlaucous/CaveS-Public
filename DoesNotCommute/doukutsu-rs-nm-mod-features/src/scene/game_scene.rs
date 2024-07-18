@@ -261,49 +261,79 @@ impl GameScene {
     }
 
     fn draw_bullets(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
-        let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Bullet")?;
-        let mut x: i32;
-        let mut y: i32;
-        let mut prev_x: i32;
-        let mut prev_y: i32;
+        
+        //"Bullet"
 
-        for bullet in self.bullet_manager.bullets.iter() {
-            match bullet.direction {
-                Direction::Left => {
-                    x = bullet.x - bullet.display_bounds.left as i32;
-                    y = bullet.y - bullet.display_bounds.top as i32;
-                    prev_x = bullet.prev_x - bullet.display_bounds.left as i32;
-                    prev_y = bullet.prev_y - bullet.display_bounds.top as i32;
+
+        fn draw_bullet_palette(
+            scene: &GameScene,
+            state: &mut SharedGameState,
+            ctx: &mut Context,
+            palette: &str,
+            npc_owner: bool,
+        ) -> GameResult{
+            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, palette)?;
+            let mut x: i32;
+            let mut y: i32;
+            let mut prev_x: i32;
+            let mut prev_y: i32;
+    
+            for bullet in scene.bullet_manager.bullets.iter() {
+
+                match (bullet.owner, npc_owner){
+                    //if is an NPC and we want NPCs, or is NOT an NPC and we don't want NPCs
+                    (TargetShooter::NPC(_), true)
+                    | (_, false) => { },
+                    //ignore all other cases
+                    _ => {
+                        continue;
+                    }
                 }
-                Direction::Up => {
-                    x = bullet.x - bullet.display_bounds.top as i32;
-                    y = bullet.y - bullet.display_bounds.left as i32;
-                    prev_x = bullet.prev_x - bullet.display_bounds.top as i32;
-                    prev_y = bullet.prev_y - bullet.display_bounds.left as i32;
+
+                match bullet.direction {
+                    Direction::Left => {
+                        x = bullet.x - bullet.display_bounds.left as i32;
+                        y = bullet.y - bullet.display_bounds.top as i32;
+                        prev_x = bullet.prev_x - bullet.display_bounds.left as i32;
+                        prev_y = bullet.prev_y - bullet.display_bounds.top as i32;
+                    }
+                    Direction::Up => {
+                        x = bullet.x - bullet.display_bounds.top as i32;
+                        y = bullet.y - bullet.display_bounds.left as i32;
+                        prev_x = bullet.prev_x - bullet.display_bounds.top as i32;
+                        prev_y = bullet.prev_y - bullet.display_bounds.left as i32;
+                    }
+                    Direction::Right => {
+                        x = bullet.x - bullet.display_bounds.right as i32;
+                        y = bullet.y - bullet.display_bounds.top as i32;
+                        prev_x = bullet.prev_x - bullet.display_bounds.right as i32;
+                        prev_y = bullet.prev_y - bullet.display_bounds.top as i32;
+                    }
+                    Direction::Bottom => {
+                        x = bullet.x - bullet.display_bounds.top as i32;
+                        y = bullet.y - bullet.display_bounds.right as i32;
+                        prev_x = bullet.prev_x - bullet.display_bounds.top as i32;
+                        prev_y = bullet.prev_y - bullet.display_bounds.right as i32;
+                    }
+                    Direction::FacingPlayer => unreachable!(),
                 }
-                Direction::Right => {
-                    x = bullet.x - bullet.display_bounds.right as i32;
-                    y = bullet.y - bullet.display_bounds.top as i32;
-                    prev_x = bullet.prev_x - bullet.display_bounds.right as i32;
-                    prev_y = bullet.prev_y - bullet.display_bounds.top as i32;
-                }
-                Direction::Bottom => {
-                    x = bullet.x - bullet.display_bounds.top as i32;
-                    y = bullet.y - bullet.display_bounds.right as i32;
-                    prev_x = bullet.prev_x - bullet.display_bounds.top as i32;
-                    prev_y = bullet.prev_y - bullet.display_bounds.right as i32;
-                }
-                Direction::FacingPlayer => unreachable!(),
+    
+                batch.add_rect(
+                    interpolate_fix9_scale(prev_x - scene.frame.prev_x, x - scene.frame.x, state.frame_time),
+                    interpolate_fix9_scale(prev_y - scene.frame.prev_y, y - scene.frame.y, state.frame_time),
+                    &bullet.anim_rect,
+                );
             }
+    
+            batch.draw(ctx)?;
 
-            batch.add_rect(
-                interpolate_fix9_scale(prev_x - self.frame.prev_x, x - self.frame.x, state.frame_time),
-                interpolate_fix9_scale(prev_y - self.frame.prev_y, y - self.frame.y, state.frame_time),
-                &bullet.anim_rect,
-            );
+            Ok(())
         }
 
-        batch.draw(ctx)?;
+
+        draw_bullet_palette(self, state, ctx, "Bullet", false)?;
+        draw_bullet_palette(self, state, ctx, "BulletFF", true)?;
+
         Ok(())
     }
 
