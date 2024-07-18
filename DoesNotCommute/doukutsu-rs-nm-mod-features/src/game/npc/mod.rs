@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::cell::{Ref, RefCell};
 use std::io;
 use std::io::Cursor;
@@ -117,6 +118,19 @@ impl PCSkin {
     }
 }
 
+
+//new items will go in here because appearently the stack is too small
+#[derive(Debug, Clone)]
+pub struct MoreItems {
+    pub recorder: Option<Record>,
+    pub pc_skin: Option<PCSkin>,
+    pub shooter_vals: ShooterVals,
+    pub weapon: Option<Weapon>,
+}
+
+
+
+
 #[derive(Debug, Copy, Clone, Eq, PartialOrd, PartialEq)]
 #[repr(u8)]
 pub enum NPCLayer {
@@ -177,11 +191,11 @@ pub struct NPC {
     pub popup: NumberPopup,
     pub splash: bool,
 
-    pub recorder: Option<Record>,
-    pub pc_skin: Option<PCSkin>,
-    pub shooter_vals: ShooterVals,
-    pub weapon: Option<Weapon>,
     pub child_ids: Vec<u16>,
+
+    //we gotta box this crap because the stack is too puny to handle its power directly (even though the NPC array is in a box already?)
+    pub more_items: Box<MoreItems>,
+
 }
 
 impl NPC {
@@ -227,10 +241,13 @@ impl NPC {
             popup: NumberPopup::new(),
             splash: false,
 
-            recorder: None,
-            pc_skin: None,
-            shooter_vals: ShooterVals::new(),
-            weapon: None,
+            more_items: Box::new(MoreItems{
+                recorder: None,
+                pc_skin: None,
+                shooter_vals: ShooterVals::new(),
+                weapon: None,
+            }),
+
             child_ids: Vec::new(),
 
         }
@@ -718,7 +735,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
         let texture_ref = state.npc_table.get_texture_ref(self.spritesheet_id);
 
         //if the custom skin is configured, use that instead of the default texture ID
-        let tex_name = if let Some(skin) = &self.pc_skin {
+        let tex_name = if let Some(skin) = self.more_items.pc_skin.as_ref() {
             skin.texture_name.as_str()
         } else {
             &*texture_ref
@@ -910,77 +927,77 @@ impl Shooter for NPC {
     
     #[inline(always)]
     fn shoot(&self) -> bool {
-        self.shooter_vals.shoot
+        self.more_items.shooter_vals.shoot
     }
     
     #[inline(always)]
     fn trigger_shoot(&self) -> bool {
-        self.shooter_vals.trigger_shoot
+        self.more_items.shooter_vals.trigger_shoot
     }
     
     #[inline(always)]
     fn cond(&self) -> Condition {
-        self.shooter_vals.cond
+        self.more_items.shooter_vals.cond
     }
     
     #[inline(always)]
     fn x(&self) -> i32 {
-        self.shooter_vals.x
+        self.more_items.shooter_vals.x
     }
     
     #[inline(always)]
     fn y(&self) -> i32 {
-        self.shooter_vals.y
+        self.more_items.shooter_vals.y
     }
     
     #[inline(always)]
     fn vel_x(&self) -> i32 {
-        self.shooter_vals.x
+        self.more_items.shooter_vals.x
     }
     
     #[inline(always)]
     fn vel_y(&self) -> i32 {
-        self.shooter_vals.y
+        self.more_items.shooter_vals.y
     }
     
     #[inline(always)]
     fn set_vel_x(&mut self, num: i32) {
-        self.shooter_vals.vel_x = num;
+        self.more_items.shooter_vals.vel_x = num;
     }
     
     #[inline(always)]
     fn set_vel_y(&mut self, num: i32) {
-        self.shooter_vals.vel_y = num;
+        self.more_items.shooter_vals.vel_y = num;
     }
     
     #[inline(always)]
     fn equip(&self) -> Equipment {
-        self.shooter_vals.equip
+        self.more_items.shooter_vals.equip
     }
     
     #[inline(always)]
     fn direction(&self) -> Direction {
-        self.shooter_vals.direction
+        self.more_items.shooter_vals.direction
     }
     
     #[inline(always)]
     fn up(&self) -> bool {
-        self.shooter_vals.up
+        self.more_items.shooter_vals.up
     }
     
     #[inline(always)]
     fn down(&self) -> bool {
-        self.shooter_vals.down
+        self.more_items.shooter_vals.down
     }
 
     #[inline(always)]
     fn stars(&self) -> u8 {
-        self.shooter_vals.stars
+        self.more_items.shooter_vals.stars
     }
     
     #[inline(always)]
     fn set_stars(&mut self, num: u8) {
-        self.shooter_vals.stars = num;
+        self.more_items.shooter_vals.stars = num;
     }
 
     //not really needed since this is for the HUD

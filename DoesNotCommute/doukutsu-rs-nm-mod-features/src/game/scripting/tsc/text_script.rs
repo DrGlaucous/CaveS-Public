@@ -2185,9 +2185,9 @@ impl TextScriptVM {
                     if npc.event_num == event_num {
                         //de-init skin if string is empty
                         if len == 0 {
-                            npc.pc_skin = None;
+                            npc.more_items.pc_skin = None;
                         } else {
-                            npc.pc_skin = Some(PCSkin::new(filepath.clone(), state, ctx));
+                            npc.more_items.pc_skin = Some(PCSkin::new(filepath.clone(), state, ctx));
                         }
                     }
                 }
@@ -2231,11 +2231,11 @@ impl TextScriptVM {
 
                         //unload if file is empty
                         if len == 0 {
-                            npc.recorder = None;
+                            npc.more_items.recorder = None;
                         } else {
                             let mut recorder = Record::new();
                             recorder.read_replay(ctx, filename.as_str())?;
-                            npc.recorder = Some(recorder);
+                            npc.more_items.recorder = Some(recorder);
                         }
                         
                     }

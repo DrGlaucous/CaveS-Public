@@ -71,8 +71,8 @@ impl NPC {
 
 
         //initialize weapon
-        if self.weapon.is_none() {
-           self.weapon = Some(Weapon::new(WeaponType::None, WeaponLevel::Level1, 0, 0, 0));
+        if self.more_items.weapon.is_none() {
+           self.more_items.weapon = Some(Weapon::new(WeaponType::None, WeaponLevel::Level1, 0, 0, 0));
         }
 
 
@@ -91,7 +91,7 @@ impl NPC {
                 ) = (
                     npc_list.get_npc(self.child_ids[0] as usize),
                     npc_list.get_npc(self.child_ids[1] as usize),
-                    &mut self.recorder
+                    &mut self.more_items.recorder
                 ) {  
                     
                     //start
@@ -137,23 +137,23 @@ impl NPC {
 
 
                         //required for the weapon
-                        self.shooter_vals.shoot = frame.flags.shoot();
-                        self.shooter_vals.trigger_shoot = frame.flags.trigger_shoot();
-                        self.shooter_vals.cond = self.cond;
-                        self.shooter_vals.x = body.x;
-                        self.shooter_vals.y = body.y;
+                        self.more_items.shooter_vals.shoot = frame.flags.shoot();
+                        self.more_items.shooter_vals.trigger_shoot = frame.flags.trigger_shoot();
+                        self.more_items.shooter_vals.cond = self.cond;
+                        self.more_items.shooter_vals.x = body.x;
+                        self.more_items.shooter_vals.y = body.y;
                         //velocity is derived from delta D
-                        self.shooter_vals.vel_x = body.x - body.vel_x;
-                        self.shooter_vals.vel_y = body.y - body.vel_y;
+                        self.more_items.shooter_vals.vel_x = body.x - body.vel_x;
+                        self.more_items.shooter_vals.vel_y = body.y - body.vel_y;
                         //todo: equip
-                        self.shooter_vals.direction = self.direction;
-                        self.shooter_vals.up = frame.flags.up();
-                        self.shooter_vals.down = frame.flags.down();
+                        self.more_items.shooter_vals.direction = self.direction;
+                        self.more_items.shooter_vals.up = frame.flags.up();
+                        self.more_items.shooter_vals.down = frame.flags.down();
                         //stars variable doesn't need set
 
                         
                         //update weapon
-                        if let Some(mut weapon) = self.weapon.take() {
+                        if let Some(mut weapon) = self.more_items.weapon.take() {
 
                             let eve_num = self.event_num as u32;
                             weapon.tick(state, self, TargetShooter::NPC(eve_num), bullet_manager);
@@ -164,7 +164,7 @@ impl NPC {
                             weapon.max_ammo = frame.max_ammo;
 
                             //give it back
-                            self.weapon = Some(weapon);
+                            self.more_items.weapon = Some(weapon);
                         }
 
 
@@ -199,15 +199,15 @@ impl NPC {
         ) {
 
             //give our skin metadata to our "body" child, ensures any new skins set via TSC get passed down
-            if let Some(skin) = self.pc_skin.take() {
-                body.pc_skin = Some(skin);
+            if let Some(skin) = self.more_items.pc_skin.take() {
+                body.more_items.pc_skin = Some(skin);
             }
 
 
             let dir_offset = if self.direction == Direction::Left { 0 } else { 1 };
 
             //don't render unless we've got a skin to render from or is not animation number 0
-            match (&body.pc_skin, self.action_num != 0) {
+            match (&body.more_items.pc_skin, self.action_num != 0) {
                 
                 (Some(skin), true) => {
 
