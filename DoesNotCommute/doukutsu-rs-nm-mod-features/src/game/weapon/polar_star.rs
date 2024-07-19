@@ -83,8 +83,8 @@ impl Weapon {
                     &state.constants,
                 );
                 state.create_caret(
-                    player.x() + 0x200 + (9 * 0x200), 
-                    player.y() + 0x1000 + (11 * 0x200), 
+                    player.gun_offset_x() + (9 * 0x200), 
+                    player.gun_offset_y() + (11 * 0x200), 
                     CaretType::Shoot, Direction::Left);
             }
             Direction::Left => {

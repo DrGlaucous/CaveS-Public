@@ -1229,12 +1229,12 @@ impl Shooter for Player {
     
     #[inline(always)]
     fn x(&self) -> i32 {
-        self.x + self.skin.get_gun_offset().0 * 0x200
+        self.x // + self.skin.get_gun_offset().0 * 0x200
     }
     
     #[inline(always)]
     fn y(&self) -> i32 {
-        self.y + self.skin.get_gun_offset().1 * 0x200
+        self.y // + self.skin.get_gun_offset().1 * 0x200
     }
     
     #[inline(always)]

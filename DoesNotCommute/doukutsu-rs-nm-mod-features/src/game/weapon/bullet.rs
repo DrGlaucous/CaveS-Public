@@ -6,7 +6,7 @@ use crate::game::caret::CaretType;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
 use crate::game::physics::{OFFSETS, PhysicalEntity};
-use crate::game::player::{Player, TargetPlayer};
+use crate::game::player::Player;
 use crate::game::shared_game_state::{SharedGameState, TileSize};
 use crate::game::stage::Stage;
 use crate::util::rng::{RNG, Xoroshiro32PlusPlus, XorShift};
@@ -1687,14 +1687,21 @@ impl Bullet {
                 players[1]
             },
             TargetShooter::NPC(num) => {
-                // for npc in npc_list.iter_alive() {
-                //     if npc.event_num == num {
-                //         npc
-                //     }
-                // }
-                npc_list.get_npc(0).unwrap()
 
-                //players[1]
+                let mut npcd: Option<&mut NPC> = None;
+                for npc in npc_list.iter_alive() {
+                    if npc.event_num == num as u16 {
+                        npcd = Some(npc);
+                        break;
+                    }
+                }
+                if let Some(npc) = npcd {
+                    npc
+                } else {
+                    //just something in case the NPC no longer exists for some reason
+                    players[1]
+                }
+
             },
         };
 
