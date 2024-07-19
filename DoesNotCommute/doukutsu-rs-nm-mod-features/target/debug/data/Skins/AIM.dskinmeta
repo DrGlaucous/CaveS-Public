@@ -1,9 +1,9 @@
 {
-	"name": "Ame",
-    "author": "Alula / Pixel (original Ame sprite from Gero Blaster trailer)",
+	"name": "AIM",
+    "author": "Dr. G",
     "version": 1,
     "gunOffsetX": 0,
-    "gunOffsetY": 5,
+    "gunOffsetY": 0,
     "frameSizeWidth": 16,
     "frameSizeHeight": 22,
     "displayBox": [8, 14, 8, 8],

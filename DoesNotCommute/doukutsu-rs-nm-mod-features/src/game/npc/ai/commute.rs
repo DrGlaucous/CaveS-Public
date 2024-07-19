@@ -83,16 +83,7 @@ impl NPC {
             1 | 2
             => {
                 //check for sub-npcs and recorder:
-                if let (
-                    Some(gun),
-                    Some(body),
-                    Some(recorder),
-
-                ) = (
-                    npc_list.get_npc(self.child_ids[0] as usize),
-                    npc_list.get_npc(self.child_ids[1] as usize),
-                    &mut self.more_items.recorder
-                ) {  
+                if let Some(recorder) = &mut self.more_items.recorder {  
                     
                     //start
                     if self.action_num == 1 {
@@ -100,16 +91,15 @@ impl NPC {
                         recorder.start_playback();
                     }
                     //run
-
                     
                     //do readback here
                     recorder.tick(state, None)?;
                     if let Some(frame) = recorder.get_frame(){
-                        body.vel_x = body.x; //use old positions to derive veloctiy
-                        body.vel_y = body.y;
-                        body.x = frame.x;
-                        body.y = frame.y;
-                        
+                        self.vel_x = self.x; //use old positions to derive veloctiy
+                        self.vel_y = self.y;
+                        self.x = frame.x;
+                        self.y = frame.y;
+                        self.anim_counter = if frame.flags.shock_frame() {1} else {0};
                         self.anim_num = frame.anim_num;
                         self.direction = Direction::from_int(frame.direct as usize).unwrap();
 
@@ -140,11 +130,11 @@ impl NPC {
                         self.more_items.shooter_vals.shoot = frame.flags.shoot();
                         self.more_items.shooter_vals.trigger_shoot = frame.flags.trigger_shoot();
                         self.more_items.shooter_vals.cond = self.cond;
-                        self.more_items.shooter_vals.x = body.x;
-                        self.more_items.shooter_vals.y = body.y;
+                        self.more_items.shooter_vals.x = self.x;
+                        self.more_items.shooter_vals.y = self.y;
                         //velocity is derived from delta D
-                        self.more_items.shooter_vals.vel_x = body.x - body.vel_x;
-                        self.more_items.shooter_vals.vel_y = body.y - body.vel_y;
+                        self.more_items.shooter_vals.vel_x = self.x - self.vel_x;
+                        self.more_items.shooter_vals.vel_y = self.y - self.vel_y;
                         //todo: equip
                         self.more_items.shooter_vals.direction = self.direction;
                         self.more_items.shooter_vals.up = frame.flags.up();
@@ -173,8 +163,6 @@ impl NPC {
                         self.action_num = 0;
                     }
 
-
-
                 }
 
 
@@ -187,15 +175,19 @@ impl NPC {
             0 | _ => {}
         }
 
+        //may not be needed; hide parent NPC
+        self.anim_rect = Rect::new(0,0,0,0);
 
-        //set sub-part rects
+        //set sub-part rects and positions
         if let (
             Some(gun),
             Some(body),
+            Some(weapon),
 
         ) = (
             npc_list.get_npc(self.child_ids[0] as usize),
             npc_list.get_npc(self.child_ids[1] as usize),
+            &self.more_items.weapon,
         ) {
 
             //give our skin metadata to our "body" child, ensures any new skins set via TSC get passed down
@@ -206,27 +198,65 @@ impl NPC {
 
             let dir_offset = if self.direction == Direction::Left { 0 } else { 1 };
 
-            //don't render unless we've got a skin to render from or is not animation number 0
-            match (&body.more_items.pc_skin, self.action_num != 0) {
+            //don't render unless we've got a skin to render from or is not animation number 0 (idle state) or is in a shock state
+            //note: final condition may need to be moved inside to help with the interpolation mode
+            match (&body.more_items.pc_skin, self.action_num != 0, self.anim_counter == 0) {
                 
-                (Some(skin), true) => {
+                (Some(skin), true, true) => {
 
-                    //ensure the body npc's skin metadata matches the parent's
-                    
+                    //set body rect and position
+                    {
+                        //ensure the display box is correct to match the metadata
+                        let rc = skin.metadata.display_box;
+                        body.display_bounds = Rect::new(
+                            rc.left as u32 * 0x200,
+                            rc.top as u32 * 0x200,
+                            rc.right as u32 * 0x200,
+                            rc.bottom as u32 * 0x200,
+                        );
+                        body.anim_rect = skin.get_anim_rect(self.anim_num, dir_offset);
+                        body.x = self.x;
+                        body.y = self.y;
+                    }
 
-                    //ensure the display box is correct to match the metadata
-                    let rc = skin.metadata.display_box;
-                    body.display_bounds = Rect::new(
-                        rc.left as u32 * 0x200,
-                        rc.top as u32 * 0x200,
-                        rc.right as u32 * 0x200,
-                        rc.bottom as u32 * 0x200,
-                    );
-                    body.anim_rect = skin.get_anim_rect(self.anim_num, dir_offset);
+                    //set gun rect and position
+                    {
+                        let (rc, y_offset) = Player::get_weapon_rect(
+                            weapon.wtype as u8,
+                            self.anim_num == 1 || self.anim_num == 2 || self.anim_num == 4 || self.anim_num == 5 || self.anim_num == 6,
+                            self.direction,
+                            self.more_items.shooter_vals.up,
+                            self.more_items.shooter_vals.down
+                        );
+                        gun.display_bounds = Rect::new(
+                            0,
+                            0,
+                            rc.width() as u32 * 0x200,
+                            rc.height() as u32 * 0x200,
+                        );
+
+                        let (gun_off_x, gun_off_y) = if let Some(skin) = &mut body.more_items.pc_skin {
+                            (skin.metadata.gun_offset_x as i32 * 0x200, skin.metadata.gun_offset_y as i32 * 0x200)
+                        } else {(0,0)};
+
+                        gun.anim_rect = rc;
+
+                        gun.x = self.x - body.display_bounds.left as i32
+                        + if self.direction == Direction::Left { (-8 * 0x200) - gun_off_x} else { gun_off_x};
+
+                        gun.y = self.y + (y_offset as i32 * 0x200) - body.display_bounds.top as i32 + gun_off_y;
+
+
+                    }
+
+
+
                 }
                 _ => {
                     //Rect::new(0,0,16,16)
                     body.anim_rect = Rect::new(0,0,0,0);
+
+                    gun.anim_rect = Rect::new(0,0,0,0);
                 }
             }
         }
