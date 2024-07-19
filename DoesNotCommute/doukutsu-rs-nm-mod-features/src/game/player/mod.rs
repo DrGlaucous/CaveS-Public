@@ -115,7 +115,7 @@ pub struct Player {
     pub damage_popup: NumberPopup,
     pub exp_popup: NumberPopup,
     strafe_up: bool,
-    weapon_offset_y: i8,
+    //weapon_offset_y: i8,
     splash: bool,
     tick: u8,
     booster_switch: BoosterSwitch,
@@ -126,6 +126,10 @@ pub struct Player {
     dog_stack: Vec<DogStack>,
     pub has_dog: bool,
     pub teleport_counter: u16,
+
+    //where the top left corner of the gun is relative to the player's origin
+    pub weapon_offset2_x: i32,
+    pub weapon_offset2_y: i32,
 
     pub recorder: Record,
     pub sound_flags: SoundFlags,
@@ -162,7 +166,7 @@ impl Player {
             up: false,
             down: false,
             current_weapon: 0,
-            weapon_offset_y: 0,
+            //weapon_offset_y: 0,
             shock_counter: 0,
             xp_counter: 0,
             tick: 0,
@@ -184,6 +188,8 @@ impl Player {
             has_dog: false,
             teleport_counter: 0,
 
+            weapon_offset2_x: 0,
+            weapon_offset2_y: 0,
             recorder: Record::new(),
             sound_flags: SoundFlags(0),
         }
@@ -864,13 +870,25 @@ impl Player {
         ////////////////
         */
 
-        (self.weapon_rect, self.weapon_offset_y) = Self::get_weapon_rect(
+        let yoff;
+        (self.weapon_rect, yoff) = Self::get_weapon_rect(
             self.current_weapon,
             self.anim_num == 1 || self.anim_num == 3 || self.anim_num == 6 || self.anim_num == 8,
             self.direction,
             self.up,
             self.down,
         );
+
+        //determine weapon offset (relative to PC center)
+        let (gun_off_x, gun_off_y) = self.skin.get_gun_offset();
+        self.weapon_offset2_x = if self.direction == Direction::Left {
+            - (self.weapon_rect.width() as i32) - gun_off_x as i32 
+        } else {
+            gun_off_x as i32
+        };
+        self.weapon_offset2_y = yoff as i32 + gun_off_y as i32;
+
+
 
         
         self.skin.tick();
@@ -1137,21 +1155,20 @@ impl GameEntity<&NPCList> for Player {
 
         if self.current_weapon != 0 {
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Arms")?;
-            let (gun_off_x, gun_off_y) = self.skin.get_gun_offset();
+            //let (gun_off_x, gun_off_y) = self.skin.get_gun_offset();
 
             batch.add_rect(
                 interpolate_fix9_scale(
-                    self.prev_x - self.display_bounds.left as i32,
-                    self.x - self.display_bounds.left as i32,
+                    self.prev_x,
+                    self.x,
                     state.frame_time,
-                ) + if self.direction == Direction::Left { -8.0 - gun_off_x as f32 } else { gun_off_x as f32 }
+                ) + self.weapon_offset2_x as f32
                     - frame_x,
                 interpolate_fix9_scale(
-                    self.prev_y - self.display_bounds.top as i32,
-                    self.y - self.display_bounds.top as i32,
+                    self.prev_y,
+                    self.y,
                     state.frame_time,
-                ) + self.weapon_offset_y as f32
-                    + gun_off_y as f32
+                ) + self.weapon_offset2_y as f32
                     - frame_y,
                 &self.weapon_rect,
             );
@@ -1212,22 +1229,22 @@ impl Shooter for Player {
     
     #[inline(always)]
     fn x(&self) -> i32 {
-        self.x
+        self.x + self.skin.get_gun_offset().0 * 0x200
     }
     
     #[inline(always)]
     fn y(&self) -> i32 {
-        self.y
+        self.y + self.skin.get_gun_offset().1 * 0x200
     }
     
     #[inline(always)]
     fn vel_x(&self) -> i32 {
-        self.x
+        self.vel_x
     }
     
     #[inline(always)]
     fn vel_y(&self) -> i32 {
-        self.y
+        self.vel_y
     }
     
     #[inline(always)]
@@ -1258,6 +1275,17 @@ impl Shooter for Player {
     #[inline(always)]
     fn down(&self) -> bool {
         self.down
+    }
+
+    //absolute offsets of the gunbox corner relative to map (player coord + gun offset calculations)
+    #[inline(always)]
+    fn gun_offset_x(&self) -> i32{
+        self.x + self.weapon_offset2_x * 0x200
+    }
+
+    #[inline(always)]
+    fn gun_offset_y(&self) -> i32{
+        self.y + self.weapon_offset2_y * 0x200
     }
     
     #[inline(always)]

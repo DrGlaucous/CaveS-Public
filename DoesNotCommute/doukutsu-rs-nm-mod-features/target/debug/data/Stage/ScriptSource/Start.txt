@@ -61,7 +61,7 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 <END
 
 #0302
-<NIM0150:AIM$
+<NIM0150:MyChar$
 <ARL0150:Record$
 <ANP0150:0001:0000
 <END

@@ -28,22 +28,58 @@ impl Weapon {
 
         match player.direction() {
             Direction::Left if player.up() => {
-                bullet_manager.create_bullet(player.x() - 0x200, player.y() + 0x800, btype, player_id, Direction::Up, &state.constants);
+                bullet_manager.create_bullet(
+                    player.x() - 0x200, 
+                    player.y() + 0x800, 
+                    btype, 
+                    player_id, 
+                    Direction::Up, 
+                    &state.constants);
             }
             Direction::Right if player.up() => {
-                bullet_manager.create_bullet(player.x() + 0x200, player.y() + 0x800, btype, player_id, Direction::Up, &state.constants);
+                bullet_manager.create_bullet(
+                    player.x() + 0x200, 
+                    player.y() + 0x800, 
+                    btype, 
+                    player_id, 
+                    Direction::Up, 
+                    &state.constants);
             }
             Direction::Left if player.down() => {
-                bullet_manager.create_bullet(player.x() - 0x200, player.y() - 0xc00, btype, player_id, Direction::Bottom, &state.constants);
+                bullet_manager.create_bullet(
+                    player.x() - 0x200, 
+                    player.y() - 0xc00, 
+                    btype, 
+                    player_id, 
+                    Direction::Bottom, 
+                    &state.constants);
             }
             Direction::Right if player.down() => {
-                bullet_manager.create_bullet(player.x() + 0x200, player.y() - 0xc00, btype, player_id, Direction::Bottom, &state.constants);
+                bullet_manager.create_bullet(
+                    player.x() + 0x200, 
+                    player.y() - 0xc00, 
+                    btype, 
+                    player_id, 
+                    Direction::Bottom, 
+                    &state.constants);
             }
             Direction::Left => {
-                bullet_manager.create_bullet(player.x() + 0xc00, player.y() - 0x600, btype, player_id, Direction::Left, &state.constants);
+                bullet_manager.create_bullet(
+                    player.x() + 0xc00, 
+                    player.y() - 0x600, 
+                    btype, 
+                    player_id, 
+                    Direction::Left, 
+                    &state.constants);
             }
             Direction::Right => {
-                bullet_manager.create_bullet(player.x() - 0xc00, player.y() - 0x600, btype, player_id, Direction::Right, &state.constants);
+                bullet_manager.create_bullet(
+                    player.x() - 0xc00, 
+                    player.y() - 0x600, 
+                    btype, 
+                    player_id, 
+                    Direction::Right, 
+                    &state.constants);
             }
             _ => {}
         }

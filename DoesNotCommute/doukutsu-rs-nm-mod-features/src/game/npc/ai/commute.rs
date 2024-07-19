@@ -241,10 +241,10 @@ impl NPC {
 
                         gun.anim_rect = rc;
 
-                        gun.x = self.x - body.display_bounds.left as i32
-                        + if self.direction == Direction::Left { (-8 * 0x200) - gun_off_x} else { gun_off_x};
+                        gun.x = self.x
+                        + if self.direction == Direction::Left { - (rc.width() as i32 * 0x200) - gun_off_x} else { gun_off_x};
 
-                        gun.y = self.y + (y_offset as i32 * 0x200) - body.display_bounds.top as i32 + gun_off_y;
+                        gun.y = self.y + (y_offset as i32 * 0x200) + gun_off_y;
 
 
                     }

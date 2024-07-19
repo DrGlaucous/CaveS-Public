@@ -903,6 +903,8 @@ pub struct ShooterVals {
     up: bool,
     down: bool,
     stars: u8,
+    gun_offset_x: i32,
+    gun_offset_y: i32,
 }
 impl ShooterVals {
     fn new() -> ShooterVals {
@@ -918,6 +920,8 @@ impl ShooterVals {
             direction: Direction::Left,
             up: false,
             down: false,
+            gun_offset_x: 0,
+            gun_offset_y: 0,
             stars: 0,
         }
     }
@@ -988,6 +992,16 @@ impl Shooter for NPC {
     #[inline(always)]
     fn down(&self) -> bool {
         self.more_items.shooter_vals.down
+    }
+
+    #[inline(always)]
+    fn gun_offset_x(&self) -> i32{
+        self.more_items.shooter_vals.gun_offset_x
+    }
+
+    #[inline(always)]
+    fn gun_offset_y(&self) -> i32{
+        self.more_items.shooter_vals.gun_offset_y
     }
 
     #[inline(always)]

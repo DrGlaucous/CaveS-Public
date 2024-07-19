@@ -33,69 +33,87 @@ impl Weapon {
         match player.direction() {
             Direction::Left if player.up() => {
                 bullet_manager.create_bullet(
-                    player.x() - 0x200,
-                    player.y() - 0x1000,
+                    player.gun_offset_x() + (13 * 0x200),
+                    player.gun_offset_y() + (4 * 0x200),
                     btype,
                     player_id,
                     Direction::Up,
                     &state.constants,
                 );
-                state.create_caret(player.x() - 0x200, player.y() - 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (13 * 0x200), 
+                    player.gun_offset_y() + (6 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
             }
             Direction::Right if player.up() => {
                 bullet_manager.create_bullet(
-                    player.x() + 0x200,
-                    player.y() - 0x1000,
+                    player.gun_offset_x() + (10 * 0x200),
+                    player.gun_offset_y() + (8 * 0x200),
                     btype,
                     player_id,
                     Direction::Up,
                     &state.constants,
                 );
-                state.create_caret(player.x() + 0x200, player.y() - 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (10 * 0x200), 
+                    player.gun_offset_y() + (6 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
             }
             Direction::Left if player.down() => {
                 bullet_manager.create_bullet(
-                    player.x() - 0x200,
-                    player.y() + 0x1000,
+                    player.gun_offset_x() + (14 * 0x200),
+                    player.gun_offset_y() + (9 * 0x200),
                     btype,
                     player_id,
                     Direction::Bottom,
                     &state.constants,
                 );
-                state.create_caret(player.x() - 0x200, player.y() + 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (14 * 0x200),
+                    player.gun_offset_y() + (11 * 0x200),
+                    CaretType::Shoot, Direction::Left);
             }
             Direction::Right if player.down() => {
                 bullet_manager.create_bullet(
-                    player.x() + 0x200,
-                    player.y() + 0x1000,
+                    player.gun_offset_x() + (9 * 0x200),
+                    player.gun_offset_y() + (9 * 0x200),
                     btype,
                     player_id,
                     Direction::Bottom,
                     &state.constants,
                 );
-                state.create_caret(player.x() + 0x200, player.y() + 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.x() + 0x200 + (9 * 0x200), 
+                    player.y() + 0x1000 + (11 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
             }
             Direction::Left => {
                 bullet_manager.create_bullet(
-                    player.x() - 0xc00,
-                    player.y() + 0x600,
+                    player.gun_offset_x() + (9 * 0x200),
+                    player.gun_offset_y() + (11 * 0x200),
                     btype,
                     player_id,
                     Direction::Left,
                     &state.constants,
                 );
-                state.create_caret(player.x() - 0x1800, player.y() + 0x600, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (7 * 0x200),
+                    player.gun_offset_y() + (11 * 0x200),
+                    CaretType::Shoot, Direction::Left);
             }
             Direction::Right => {
                 bullet_manager.create_bullet(
-                    player.x() + 0xc00,
-                    player.y() + 0x600,
+                    player.gun_offset_x() + (14 * 0x200),
+                    player.gun_offset_y() + (11 * 0x200),
                     btype,
                     player_id,
                     Direction::Right,
                     &state.constants,
                 );
-                state.create_caret(player.x() + 0x1800, player.y() + 0x600, CaretType::Shoot, Direction::Right);
+                state.create_caret(
+                    player.gun_offset_x() + (16 * 0x200), 
+                    player.gun_offset_y() + (11 * 0x200), 
+                    CaretType::Shoot, Direction::Right);
             }
             _ => {}
         }

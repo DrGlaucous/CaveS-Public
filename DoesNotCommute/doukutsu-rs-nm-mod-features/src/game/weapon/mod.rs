@@ -265,6 +265,10 @@ pub trait Shooter {
 
     fn down(&self) -> bool;
 
+    fn gun_offset_x(&self) -> i32;
+
+    fn gun_offset_y(&self) -> i32;
+
     fn stars(&self) -> u8;
 
     fn set_stars(&mut self, num: u8);
