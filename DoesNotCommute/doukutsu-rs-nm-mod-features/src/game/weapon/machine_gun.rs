@@ -58,25 +58,31 @@ impl Weapon {
                     match player.direction() {
                         Direction::Left => {
                             bullet_manager.create_bullet(
-                                player.x() - 0x600,
-                                player.y() - 0x1000,
+                                player.gun_offset_x() + (12 * 0x200),
+                                player.gun_offset_y() + (3 * 0x200),
                                 btype,
                                 player_id,
                                 Direction::Up,
                                 &state.constants,
                             );
-                            state.create_caret(player.x() - 0x600, player.y() - 0x1000, CaretType::Shoot, Direction::Left);
+                            state.create_caret(
+                                player.gun_offset_x() + (12 * 0x200), 
+                                player.gun_offset_y() + (3 * 0x200), 
+                                CaretType::Shoot, Direction::Left);
                         }
                         Direction::Right => {
                             bullet_manager.create_bullet(
-                                player.x() + 0x600,
-                                player.y() - 0x1000,
+                                player.gun_offset_x() + (11 * 0x200),
+                                player.gun_offset_y() + (3 * 0x200),
                                 btype,
                                 player_id,
                                 Direction::Up,
                                 &state.constants,
                             );
-                            state.create_caret(player.x() + 0x600, player.y() - 0x1000, CaretType::Shoot, Direction::Left);
+                            state.create_caret(
+                                player.gun_offset_x() + (11 * 0x200), 
+                                player.gun_offset_y() + (3 * 0x200), 
+                                CaretType::Shoot, Direction::Left);
                         }
                         _ => {}
                     }
@@ -96,25 +102,31 @@ impl Weapon {
                     match player.direction() {
                         Direction::Left => {
                             bullet_manager.create_bullet(
-                                player.x() - 0x600,
-                                player.y() + 0x1000,
+                                player.gun_offset_x() + (14 * 0x200),
+                                player.gun_offset_y() + (13 * 0x200),
                                 btype,
                                 player_id,
                                 Direction::Bottom,
                                 &state.constants,
                             );
-                            state.create_caret(player.x() - 0x600, player.y() + 0x1000, CaretType::Shoot, Direction::Left);
+                            state.create_caret(
+                                player.gun_offset_x() + (14 * 0x200), 
+                                player.gun_offset_y() + (13 * 0x200), 
+                                CaretType::Shoot, Direction::Left);
                         }
                         Direction::Right => {
                             bullet_manager.create_bullet(
-                                player.x() + 0x600,
-                                player.y() + 0x1000,
+                                player.gun_offset_x() + (9 * 0x200),
+                                player.gun_offset_y() + (13 * 0x200),
                                 btype,
                                 player_id,
                                 Direction::Bottom,
                                 &state.constants,
                             );
-                            state.create_caret(player.x() + 0x600, player.y() + 0x1000, CaretType::Shoot, Direction::Left);
+                            state.create_caret(
+                                player.gun_offset_x() + (9 * 0x200), 
+                                player.gun_offset_y() + (13 * 0x200), 
+                                CaretType::Shoot, Direction::Left);
                         }
                         _ => {}
                     }
@@ -122,25 +134,31 @@ impl Weapon {
                 _ => match player.direction() {
                     Direction::Left => {
                         bullet_manager.create_bullet(
-                            player.x() - 0x1800,
-                            player.y() + 0x600,
+                            player.gun_offset_x() + (5 * 0x200),
+                            player.gun_offset_y() + (11 * 0x200),
                             btype,
                             player_id,
                             Direction::Left,
                             &state.constants,
                         );
-                        state.create_caret(player.x() - 0x1800, player.y() + 0x600, CaretType::Shoot, Direction::Left);
+                        state.create_caret(
+                            player.gun_offset_x() + (5 * 0x200), 
+                            player.gun_offset_y() + (11 * 0x200), 
+                            CaretType::Shoot, Direction::Left);
                     }
                     Direction::Right => {
                         bullet_manager.create_bullet(
-                            player.x() + 0x1800,
-                            player.y() + 0x600,
+                            player.gun_offset_x() + (18 * 0x200),
+                            player.gun_offset_y() + (11 * 0x200),
                             btype,
                             player_id,
                             Direction::Right,
                             &state.constants,
                         );
-                        state.create_caret(player.x() + 0x1800, player.y() + 0x600, CaretType::Shoot, Direction::Right);
+                        state.create_caret(
+                            player.gun_offset_x() + (18 * 0x200), 
+                            player.gun_offset_y() + (11 * 0x200), 
+                            CaretType::Shoot, Direction::Right);
                     }
                     _ => {}
                 },

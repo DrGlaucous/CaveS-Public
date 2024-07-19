@@ -29,8 +29,8 @@ impl Weapon {
         match player.direction() {
             Direction::Left if player.up() => {
                 bullet_manager.create_bullet(
-                    player.x() - 0x200, 
-                    player.y() + 0x800, 
+                    player.gun_offset_x() + (15 * 0x200), 
+                    player.gun_offset_y() + (12 * 0x200), 
                     btype, 
                     player_id, 
                     Direction::Up, 
@@ -38,8 +38,8 @@ impl Weapon {
             }
             Direction::Right if player.up() => {
                 bullet_manager.create_bullet(
-                    player.x() + 0x200, 
-                    player.y() + 0x800, 
+                    player.gun_offset_x() + (9 * 0x200), 
+                    player.gun_offset_y() + (12 * 0x200), 
                     btype, 
                     player_id, 
                     Direction::Up, 
@@ -47,8 +47,8 @@ impl Weapon {
             }
             Direction::Left if player.down() => {
                 bullet_manager.create_bullet(
-                    player.x() - 0x200, 
-                    player.y() - 0xc00, 
+                    player.gun_offset_x() + (15 * 0x200), 
+                    player.gun_offset_y() + (3 * 0x200), 
                     btype, 
                     player_id, 
                     Direction::Bottom, 
@@ -56,8 +56,8 @@ impl Weapon {
             }
             Direction::Right if player.down() => {
                 bullet_manager.create_bullet(
-                    player.x() + 0x200, 
-                    player.y() - 0xc00, 
+                    player.gun_offset_x() + (9 * 0x200), 
+                    player.gun_offset_y() + (3 * 0x200), 
                     btype, 
                     player_id, 
                     Direction::Bottom, 
@@ -65,8 +65,8 @@ impl Weapon {
             }
             Direction::Left => {
                 bullet_manager.create_bullet(
-                    player.x() + 0xc00, 
-                    player.y() - 0x600, 
+                    player.gun_offset_x() + (22 * 0x200), 
+                    player.gun_offset_y() + (5 * 0x200), 
                     btype, 
                     player_id, 
                     Direction::Left, 
@@ -74,8 +74,8 @@ impl Weapon {
             }
             Direction::Right => {
                 bullet_manager.create_bullet(
-                    player.x() - 0xc00, 
-                    player.y() - 0x600, 
+                    player.gun_offset_x() + (3 * 0x200), 
+                    player.gun_offset_y() + (5 * 0x200), 
                     btype, 
                     player_id, 
                     Direction::Right, 

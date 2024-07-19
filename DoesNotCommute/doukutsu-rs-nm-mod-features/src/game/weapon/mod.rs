@@ -265,6 +265,7 @@ pub trait Shooter {
 
     fn down(&self) -> bool;
 
+    //absolute offsets of the gunbox corner relative to map (player coord + gun offset calculations)
     fn gun_offset_x(&self) -> i32;
 
     fn gun_offset_y(&self) -> i32;

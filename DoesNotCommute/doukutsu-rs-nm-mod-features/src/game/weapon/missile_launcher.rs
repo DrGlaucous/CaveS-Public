@@ -9,7 +9,7 @@ use crate::game::weapon::bullet::{Bullet, BulletManager};
 impl Weapon {
     pub(crate) fn tick_missile_launcher(
         &mut self,
-        player: &mut dyn Shooter,
+        player: &dyn Shooter,
         player_id: TargetShooter,
         bullet_manager: &mut BulletManager,
         state: &mut SharedGameState,
@@ -48,46 +48,58 @@ impl Weapon {
         match player.direction() {
             Direction::Left if player.up() => {
                 let mut bullet =
-                    Bullet::new(player.x() - 0x200, player.y() - 0x1000, btype, player_id, Direction::Up, &state.constants);
+                    Bullet::new(
+                        player.gun_offset_x() + (13 * 0x200), 
+                        player.gun_offset_y() + (5 * 0x200), 
+                        btype, player_id, Direction::Up, &state.constants);
                 
                 bullet_manager.push_bullet(bullet.clone());
 
-                state.create_caret(player.x() - 0x200, player.y() - 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (13 * 0x200), 
+                    player.gun_offset_y() + (1 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
 
                 if self.level == WeaponLevel::Level3 {
-                    bullet.x = player.x() + 0x600;
-                    bullet.y = player.y();
+                    bullet.x = player.gun_offset_x() + (11 * 0x200);
+                    bullet.y = player.gun_offset_y() + (12 * 0x200);
                     bullet.counter2 = 1;
                     bullet_manager.push_bullet(bullet.clone());
 
-                    bullet.x = player.x() - 0x600;
+                    bullet.x = player.gun_offset_x() + (17 * 0x200);
                     bullet.counter2 = 2;
                     bullet_manager.push_bullet(bullet);
                 }
             }
             Direction::Right if player.up() => {
                 let mut bullet =
-                    Bullet::new(player.x() + 0x200, player.y() - 0x1000, btype, player_id, Direction::Up, &state.constants);
+                    Bullet::new(
+                        player.gun_offset_x() + (10 * 0x200), 
+                        player.gun_offset_y() + (5 * 0x200), 
+                        btype, player_id, Direction::Up, &state.constants);
 
                 bullet_manager.push_bullet(bullet.clone());
 
-                state.create_caret(player.x() + 0x200, player.y() - 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (10 * 0x200), 
+                    player.gun_offset_y() + (1 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
 
                 if self.level == WeaponLevel::Level3 {
-                    bullet.x = player.x() + 0x600;
-                    bullet.y = player.y();
+                    bullet.x = player.gun_offset_x() + (6 * 0x200);
+                    bullet.y = player.gun_offset_y() + (12 * 0x200);
                     bullet.counter2 = 1;
                     bullet_manager.push_bullet(bullet.clone());
 
-                    bullet.x = player.x() - 0x600;
+                    bullet.x = player.gun_offset_x() + (12 * 0x200);
                     bullet.counter2 = 2;
                     bullet_manager.push_bullet(bullet);
                 }
             }
             Direction::Left if player.down() => {
                 let mut bullet = Bullet::new(
-                    player.x() - 0x200,
-                    player.y() + 0x1000,
+                    player.gun_offset_x() + (14 * 0x200),
+                    player.gun_offset_y() + (10 * 0x200),
                     btype,
                     player_id,
                     Direction::Bottom,
@@ -96,23 +108,26 @@ impl Weapon {
 
                 bullet_manager.push_bullet(bullet.clone());
 
-                state.create_caret(player.x() - 0x200, player.y() + 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (14 * 0x200), 
+                    player.gun_offset_y() + (14 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
 
                 if self.level == WeaponLevel::Level3 {
-                    bullet.x = player.x() + 0x600;
-                    bullet.y = player.y();
+                    bullet.x = player.gun_offset_x() + (16 * 0x200);
+                    bullet.y = player.gun_offset_y() + (3 * 0x200);
                     bullet.counter2 = 1;
                     bullet_manager.push_bullet(bullet.clone());
 
-                    bullet.x = player.x() - 0x600;
+                    bullet.x = player.gun_offset_x() + (10 * 0x200);
                     bullet.counter2 = 2;
                     bullet_manager.push_bullet(bullet);
                 }
             }
             Direction::Right if player.down() => {
                 let mut bullet = Bullet::new(
-                    player.x() + 0x200,
-                    player.y() + 0x1000,
+                    player.gun_offset_x() + (9 * 0x200),
+                    player.gun_offset_y() + (10 * 0x200),
                     btype,
                     player_id,
                     Direction::Bottom,
@@ -121,15 +136,18 @@ impl Weapon {
 
                 bullet_manager.push_bullet(bullet.clone());
 
-                state.create_caret(player.x() + 0x200, player.y() + 0x1000, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (9 * 0x200), 
+                    player.gun_offset_y() + (14 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
 
                 if self.level == WeaponLevel::Level3 {
-                    bullet.x = player.x() - 0x600;
-                    bullet.y = player.y();
+                    bullet.x = player.gun_offset_x() + (7 * 0x200);
+                    bullet.y = player.gun_offset_y() + (3 * 0x200);
                     bullet.counter2 = 1;
                     bullet_manager.push_bullet(bullet.clone());
 
-                    bullet.x = player.x() + 0x600;
+                    bullet.x = player.gun_offset_x() + (13 * 0x200);
                     bullet.counter2 = 2;
                     bullet_manager.push_bullet(bullet);
                 }
@@ -137,20 +155,26 @@ impl Weapon {
             Direction::Left => {
                 let yoffset = (self.level == WeaponLevel::Level3) as i32 * 0x200;
                 let mut bullet =
-                    Bullet::new(player.x() - 0xc00, player.y() + yoffset, btype, player_id, Direction::Left, &state.constants);
+                    Bullet::new(
+                        player.gun_offset_x() + (9 * 0x200), 
+                        player.gun_offset_y() + yoffset + (8 * 0x200), 
+                        btype, player_id, Direction::Left, &state.constants);
 
                 bullet_manager.push_bullet(bullet.clone());
 
-                state.create_caret(player.x() - 0x1800, player.y() + yoffset, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (5 * 0x200), 
+                    player.gun_offset_y() + yoffset + (8 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
 
                 if self.level == WeaponLevel::Level3 {
-                    bullet.x = player.x();
-                    bullet.y = player.y() - 0x1000;
+                    bullet.x = player.gun_offset_x() + (19 * 0x200);
+                    bullet.y = player.gun_offset_y() + (7 * 0x200);
                     bullet.counter2 = 1;
                     bullet_manager.push_bullet(bullet.clone());
 
-                    bullet.x = player.x() + 0x800;
-                    bullet.y = player.y() - 0x200;
+                    bullet.x = player.gun_offset_x() + (15 * 0x200);
+                    bullet.y = player.gun_offset_y() + (0 * 0x200);
                     bullet.counter2 = 2;
                     bullet_manager.push_bullet(bullet);
                 }
@@ -158,20 +182,26 @@ impl Weapon {
             Direction::Right => {
                 let yoffset = (self.level == WeaponLevel::Level3) as i32 * 0x200;
                 let mut bullet =
-                    Bullet::new(player.x() + 0xc00, player.y() + yoffset, btype, player_id, Direction::Right, &state.constants);
+                    Bullet::new(
+                        player.gun_offset_x() + (14 * 0x200), 
+                        player.gun_offset_y() + yoffset + (8 * 0x200), 
+                        btype, player_id, Direction::Right, &state.constants);
 
                 bullet_manager.push_bullet(bullet.clone());
 
-                state.create_caret(player.x() + 0x1800, player.y() + yoffset, CaretType::Shoot, Direction::Left);
+                state.create_caret(
+                    player.gun_offset_x() + (18 * 0x200), 
+                    player.gun_offset_y() + yoffset + (8 * 0x200), 
+                    CaretType::Shoot, Direction::Left);
 
                 if self.level == WeaponLevel::Level3 {
-                    bullet.x = player.x();
-                    bullet.y = player.y() - 0x1000;
+                    bullet.x = player.gun_offset_x() + (4 * 0x200);
+                    bullet.y = player.gun_offset_y() + (7 * 0x200);
                     bullet.counter2 = 1;
                     bullet_manager.push_bullet(bullet.clone());
 
-                    bullet.x = player.x() - 0x800;
-                    bullet.y = player.y() - 0x200;
+                    bullet.x = player.gun_offset_x() + (0 * 0x200);
+                    bullet.y = player.gun_offset_y() + (8 * 0x200);
                     bullet.counter2 = 2;
                     bullet_manager.push_bullet(bullet);
                 }

@@ -1277,7 +1277,6 @@ impl Shooter for Player {
         self.down
     }
 
-    //absolute offsets of the gunbox corner relative to map (player coord + gun offset calculations)
     #[inline(always)]
     fn gun_offset_x(&self) -> i32{
         self.x + self.weapon_offset2_x * 0x200
