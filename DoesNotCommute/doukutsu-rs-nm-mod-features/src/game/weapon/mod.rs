@@ -19,6 +19,9 @@ mod snake;
 mod spur;
 mod super_missile_launcher;
 
+mod electric_therapy;
+mod melee;
+
 #[derive(Debug, PartialEq, Eq, Copy, Clone, FromPrimitive)]
 #[repr(u8)]
 pub enum WeaponType {
@@ -33,6 +36,8 @@ pub enum WeaponType {
     SuperMissileLauncher = 10,
     Nemesis = 12,
     Spur = 13,
+    ElectricTherapy = 14,
+    Shovel = 15,
 }
 impl WeaponType {
     pub fn from_u8(id: u8) -> WeaponType {
@@ -47,6 +52,8 @@ impl WeaponType {
             10 => Self::SuperMissileLauncher,
             12 => Self::Nemesis,
             13 => Self::Spur,
+            14 => Self::ElectricTherapy,
+            15 => Self::Shovel,
             _ => Self::None,
         }
     }
@@ -226,6 +233,11 @@ impl Weapon {
             }
             WeaponType::Nemesis => self.tick_nemesis(player, player_id, bullet_manager, state),
             WeaponType::Spur => self.tick_spur(player, player_id, bullet_manager, state),
+            WeaponType::ElectricTherapy => self.tick_electric_therapy(player, player_id, bullet_manager, state),
+            WeaponType::Shovel => self.tick_melee(player, player_id, bullet_manager, state),
+
+            
+            _ => { unreachable!() }
         }
     }
 }

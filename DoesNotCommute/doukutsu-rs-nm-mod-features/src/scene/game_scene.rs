@@ -1501,7 +1501,7 @@ impl GameScene {
             );
         }
 
-        self.bullet_manager.tick_bullets(state, [&self.player1, &self.player2], &self.npc_list);
+        self.bullet_manager.tick_bullets(state, [&self.player1, &self.player2], &self.npc_list, &self.boss);
         state.tick_carets();
 
         match self.frame.update_target {

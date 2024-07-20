@@ -1,10 +1,12 @@
-use num_traits::clamp;
+use num_traits::{clamp, pow, Float};
+use std::f64::consts::PI;
 
 use crate::common::{BulletFlag, Condition, Direction, Flag, Rect};
 use crate::engine_constants::{BulletData, EngineConstants};
 use crate::game::caret::CaretType;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
+use crate::game::npc::boss::BossNPC;
 use crate::game::physics::{OFFSETS, PhysicalEntity};
 use crate::game::player::Player;
 use crate::game::shared_game_state::{SharedGameState, TileSize};
@@ -48,14 +50,14 @@ impl BulletManager {
         self.bullets.push(bullet);
     }
 
-    pub fn tick_bullets(&mut self, state: &mut SharedGameState, players: [&Player; 2], npc_list: &NPCList) {
+    pub fn tick_bullets(&mut self, state: &mut SharedGameState, players: [&Player; 2], npc_list: &NPCList, boss: &BossNPC) {
         let mut i = 0;
         while i < self.bullets.len() {
             {
                 let bullet = unsafe { self.bullets.get_unchecked_mut(i) };
                 i += 1;
 
-                bullet.tick(state, players, npc_list, &mut self.new_bullets);
+                bullet.tick(state, players, npc_list, boss, &mut self.new_bullets);
             }
 
             for bullet in &mut self.new_bullets {
@@ -1666,11 +1668,193 @@ impl Bullet {
         }
     }
 
+    fn tick_electric_therapy(
+        &mut self,
+        state: &mut SharedGameState,
+        npc_list: &NPCList,
+        boss: &BossNPC,
+    ) {
+        self.action_counter += 1;
+        if self.action_counter > self.lifetime {
+            self.cond.set_alive(false);
+            state.create_caret(self.x, self.y, CaretType::ProjectileDissipation, Direction::Left);
+            return;
+        }
+
+
+        if self.action_num == 0 {
+            self.action_num = 1;
+
+            //angle the bullet will travel at
+            let mut angle = 0.0;
+            /*
+            unit circle:
+              3pi/2
+                |
+            pi-------0
+                |
+               pi/2
+            */
+
+
+            //npc check and act function (looks for closest NPC and sets bullet target to it)
+            fn check_npc(
+                bullet: &mut Bullet,
+                npc: &NPC,
+                angle: &mut f64,
+                found_npc: &mut bool,
+                winner_radius: &mut f64,
+            ) {
+                if npc.npc_flags.shootable() {
+                    let width = (npc.x - bullet.x) as f64;
+                    let height = (npc.y - bullet.y) as f64;
+                    let dist =  (width.powi(2) + height.powi(2)).sqrt();
+                    if dist < *winner_radius {
+                        *winner_radius = dist;
+                        *found_npc = true;
+
+                        //set velocity to match the NPC
+                        *angle = (height).atan2(width);
+                        //let gg = angle.cos();
+
+                    }
+                }
+            }
+
+
+            //search for closest shootable NPC
+            let mut found_npc = false;
+            let mut winner_radius = 500.0 * 0x200 as f64;
+            //let mut winner_npc_id = 0;
+            for npc in npc_list.iter_alive() {
+                check_npc(self, npc, &mut angle, &mut found_npc, &mut winner_radius);
+            }
+            for npc in &boss.parts {
+                check_npc(self, npc, &mut angle, &mut found_npc, &mut winner_radius);
+            }
+
+            if !found_npc {
+                match self.direction {
+                    Direction::Left => angle = PI,
+                    Direction::Up => angle = 3.0 * PI / 2.0,
+                    Direction::Right => angle = 0.0,
+                    Direction::Bottom => angle = PI / 2.0,
+                    Direction::FacingPlayer => unreachable!(),
+                }
+            }
+
+
+            // how fast the bullet will travel
+            //let speed = 0x1000; 
+
+            let (speed, defect_range) = match self.btype {
+                46 => {
+                    (0x0800, -20..20)
+                }
+                47 => {
+                    (0x1000, -10..10)
+                }
+                48 => {
+                    (0x1200, -1..1)
+                }
+                _ => {
+                    unreachable!()
+                }
+            };
+
+            //0->100 maps to 0->PI
+            let rand = PI * self.rng.range(defect_range) as f64 / 100.0;
+            angle += rand;
+            self.vel_x = (angle.cos() * speed as f64) as i32;
+            self.vel_y = (angle.sin() * speed as f64) as i32;
+
+
+
+            
+        } else {
+            self.x += self.vel_x;
+            self.y += self.vel_y;
+        }
+
+        //rect
+        match self.btype {
+            46 => {
+                self.anim_rect = state.constants.weapon.bullet_rects.b046_electric_therapy_l1[0];
+            }
+            47 => {
+                self.anim_rect = state.constants.weapon.bullet_rects.b047_electric_therapy_l2[0];
+            }
+            48 => {
+                self.anim_rect = state.constants.weapon.bullet_rects.b048_electric_therapy_l3[0];
+            }
+            _ => {
+                unreachable!()
+            }
+        }
+
+
+    }
+
+    fn tick_melee (
+        &mut self,
+        state: &mut SharedGameState,
+        shooter: &dyn Shooter,
+    ) {
+        self.action_counter += 1;
+        if self.action_counter > self.lifetime {
+            self.cond.set_alive(false);
+            return;
+        }
+
+        self.anim_num = self.action_counter * 5 / (self.lifetime + 1);
+
+        self.x = shooter.x();
+        self.y = shooter.y();
+
+        match shooter.direction() {
+            _ if shooter.up() => {
+                self.y -= 8 * 0x200;
+            }
+            _ if shooter.down() => {
+                self.y += 8 * 0x200;
+            }
+            Direction::Left => {
+                self.x -= 8 * 0x200;
+            }
+            Direction::Right => {
+                self.x += 8 * 0x200;
+            }
+            _ => { unreachable!() },
+        }
+
+        match self.direction {
+            Direction::Left => {
+                self.anim_num += 0;
+            },
+            Direction::Right => {
+                self.anim_num += 5;
+            },
+            Direction::Up => {
+                self.anim_num += 10;
+            },
+            Direction::Bottom => {
+                self.anim_num += 15;
+            },
+            _ => { unreachable!() },
+        }
+
+        self.anim_rect = state.constants.weapon.bullet_rects.b049_050_051_melee_l1_2_3[self.anim_num as usize];
+
+    }
+
+
+
     pub fn tick(
         &mut self,
         state: &mut SharedGameState,
         players: [&Player; 2],
         npc_list: &NPCList,
+        boss: &BossNPC,
         new_bullets: &mut Vec<Bullet>,
     ) {
         if self.life == 0 {
@@ -1688,6 +1872,7 @@ impl Bullet {
             },
             TargetShooter::NPC(num) => {
 
+                //get refrence to the NPC that shot this bullet
                 let mut npcd: Option<&mut NPC> = None;
                 for npc in npc_list.iter_alive() {
                     if npc.event_num == num as u16 {
@@ -1728,6 +1913,13 @@ impl Bullet {
             37 | 38 | 39 => self.tick_spur(state, new_bullets),
             40 | 41 | 42 => self.tick_spur_trail(state),
             43 => self.tick_nemesis_curly(state, npc_list),
+
+            //cse2 bullets 44,45 are their own thing in drs (but still have bullet table entries)
+
+            46 | 47 | 48 => self.tick_electric_therapy(state, npc_list, boss), //Elec. Therapy
+
+            49 | 50 | 51 => self.tick_melee(state, shooter),
+
             _ => self.cond.set_alive(false),
         }
     }

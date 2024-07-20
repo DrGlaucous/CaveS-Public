@@ -145,13 +145,21 @@ pub struct BulletRects {
     pub b040_spur_trail_l1: [Rect<u16>; 6],
     pub b041_spur_trail_l2: [Rect<u16>; 6],
     pub b042_spur_trail_l3: [Rect<u16>; 6],
+
+    pub b046_electric_therapy_l1: [Rect<u16>; 1],
+    pub b047_electric_therapy_l2: [Rect<u16>; 1],
+    pub b048_electric_therapy_l3: [Rect<u16>; 1],
+
+    pub b049_050_051_melee_l1_2_3: [Rect<u16>; 20],
+
+
 }
 
 #[derive(Debug, Clone)]
 pub struct WeaponConsts {
     pub bullet_table: Vec<BulletData>,
     pub bullet_rects: BulletRects,
-    pub level_table: [[u16; 3]; 14],
+    pub level_table: [[u16; 3]; 19],
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -1015,6 +1023,83 @@ impl EngineConstants {
                         block_hit_height: 1,
                         display_bounds: Rect { left: 1, top: 1, right: 1, bottom: 1 },
                     },
+
+                    //46
+                    // Electric Therapy
+                    BulletData {
+                        damage: 1,
+                        life: 1,
+                        lifetime: 32,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 2,
+                        block_hit_height: 2,
+                        display_bounds: Rect { left: 8, top: 8, right: 8, bottom: 8 },
+                    },
+                    BulletData {
+                        damage: 2,
+                        life: 1,
+                        lifetime: 32,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 2,
+                        block_hit_height: 2,
+                        display_bounds: Rect { left: 8, top: 8, right: 8, bottom: 8 },
+                    },
+                    BulletData {
+                        damage: 3,
+                        life: 1,
+                        lifetime: 32,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 2,
+                        block_hit_height: 2,
+                        display_bounds: Rect { left: 8, top: 8, right: 8, bottom: 8 },
+                    },
+
+                    //49
+                    // Melee
+                    BulletData {
+                        damage: 8,
+                        life: 1,
+                        lifetime: 8,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 16,
+                        enemy_hit_height: 16,
+                        block_hit_width: 2,
+                        block_hit_height: 2,
+                        display_bounds: Rect { left: 16, top: 16, right: 16, bottom: 16 },
+                    },
+                    BulletData {
+                        damage: 12,
+                        life: 1,
+                        lifetime: 8,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 16,
+                        enemy_hit_height: 16,
+                        block_hit_width: 2,
+                        block_hit_height: 2,
+                        display_bounds: Rect { left: 16, top: 16, right: 16, bottom: 16 },
+                    },
+                    BulletData {
+                        damage: 17,
+                        life: 1,
+                        lifetime: 8,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 16,
+                        enemy_hit_height: 16,
+                        block_hit_width: 2,
+                        block_hit_height: 2,
+                        display_bounds: Rect { left: 16, top: 16, right: 16, bottom: 16 },
+                    },
+
+                    //52 bucket/pills
+
+                    
+
                 ],
                 bullet_rects: BulletRects {
                     b001_snake_l1: [
@@ -1250,22 +1335,70 @@ impl EngineConstants {
                         Rect { left: 248, top: 32, right: 256, bottom: 40 },
                         Rect { left: 256, top: 32, right: 264, bottom: 40 },
                     ],
+
+                    b046_electric_therapy_l1: [
+                        Rect { left: 0, top: 176, right: 16, bottom: 192 },
+                    ],
+                    b047_electric_therapy_l2: [
+                        Rect { left: 16, top: 176, right: 32, bottom: 192 },
+                    ],
+                    b048_electric_therapy_l3: [
+                        Rect { left: 32, top: 176, right: 48, bottom: 192 },
+                    ],
+
+                    b049_050_051_melee_l1_2_3: [
+                        //left
+                        Rect { left: 160, top: 192, right: 192, bottom: 224},
+                        Rect { left: 192, top: 192, right: 224, bottom: 224},
+                        Rect { left: 224, top: 192, right: 256, bottom: 224},
+                        Rect { left: 256, top: 192, right: 288, bottom: 224},
+                        Rect { left: 288, top: 192, right: 320, bottom: 224},
+
+                        //right
+                        Rect { left: 0, top: 192, right: 32, bottom: 224},
+                        Rect { left: 32, top: 192, right: 64, bottom: 224},
+                        Rect { left: 64, top: 192, right: 96, bottom: 224},
+                        Rect { left: 96, top: 192, right: 128, bottom: 224},
+                        Rect { left: 128, top: 192, right: 160, bottom: 224},
+
+                        //up
+                        Rect { left: 160, top: 224, right: 192, bottom: 256},
+                        Rect { left: 192, top: 224, right: 224, bottom: 256},
+                        Rect { left: 224, top: 224, right: 256, bottom: 256},
+                        Rect { left: 256, top: 224, right: 288, bottom: 256},
+                        Rect { left: 288, top: 224, right: 320, bottom: 256},
+
+                        //down
+                        Rect { left: 0, top: 224, right: 32, bottom: 256},
+                        Rect { left: 32, top: 224, right: 64, bottom: 256},
+                        Rect { left: 64, top: 224, right: 96, bottom: 256},
+                        Rect { left: 96, top: 224, right: 128, bottom: 256},
+                        Rect { left: 128, top: 224, right: 160, bottom: 256},
+
+                    ]
+
+                    
                 },
                 level_table: [
-                    [0, 0, 100],
-                    [30, 40, 16],
-                    [10, 20, 10],
-                    [10, 20, 20],
-                    [30, 40, 10],
-                    [10, 20, 10],
-                    [10, 20, 30],
-                    [10, 20, 5],
-                    [10, 20, 100],
-                    [30, 60, 0],
-                    [30, 60, 10],
-                    [10, 20, 100],
-                    [1, 1, 1],
-                    [40, 60, 200],
+                    [0, 0, 100], //none
+                    [30, 40, 16], //snake
+                    [10, 20, 10], //polar
+                    [10, 20, 20], //fireball
+                    [30, 40, 10], //machinegun
+                    [10, 20, 10], //missile
+                    [10, 20, 30], //?? [just missile]
+                    [10, 20, 5], //bubble
+                    [10, 20, 100], //?? [green]
+                    [30, 60, 0], //blade
+                    [30, 60, 10], //supermissile
+                    [10, 20, 100], //?? [just missile+]
+                    [1, 1, 1], //nemesis
+                    [40, 60, 200], //spur
+                    [20, 30, 10], //electherapy
+                    [10, 10, 10], //shovel
+                    [2, 2, 1], //bucket
+                    [4, 4, 3], //pills
+                    [10, 10, 10], //camera
                 ],
             },
             tex_sizes: case_insensitive_hashmap! {
