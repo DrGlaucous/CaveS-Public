@@ -1465,6 +1465,9 @@ impl GameScene {
                 &mut self.boss,
                 &mut self.inventory_player2,
             );
+
+            self.player1.tick_bullet_collisions(state, &mut self.bullet_manager, &self.npc_list);
+            self.player2.tick_bullet_collisions(state, &mut self.bullet_manager, &self.npc_list);
         }
 
         for npc in self.npc_list.iter_alive() {

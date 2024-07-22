@@ -1,5 +1,5 @@
 use crate::common::Direction;
-use crate::game::caret::CaretType;
+//use crate::game::caret::CaretType;
 //use crate::game::player::{Player, TargetPlayer};
 use crate::game::weapon::{Shooter, TargetShooter};
 use crate::game::shared_game_state::SharedGameState;

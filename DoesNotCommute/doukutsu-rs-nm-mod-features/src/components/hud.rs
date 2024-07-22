@@ -291,8 +291,10 @@ impl GameEntity<(&Player, &mut Inventory)> for HUD {
 
                 let wtype = self.weapon_types[a];
                 if wtype != 0 {
-                    rect.left = wtype as u16 * 16;
+                    rect.left = (wtype as u16 % 16) * 16;
                     rect.right = rect.left + 16;
+                    rect.top = (wtype as u16 / 16) * 16;
+                    rect.bottom = rect.top + 16;
                     batch.add_rect(pos_x + weapon_offset, 16.0 + top, &rect);
                 }
             }

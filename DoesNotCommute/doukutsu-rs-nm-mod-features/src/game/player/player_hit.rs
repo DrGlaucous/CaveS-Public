@@ -11,7 +11,8 @@ use crate::game::npc::NPC;
 use crate::game::physics::PhysicalEntity;
 use crate::game::player::{ControlMode, Player, TargetPlayer};
 use crate::game::shared_game_state::SharedGameState;
-use crate::game::weapon::WeaponType;
+use crate::game::weapon::{TargetShooter, WeaponType};
+use crate::game::weapon::bullet::{ Bullet, BulletManager };
 
 impl PhysicalEntity for Player {
     #[inline(always)]
@@ -387,4 +388,49 @@ impl Player {
             state.create_caret(self.x, self.y, CaretType::QuestionMark, Direction::Left);
         }
     }
+
+
+    /// Returns true if the the [Player] collides with a [Bullet].
+    pub fn collides_with_bullet(&self, state: &mut SharedGameState, bullet: &Bullet) -> bool {
+            !state.settings.god_mode
+            && !state.settings.noclip
+            && (self.x - self.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
+            && (self.x + self.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)
+            && (self.y - self.hit_bounds.top as i32) < (bullet.y + bullet.enemy_hit_height as i32)
+            && (self.y + self.hit_bounds.bottom as i32) > (bullet.y - bullet.enemy_hit_height as i32)
+
+
+            // || (self.npc_flags.invulnerable()
+            // && (self.x - self.hit_bounds.right as i32) < (bullet.x + bullet.hit_bounds.right as i32)
+            // && (self.x + self.hit_bounds.right as i32) > (bullet.x - bullet.hit_bounds.left as i32)
+            // && (self.y - self.hit_bounds.top as i32) < (bullet.y + bullet.hit_bounds.bottom as i32)
+            // && (self.y + self.hit_bounds.bottom as i32) > (bullet.y - bullet.hit_bounds.top as i32))
+    }
+
+    pub fn tick_bullet_collisions(&mut self, state: &mut SharedGameState, bullet_manager: &mut BulletManager, npc_list: &NPCList) {
+
+        for bullet in bullet_manager.bullets.iter_mut() {
+            
+            if !bullet.cond.alive()
+            || bullet.damage < 0
+            || bullet.owner == TargetShooter::Player1 
+            || bullet.owner == TargetShooter::Player2 {
+                continue;
+            }
+
+            if !self.collides_with_bullet(state, bullet) {
+                continue;
+            }
+
+            self.damage(bullet.damage as i32, state, npc_list);
+
+            if bullet.life > 0 {
+                bullet.life -= 1;
+            }
+        }
+
+
+    }
+
+
 }

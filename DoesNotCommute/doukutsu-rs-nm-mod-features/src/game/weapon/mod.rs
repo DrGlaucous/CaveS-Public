@@ -21,6 +21,7 @@ mod super_missile_launcher;
 
 mod electric_therapy;
 mod melee;
+mod bucket;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, FromPrimitive)]
 #[repr(u8)]
@@ -38,6 +39,7 @@ pub enum WeaponType {
     Spur = 13,
     ElectricTherapy = 14,
     Shovel = 15,
+    Bucket = 16,
 }
 impl WeaponType {
     pub fn from_u8(id: u8) -> WeaponType {
@@ -54,6 +56,7 @@ impl WeaponType {
             13 => Self::Spur,
             14 => Self::ElectricTherapy,
             15 => Self::Shovel,
+            16 => Self::Bucket,
             _ => Self::None,
         }
     }
@@ -235,8 +238,9 @@ impl Weapon {
             WeaponType::Spur => self.tick_spur(player, player_id, bullet_manager, state),
             WeaponType::ElectricTherapy => self.tick_electric_therapy(player, player_id, bullet_manager, state),
             WeaponType::Shovel => self.tick_melee(player, player_id, bullet_manager, state),
+            WeaponType::Bucket => self.tick_bucket(player, player_id, bullet_manager, state, false),
+            //todo: retouch camera
 
-            
             _ => { unreachable!() }
         }
     }

@@ -152,6 +152,8 @@ pub struct BulletRects {
 
     pub b049_050_051_melee_l1_2_3: [Rect<u16>; 20],
 
+    pub b052_053_054_bucket_l1_2_3: [Rect<u16>; 1],
+
 
 }
 
@@ -1097,8 +1099,42 @@ impl EngineConstants {
                     },
 
                     //52 bucket/pills
+                    BulletData {
+                        damage: 4,
+                        life: 2,
+                        lifetime: 100,
+                        flags: BulletFlag(40),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 4,
+                        block_hit_height: 4,
+                        display_bounds: Rect { left: 4, top: 4, right: 4, bottom: 4 },
+                    },
+                    BulletData {
+                        damage: 4,
+                        life: 2,
+                        lifetime: 100,
+                        flags: BulletFlag(40),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 4,
+                        block_hit_height: 4,
+                        display_bounds: Rect { left: 4, top: 4, right: 4, bottom: 4 },
+                    },
+                    BulletData {
+                        damage: 4,
+                        life: 2,
+                        lifetime: 100,
+                        flags: BulletFlag(40),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 4,
+                        block_hit_height: 4,
+                        display_bounds: Rect { left: 4, top: 4, right: 4, bottom: 4 },
+                    },
 
-                    
+
+
 
                 ],
                 bullet_rects: BulletRects {
@@ -1375,7 +1411,11 @@ impl EngineConstants {
                         Rect { left: 96, top: 224, right: 128, bottom: 256},
                         Rect { left: 128, top: 224, right: 160, bottom: 256},
 
-                    ]
+                    ],
+
+                    b052_053_054_bucket_l1_2_3: [
+                        Rect { left: 0, top: 256, right: 8, bottom: 264 },
+                    ],
 
                     
                 },

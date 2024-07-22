@@ -1847,6 +1847,103 @@ impl Bullet {
 
     }
 
+    fn tick_bucket_pill (
+        &mut self,
+        state: &mut SharedGameState,
+        shooter: &dyn Shooter,
+    ) {
+        //times out or bounces more than the "life" attribute
+        self.action_counter += 1;
+
+        if self.action_counter > self.lifetime ||
+        self.counter2 > self.life {
+            self.cond.set_alive(false);
+            state.create_caret(self.x, self.y, CaretType::ProjectileDissipation, Direction::Left);
+            return;
+        }
+
+        if self.flags.hit_anything() {
+
+            if self.flags.hit_top_wall() {
+                self.vel_y = 0x200;
+            }
+            if self.flags.hit_bottom_wall() {
+                self.vel_y = -0x200;
+            }
+
+            if self.flags.hit_left_wall() {
+                self.vel_x = 0x200;
+            }
+            if self.flags.hit_right_wall() {
+                self.vel_x = -0x200;
+            }
+            self.counter2 += 1;
+            state.sound_manager.play_sfx(28);
+
+        }
+
+        //initialize speed
+        if self.action_num == 0 {
+            self.action_num += 1;
+
+            match self.direction {
+                Direction::Left => {
+                    self.vel_x = -0x400;
+                    self.vel_y = self.rng.range(-0x300..-0x100);
+                },
+                Direction::Right => {
+                    self.vel_x = 0x400;
+                    self.vel_y = self.rng.range(-0x300..-0x100);
+                },
+                Direction::Up => {
+                    self.vel_y = -0x400;
+                    self.vel_x = self.rng.range(-0x100..0x100);
+                },
+                Direction::Bottom => {
+                    self.vel_y = 0x400;
+                    self.vel_x = self.rng.range(-0x100..0x100);
+                },
+                Direction::FacingPlayer => { unreachable!() },
+            }
+        }
+
+        //change gravity based on level
+        match self.btype {
+            52 => {self.vel_y += 32},
+            53 => {self.vel_y += 16},
+            54 => {self.vel_y += 8},
+            _ => { unreachable!() }
+        }
+
+        //limit speed
+        if self.vel_y > 0x700 {
+            self.vel_y = 0x700;
+        }
+
+        self.x += self.vel_x;
+        self.y += self.vel_y;
+
+        self.anim_rect = state.constants.weapon.bullet_rects.b052_053_054_bucket_l1_2_3[0];
+
+        self.anim_counter += 1;
+        if self.anim_counter % 4 == 1{
+            self.anim_num += 1;
+            if self.anim_num > 6 {
+                self.anim_num = 0;
+            }
+        }
+
+        self.anim_rect.left += 8 * self.anim_num;
+        self.anim_rect.right += 8 * self.anim_num;
+
+        //use this to determine if the bullet is a bucket or pill
+        if self.counter1 > 0 {
+            self.anim_rect.top += 8;
+            self.anim_rect.bottom += 8;
+        }
+
+
+    }
 
 
     pub fn tick(
@@ -1917,8 +2014,9 @@ impl Bullet {
             //cse2 bullets 44,45 are their own thing in drs (but still have bullet table entries)
 
             46 | 47 | 48 => self.tick_electric_therapy(state, npc_list, boss), //Elec. Therapy
-
             49 | 50 | 51 => self.tick_melee(state, shooter),
+            52 | 53 | 54 => self.tick_bucket_pill(state, shooter),
+
 
             _ => self.cond.set_alive(false),
         }
