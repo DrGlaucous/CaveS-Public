@@ -1,3 +1,4 @@
+use crate::common::Rect;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::gamepad::{self, Axis, AxisDirection, Button, PlayerControllerInputType};
@@ -1191,13 +1192,13 @@ impl ControlsMenu {
         Ok(())
     }
 
-    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, custom_height_margin: Option<(f32, f32)>) -> GameResult {
         match self.current {
-            CurrentMenu::MainMenu => self.main.draw(state, ctx)?,
-            CurrentMenu::SelectControllerMenu => self.select_controller.draw(state, ctx)?,
-            CurrentMenu::RebindMenu => self.rebind.draw(state, ctx)?,
-            CurrentMenu::ConfirmRebindMenu => self.confirm_rebind.draw(state, ctx)?,
-            CurrentMenu::ConfirmResetMenu => self.confirm_reset.draw(state, ctx)?,
+            CurrentMenu::MainMenu => self.main.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::SelectControllerMenu => self.select_controller.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::RebindMenu => self.rebind.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::ConfirmRebindMenu => self.confirm_rebind.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::ConfirmResetMenu => self.confirm_reset.draw(state, ctx, custom_height_margin)?,
         }
 
         Ok(())

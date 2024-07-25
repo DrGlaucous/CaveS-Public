@@ -1,5 +1,5 @@
 use itertools::Itertools;
-
+use crate::common::Rect;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::graphics::VSyncMode;
@@ -924,7 +924,7 @@ impl SettingsMenu {
 
                             let _ = state.settings.save(ctx);
 
-                            let mut new_menu = TitleScene::new();
+                            let mut new_menu = TitleScene::new(state, ctx);
                             new_menu.open_settings_menu()?;
                             state.next_scene = Some(Box::new(new_menu));
                         }
@@ -1094,7 +1094,7 @@ impl SettingsMenu {
                 MenuSelectionResult::Selected(PortableMenuEntry::Yes, _) => {
                     if let Some(fs_container) = &mut state.fs_container {
                         fs_container.make_portable_user_directory(ctx)?;
-                        state.next_scene = Some(Box::new(TitleScene::new()));
+                        state.next_scene = Some(Box::new(TitleScene::new(state, ctx)));
                     }
                 }
                 MenuSelectionResult::Selected(PortableMenuEntry::No, _) | MenuSelectionResult::Canceled => {
@@ -1106,18 +1106,18 @@ impl SettingsMenu {
         Ok(())
     }
 
-    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, custom_height_margin: Option<(f32, f32)>) -> GameResult {
         match self.current {
-            CurrentMenu::MainMenu => self.main.draw(state, ctx)?,
-            CurrentMenu::GraphicsMenu => self.graphics.draw(state, ctx)?,
-            CurrentMenu::SoundMenu => self.sound.draw(state, ctx)?,
-            CurrentMenu::SoundtrackMenu => self.soundtrack.draw(state, ctx)?,
-            CurrentMenu::ControlsMenu => self.controls_menu.draw(state, ctx)?,
-            CurrentMenu::LanguageMenu => self.language.draw(state, ctx)?,
-            CurrentMenu::BehaviorMenu => self.behavior.draw(state, ctx)?,
-            CurrentMenu::LinksMenu => self.links.draw(state, ctx)?,
-            CurrentMenu::AdvancedMenu => self.advanced.draw(state, ctx)?,
-            CurrentMenu::PortableMenu => self.portable.draw(state, ctx)?,
+            CurrentMenu::MainMenu => self.main.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::GraphicsMenu => self.graphics.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::SoundMenu => self.sound.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::SoundtrackMenu => self.soundtrack.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::ControlsMenu => self.controls_menu.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::LanguageMenu => self.language.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::BehaviorMenu => self.behavior.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::LinksMenu => self.links.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::AdvancedMenu => self.advanced.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::PortableMenu => self.portable.draw(state, ctx, custom_height_margin)?,
         }
 
         Ok(())

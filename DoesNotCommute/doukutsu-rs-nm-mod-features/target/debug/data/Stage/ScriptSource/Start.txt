@@ -16,6 +16,12 @@
 <TRA0012:0091:0037:0011
 
 #0110
+<KEY<FON0151:0001
+<CNP0151:0374:0000
+<MS2<TURUse left and right to change focus.
+ 
+  Press jump key to skip replay.<WAI9999
+<END
 <ML+0060
 <MIM0000:AIM$
 <AM+0002:0000
@@ -28,6 +34,15 @@
 
 //quote standee
 #0150
+
+
+
+//focuser
+#0151
+<CNP0151:0000:0000
+<FOM0016
+<END
+
 
 #0200
 <KEY<SKJ0005:0091<PRI<CMU0000<MSG
@@ -69,10 +84,20 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 <END
 
 
+
+//title event
 #1000
+<HMC<MOV0001:0001
+<FON0150:0001<KEY
+<FAI0004
+<WAI9999
 <END
 
-
+//slected save menu
+#1001
+<FAO0004
+<WAI9999
+<END
 
 
 

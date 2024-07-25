@@ -298,13 +298,59 @@ impl NPC {
     }
 
 
-    //main part: is the fPC's body/gun
+    //sub-part: is the fPC's body/gun
     pub(crate) fn tick_n372_n373_fake_pc_sub(
         &mut self,
     ) -> GameResult {
 
         Ok(())
     }
+
+
+    //will switch between the list of active commuter NPCs given player input
+    pub(crate) fn tick_n374_pc_switcher(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+
+        //search for commuter NPCs to add to the list
+        if self.child_ids.len() == 0 {
+            for npc in npc_list.iter() {
+                if npc.npc_type == 371 {
+                    self.child_ids.push(npc.id);
+                }
+            }
+            return Ok(());
+        }
+
+        //run event when this button is pressed (how we "skip" replays)
+        if players[0].controller.trigger_jump() {
+            state.textscript_vm.start_script(self.event_num);
+        }
+
+        //switch observed index
+        if players[0].controller.trigger_left() {
+            self.target_x -= 1;
+        } else if players[0].controller.trigger_right() {
+            self.target_x += 1;
+        }
+
+        //wrapping
+        if self.target_x < 0 {self.target_x += self.child_ids.len() as i32}
+        if self.target_x >= self.child_ids.len() as i32 {self.target_x = 0}
+
+        //snap to this NPC's location
+        if let Some(npc) = npc_list.get_npc(self.child_ids[self.target_x as usize] as usize) {
+            self.x = npc.x;
+            self.y = npc.y;
+        }
+
+        Ok(())
+    }
+
+
 
 
 

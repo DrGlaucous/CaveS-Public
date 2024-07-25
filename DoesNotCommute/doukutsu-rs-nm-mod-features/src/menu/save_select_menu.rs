@@ -1,3 +1,4 @@
+use crate::common::Rect;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::filesystem;
@@ -345,24 +346,24 @@ impl SaveSelectMenu {
         Ok(())
     }
 
-    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, custom_height_margin: Option<(f32, f32)>) -> GameResult {
         match self.current_menu {
             CurrentMenu::SaveMenu => {
-                self.save_menu.draw(state, ctx)?;
+                self.save_menu.draw(state, ctx, custom_height_margin)?;
             }
             CurrentMenu::DifficultyMenu => {
-                self.difficulty_menu.draw(state, ctx)?;
+                self.difficulty_menu.draw(state, ctx, custom_height_margin)?;
             }
             CurrentMenu::PlayerCountMenu => {
-                self.coop_menu.draw(state, ctx)?;
+                self.coop_menu.draw(state, ctx, custom_height_margin)?;
             }
             CurrentMenu::DeleteConfirm => {
-                self.save_detailed.draw(state, ctx)?;
-                self.delete_confirm.draw(state, ctx)?;
+                self.save_detailed.draw(state, ctx, custom_height_margin)?;
+                self.delete_confirm.draw(state, ctx, custom_height_margin)?;
             }
             CurrentMenu::LoadConfirm => {
-                self.save_detailed.draw(state, ctx)?;
-                self.load_confirm.draw(state, ctx)?;
+                self.save_detailed.draw(state, ctx, custom_height_margin)?;
+                self.load_confirm.draw(state, ctx, custom_height_margin)?;
             }
         }
         Ok(())

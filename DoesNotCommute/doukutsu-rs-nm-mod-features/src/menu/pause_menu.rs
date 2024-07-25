@@ -1,3 +1,4 @@
+use crate::common::Rect;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::graphics;
@@ -267,7 +268,7 @@ impl PauseMenu {
                     PauseMenuEntry::Title => {
                         state.stop_noise();
                         state.textscript_vm.flags.set_cutscene_skip(false);
-                        state.next_scene = Some(Box::new(TitleScene::new()));
+                        state.next_scene = Some(Box::new(TitleScene::new(state, ctx)));
                     }
                     PauseMenuEntry::Quit => {
                         state.shutdown();
@@ -286,7 +287,7 @@ impl PauseMenu {
         Ok(())
     }
 
-    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, custom_height_margin: Option<(f32, f32)>) -> GameResult {
         if self.is_paused {
             let clip_y = ((self.tick as f32 + state.frame_time as f32 - 2.0) * state.scale * 10.0)
                 .clamp(0.0, state.screen_size.1) as isize;
@@ -300,18 +301,18 @@ impl PauseMenu {
             match self.current_menu {
                 CurrentMenu::PauseMenu => {
                     graphics::set_clip_rect(ctx, Some(clip_rect))?;
-                    self.pause_menu.draw(state, ctx)?;
+                    self.pause_menu.draw(state, ctx, custom_height_margin)?;
                     graphics::set_clip_rect(ctx, None)?;
                 }
                 CurrentMenu::CoopMenu => {
-                    self.coop_menu.draw(state, ctx)?;
+                    self.coop_menu.draw(state, ctx, custom_height_margin)?;
                 }
                 CurrentMenu::SettingsMenu => {
-                    self.settings_menu.draw(state, ctx)?;
+                    self.settings_menu.draw(state, ctx, custom_height_margin)?;
                 }
                 CurrentMenu::ConfirmMenu => {
                     graphics::set_clip_rect(ctx, Some(clip_rect))?;
-                    self.confirm_menu.draw(state, ctx)?;
+                    self.confirm_menu.draw(state, ctx, custom_height_margin)?;
                     graphics::set_clip_rect(ctx, None)?;
                 }
             }

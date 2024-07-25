@@ -1,4 +1,4 @@
-use crate::common::{Color, VERSION_BANNER};
+use crate::common::{Color, FadeState, Rect, VERSION_BANNER};
 use crate::components::background::Background;
 use crate::components::compact_jukebox::CompactJukebox;
 use crate::components::nikumaru::NikumaruCounter;
@@ -20,6 +20,8 @@ use crate::menu::settings_menu::SettingsMenu;
 use crate::menu::{Menu, MenuEntry, MenuSelectionResult};
 use crate::scene::jukebox_scene::JukeboxScene;
 use crate::scene::Scene;
+use super::game_scene::{ GameScene, GameMode };
+use crate::game::scripting::tsc::text_script::TextScriptExecutionState;
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
@@ -92,10 +94,12 @@ pub struct TitleScene {
     compact_jukebox: CompactJukebox,
     stage: Stage,
     textures: StageTexturePaths,
+
+    game_scene: Option<Box<GameScene>>,
 }
 
 impl TitleScene {
-    pub fn new() -> Self {
+    pub fn new(state: &mut SharedGameState, ctx: &mut Context) -> Self {
         let fake_stage = Stage {
             map: Map { width: 0, height: 0, tiles: vec![], attrib: vec![], tile_size: TileSize::Tile16x16, animation_config: None },
             data: StageData {
@@ -118,6 +122,28 @@ impl TitleScene {
         let mut settings_menu = SettingsMenu::new();
         settings_menu.on_title = true;
 
+        //prepare the background scene
+        let start_stage_id = state.constants.game.title_stage as usize;
+        let bk_stage = if state.stages.len() < start_stage_id {
+            log::warn!("Intro scene out of bounds in stage table, not using live background");
+            None            
+        } else {
+            if let Ok(mut next_scene) = GameScene::new(state, ctx, start_stage_id) {
+
+                next_scene.player1.cond.set_hidden(true);
+                let (pos_x, pos_y) = state.constants.game.title_player_pos;
+                next_scene.player1.x = pos_x as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
+                next_scene.player1.y = pos_y as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
+                next_scene.mode = GameMode::Title;
+
+                //TSC vm initialized in the 'init' section far below
+
+                Some(Box::new(next_scene))
+            } else {
+                None
+            }
+        };
+
         Self {
             tick: 0,
             controller: CombinedMenuController::new(),
@@ -134,6 +160,8 @@ impl TitleScene {
             compact_jukebox: CompactJukebox::new(),
             stage: fake_stage,
             textures,
+
+            game_scene: bk_stage
         }
     }
 
@@ -193,6 +221,105 @@ impl TitleScene {
         self.current_menu = CurrentMenu::OptionMenu;
         Ok(())
     }
+
+
+    fn draw_tv_perimeter(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+
+        //state.canvas_size.0;
+        let corner_rc: [Rect<u16>; 4] = [
+            Rect::new(0, 48, 48, 96), //LT
+            Rect::new(64, 48, 112, 96), //RT
+            Rect::new(0, 112, 48, 176), //LB
+            Rect::new(64, 112, 112, 176), //RB
+        ];
+
+        let edge_rc: [Rect<u16>; 4] = [
+            Rect::new(0, 96, 40, 112), //L
+            Rect::new(48, 48, 64, 88), //T
+            Rect::new(72, 96, 112, 112), //R
+            Rect::new(48, 120, 64, 176), //B
+        ];
+
+        let logo_rc: Rect<u16> = Rect::new(144, 32, 296, 56);
+
+        let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
+
+        //draw edges
+        {
+            //left and right edge
+            let vert_edge_count = (state.canvas_size.1 / edge_rc[0].height() as f32).floor() as u16;
+            for i in 0..vert_edge_count {
+                //draw left edge
+                batch.add_rect(
+                    0.0,
+                    (edge_rc[0].height() * i) as f32,
+                    &edge_rc[0],
+                );
+                //draw right edge
+                batch.add_rect(
+                    state.canvas_size.0 - edge_rc[2].width() as f32,
+                    (edge_rc[2].height() * i) as f32,
+                    &edge_rc[2],
+                );
+            }
+        
+            //top and bottom edge
+            let horiz_edge_count = (state.canvas_size.0 / edge_rc[1].width() as f32).floor() as u16;
+            for i in 0..horiz_edge_count {
+                //draw top edge
+                batch.add_rect(
+                    (edge_rc[1].width() * i) as f32,
+                    0.0,
+                    &edge_rc[1],
+                );
+                //draw bottom edge
+                batch.add_rect(
+                    (edge_rc[3].width() * i) as f32,
+                    state.canvas_size.1 - edge_rc[3].height() as f32,
+                    &edge_rc[3],
+                );
+            }
+        }
+
+        //draw corners
+        {
+            batch.add_rect(
+                0.0,
+                0.0,
+                &corner_rc[0], //LT
+            );
+            batch.add_rect(
+                state.canvas_size.0 - corner_rc[1].width() as f32,
+                0.0,
+                &corner_rc[1], //RT
+            );
+            batch.add_rect(
+                0.0,
+                state.canvas_size.1 - corner_rc[2].height() as f32,
+                &corner_rc[2], //LB
+            );
+            batch.add_rect(
+                state.canvas_size.0 - corner_rc[3].width() as f32,
+                state.canvas_size.1 - corner_rc[3].height() as f32,
+                &corner_rc[3], //RB
+            );
+        }
+
+        //draw logo
+        {
+            batch.add_rect(
+                ((state.canvas_size.0 - logo_rc.width() as f32) / 2.0).floor(),
+                8.0,
+                &logo_rc,
+            );
+        }
+        batch.draw(ctx)?;
+
+        Ok(())
+
+    }
+
+
 }
 
 static COPYRIGHT_PIXEL: &str = "2004.12  Studio Pixel";
@@ -294,10 +421,21 @@ impl Scene for TitleScene {
         #[cfg(feature = "discord-rpc")]
         state.discord_rpc.set_idling()?;
 
+        if let Some(subscene) = &mut self.game_scene {
+            subscene.init(state, ctx)?;
+
+            //we need to init the TSC here because doing it in new() will result in it being run before its ready
+            state.reset_map_flags();
+            state.fade_state = FadeState::Hidden;
+            state.textscript_vm.state = TextScriptExecutionState::Running(state.constants.game.title_event, 0);
+
+        }
+
+
         Ok(())
     }
 
-    fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {   
         state.touch_controls.control_type = TouchControlType::None;
 
         self.background.tick(state, &self.stage, &self.frame)?;
@@ -308,7 +446,7 @@ impl Scene for TitleScene {
         self.main_menu.update_width(state);
         self.main_menu.update_height(state);
         self.main_menu.x = ((state.canvas_size.0 - self.main_menu.width as f32) / 2.0).floor() as isize;
-        self.main_menu.y = ((state.canvas_size.1 + 70.0 - self.main_menu.height as f32) / 2.0).floor() as isize;
+        self.main_menu.y = ((state.canvas_size.1 - self.main_menu.height as f32) / 2.0).floor() as isize;
 
         self.challenges_menu.update_width(state);
         self.challenges_menu.update_height(state);
@@ -336,6 +474,7 @@ impl Scene for TitleScene {
                     state.mod_path = None;
                     self.save_select_menu.init(state, ctx)?;
                     self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
+                    state.textscript_vm.state = TextScriptExecutionState::Running(state.constants.game.title_go_event, 0);
                     self.current_menu = CurrentMenu::SaveSelectMenu;
                 }
                 MenuSelectionResult::Selected(MainMenuEntry::Challenges, _) => {
@@ -482,28 +621,36 @@ impl Scene for TitleScene {
 
         self.tick += 1;
 
+        if let Some(subscene) = &mut self.game_scene {
+            subscene.tick(state, ctx)?;
+        }
+
         Ok(())
     }
 
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
-        self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
+        //self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
+        if let Some(subscene) = &self.game_scene {
+            subscene.draw(state, ctx)?;
+        }
+
 
         if self.current_menu == CurrentMenu::MainMenu {
-            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
-            let logo_x_offset =
-                if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
+            // let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
+            // let logo_x_offset =
+            //     if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
 
-            batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor() + logo_x_offset,
-                40.0,
-                &state.constants.title.logo_rect,
-            );
-            batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
-                88.0,
-                &state.constants.title.logo_splash_rect,
-            );
-            batch.draw(ctx)?;
+            // batch.add_rect(
+            //     ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor() + logo_x_offset,
+            //     40.0,
+            //     &state.constants.title.logo_rect,
+            // );
+            // batch.add_rect(
+            //     ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
+            //     88.0,
+            //     &state.constants.title.logo_splash_rect,
+            // );
+            // batch.draw(ctx)?;
         } else {
             let window_title = match self.current_menu {
                 CurrentMenu::ChallengesMenu => state.loc.t("menus.main_menu.challenges"),
@@ -516,33 +663,45 @@ impl Scene for TitleScene {
                 .font
                 .builder()
                 .shadow(true)
-                .position(0.0, state.font.line_height())
+                .position(0.0, state.font.line_height() + 48.0)
                 .center(state.canvas_size.0)
                 .draw(&window_title, ctx, &state.constants, &mut state.texture_set)?;
         }
 
+
         if self.current_menu == CurrentMenu::MainMenu {
-            self.draw_text_centered(&VERSION_BANNER, state.canvas_size.1 - 15.0, state, ctx)?;
+            self.draw_text_centered(&VERSION_BANNER, state.canvas_size.1 - 85.0, state, ctx)?;
 
             if state.constants.is_cs_plus {
-                self.draw_text_centered(COPYRIGHT_NICALIS, state.canvas_size.1 - 30.0, state, ctx)?;
+                self.draw_text_centered(COPYRIGHT_NICALIS, state.canvas_size.1 - 70.0, state, ctx)?;
             } else {
-                self.draw_text_centered(COPYRIGHT_PIXEL, state.canvas_size.1 - 30.0, state, ctx)?;
+                self.draw_text_centered(COPYRIGHT_PIXEL, state.canvas_size.1 - 70.0, state, ctx)?;
             }
 
             self.compact_jukebox.draw(state, ctx, &self.frame)?;
         }
 
-        self.nikumaru_rec.draw(state, ctx, &self.frame)?;
+        //self.nikumaru_rec.draw(state, ctx, &self.frame)?;
+
+
+        //40 px bezel,
+        //56 + 40 px top and bottom
+        let custom_height_margin = Some(
+            (44.0, //40
+            state.canvas_size.1 - 60.0) //56
+        );
 
         match self.current_menu {
-            CurrentMenu::MainMenu => self.main_menu.draw(state, ctx)?,
-            CurrentMenu::ChallengesMenu => self.challenges_menu.draw(state, ctx)?,
-            CurrentMenu::ChallengeConfirmMenu => self.confirm_menu.draw(state, ctx)?,
-            CurrentMenu::OptionMenu => self.settings_menu.draw(state, ctx)?,
-            CurrentMenu::SaveSelectMenu => self.save_select_menu.draw(state, ctx)?,
-            CurrentMenu::PlayerCountMenu => self.coop_menu.draw(state, ctx)?,
+            CurrentMenu::MainMenu => self.main_menu.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::ChallengesMenu => self.challenges_menu.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::ChallengeConfirmMenu => self.confirm_menu.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::OptionMenu => self.settings_menu.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::SaveSelectMenu => self.save_select_menu.draw(state, ctx, custom_height_margin)?,
+            CurrentMenu::PlayerCountMenu => self.coop_menu.draw(state, ctx, custom_height_margin)?,
         }
+
+
+        self.draw_tv_perimeter(state, ctx)?;
 
         Ok(())
     }

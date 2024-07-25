@@ -65,6 +65,17 @@ pub struct GameConsts {
     pub new_game_event: u16,
     pub new_game_player_pos: (i16, i16),
     pub tile_offset_x: i32,
+
+    pub title_stage: u16,
+    pub title_event: u16,
+    pub title_go_event: u16,
+    pub title_player_pos: (i16, i16),
+
+    pub stage_left_event: u16,
+    pub stage_right_event: u16,
+    pub stage_play_event: u16,
+    pub stage_replay_event: u16,
+
 }
 
 #[derive(Debug, Clone)]
@@ -308,6 +319,18 @@ impl EngineConstants {
                 new_game_event: 200,
                 new_game_player_pos: (10, 8),
                 tile_offset_x: 0,
+
+                title_stage: 13,
+                title_event: 1000,
+                title_player_pos: (10, 8),
+                title_go_event: 1001,
+            
+                stage_left_event: 1000,
+                stage_right_event: 1001,
+                stage_play_event: 1002,
+                stage_replay_event: 1003,
+
+
             },
             player: PlayerConsts {
                 life: 3,

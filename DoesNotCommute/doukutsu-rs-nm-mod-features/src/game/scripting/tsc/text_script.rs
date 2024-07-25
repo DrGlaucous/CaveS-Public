@@ -27,7 +27,7 @@ use crate::game::scripting::tsc::opcodes::TSCOpCode;
 use crate::game::shared_game_state::ReplayState;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::shared_game_state::TimingMode;
-use crate::game::weapon::WeaponType;
+use crate::game::weapon::{ WeaponType, WeaponLevel };
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameScene;
@@ -459,6 +459,10 @@ impl TextScriptVM {
                 TextScriptExecutionState::Running(event, ip) => {
                     state.control_flags.set_interactions_disabled(true);
 
+                    if event == 1000 {
+                        let apple = 0;
+                        let mut beans = apple * event;
+                    }
                     // The `!event` case gets optimized out on None match
                     match (cached_event, !event) {
                         (None, bevent) | (Some((bevent, _)), _) if bevent != event => {
@@ -1348,7 +1352,7 @@ impl TextScriptVM {
                 let pos_x = read_cur_varint(&mut cursor)? as i32 * block_size;
                 let pos_y = read_cur_varint(&mut cursor)? as i32 * block_size;
 
-                new_scene.intro_mode = game_scene.intro_mode;
+                new_scene.mode = game_scene.mode;
                 new_scene.inventory_player1 = game_scene.inventory_player1.clone();
                 new_scene.inventory_player2 = game_scene.inventory_player2.clone();
                 new_scene.player1 = game_scene.player1.clone();
@@ -2151,7 +2155,6 @@ impl TextScriptVM {
                 }
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
-
             TSCOpCode::SLT => {
 
                 //get mode
@@ -2170,7 +2173,6 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             
             }
-
             TSCOpCode::NIM => {
 
                 //get NPC
@@ -2244,6 +2246,46 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             
             }
+            TSCOpCode::LIS => {
+                let max_life = read_cur_varint(&mut cursor)? as u16;
+                let current_life = read_cur_varint(&mut cursor)? as u16;
+
+                game_scene.player1.max_life = max_life;
+
+                game_scene.player1.life = clamp(current_life, 0, game_scene.player1.max_life);
+                game_scene.player2.life = clamp(current_life, 0, game_scene.player2.max_life);
+
+                #[cfg(feature = "discord-rpc")]
+                state.discord_rpc.update_hp(&game_scene.player1)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+            TSCOpCode::AML => {
+                let wtype = WeaponType::from_u8(read_cur_varint(&mut cursor)? as u8);
+                let wlevel = WeaponLevel::from_u8(read_cur_varint(&mut cursor)? as u8);
+                let weapon_exp = read_cur_varint(&mut cursor)? as u16;
+
+                //currently does both players
+                //p1
+                if let Some(weapon) = game_scene.inventory_player1.get_weapon_by_type_mut(wtype) {
+                    weapon.level = wlevel;
+                    weapon.experience = 0;
+                    //let (_, max_exp, is_maxxed_out) = weapon.get_max_exp(&state.constants);
+                    weapon.add_xp(weapon_exp, &mut game_scene.player1, state);
+                }
+                //p2
+                if let Some(weapon) = game_scene.inventory_player2.get_weapon_by_type_mut(wtype) {
+                    weapon.level = wlevel;
+                    weapon.experience = 0;
+                    //let (_, max_exp, is_maxxed_out) = weapon.get_max_exp(&state.constants);
+                    weapon.add_xp(weapon_exp, &mut game_scene.player2, state);
+                }
+
+
+            }
+
+
+
 
 
 

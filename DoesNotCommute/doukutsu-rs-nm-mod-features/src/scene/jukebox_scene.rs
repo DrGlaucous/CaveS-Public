@@ -205,7 +205,7 @@ impl Scene for JukeboxScene {
 
         if self.controller.trigger_back() {
             state.settings.pause_on_focus_loss = self.previous_pause_on_focus_loss_setting;
-            state.next_scene = Some(Box::new(TitleScene::new()));
+            state.next_scene = Some(Box::new(TitleScene::new(state, ctx)));
         }
 
         // todo Touch controls

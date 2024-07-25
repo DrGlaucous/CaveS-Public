@@ -248,19 +248,26 @@ impl<T: std::cmp::PartialEq + std::default::Default + Clone> Menu<T> {
         self.height = height.max(16.0) as u16;
     }
 
-    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, custom_height_margin: Option<(f32, f32)>) -> GameResult {
         let ui_texture = if state.constants.is_cs_plus { "ui" } else { "TextBox" };
         let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, ui_texture)?;
 
         let mut rect;
         let mut rect2;
 
+        //tuple order: (width, max_height\bottom, min_height\top )
+        let canvas_size = if let Some(ccs) = custom_height_margin {
+            (state.canvas_size.0, ccs.1, ccs.0) //bottom-top, not top-bottom
+        } else {
+            (state.canvas_size.0, state.canvas_size.1, 0.0)
+        };
+
         let selected_y = self.get_selected_entry_y() as f32;
 
-        let mut computed_y = (self.y as f32).max(MENU_MIN_PADDING);
+        let mut computed_y = (self.y as f32).max(canvas_size.2 + MENU_MIN_PADDING);
 
-        if (selected_y + MENU_MIN_PADDING) > state.canvas_size.1 - MENU_MIN_PADDING {
-            computed_y -= (selected_y + MENU_MIN_PADDING) - (state.canvas_size.1 - MENU_MIN_PADDING) + 4.0;
+        if (selected_y + canvas_size.2 + MENU_MIN_PADDING) > canvas_size.1 - MENU_MIN_PADDING {
+            computed_y -= (selected_y + canvas_size.2 + MENU_MIN_PADDING) - (canvas_size.1 - MENU_MIN_PADDING) + 4.0;
         }
 
         let mut x = self.x as f32;
@@ -367,7 +374,7 @@ impl<T: std::cmp::PartialEq + std::default::Default + Clone> Menu<T> {
                 }
             }
 
-            (state.canvas_size.0 / 2.0) - (longest_option_width / 2.0)
+            (canvas_size.0 / 2.0) - (longest_option_width / 2.0)
         } else {
             self.x as f32
         };
@@ -448,7 +455,7 @@ impl<T: std::cmp::PartialEq + std::default::Default + Clone> Menu<T> {
                         let combined_word = line.clone() + separator + word;
                         let line_length = state.font.builder().compute_width(&combined_word) + 32.0;
 
-                        if line_length > state.canvas_size.0 as f32 {
+                        if line_length > canvas_size.0 as f32 {
                             lines.push(line);
                             line = String::new();
                         }
@@ -463,7 +470,7 @@ impl<T: std::cmp::PartialEq + std::default::Default + Clone> Menu<T> {
 
                     for line in lines.iter() {
                         let x = if *is_centered {
-                            (state.canvas_size.0 as f32 - state.font.builder().compute_width(&line)) / 2.0
+                            (canvas_size.0 as f32 - state.font.builder().compute_width(&line)) / 2.0
                         } else {
                             self.x as f32 + 20.0
                         };
@@ -745,17 +752,17 @@ impl<T: std::cmp::PartialEq + std::default::Default + Clone> Menu<T> {
             y += entry.height() as f32;
         }
 
-        if self.height as f32 > state.canvas_size.1 && self.selected != self.entries.last().unwrap().0 {
+        if self.height as f32 > canvas_size.1 && self.selected != self.entries.last().unwrap().0 {
             // draw down triangle
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "triangles")?;
-            batch.add_rect(self.x as f32 + 6.0, state.canvas_size.1 - 10.0, &Rect::new_size(0, 0, 5, 5));
+            batch.add_rect(self.x as f32 + 6.0, canvas_size.1 - 10.0, &Rect::new_size(0, 0, 5, 5));
             batch.draw(ctx)?;
         }
 
-        if computed_y < 0.0 {
+        if computed_y < canvas_size.2 {
             // draw up triangle
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "triangles")?;
-            batch.add_rect(self.x as f32 + 6.0, 7.0, &Rect::new_size(5, 0, 5, 5));
+            batch.add_rect(self.x as f32 + 6.0, canvas_size.2 + 7.0, &Rect::new_size(5, 0, 5, 5));
             batch.draw(ctx)?;
         }
 

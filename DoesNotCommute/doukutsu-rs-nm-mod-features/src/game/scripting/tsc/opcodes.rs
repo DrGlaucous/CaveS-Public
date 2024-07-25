@@ -301,11 +301,18 @@ pub enum TSCOpCode {
     /// <NIMwwww:name_of_skin$, (NPC mIMiga-mask) initialize NPC wwww's skin to use a cusom player skin (like <MIM), leave empty to un-initialize it
     NIM,
 
-    /// <ALCwwww:name_of_logfile$ Action Logger Control, controls the logging of PC action `<ALC[0Stop/1Start]`
+    /// <ALCwwww:name_of_logfile$, Action Logger Control, controls the logging of PC action `<ALC[0Stop/1Start]`
     ALC,
-
-    /// <ARLwwww:name_of_logfile$ Action Reader Load, loads the action file into NPC wwww, loading "" removes the file from memory (Control is done through NPC ANPs)
+    /// <ARLwwww:name_of_logfile$, Action Reader Load, loads the action file into NPC wwww, loading "" removes the file from memory (Control is done through NPC ANPs)
     ARL,
+
+    /// <LISwwww:xxxx, LIfe Set, sets the player's max (wwww) and current (xxxx) HP
+    LIS,
+
+    /// <AMLwwww:xxxx:yyyy, ArMs Level, sets the starting level of a player's weapon `<AML[Weapon ID]:[Level]:[EXP]`
+    AML,
+
+    // jump event if the NPC DOESN't have an action file loaded
 
 
 

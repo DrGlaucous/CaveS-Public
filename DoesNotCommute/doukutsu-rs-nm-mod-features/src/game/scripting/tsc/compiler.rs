@@ -247,6 +247,7 @@ impl TextScript {
             | TSCOpCode::PSp
             | TSCOpCode::IpN
             | TSCOpCode::FFm
+            | TSCOpCode::LIS
             => {
                 let operand_a = read_number(iter)?;
                 if strict {
@@ -271,6 +272,7 @@ impl TextScript {
             | TSCOpCode::BKP
             | TSCOpCode::ADT
             | TSCOpCode::TCL
+            | TSCOpCode::AML
             => {
                 let operand_a = read_number(iter)?;
                 if strict {

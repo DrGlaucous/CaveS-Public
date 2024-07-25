@@ -1,3 +1,4 @@
+use crate::common::Rect;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::game::shared_game_state::{PlayerCount, SharedGameState};
@@ -175,13 +176,13 @@ impl PlayerCountMenu {
         Ok(())
     }
 
-    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    pub fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, custom_height_margin: Option<(f32, f32)>) -> GameResult {
         match self.current_menu {
             CurrentMenu::CoopMenu => {
-                self.coop_menu.draw(state, ctx)?;
+                self.coop_menu.draw(state, ctx, custom_height_margin)?;
             }
             CurrentMenu::PlayerSkin => {
-                self.skin_menu.draw(state, ctx)?;
+                self.skin_menu.draw(state, ctx, custom_height_margin)?;
             }
         }
         Ok(())
