@@ -175,6 +175,8 @@ impl TextScript {
                         | TSCOpCode::NIM
                         | TSCOpCode::ALC
                         | TSCOpCode::ARL
+                        | TSCOpCode::UFJ
+                        | TSCOpCode::DFJ
                         => {
                             writeln!(&mut result, "{:?} (String-based code: Not trying to decompile...)", op).unwrap();
                         }

@@ -15,7 +15,8 @@ use crate::graphics::font::Font;
 use crate::input::combined_menu_controller::CombinedMenuController;
 use crate::input::touch_controls::TouchControlType;
 use crate::menu::coop_menu::PlayerCountMenu;
-use crate::menu::save_select_menu::SaveSelectMenu;
+//use crate::menu::save_select_menu::SaveSelectMenu;
+use crate::menu::stage_select_menu::StageSelectMenu;
 use crate::menu::settings_menu::SettingsMenu;
 use crate::menu::{Menu, MenuEntry, MenuSelectionResult};
 use crate::scene::jukebox_scene::JukeboxScene;
@@ -83,7 +84,7 @@ pub struct TitleScene {
     controller: CombinedMenuController,
     current_menu: CurrentMenu,
     main_menu: Menu<MainMenuEntry>,
-    save_select_menu: SaveSelectMenu,
+    //save_select_menu: SaveSelectMenu,
     challenges_menu: Menu<ChallengesMenuEntry>,
     confirm_menu: Menu<ConfirmMenuEntry>,
     coop_menu: PlayerCountMenu,
@@ -94,6 +95,8 @@ pub struct TitleScene {
     compact_jukebox: CompactJukebox,
     stage: Stage,
     textures: StageTexturePaths,
+
+    stage_select_menu: StageSelectMenu,
 
     game_scene: Option<Box<GameScene>>,
 }
@@ -149,7 +152,7 @@ impl TitleScene {
             controller: CombinedMenuController::new(),
             current_menu: CurrentMenu::MainMenu,
             main_menu: Menu::new(0, 0, 100, 0),
-            save_select_menu: SaveSelectMenu::new(),
+            //save_select_menu: SaveSelectMenu::new(),
             challenges_menu: Menu::new(0, 0, 150, 0),
             confirm_menu: Menu::new(0, 0, 150, 0),
             coop_menu: PlayerCountMenu::new(),
@@ -161,6 +164,7 @@ impl TitleScene {
             stage: fake_stage,
             textures,
 
+            stage_select_menu: StageSelectMenu::new(),
             game_scene: bk_stage
         }
     }
@@ -366,7 +370,7 @@ impl Scene for TitleScene {
 
         self.settings_menu.init(state, ctx)?;
 
-        self.save_select_menu.init(state, ctx)?;
+        //self.save_select_menu.init(state, ctx)?;
 
         self.coop_menu.on_title = true;
         self.coop_menu.init(state)?;
@@ -472,8 +476,8 @@ impl Scene for TitleScene {
             CurrentMenu::MainMenu => match self.main_menu.tick(&mut self.controller, state) {
                 MenuSelectionResult::Selected(MainMenuEntry::Start, _) => {
                     state.mod_path = None;
-                    self.save_select_menu.init(state, ctx)?;
-                    self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
+                    //self.save_select_menu.init(state, ctx)?;
+                    //self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
                     state.textscript_vm.state = TextScriptExecutionState::Running(state.constants.game.title_go_event, 0);
                     self.current_menu = CurrentMenu::SaveSelectMenu;
                 }
@@ -517,22 +521,35 @@ impl Scene for TitleScene {
             CurrentMenu::SaveSelectMenu => {
                 let cm = &mut self.current_menu;
                 let rm = if state.mod_path.is_none() { CurrentMenu::MainMenu } else { CurrentMenu::ChallengesMenu };
-                self.save_select_menu.tick(
-                    &mut || {
-                        *cm = rm;
-                    },
-                    &mut self.controller,
-                    state,
-                    ctx,
-                )?;
+                // self.save_select_menu.tick(
+                //     &mut || {
+                //         *cm = rm;
+                //     },
+                //     &mut self.controller,
+                //     state,
+                //     ctx,
+                // )?;
+
+                if let Some(game_scene) = &mut self.game_scene {
+                    self.stage_select_menu.tick(
+                        &mut || {
+                            *cm = rm;
+                        },
+                        &mut self.controller,
+                        state,
+                        ctx,
+                        game_scene,
+                    )?;
+                }
+
             }
             CurrentMenu::ChallengesMenu => match self.challenges_menu.tick(&mut self.controller, state) {
                 MenuSelectionResult::Selected(ChallengesMenuEntry::Challenge(idx), _) => {
                     if let Some(mod_info) = state.mod_list.mods.get(idx) {
                         state.mod_path = Some(mod_info.path.clone());
                         if mod_info.save_slot >= 0 {
-                            self.save_select_menu.init(state, ctx)?;
-                            self.save_select_menu.set_skip_difficulty_menu(true);
+                            //self.save_select_menu.init(state, ctx)?;
+                            //self.save_select_menu.set_skip_difficulty_menu(true);
                             self.nikumaru_rec.load_counter(state, ctx)?;
                             self.current_menu = CurrentMenu::SaveSelectMenu;
                         } else {
@@ -696,8 +713,19 @@ impl Scene for TitleScene {
             CurrentMenu::ChallengesMenu => self.challenges_menu.draw(state, ctx, custom_height_margin)?,
             CurrentMenu::ChallengeConfirmMenu => self.confirm_menu.draw(state, ctx, custom_height_margin)?,
             CurrentMenu::OptionMenu => self.settings_menu.draw(state, ctx, custom_height_margin)?,
-            CurrentMenu::SaveSelectMenu => self.save_select_menu.draw(state, ctx, custom_height_margin)?,
             CurrentMenu::PlayerCountMenu => self.coop_menu.draw(state, ctx, custom_height_margin)?,
+
+            CurrentMenu::SaveSelectMenu => self.stage_select_menu.draw(
+                state, 
+                ctx, 
+                custom_height_margin, 
+                Rect::new(
+                    40.0, 
+                    40.0, 
+                    state.canvas_size.0 - 40.0, 
+                    state.canvas_size.1 - 56.0),
+            )?,
+
         }
 
 

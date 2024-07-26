@@ -18,6 +18,7 @@ use crate::engine_constants::EngineConstants;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
+use crate::framework::filesystem;
 use crate::game::frame::UpdateTarget;
 use crate::game::npc::{NPC, PCSkin};
 use crate::game::player::{ControlMode, TargetPlayer};
@@ -2165,7 +2166,8 @@ impl TextScriptVM {
                 let timer_name = read_string(&mut cursor, len).unwrap();
             
                 if is_read {
-                    game_scene.nikumaru.tick = game_scene.nikumaru.load_time(state, ctx, Some(&timer_name.as_str()))? as usize;
+                    //failure to read the file sets the time to 0
+                    game_scene.nikumaru.tick = game_scene.nikumaru.load_time(state, ctx, Some(&timer_name.as_str())).unwrap_or_else( |_| 0) as usize;
                 } else {
                     let _ = game_scene.nikumaru.save_time(state, ctx, game_scene.nikumaru.tick as u32, Some(&timer_name.as_str()))?;
                 }
@@ -2251,6 +2253,7 @@ impl TextScriptVM {
                 let current_life = read_cur_varint(&mut cursor)? as u16;
 
                 game_scene.player1.max_life = max_life;
+                game_scene.player2.max_life = max_life;
 
                 game_scene.player1.life = clamp(current_life, 0, game_scene.player1.max_life);
                 game_scene.player2.life = clamp(current_life, 0, game_scene.player2.max_life);
@@ -2281,15 +2284,35 @@ impl TextScriptVM {
                     weapon.add_xp(weapon_exp, &mut game_scene.player2, state);
                 }
 
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
 
             }
+            TSCOpCode::UFJ | TSCOpCode::DFJ => {
+                //get player
+                let event_num = read_cur_varint(&mut cursor)? as u16;
 
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = String::from("/") + read_string(&mut cursor, len).unwrap().as_str();
 
+                if op == TSCOpCode::UFJ {
+                    if filesystem::user_exists(ctx, filepath) {
+                        state.textscript_vm.clear_text_box();
+                        exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+                    } else {
+                        exec_state = TextScriptExecutionState::Running(event_num, 0);
+                    }
+                } else {
+                    if filesystem::exists(ctx, filepath) {
+                        state.textscript_vm.clear_text_box();
+                        exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+                    } else {
+                        exec_state = TextScriptExecutionState::Running(event_num, 0);
+                    }
+                }
+            
+            }
 
-
-
-
-        
         }
 
         Ok(exec_state)

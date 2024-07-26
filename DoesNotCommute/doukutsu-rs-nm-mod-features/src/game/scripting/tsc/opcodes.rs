@@ -312,7 +312,14 @@ pub enum TSCOpCode {
     /// <AMLwwww:xxxx:yyyy, ArMs Level, sets the starting level of a player's weapon `<AML[Weapon ID]:[Level]:[EXP]`
     AML,
 
+    /// <UFJwwww:name_of_file$, User File Jump, jumps TSC if the file in the user directory does not exist
+    UFJ,
+
+    /// <DFJwwww:name_of_file$, Data FIle Jump, jumps TSC if the file in the data directory does not exist
+    DFJ,
+
     // jump event if the NPC DOESN't have an action file loaded
+
 
 
 

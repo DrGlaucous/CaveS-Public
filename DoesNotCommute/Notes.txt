@@ -28,6 +28,11 @@ Mask number | Equipped weapon | Weapon trigger | X | Y | Shock | RECT
 
 
 
+conditions for a course to be unlocked:
+previous course has a time
+
+
+(should the arrows appear regardless, or should the leftmost one be blocked?)
 
 
 

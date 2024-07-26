@@ -372,6 +372,8 @@ impl TextScript {
             | TSCOpCode::NIM
             | TSCOpCode::ALC
             | TSCOpCode::ARL
+            | TSCOpCode::UFJ
+            | TSCOpCode::DFJ
             =>
             {
 
