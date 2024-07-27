@@ -1,0 +1,35 @@
+//stage entry event (titlescreen preview)
+#0100
+<HMC<FRE
+<FAI0004
+<WAI9999
+<END
+
+//selected "start game" in title menu
+//or "esc" in stage select menu
+#0101
+<KEY<FAO0004
+<TRA0002:0100:0000:0000
+<END
+
+//left arrow
+#0102
+<KEY<FAO0004
+<TRA0006:0100:0000:0000
+<END
+
+//right arrow
+#0103
+<KEY<FAO0004
+<TRA0008:0100:0000:0000
+<END
+
+//play current stage
+#0104
+<END
+
+//watch current stage
+#0105
+<END
+
+//...199 is reserved

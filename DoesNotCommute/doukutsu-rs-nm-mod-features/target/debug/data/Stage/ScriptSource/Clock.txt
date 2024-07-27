@@ -9,10 +9,8 @@
 <MNA<CMU0000<FAI0003<END
 #0094
 <MNA<CMU0000<FAI0004<END
-
 #0100
 <KEY<FAO0002<TRA0002:0092:0008:0121
-
 #0200
 <KEY<FLJ1042:0201
 <MSGIt won't open...<NOD<END
@@ -24,4 +22,3 @@
 <KEY<MSGSomething's written here...<NOD<CLR<TURThis item is a tribute to your
 determination. Glory to all
 zealous challengers!<NOD<END
-

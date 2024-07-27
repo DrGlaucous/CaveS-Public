@@ -183,6 +183,10 @@
       "rumble": "ランブル",
       "reset_confirm": "リセット",
       "reset_confirm_menu_title": "ボタンをリセットしますか？"
+    },
+	"load_confirm_menu": {
+      "play": "Play",
+      "watch_replay": "Watch Replay"
     }
   },
   "soundtrack": {

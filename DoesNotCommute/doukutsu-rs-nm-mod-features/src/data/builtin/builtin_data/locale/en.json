@@ -184,7 +184,14 @@
       "rumble": "Rumble:",
       "reset_confirm": "Reset...",
       "reset_confirm_menu_title": "Reset controls?"
+    },
+	"load_confirm_menu": {
+      "play": "Play",
+      "watch_replay": "Watch Replay"
     }
+  
+  
+  
   },
   "soundtrack": {
     "organya": "Organya",

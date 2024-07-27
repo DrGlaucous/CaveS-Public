@@ -1,3 +1,5 @@
+use core::mem;
+
 use crate::common::{Color, FadeState, Rect, VERSION_BANNER};
 use crate::components::background::Background;
 use crate::components::compact_jukebox::CompactJukebox;
@@ -370,7 +372,7 @@ impl Scene for TitleScene {
 
         self.settings_menu.init(state, ctx)?;
 
-        //self.save_select_menu.init(state, ctx)?;
+        self.stage_select_menu.init(state, ctx)?;
 
         self.coop_menu.on_title = true;
         self.coop_menu.init(state)?;
@@ -476,10 +478,12 @@ impl Scene for TitleScene {
             CurrentMenu::MainMenu => match self.main_menu.tick(&mut self.controller, state) {
                 MenuSelectionResult::Selected(MainMenuEntry::Start, _) => {
                     state.mod_path = None;
-                    //self.save_select_menu.init(state, ctx)?;
-                    //self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
-                    state.textscript_vm.state = TextScriptExecutionState::Running(state.constants.game.title_go_event, 0);
-                    self.current_menu = CurrentMenu::SaveSelectMenu;
+
+                    //only change if we aren't locked in a <KEY (mid-background transition)
+                    if state.control_flags.control_enabled() {
+                        state.textscript_vm.state = TextScriptExecutionState::Running(state.constants.game.title_go_event, 0);
+                        self.current_menu = CurrentMenu::SaveSelectMenu;
+                    }
                 }
                 MenuSelectionResult::Selected(MainMenuEntry::Challenges, _) => {
                     self.current_menu = CurrentMenu::ChallengesMenu;
@@ -640,6 +644,14 @@ impl Scene for TitleScene {
 
         if let Some(subscene) = &mut self.game_scene {
             subscene.tick(state, ctx)?;
+
+            //swap scenes if we hit a TRA
+            if let Some(_) = &state.next_title_subscene {
+                self.game_scene = mem::take(&mut state.next_title_subscene);
+                self.game_scene.as_mut().unwrap().mode = GameMode::Title;
+                self.game_scene.as_mut().unwrap().init(state, ctx).unwrap();
+                
+            }
         }
 
         Ok(())
@@ -724,6 +736,7 @@ impl Scene for TitleScene {
                     40.0, 
                     state.canvas_size.0 - 40.0, 
                     state.canvas_size.1 - 56.0),
+                    self.game_scene.as_ref().unwrap(),
             )?,
 
         }

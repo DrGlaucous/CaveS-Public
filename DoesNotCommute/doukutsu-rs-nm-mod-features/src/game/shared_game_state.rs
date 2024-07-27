@@ -347,6 +347,9 @@ pub struct SharedGameState {
     #[cfg(feature = "discord-rpc")]
     pub discord_rpc: DiscordRPC,
     pub shutdown: bool,
+
+    //just like next_scene but for the title's nested game_scene
+    pub next_title_subscene: Option<Box<GameScene>>,
 }
 
 impl SharedGameState {
@@ -504,6 +507,8 @@ impl SharedGameState {
             #[cfg(feature = "discord-rpc")]
             discord_rpc: DiscordRPC::new(discord_rpc_app_id),
             shutdown: false,
+
+            next_title_subscene: None,
         })
     }
 
@@ -605,15 +610,21 @@ impl SharedGameState {
         self.texture_set.unload_all();
     }
 
-    pub fn start_new_game(&mut self, ctx: &mut Context) -> GameResult {
+    pub fn start_new_game_at(
+        &mut self,
+        ctx: &mut Context,
+        stage_id: u16,
+        event_no: u16,
+        pos_x: i16,
+        pos_y: i16,
+    ) -> GameResult {
         self.reset();
 
         #[cfg(feature = "discord-rpc")]
         self.discord_rpc.update_difficulty(self.difficulty)?;
 
-        let mut next_scene = GameScene::new(self, ctx, self.constants.game.new_game_stage as usize)?;
+        let mut next_scene = GameScene::new(self, ctx, stage_id as usize)?;
         next_scene.player1.cond.set_alive(true);
-        let (pos_x, pos_y) = self.constants.game.new_game_player_pos;
         next_scene.player1.x = pos_x as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
         next_scene.player1.y = pos_y as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
 
@@ -621,12 +632,25 @@ impl SharedGameState {
         self.control_flags.set_control_enabled(true);
         self.control_flags.set_tick_world(true);
         self.fade_state = FadeState::Hidden;
-        self.textscript_vm.state = TextScriptExecutionState::Running(self.constants.game.new_game_event, 0);
+        self.textscript_vm.state = TextScriptExecutionState::Running(event_no, 0);
         self.tutorial_counter = 300;
 
         self.next_scene = Some(Box::new(next_scene));
 
         Ok(())
+    }
+
+    pub fn start_new_game(
+        &mut self,
+        ctx: &mut Context
+        ) -> GameResult {
+        self.start_new_game_at(
+            ctx,
+            self.constants.game.new_game_stage,
+            self.constants.game.new_game_event,
+            self.constants.game.new_game_player_pos.0,
+            self.constants.game.new_game_player_pos.1,
+        )
     }
 
     pub fn start_intro(&mut self, ctx: &mut Context) -> GameResult {

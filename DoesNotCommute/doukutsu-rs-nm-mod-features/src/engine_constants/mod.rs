@@ -320,15 +320,15 @@ impl EngineConstants {
                 new_game_player_pos: (10, 8),
                 tile_offset_x: 0,
 
-                title_stage: 1,
-                title_event: 1000,
+                title_stage: 2,
+                title_event: 100, //when title is first entered
                 title_player_pos: (10, 8),
-                title_go_event: 1001,
+                title_go_event: 101,
             
-                stage_left_event: 1000,
-                stage_right_event: 1001,
-                stage_play_event: 1002,
-                stage_replay_event: 1003,
+                stage_left_event: 102,
+                stage_right_event: 103,
+                stage_play_event: 104,
+                stage_replay_event: 105,
 
 
             },

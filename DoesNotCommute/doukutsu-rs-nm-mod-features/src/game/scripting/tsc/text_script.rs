@@ -31,6 +31,7 @@ use crate::game::shared_game_state::TimingMode;
 use crate::game::weapon::{ WeaponType, WeaponLevel };
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
+use crate::scene::game_scene::GameMode;
 use crate::scene::game_scene::GameScene;
 use crate::components::tilemap::TileLayer;
 use crate::components::record::{Record, RecordState};
@@ -334,6 +335,35 @@ impl Scripts {
         }
 
         None
+    }
+    pub fn script_num_exists(&self, mode: ScriptMode, event_num: u16) -> bool {
+        match mode {
+            ScriptMode::Map | ScriptMode::Debug => {
+                if mode == ScriptMode::Debug {
+                    if let Some(tsc) = self.debug_script.event_map.get(&event_num) {
+                        return true;
+                    }
+                }
+
+                if let Some(tsc) = self.scene_script.event_map.get(&event_num) {
+                    return true;
+                } else if let Some(tsc) = self.global_script.event_map.get(&event_num) {
+                    return true;
+                }
+            }
+            ScriptMode::Inventory => {
+                if let Some(tsc) = self.inventory_script.event_map.get(&event_num) {
+                    return true;
+                }
+            }
+            ScriptMode::StageSelect => {
+                if let Some(tsc) = self.stage_select_script.event_map.get(&event_num) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
 
@@ -1393,7 +1423,12 @@ impl TextScriptVM {
                 state.textscript_vm.line_2.clear();
                 state.textscript_vm.line_3.clear();
                 state.textscript_vm.suspend = true;
-                state.next_scene = Some(Box::new(new_scene));
+                
+                if game_scene.mode == GameMode::Title {
+                    state.next_title_subscene = Some(Box::new(new_scene));
+                } else {
+                    state.next_scene = Some(Box::new(new_scene));
+                }
 
                 log::info!("Transitioning to stage {}, with script #{:04}", map_id, event_num);
                 exec_state = TextScriptExecutionState::Running(event_num, 0);
@@ -2150,9 +2185,9 @@ impl TextScriptVM {
                 let ticks = NikumaruCounter::seconds_to_ticks(seconds, mode);
 
                 if sign == 0 {
-                    let _ = game_scene.nikumaru.tick.saturating_add(ticks);
+                    game_scene.nikumaru.tick = game_scene.nikumaru.tick.saturating_add(ticks);
                 } else {
-                    let _ = game_scene.nikumaru.tick.saturating_sub(ticks);
+                    game_scene.nikumaru.tick = game_scene.nikumaru.tick.saturating_sub(ticks);
                 }
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }

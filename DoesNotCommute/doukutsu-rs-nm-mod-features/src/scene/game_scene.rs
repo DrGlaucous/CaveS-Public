@@ -1863,7 +1863,7 @@ impl Scene for GameScene {
         }
 
         if self.pause_menu.is_paused() {
-            self.pause_menu.tick(state, ctx)?;
+            self.pause_menu.tick(state, ctx, self.stage_id as u16)?;
             return Ok(());
         }
 

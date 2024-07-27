@@ -26,18 +26,53 @@ Mask number | Equipped weapon | Weapon trigger | X | Y | Shock | RECT
 4-4-1-4-4-4-4
 25 bytes per frame
 
+timer operation:
+nik: classic counter
+tim: egg timer
+
+
+equipping nik starts and stops the timer,
+if nik is equipped only, it will be shown and counting up
+if tim is equipped only, it will be shown amd frozen
+if both are equipped, it will be shown and counting down,
+
+if it hits zero, it de-equips nik to freeze the numbers
+
 
 
 conditions for a course to be unlocked:
 previous course has a time
 
-
 (should the arrows appear regardless, or should the leftmost one be blocked?)
+if blocked, arrow on THIS page checks THIS time (if has time, we can move to the next level)
+
+
+play button: previous course has a time
+left arrow: event 102 exists
+right arrow: event 103 exists
+time: previous time exists (the course's start time will be displayed)
+replay + replay camera: current time exists (camera focus NPC exists)
 
 
 
+map levels:
+Cave
+MimigaV
+Author'sH (transition)
+EggC
+Egg0 (boss)
+Outside
+ApSci
+Securi-tron (boss)
 
-
+commuteCave
+commuteVillage
+commuteCorridor
+commutePens
+commuteEggX
+commuteOside
+commuteEE10Science
+commuteEE10Security
 
 
 
