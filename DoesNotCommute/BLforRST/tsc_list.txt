@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	92
+[CE_TSC]	122
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -117,10 +117,45 @@ TSC List revised by Jackalope and Lace
 <TAM	3	aaA-	Trade ArMs	Trade weapon W for weapon X and set max ammo to Y. Use 0000 to keep the same amount of ammo.
 <TRA	4	mexy	TRAnsport	Travel to map W, run event X, and move the PC to coordinates Y:Z.
 <TUR	0	----	Text UnRead?	Instantly display text. Use after a <MSG/2/3; works until another <MSG/2/3 or an <END.
-<UNI	1	#---	UNIverse?	Set character movement type. Use 0000 for normal, 0001 for zero-G and 0002 to disallow movement.
-<UNJ	2	#e--	UNiverse Jump	Jump to event X if movement is of type W (0000 for normal, 0001 for zero-G).
+<UNI	1	#---	UNIts	Set character movement type. Use 0000 for normal, 0001 for zero-G and 0002 to disallow movement.
+<UNJ	2	#e--	UNits Jump	Jump to event X if movement is of type W (0000 for normal, 0001 for zero-G).
 <WAI	1	.---	WAIt	Pause script for W ticks.
 <WAS	0	----	WAit until Standing	Pause script until character is on ground.
 <XX1	1	l---	XX1	Show the island falling in manner W. Use 0000 to have it crash and 0001 to have it stop midway.
 <YNJ	1	e---	Yes/No Jump	Prompt Yes/No; jump to event W if No is selected.
 <ZAM	0	----	Zero ArMs	Sets all weapon energy to zero.
+<ACH	1	#---	ACHievement	Triggers steam achievement
+<2MV	1	#---	MoV 2	Puts the other player near the one that executed the event
+<2PJ	0	----	2 Player Jump	Jump if in 2P mode
+<INJ	3	i##-	INventory Jump	Jump to zzzz if item counte of xxxx = yyyy
+<I+N	2	##--	Item + Number	Adds item xxxx with maximum amount of yyyy
+<FF-	2	##--	Flag File -	Sets first flag in range xxxx-yyyy to false
+<PSH	1	#---	PuSH	Pushes text script state to stack and starts event xxxx (start sub-function)
+<POP	0	----	POP	Return to calling script (same as END, but for sub-functions)
+<KE2	0	----	KEy P2	KEY for player 2(?)
+<FR2	0	----	FRee P2	FRE for player 2(?)
+<CML	4	####	Change Map Layer	Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
+<SML	3	###-	Sub Map Layer	Sets the tile at (xxxx,yyyy) to one less, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
+<BKG	0	----	BacKGround	Loads the BKG config with <BKGname_of_config$
+<BKD	1	#---	BacKground Disable	Disable background layer wwww (oob will be set to last layer)
+<BKE	1	#---	BacKground Enable	Enable background layer wwww (oob will be set to last layer)
+<BKP	3	###-	Set BKG parameter xxxx for layer wwww to value yyyy (no negatives of FPs)
+<BKR	0	----	BacKground Reset	Resets BKG parameters back to defaults (same as TRA)
+<SVM	0	----	SaVe Manual	Makes a savefile with the name, <SVMname_of_save$
+<LDM	0	----	LoaD Manual	Loads a savefile with the name, <LDMname_of_save$
+<MIM	1	#---	multi-MIMiga mask	Loads custom skin (from ./data/Skins) to player wwww with name, <MIMwwww:name_of_skin$
+<TCL	3	###-	Timer ControL	<TCL[unit FPS: 0050, 0060, otherwise current]:[start time (seconds)]:[event to run when timer is 0] (starting and stopping is part of the equp list: 0512)
+<ADT	3	###-	ADjust Time	<ADT[unit FPS: 0050, 0060, otherwise current]:[0000+/1-]:[time (seconds)]
+<SLT	1	#---	Save Load Time	<SLT[0000Save/1Load]:name_of_file
+<NIM	1	#---	Npc MImiga mask	load the skinfile to NPC wwww (like <MIM), leave empty to un-initialize it
+<ALC	1	#---	Action Logger Control	Controls logging of PC action <ALC[0Stop/1Start]
+<ARL	1	#---	Action Reader Load	Loads action file to NPC wwww, "" removes file from meory, (control with ANP) <ARLwwww:name_of_logfile$
+<LIS	2	##--	LIfe Set	Set both players' lives to max(wwww) and current(xxxx) HP
+<AML	3	###-	ArMs Level	set current level of player's weapon <AML[Weapon ID]:[Level]:[EXP]
+<UFJ	1	#---	User File Jump	Jump to wwww if user file does not exist (%userprofile%)
+<DFJ	1	#---	Data File Jump	Jump to wwww if data file does not exists (./data)
+
+
+
+
+

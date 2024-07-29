@@ -1467,6 +1467,7 @@ impl GameScene {
                 &self.npc_list,
                 &mut self.boss,
                 &mut self.inventory_player1,
+                &mut self.nikumaru,
             );
             self.player2.tick_npc_collisions(
                 TargetPlayer::Player2,
@@ -1474,6 +1475,7 @@ impl GameScene {
                 &self.npc_list,
                 &mut self.boss,
                 &mut self.inventory_player2,
+                &mut self.nikumaru,
             );
 
             self.player1.tick_bullet_collisions(state, &mut self.bullet_manager, &self.npc_list);

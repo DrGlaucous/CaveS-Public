@@ -379,3 +379,4 @@
 #372	sub	a	Fake PC sub a	48:48:64:64	a sub-section of the fake PC	ALL:ALL ;
 #373	sub	b	Fake PC sub b	48:48:64:64	a sub-section of the fake PC	;
 #374	PC	Focuser	Fake PC Camera switcher	0:0:32:32	Snaps to locations of fakePC NPCs, switchable with arrow keys	ALL:ALL ;
+#375	Time	Pickup	Time Pickup	48:48:64:64	Adds time to the user's clock	ALL:ALL ;

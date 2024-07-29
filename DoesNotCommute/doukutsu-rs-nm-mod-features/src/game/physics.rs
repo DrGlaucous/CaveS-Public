@@ -909,4 +909,25 @@ pub trait PhysicalEntity {
             self.flags().set_in_water(true);
         }
     }
+
+    //checks for overlapping with any other physical entity
+    fn test_hit_physical_entity(&self, other: &dyn PhysicalEntity) -> bool {
+        let x = self.x();
+        let y = self.y();
+        let hit_bounds = self.hit_bounds();
+
+        let o_x = other.x();
+        let o_y = other.y();
+        let o_hit_bounds = other.hit_bounds();
+
+
+        (x - hit_bounds.left as i32) < (o_x + o_hit_bounds.right as i32)
+        && (x + hit_bounds.right as i32) > (o_x - hit_bounds.left as i32)
+        && (x - hit_bounds.top as i32) < (o_y + o_hit_bounds.bottom as i32)
+        && (y + hit_bounds.bottom as i32) > (o_y - hit_bounds.top as i32)
+
+
+    }
+
+
 }

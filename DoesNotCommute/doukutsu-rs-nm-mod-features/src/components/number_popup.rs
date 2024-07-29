@@ -84,7 +84,7 @@ impl GameEntity<()> for NumberPopup {
                     batch.add_rect(x + offset as f32 * 8.0, y, &Rect::new_size(40, 48 + clip, 8, 8 - clip));
                 }
                 '0'..='9' => {
-                    let number_set = if self.value_display < 0 { 64 } else { 56 };
+                    let number_set = if self.value_display < 0 { 64 } else { 56 }; //white vs red
                     let idx = chr as u16 - '0' as u16;
                     batch.add_rect(
                         x + offset as f32 * 8.0,

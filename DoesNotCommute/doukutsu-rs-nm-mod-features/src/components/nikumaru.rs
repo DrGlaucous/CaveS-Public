@@ -140,6 +140,12 @@ impl NikumaruCounter {
 
     }
 
+    pub fn ticks_to_seconds(&self, timing_mode: TimingMode) -> f64 {
+        match timing_mode {
+            TimingMode::_60Hz => { self.tick as f64 / 60.0}
+            _ => { self.tick as f64 / 50.0}
+        }
+    }
 
     //used by the start menu
     pub fn draw_at(&self, state: &mut SharedGameState, ctx: &mut Context, x: f32, y: f32) -> GameResult {

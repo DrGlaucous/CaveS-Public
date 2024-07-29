@@ -133,6 +133,8 @@ pub struct Player {
 
     pub recorder: Record,
     pub sound_flags: SoundFlags,
+
+    pub time_popup: NumberPopup,
 }
 
 impl Player {
@@ -192,6 +194,7 @@ impl Player {
             weapon_offset2_y: 0,
             recorder: Record::new(),
             sound_flags: SoundFlags(0),
+            time_popup: NumberPopup::new(),
         }
     }
 
@@ -1082,6 +1085,10 @@ impl GameEntity<&NPCList> for Player {
         self.exp_popup.x = self.x;
         self.exp_popup.y = self.y - self.display_bounds.top as i32 + 0x1000;
         self.exp_popup.tick(state, ())?;
+
+        self.time_popup.x = self.x;
+        self.time_popup.y = self.y - self.display_bounds.top as i32 + 0x1000;
+        self.time_popup.tick(state, ())?;
 
         self.cond.set_increase_acceleration(false);
         self.tick_animation(state);

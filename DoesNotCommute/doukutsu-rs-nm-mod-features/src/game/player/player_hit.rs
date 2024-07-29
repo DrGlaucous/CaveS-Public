@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 
 use num_traits::abs;
 
+use crate::components::nikumaru::NikumaruCounter;
 use crate::common::{Condition, Direction, Flag, Rect};
 use crate::game::caret::CaretType;
 use crate::game::inventory::Inventory;
@@ -10,7 +11,7 @@ use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
 use crate::game::physics::PhysicalEntity;
 use crate::game::player::{ControlMode, Player, TargetPlayer};
-use crate::game::shared_game_state::SharedGameState;
+use crate::game::shared_game_state::{SharedGameState, TimingMode};
 use crate::game::weapon::{TargetShooter, WeaponType};
 use crate::game::weapon::bullet::{ Bullet, BulletManager };
 
@@ -267,6 +268,7 @@ impl Player {
         npc: &mut NPC,
         npc_list: &NPCList,
         inventory: &mut Inventory,
+        nikumaru: &mut NikumaruCounter,
     ) {
         let flags: Flag;
 
@@ -317,6 +319,18 @@ impl Player {
 
                     #[cfg(feature = "discord-rpc")]
                     let _ = state.discord_rpc.update_hp(&self);
+                }
+                // time pickup
+                375 => {
+                    //currently time relative to 50 FPS, but I may change that later
+                    state.sound_manager.play_sfx(42);
+                    nikumaru.tick += NikumaruCounter::seconds_to_ticks(npc.event_num as usize, TimingMode::_50Hz);
+
+                    self.time_popup.add_value(npc.event_num as i16);
+
+                    npc.cond.set_alive(false);
+
+
                 }
                 _ => {}
             }
@@ -369,18 +383,19 @@ impl Player {
         npc_list: &NPCList,
         boss: &mut BossNPC,
         inventory: &mut Inventory,
+        nikumaru: &mut NikumaruCounter,
     ) {
         if !self.cond.alive() {
             return;
         }
 
         for npc in npc_list.iter_alive() {
-            self.tick_npc_collision(id, state, npc, npc_list, inventory);
+            self.tick_npc_collision(id, state, npc, npc_list, inventory, nikumaru);
         }
 
         for boss_npc in &mut boss.parts {
             if boss_npc.cond.alive() {
-                self.tick_npc_collision(id, state, boss_npc, npc_list, inventory);
+                self.tick_npc_collision(id, state, boss_npc, npc_list, inventory, nikumaru);
             }
         }
 

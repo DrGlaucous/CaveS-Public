@@ -701,6 +701,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             372 => self.tick_n372_n373_fake_pc_sub(),
             373 => self.tick_n372_n373_fake_pc_sub(),
             374 => self.tick_n374_pc_switcher(state, players, npc_list),
+            375 => self.tick_n375_time_collectible(state, players, npc_list),
 
             _ => Ok(()),
         }?;
