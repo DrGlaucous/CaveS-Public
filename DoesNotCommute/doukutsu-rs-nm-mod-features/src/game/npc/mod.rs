@@ -28,6 +28,7 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::{Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
 use crate::game::weapon::{Shooter, Weapon};
+use crate::scene::game_scene::GameScene;
 use crate::util::rng::Xoroshiro32PlusPlus;
 
 use crate::game::player::skin::basic::{SkinMeta, DEFAULT_SKINMETA, SUPPORTED_SKINMETA_VERSIONS};
@@ -308,17 +309,26 @@ impl NPC {
     }
 }
 
-impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mut Flash, &mut BossNPC)> for NPC {
+impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mut Flash, &mut BossNPC, &mut Frame)> for NPC {
     fn tick(
         &mut self,
         state: &mut SharedGameState,
-        (players, npc_list, stage, bullet_manager, flash, boss): (
+        (
+            players, 
+            npc_list, 
+            stage, 
+            bullet_manager, 
+            flash, 
+            boss,
+            frame,
+        ): (
             [&mut Player; 2],
             &NPCList,
             &mut Stage,
             &mut BulletManager,
             &mut Flash,
             &mut BossNPC,
+            &mut Frame,
         ),
     ) -> GameResult {
         #[allow(unused_mut, unused_assignments)]
@@ -702,7 +712,8 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             373 => self.tick_n372_n373_fake_pc_sub(),
             374 => self.tick_n374_pc_switcher(state, players, npc_list),
             375 => self.tick_n375_time_collectible(state, players, npc_list),
-
+            376 => self.tick_n376_direction_arrow(state, stage,  players, npc_list, frame),
+            377 => self.tick_n377_door_outline(state),
             _ => Ok(()),
         }?;
 

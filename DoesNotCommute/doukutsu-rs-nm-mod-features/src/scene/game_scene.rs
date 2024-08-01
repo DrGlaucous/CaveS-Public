@@ -1443,6 +1443,7 @@ impl GameScene {
                     &mut self.bullet_manager,
                     &mut self.flash,
                     &mut self.boss,
+                    &mut self.frame,
                 ),
             )?;
         }

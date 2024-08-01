@@ -1166,6 +1166,22 @@ pub struct NPCConsts {
 
     #[serde(default = "default_b09_ballos")]
     pub b09_ballos: SafeNPCRect<14>,
+
+
+    ////////////////////////CUSTOM////////////////////////
+
+
+    #[serde(default = "default_n375_time_collectible")]
+    pub n375_time_collectible: SafeNPCRect<4>, 
+    
+    
+    #[serde(default = "default_n376_direction_arrow")]
+    pub n376_direction_arrow: SafeNPCRect<8>, 
+    
+    #[serde(default = "default_n377_door_outline")]
+    pub n377_door_outline: SafeNPCRect<4>, 
+
+
 }
 
 fn default_n001_experience() -> SafeNPCRect<6> {
@@ -5135,5 +5151,43 @@ fn default_b09_ballos() -> SafeNPCRect<14> {
         Rect { left: 296, top: 32, right: 320, bottom: 48 },
         Rect { left: 0, top: 0, right: 0, bottom: 0 },
         Rect { left: 240, top: 32, right: 264, bottom: 48 },
+    ])
+}
+
+
+////////////////////////CUSTOM////////////////////////
+
+fn default_n375_time_collectible() -> SafeNPCRect<4> {
+    SafeNPCRect([
+        Rect::new(160, 256, 168, 264),
+        Rect::new(168, 256, 176, 264),
+        Rect::new(0, 0, 0, 0,),
+        Rect::new(0, 0, 0, 0,),
+    ])
+}
+
+
+
+fn default_n376_direction_arrow() -> SafeNPCRect<8> {
+    SafeNPCRect([
+        Rect { left: 0, top: 240, right: 16, bottom: 256 },
+        Rect { left: 16, top: 240, right: 32, bottom: 256 },
+        Rect { left: 32, top: 240, right: 48, bottom: 256 },
+        Rect { left: 48, top: 240, right: 64, bottom: 256 },
+        Rect { left: 64, top: 240, right: 80, bottom: 256 },
+        Rect { left: 80, top: 240, right: 96, bottom: 256 },
+        Rect { left: 96, top: 240, right: 112, bottom: 256 },
+        Rect { left: 112, top: 240, right: 128, bottom: 256 },
+    ])
+}
+
+
+
+fn default_n377_door_outline() -> SafeNPCRect<4> {
+    SafeNPCRect([
+        Rect { left: 128, top: 240, right: 160, bottom: 272 }, //s
+        Rect { left: 160, top: 240, right: 192, bottom: 272 }, //m
+        Rect { left: 192, top: 240, right: 224, bottom: 272 }, //l
+        Rect { left: 160, top: 240, right: 192, bottom: 272 }, //m
     ])
 }

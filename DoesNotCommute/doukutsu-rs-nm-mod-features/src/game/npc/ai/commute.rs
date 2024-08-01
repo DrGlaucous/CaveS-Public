@@ -1,15 +1,19 @@
 use std::cell::{RefCell};
+use std::f32::consts::PI;
 use crate::common::{Direction, Rect};
 use crate::entity::GameEntity;
 use crate::framework::error::GameResult;
 use crate::game::caret::CaretType;
-use crate::game::npc::NPC;
+use crate::game::npc::{NPCLayer, NPC};
 use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::{Weapon, WeaponType, WeaponLevel, TargetShooter};
+use crate::scene::game_scene;
 use crate::util::rng::RNG;
 use crate::game::npc::NPCList;
 use crate::game::weapon::bullet::BulletManager;
+use crate::game::stage::Stage;
+use crate::game::frame::Frame;
 
 
 
@@ -262,7 +266,7 @@ impl NPC {
 
 
             }
-            //idle
+            //idle + rewind recorder
             0 | _ => {
 
                 //rewind recorder
@@ -393,6 +397,7 @@ impl NPC {
                 }
             }
         }
+        self.anim_rect = state.constants.npc.n375_time_collectible[self.anim_num as usize];
 
         //mechanic for adding time is in player_hit.rs (with hearts, exp, and missiles)
 
@@ -401,8 +406,155 @@ impl NPC {
     }
 
 
+
+
+    //points to coordinate specified by ANP
+    pub(crate) fn tick_n376_direction_arrow(
+        &mut self,
+        state: &mut SharedGameState,
+        stage: &mut Stage,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+        frame: &Frame,
+    ) -> GameResult {
+
+        self.layer = NPCLayer::Foreground;
+
+
+        match self.action_num {
+            //set x and y
+            1 => {
+                self.target_x = self.tsc_direction as i32 * 0x200 * 0x10;
+                self.target_y = self.action_counter as i32 * 0x200 * 0x10;
+                self.action_num = 0;
+            },
+            //set pointer hover direction (sits one block offset, this controls which), (left means the arrow will point left and be on the right side)
+            2 => {
+                self.direction = Direction::from_int_facing(self.tsc_direction as usize).unwrap_or(Direction::Bottom);
+                if self.direction == Direction::FacingPlayer {self.direction = Direction::Bottom}
+            },
+
+            _ => {},
+        }
+
+
+        /*
+            unit circle:
+              3pi/2
+                |
+            pi-------0
+                |
+               pi/2
+        */
+
+
+        //calculate NPC position
+        {
+
+            //this is where the NPC wants to go (self.target_xy is where it wants to point)
+            let (tgt_x, tgt_y) = match self.direction {
+                Direction::Left => (self.target_x + 0x2000, self.target_y),
+                Direction::Right => (self.target_x - 0x2000, self.target_y),
+                Direction::Up => (self.target_x, self.target_y + 0x2000),
+                Direction::Bottom => (self.target_x, self.target_y - 0x2000),
+                _ => (self.target_x, self.target_y)
+            };
+
+            //the maximum cartesian distance the arrow is allowed to travel from the center of the frame
+            let rect = state.get_drawn_edge_rect(stage);
+            let max_x = rect.width() / 2.0 * 0x200 as f32;
+            let max_y = rect.height() / 2.0 * 0x200 as f32;
+
+            let (frame_x, frame_y) = (frame.x as f32 + max_x, frame.y as f32 + max_y);
+
+            //trim edge offset so we can still see the NPC
+            let max_x = max_x - (512.0 * 8.0);
+            let max_y = max_y - (512.0 * 8.0);
+
+            let angle = (frame_y - tgt_y as f32).atan2(frame_x - tgt_x as f32);
+            
+            //direct distance to object from center of frame
+            let dist = ((frame_y - tgt_y as f32).powi(2) + (frame_x - tgt_x as f32).powi(2)).sqrt();
     
 
+            //calculate length of hypotinuse for vertical and horizontal right triangles (to see witch edge is the limiting factor)
+            let mut angg = angle.cos();
+            angg += 1.0;
+            
+            let hyp_x = (max_x / angle.cos()).abs();
+            let hyp_y = (max_y / angle.sin()).abs();
+    
+            let max_dist = if hyp_x.abs() < hyp_y.abs() {hyp_x} else {hyp_y};
+
+            //endpoint is within frame limit, simply place on there
+            if dist < max_dist.abs() {
+                self.x = tgt_x;
+                self.y = tgt_y;
+            } else {
+                self.x = (frame_x - angle.cos() * max_dist) as i32;
+                self.y = (frame_y - angle.sin() * max_dist) as i32;
+            }
+
+
+        }
+
+        //calculate point direction
+        {
+            let angle = PI + ((self.y - self.target_y) as f32).atan2((self.x - self.target_x) as f32);
+
+            //map angle from 0-2pi to 0-7
+            let angle_of_int = (angle * 8.0 / (2.0 * PI)) as usize;
+
+            self.anim_rect = state.constants.npc.n376_direction_arrow[angle_of_int];
+
+
+
+        }
+
+
+        //animate
+        self.anim_counter += 1;
+        if self.anim_counter > 4 {
+            self.anim_counter = 0;
+
+            self.anim_num += 1;
+            if self.anim_num > 3 {self.anim_num = 0};
+
+        }
+        let height = self.anim_rect.height();
+        self.anim_rect.top += height * self.anim_num as u16;
+        self.anim_rect.bottom += height * self.anim_num as u16;
+
+
+        //npc.action_num = action_num;
+        //npc.tsc_direction = tsc_direction;
+        //npc.action_counter = action_counter;
+
+        Ok(())
+    }
+
+
+
+    pub(crate) fn tick_n377_door_outline(
+        &mut self,
+        state: &mut SharedGameState,
+    ) -> GameResult {
+
+
+        self.anim_counter += 1;
+        if self.anim_counter > 4 {
+            self.anim_counter = 0;
+
+            self.anim_num += 1;
+            if self.anim_num > 3 {self.anim_num = 0};
+
+        }
+        self.anim_rect = state.constants.npc.n377_door_outline[self.anim_num as usize];
+
+        Ok(())
+
+
+    }
 
 
 

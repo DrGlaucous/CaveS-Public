@@ -258,7 +258,7 @@ pub enum TSCOpCode {
     FFm,
     /// <PSHxxxx, Pushes text script state to stack and starts event xxxx
     PSH,
-    /// <POP, Restores text script state from stack and resumes previous event.
+    /// <POP, Restores text script state from stack and resumes previous event, otherwise works like half-baked `<END`
     POP,
     /// <KEY related to player 2?
     KE2,
@@ -320,6 +320,8 @@ pub enum TSCOpCode {
 
     // jump event if the NPC DOESN't have an action file loaded
 
+    /// <CFGwwww:xxxx:yyyy:zzzz, ConfiG npc, gives all wwww action_num xxxx, tsc_direction yyyy, and action_counter zzzz, then runs it for 1 tick immediately
+    CFG,
 
 
 

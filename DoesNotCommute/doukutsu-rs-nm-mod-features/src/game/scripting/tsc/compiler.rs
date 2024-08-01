@@ -294,7 +294,12 @@ impl TextScript {
                 put_varint(operand_c as i32, out);
             }
             // Four operand codes
-            TSCOpCode::TRA | TSCOpCode::MNP | TSCOpCode::SNP | TSCOpCode::CML => {
+            TSCOpCode::TRA
+            | TSCOpCode::MNP
+            | TSCOpCode::SNP
+            | TSCOpCode::CML
+            | TSCOpCode::CFG
+            => {
                 let operand_a = read_number(iter)?;
                 if strict {
                     expect_char(b':', iter)?;

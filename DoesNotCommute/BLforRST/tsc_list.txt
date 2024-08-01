@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	122
+[CE_TSC]	123
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -139,7 +139,7 @@ TSC List revised by Jackalope and Lace
 <BKG	0	----	BacKGround	Loads the BKG config with <BKGname_of_config$
 <BKD	1	#---	BacKground Disable	Disable background layer wwww (oob will be set to last layer)
 <BKE	1	#---	BacKground Enable	Enable background layer wwww (oob will be set to last layer)
-<BKP	3	###-	Set BKG parameter xxxx for layer wwww to value yyyy (no negatives of FPs)
+<BKP	3	###-	BacKground Parameter	Set BKG parameter xxxx for layer wwww to value yyyy (no negatives of FPs)
 <BKR	0	----	BacKground Reset	Resets BKG parameters back to defaults (same as TRA)
 <SVM	0	----	SaVe Manual	Makes a savefile with the name, <SVMname_of_save$
 <LDM	0	----	LoaD Manual	Loads a savefile with the name, <LDMname_of_save$
@@ -154,6 +154,7 @@ TSC List revised by Jackalope and Lace
 <AML	3	###-	ArMs Level	set current level of player's weapon <AML[Weapon ID]:[Level]:[EXP]
 <UFJ	1	#---	User File Jump	Jump to wwww if user file does not exist (%userprofile%)
 <DFJ	1	#---	Data File Jump	Jump to wwww if data file does not exists (./data)
+<CFG	4	N#d#	ConFiG npc	wwww=npc(s), xxxx=action_num, yyyy=direction, zzzz=action_counter, then run for 1 tick
 
 
 

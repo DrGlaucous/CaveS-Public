@@ -399,29 +399,10 @@ impl Background {
         self.tick = self.tick.wrapping_add(1);
 
 
-
-        //we need the map size so we can account for the letterboxing/pillarboxing
-        let tile_size = match state.tile_size {
-            TileSize::Tile16x16 => 16,
-            TileSize::Tile8x8 => 8,
-        };
-        //size of the loaded stage in pixels
-        let map_pxl_width = stage.map.width * tile_size;
-        let map_pxl_height = stage.map.height * tile_size;
-        //actual size of a single letterbox (left or right)/(top or bottom)
-        let pilrbox_width = if state.canvas_size.0 > map_pxl_width as f32 {(state.canvas_size.0 - map_pxl_width as f32) / 2.0} else {0.0};
-        let ltrbox_height = if state.canvas_size.1 > map_pxl_height as f32 {(state.canvas_size.1 - map_pxl_height as f32) / 2.0} else {0.0};
-
-        //the new offsets that should be used 
-        let pb_canvas_width = if state.canvas_size.0 > map_pxl_width as f32 {pilrbox_width + map_pxl_width as f32} else {state.canvas_size.0};
-        let lb_canvas_height = if state.canvas_size.1 > map_pxl_width as f32 {ltrbox_height + map_pxl_height as f32} else {state.canvas_size.1};
-
         //map edges if letterboxes are taken into account
-        let boxed_lim = Rect::new(pilrbox_width, ltrbox_height, pb_canvas_width, lb_canvas_height);
+        let boxed_lim = state.get_drawn_edge_rect(stage);
         //map edges relative to actual window size
         let windowed_lim = Rect::new(0.0, 0.0, state.canvas_size.0, state.canvas_size.1);
-
-
 
 
         for layer in self.bk_config.layers.as_mut_slice() {

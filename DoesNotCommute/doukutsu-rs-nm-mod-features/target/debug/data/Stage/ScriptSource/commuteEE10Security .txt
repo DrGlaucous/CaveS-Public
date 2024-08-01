@@ -15,7 +15,7 @@
 //left arrow
 #0102
 <KEY<FAO0004
-<TRA0009:0100:0000:0000
+<TRA0010:0100:0000:0000
 <END
 
 //right arrow

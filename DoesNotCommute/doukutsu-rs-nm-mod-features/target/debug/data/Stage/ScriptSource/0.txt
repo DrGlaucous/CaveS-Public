@@ -33,7 +33,7 @@
 #0103
 <END
 
-//play current stage
+//play current stage/restart
 #0104
 <END
 

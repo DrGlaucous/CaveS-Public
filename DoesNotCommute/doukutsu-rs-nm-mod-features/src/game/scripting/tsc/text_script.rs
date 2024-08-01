@@ -1714,6 +1714,7 @@ impl TextScriptVM {
                                 &mut game_scene.bullet_manager,
                                 &mut game_scene.flash,
                                 &mut game_scene.boss,
+                                &mut game_scene.frame,
                             ),
                         )?;
                     }
@@ -2347,6 +2348,40 @@ impl TextScriptVM {
                 }
             
             }
+            TSCOpCode::CFG => {
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+                let action_num = read_cur_varint(&mut cursor)? as u16;
+                let tsc_direction = read_cur_varint(&mut cursor)? as u16;
+                let action_counter = read_cur_varint(&mut cursor)? as u16;
+
+                for npc in game_scene.npc_list.iter_alive() {
+                    if npc.event_num == event_num {
+
+                        //pass in args
+                        npc.action_num = action_num;
+                        npc.tsc_direction = tsc_direction;
+                        npc.action_counter = action_counter;
+
+                        //run immediately
+                        npc.tick(
+                            state,
+                            (
+                                [&mut game_scene.player1, &mut game_scene.player2],
+                                &game_scene.npc_list,
+                                &mut game_scene.stage,
+                                &mut game_scene.bullet_manager,
+                                &mut game_scene.flash,
+                                &mut game_scene.boss,
+                                &mut game_scene.frame,
+                            ),
+                        )?;
+
+                    }
+                }
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+
 
         }
 

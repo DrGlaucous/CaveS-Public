@@ -1,3 +1,40 @@
+//Flag List
+//Flag 5000: 
+//Flag 5001: quote reached door
+//Flag 5002: curly reached door
+//Flag 5003: gero reached door
+//
+//
+//Flag 6001: on ONLY when quote is active
+//Flag 6002: on ONLY when curly is active
+//Flag 6003: on ONLY when gero is active
+//Flag 6004: on ONLY when king is active
+//
+//
+//
+
+
+//time file list
+//cave = first cave complete
+//village = village complete
+//corridor = corridor complete
+//eggx = eggx complete
+//oside = oside complete
+//sci = science complete
+//sciboss = securitron complete
+
+
+
+//event range:
+//$0100 = intro events, bound to the title screen
+//$0200 = intro doors, each character gets 10 (210, 220, etc)
+//$0300 = exit doors, each door gets 1, starting at 300, 399 is common wrong door script
+//$0400 = 400 for arrow + any other ingame elements
+//$0500 = fakechars, each gets 1, starting at 500, includes their initialization events
+
+
+
+
 //stage entry event (titlescreen preview)
 #0100
 //initialize timer to 0 and then add 30 seconds to start
@@ -23,30 +60,92 @@
 //right arrow
 #0103
 <KEY<FAO0004
-<TRA0004:0100:0000:0000
+<TRA0005:0100:0000:0000
 <END
 
 //play current stage
 #0104
-<TRA0001:0100:0015:0007
+//<TRA0001:0100:0015:0007//debug TRA
+//send to start point
+<TRA0003:0200:0010:0008
 <END
 
 //watch current stage
 #0105
 <END
 
+
+//kick out (reserved for missing files)
+#0110
+<INI<END
+
 //...199 is reserved
 
 
 
+//quote intro (lead-in map: it's a little different)
+#0200
+//initialize timer to 0 and then add 30 seconds to start
+<SLT0001:$
+<ADT0050:0000:0030
+<EQ+0512//give timer
+<EVE0200//goto quote start
+
+
+//curly intro
+#0210
+
+//gero
+#0220
+
+//king
+#0230
 
 
 
+//quote NPC (+fresh load)
+#0500
+<NIM0500:Quote$
+<ARL0500:Cave1$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0501
+<CFG0500:0003:0000:0000//rewind
+<ANP0500:0001:0000//start playback
+<POP<END
 
+//curly NPC
+#0510
+<NIM0510:Curly$
+<ARL0510:Cave2$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0511
+<CFG0510:0003:0000:0000//rewind
+<ANP0510:0001:0000//start playback
+<POP<END
 
+//gero NPC
+#0520
+<NIM0500:Gero$
+<ARL0500:Cave3$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0521
+<CFG0510:0003:0000:0000//rewind
+<ANP0510:0001:0000//start playback
+<POP<END
 
-
-
+//king NPC
+#0530
+<NIM0510:King$
+<ARL0510:Cave4$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0531
+<CFG0510:0003:0000:0000//rewind
+<ANP0510:0001:0000//start playback
+<POP<END
 
 
 

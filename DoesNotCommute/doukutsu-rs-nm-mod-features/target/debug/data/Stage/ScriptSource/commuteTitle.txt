@@ -10,7 +10,7 @@
 //or "esc" in stage select menu
 #0101
 <KEY<FAO0004
-<TRA0003:0100:0000:0000
+<TRA0004:0100:0000:0000
 
 //left arrow
 //#0102

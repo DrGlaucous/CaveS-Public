@@ -380,3 +380,5 @@
 #373	sub	b	Fake PC sub b	48:48:64:64	a sub-section of the fake PC	;
 #374	PC	Focuser	Fake PC Camera switcher	0:0:32:32	Snaps to locations of fakePC NPCs, switchable with arrow keys	ALL:ALL ;
 #375	Time	Pickup	Time Pickup	48:48:64:64	Adds time to the user's clock	ALL:ALL ;
+#376	Dir	Arrow	Direction Arrow	0:480:32:512	Points to a target set with CFG	ALL:ALL ;
+#377	Door	Outline	Door Outline	256:480:320:544	Flashing outline for a doorframe	ALL:ALL ;
