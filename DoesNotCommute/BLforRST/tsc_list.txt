@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	123
+[CE_TSC]	124
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -134,8 +134,8 @@ TSC List revised by Jackalope and Lace
 <POP	0	----	POP	Return to calling script (same as END, but for sub-functions)
 <KE2	0	----	KEy P2	KEY for player 2(?)
 <FR2	0	----	FRee P2	FRE for player 2(?)
-<CML	4	####	Change Map Layer	Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
-<SML	3	###-	Sub Map Layer	Sets the tile at (xxxx,yyyy) to one less, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
+<CML	4	#xyt	Change Map Layer	Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
+<SML	3	#xy-	Sub Map Layer	Sets the tile at (xxxx,yyyy) to one less, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
 <BKG	0	----	BacKGround	Loads the BKG config with <BKGname_of_config$
 <BKD	1	#---	BacKground Disable	Disable background layer wwww (oob will be set to last layer)
 <BKE	1	#---	BacKground Enable	Enable background layer wwww (oob will be set to last layer)
@@ -154,6 +154,7 @@ TSC List revised by Jackalope and Lace
 <AML	3	###-	ArMs Level	set current level of player's weapon <AML[Weapon ID]:[Level]:[EXP]
 <UFJ	1	#---	User File Jump	Jump to wwww if user file does not exist (%userprofile%)
 <DFJ	1	#---	Data File Jump	Jump to wwww if data file does not exists (./data)
+<FNJ	2	Fe--	FLag Jump	Jump to event X if flag W is NOT set.
 <CFG	4	N#d#	ConFiG npc	wwww=npc(s), xxxx=action_num, yyyy=direction, zzzz=action_counter, then run for 1 tick
 
 

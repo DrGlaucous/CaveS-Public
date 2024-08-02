@@ -128,6 +128,7 @@ impl TextScript {
                         | TSCOpCode::IpN
                         | TSCOpCode::FFm
                         | TSCOpCode::LIS
+                        | TSCOpCode::FNJ
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;

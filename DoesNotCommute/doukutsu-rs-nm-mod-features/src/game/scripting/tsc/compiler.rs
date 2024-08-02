@@ -248,6 +248,7 @@ impl TextScript {
             | TSCOpCode::IpN
             | TSCOpCode::FFm
             | TSCOpCode::LIS
+            | TSCOpCode::FNJ
             => {
                 let operand_a = read_number(iter)?;
                 if strict {

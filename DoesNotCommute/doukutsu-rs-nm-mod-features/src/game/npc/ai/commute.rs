@@ -364,13 +364,6 @@ impl NPC {
         npc_list: &NPCList,
     ) -> GameResult {
 
-        let rect2 = [
-            Rect::new(160, 256, 168, 264),
-            Rect::new(168, 256, 176, 264),
-            Rect::new(0, 0, 0, 0,),
-            Rect::new(0, 0, 0, 0,),
-        ];
-
         //increment animation number
         self.anim_counter += 1;
         if self.anim_counter > 2 {
@@ -396,7 +389,14 @@ impl NPC {
                     self.anim_num = 0
                 }
             }
+            
+        } else {
+            //normal blinking
+            if self.anim_num > 1 {
+                self.anim_num = 0
+            }
         }
+
         self.anim_rect = state.constants.npc.n375_time_collectible[self.anim_num as usize];
 
         //mechanic for adding time is in player_hit.rs (with hearts, exp, and missiles)

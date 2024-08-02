@@ -2,7 +2,7 @@
 #0100
 <PRI<CNP0100:0000:0000
 <SOU0011<FAO0001
-<TRA0004:0200:0008:0028
+<HMC<TRA0004:0200:0008:0028
 
 #0104
 <TRA0003:0200:0010:0008
@@ -12,7 +12,7 @@
 <TCL0050:0030:0043//put the correct start time on the timer, even if we set it again in the next map
 <AM+0002:0000<LIS0009:0009
 <EQ+0512//equip counter
-<FL+5000//NEXT PLAYER ACTIVE FLAG
+<FL+0500//NEXT PLAYER ACTIVE FLAG
 <MNA<CMU0008<FAI0004<END
 
 
@@ -32,8 +32,9 @@ Just go already.<NOD<END
 
 
 #1000
-<KEY<MSGGo away.<NOD
-There's nothing down here.<NOD<END
+<KEY<MSGWhat?<NOD Umm...<NOD
+You weren't supposed to look down
+here...<NOD<CLRNow what am I supposed to say?<NOD<END
 
 
 

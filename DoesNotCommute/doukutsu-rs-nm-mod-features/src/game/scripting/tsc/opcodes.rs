@@ -318,7 +318,8 @@ pub enum TSCOpCode {
     /// <DFJwwww:name_of_file$, Data FIle Jump, jumps TSC if the file in the data directory does not exist
     DFJ,
 
-    // jump event if the NPC DOESN't have an action file loaded
+    /// <FNJxxxx:yyyy, Jumps to event yyyy if flag xxxx is NOT set
+    FNJ,
 
     /// <CFGwwww:xxxx:yyyy:zzzz, ConfiG npc, gives all wwww action_num xxxx, tsc_direction yyyy, and action_counter zzzz, then runs it for 1 tick immediately
     CFG,

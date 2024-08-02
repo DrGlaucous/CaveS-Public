@@ -17,6 +17,9 @@ pub struct Context {
     pub(crate) screen_size: (f32, f32),
     pub(crate) screen_insets: (f32, f32, f32, f32),
     pub(crate) vsync_mode: VSyncMode,
+
+    /// ensures that the new scene has ticked at least one time before it is drawn (to stop NPCs from disappearing on <TRA)
+    pub has_ticked_since_change: bool,
 }
 
 impl Context {
@@ -32,6 +35,8 @@ impl Context {
             screen_size: (320.0, 240.0),
             screen_insets: (0.0, 0.0, 0.0, 0.0),
             vsync_mode: VSyncMode::Uncapped,
+
+            has_ticked_since_change: false,
         }
     }
 

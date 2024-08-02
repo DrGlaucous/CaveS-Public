@@ -5159,8 +5159,8 @@ fn default_b09_ballos() -> SafeNPCRect<14> {
 
 fn default_n375_time_collectible() -> SafeNPCRect<4> {
     SafeNPCRect([
-        Rect::new(160, 256, 168, 264),
-        Rect::new(168, 256, 176, 264),
+        Rect::new(112, 104, 120, 112),
+        Rect::new(120, 104, 128, 112),
         Rect::new(0, 0, 0, 0,),
         Rect::new(0, 0, 0, 0,),
     ])
