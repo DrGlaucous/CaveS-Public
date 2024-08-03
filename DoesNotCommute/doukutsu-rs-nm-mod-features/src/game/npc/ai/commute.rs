@@ -329,20 +329,34 @@ impl NPC {
             return Ok(());
         }
 
-        //run event when this button is pressed (how we "skip" replays)
-        if players[0].controller.trigger_jump() {
+        //check for any NPCs not in "idle" mode.
+        let mut some_active = false;
+        for idx in &self.child_ids {
+            if let Some(npc) = npc_list.get_npc(*idx as usize) {
+                if npc.action_num != 0 {
+                    some_active = true;
+                    continue;
+                }
+            }
+
+        }
+
+        //run event when this button is pressed or if all npcs are idle (how we "skip" replays)
+        if (players[0].controller.trigger_jump() && self.direction == Direction::Left)
+        || !some_active {
             state.textscript_vm.start_script(self.event_num);
         }
 
+
         //switch observed index
-        if players[0].controller.trigger_left() {
+        if players[0].controller.trigger_prev_weapon() {
             self.target_x -= 1;
-        } else if players[0].controller.trigger_right() {
+        } else if players[0].controller.trigger_next_weapon() {
             self.target_x += 1;
         }
 
         //wrapping
-        if self.target_x < 0 {self.target_x += self.child_ids.len() as i32}
+        if self.target_x < 0 {self.target_x = (self.child_ids.len() - 1) as i32}
         if self.target_x >= self.child_ids.len() as i32 {self.target_x = 0}
 
         //snap to this NPC's location
@@ -389,7 +403,7 @@ impl NPC {
                     self.anim_num = 0
                 }
             }
-            
+
         } else {
             //normal blinking
             if self.anim_num > 1 {

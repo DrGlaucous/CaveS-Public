@@ -27,7 +27,7 @@
 //$0300 = exit doors, each door gets 10, starting at 300, 399 is common wrong door script
 //$0400 = 400 for arrow + any other ingame elements
 //$0500 = fakechars, each gets 1, starting at 500, includes their initialization events
-
+//$0600 = environmental functions like CML, CMP and service NPC ANPs
 
 
 
@@ -36,10 +36,8 @@
 //initialize timer to 0 and then add 30 seconds to start
 <SLT0001:$
 <ADT0050:0000:0030
-//give player timer so value persists
-<EQ+0512
-<HMC<FRE
-<FAI0004
+<FRE
+<EVE0720
 <WAI9999
 <END
 
@@ -62,6 +60,7 @@
 //play current stage
 #0104
 //<TRA0001:0100:0015:0007//debug TRA
+<TRA0004:0600:0000:0000
 //send to start point
 <TRA0003:0200:0010:0008
 <END
@@ -75,12 +74,7 @@
 #0110
 <INI<END
 
-//break blocks before fade-in
-#0115
-<CML0002:0057:0016:0000
-<CML0002:0057:0017:0000
-<CML0002:0057:0018:0000
-<POP
+
 
 //...199 is reserved
 
@@ -88,7 +82,7 @@
 /////////////////INTROS/////////////////
 
 
-//quote intro (lead-in map: it's a little different)
+//quote intro (there's a lead-in map; it's a little different)
 #0200
 //timer already initialized
 //IT+0000//add ITEMS
@@ -123,6 +117,7 @@ the door on the top right.<NOD<CLO
 //<EQ+0000//add EQUIPS
 <AM+0004:0100//add ARMS
 <MIM0000:Curly$
+<FON0330:0016//FOCUS ON DOOR
 <WAI0060
 <ANP0330:0000:0002//DOOR
 <SOU0011<WAI0010<SMC<WAI0010
@@ -151,6 +146,7 @@ on the bottom left.<NOD<CLO//PART 2 MESSAGE
 //<EQ+0000//add EQUIPS
 //<AM+0004:0100//add ARMS
 <MIM0000:Gero$
+<FON0300:0016//FOCUS ON DOOR
 <WAI0060
 <ANP0300:0000:0002//DOOR
 <SOU0011<WAI0010<SMC<WAI0010
@@ -182,6 +178,7 @@ on the right side.<NOD<CLO//PART 2 MESSAGE
 //<EQ+0000//add EQUIPS
 <AM+0009:0000//add ARMS
 <MIM0000:King$
+<FON0340:0016//FOCUS ON DOOR
 <WAI0060
 <ANP0340:0000:0002//DOOR
 <SOU0011<WAI0010<SMC<WAI0010
@@ -192,6 +189,7 @@ on the right side.<NOD<CLO//PART 2 MESSAGE
 <CFG0400:0001:0063:0017//LOCATION
 //<CNP0401:0377:0000//config outline
 //<MNP0401:0058:0063:0017//LOCATION
+<PSH0616//remove barrier
 <MSGFresh from
 laying down the law, he wants
 to return home to the village.<NOD<CLO//PART 2 MESSAGE
@@ -270,6 +268,14 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 #0350
 <EQ-0256//stop timer
 <ALC0000:Cave4$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+//<EQ-0000//de-equip equips
+//<AM-0002//de-equip WEAPONS
+<FL-0530//PLAYER'S FLAG
+//<FL+0530//NEXT PLAYER FLAG
+<FAO0002
+<TRA0004:0700:0055:0010
+
 
 
 //focus target
@@ -317,42 +323,158 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 
 //gero NPC
 #0520
-<NIM0500:Gero$
-<ARL0500:Cave3$
-<ANP0500:0001:0000//start playback
+<NIM0520:Gero$
+<ARL0520:Cave3$
+<ANP0520:0001:0000//start playback
 <POP<END
 #0521
-<CFG0510:0003:0000:0000//rewind
-<ANP0510:0001:0000//start playback
+<CFG0520:0003:0000:0000//rewind
+<ANP0520:0001:0000//start playback
 <POP<END
 
 //king NPC
 #0530
-<NIM0510:King$
-<ARL0510:Cave4$
-<ANP0510:0001:0000//start playback
+<NIM0530:King$
+<ARL0530:Cave4$
+<ANP0530:0001:0000//start playback
 <POP<END
 #0531
-<CFG0510:0003:0000:0000//rewind
-<ANP0510:0001:0000//start playback
+<CFG0530:0003:0000:0000//rewind
+<ANP0530:0001:0000//start playback
 <POP<END
 
 
+/////////////////ENVIRONMENT/////////////////
+
+
+//load all NPC actions
+#0610
+<PSH0500
+<PSH0510
+<PSH0520
+<PSH0530
+
+
+//break blocks with smoke
+#0615
+<CML0002:0057:0016:0000
+<CML0002:0057:0017:0000
+<CML0002:0057:0018:0000
+<POP
+
+//break blocks with sound
+#0616
+<SOU0012
+<PSH0615
+<POP
+
+//break blocks without smoke
+#0617
+<MML0002:0057:0016:0000
+<MML0002:0057:0017:0000
+<MML0002:0057:0018:0000
+<POP
+
+
+/////////////////PLAYBACK/////////////////
+
+//playback in-game~~~~~~~~~~~~~~~~
+#0700
+<HMC
+<PSH0617//remove barrier
+<FON0702:0001
+<KEY<MNP0702:0027:0015:0000
+<FAI0004
+<MS2<TURHere is what everyone did:<NOD<CLO
+<PSH0610//start NPCs
+<PSH0701//start focuser
+<MS2<TURUse weapon- and weapon+ to change focus.
+ 
+   Press jump key to skip replay.<WAI9999
+<END
+
+//load focuser while first checking for all files
+#0701
+<UFJ0799:Cave1$
+<UFJ0799:Cave2$
+<UFJ0799:Cave3$
+<UFJ0799:Cave4$
+<CNP0702:0374:0000//start focuser
+<POP
+
+//focuser (in game)
+#0702
+<CNP0702:0000:0000//remove so we don't get repeated events
+<KEY<CLR
+<WAI0050
+<FAO0004
+<FOM0016
+//to next level
+<END
+
+
+//playback in-replay~~~~~~~~~~~~~~~~
+#0710
+<HMC<EQ+0512
+<PSH0617//remove barrier
+<KEY<FON0712:0001
+<MNP0712:0027:0015:0000
+<FAI0004
+<PSH0610//start NPCs
+<PSH0711//start focuser
+<WAI9999<END
+
+
+#0711
+<UFJ0799:Cave1$
+<UFJ0799:Cave2$
+<UFJ0799:Cave3$
+<UFJ0799:Cave4$
+<CNP0712:0374:0000//start focuser
+<POP
+
+//focuser (in replay)
+#0712
+<CNP0712:0000:0000//remove so we don't get repeated events
+<WAI0050
+<FAO0004
+//todo: quit back to select screen
+<END
 
 
 
+//playback in-preview~~~~~~~~~~~~~~~~
+#0720
+<HMC<EQ+0512
+<PSH0617//remove barrier
+<FON0722:0001
+<MNP0722:0027:0015:0000
+<FAI0004
+<PSH0610//start NPCs
+<PSH0721//start focuser
+<WAI9999<END
+
+
+#0721
+<UFJ0799:Cave1$
+<UFJ0799:Cave2$
+<UFJ0799:Cave3$
+<UFJ0799:Cave4$
+<CNP0722:0374:0000//start focuser
+
+//focuser (in preview)
+#0722
+<CNP0722:0000:0000//remove so we don't get repeated events
+<WAI0050
+<FAO0004
+<TRA0004:0720:0000:0000//repeat
 
 
 
-
-
-
-
-
-
-
-
-
+//skip-out
+#0799
+<KEY<MSGOUT<NOD
+<POP<END
 
 
 

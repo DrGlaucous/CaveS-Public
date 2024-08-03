@@ -2074,7 +2074,7 @@ impl TextScriptVM {
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
-            TSCOpCode::CML => {
+            TSCOpCode::CML | TSCOpCode::MML => {
                 let layer = match read_cur_varint(&mut cursor)? {
                     3 => TileLayer::FarForeground,
                     0 => TileLayer::Background,
@@ -2085,7 +2085,7 @@ impl TextScriptVM {
                 let pos_y = read_cur_varint(&mut cursor)? as usize;
                 let tile_type = read_cur_varint(&mut cursor)? as u16;
 
-                if game_scene.stage.change_tile_layer(pos_x, pos_y, tile_type, layer) {
+                if game_scene.stage.change_tile_layer(pos_x, pos_y, tile_type, layer) && op == TSCOpCode::CML {
                     let mut npc = NPC::create(4, &state.npc_table);
                     npc.cond.set_alive(true);
                     npc.x = pos_x as i32 * 0x2000;

@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	124
+[CE_TSC]	125
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -156,7 +156,7 @@ TSC List revised by Jackalope and Lace
 <DFJ	1	#---	Data File Jump	Jump to wwww if data file does not exists (./data)
 <FNJ	2	Fe--	FLag Jump	Jump to event X if flag W is NOT set.
 <CFG	4	N#d#	ConFiG npc	wwww=npc(s), xxxx=action_num, yyyy=direction, zzzz=action_counter, then run for 1 tick
-
+<MML	4	#xyt	Make Map Layer	Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore] (no smoke)
 
 
 

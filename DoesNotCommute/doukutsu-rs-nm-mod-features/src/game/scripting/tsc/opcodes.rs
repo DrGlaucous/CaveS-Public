@@ -324,6 +324,9 @@ pub enum TSCOpCode {
     /// <CFGwwww:xxxx:yyyy:zzzz, ConfiG npc, gives all wwww action_num xxxx, tsc_direction yyyy, and action_counter zzzz, then runs it for 1 tick immediately
     CFG,
 
+    /// <MMLwwww:xxxx:yyyy:zzzz, Make Map Layer, Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore] (no smoke)
+    MML,
+
 
 
 }
