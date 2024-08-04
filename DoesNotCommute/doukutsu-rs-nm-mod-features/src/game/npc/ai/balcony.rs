@@ -178,7 +178,7 @@ impl NPC {
         }
 
         let player = self.get_closest_player_ref(&players);
-        self.face_player(player);
+        self.face_player(*player);
 
         let dir_offset = if self.direction == Direction::Left { 0 } else { 3 };
 
@@ -219,7 +219,7 @@ impl NPC {
         }
 
         let player = self.get_closest_player_ref(&players);
-        self.face_player(player);
+        self.face_player(*player);
 
         let dir_offset = if self.direction == Direction::Left { 0 } else { 2 };
 
@@ -260,7 +260,7 @@ impl NPC {
         }
 
         let player = self.get_closest_player_ref(&players);
-        self.face_player(player);
+        self.face_player(*player);
 
         let dir_offset = if self.direction == Direction::Left { 0 } else { 2 };
 

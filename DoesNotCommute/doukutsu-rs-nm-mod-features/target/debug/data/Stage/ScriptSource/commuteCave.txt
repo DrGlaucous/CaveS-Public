@@ -1,5 +1,10 @@
 //Flag List
 //
+//These flags do not persist because we do not save and the title game and main game do not share flags
+//Flag 0100: on when in preview mode
+//Flag 0101: on when in replay mode
+//
+//
 //
 //Flag 0500: on ONLY when quote is active
 //Flag 0510: on ONLY when curly is active
@@ -8,6 +13,8 @@
 //
 //
 //
+
+
 
 
 //time file list
@@ -37,7 +44,7 @@
 <SLT0001:$
 <ADT0050:0000:0030
 <FRE
-<EVE0720
+<EVE0730
 <WAI9999
 <END
 
@@ -47,7 +54,7 @@
 <KEY<TRA0002:0100:0000:0000
 <END
 
-//left arrow
+//left arrow (disabled: no older maps)
 //#0102
 //<END
 
@@ -59,14 +66,15 @@
 
 //play current stage
 #0104
-//<TRA0001:0100:0015:0007//debug TRA
-<TRA0004:0600:0000:0000
+<TRA0001:0100:0015:0007//debug TRA
+//<TRA0004:0600:0000:0000//watch preview
 //send to start point
 <TRA0003:0200:0010:0008
 <END
 
 //watch current stage
 #0105
+<TRA0004:0720:0000:0000
 <END
 
 
@@ -274,7 +282,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <FL-0530//PLAYER'S FLAG
 //<FL+0530//NEXT PLAYER FLAG
 <FAO0002
-<TRA0004:0700:0055:0010
+<TRA0004:0710:0055:0010
 
 
 
@@ -353,6 +361,16 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <PSH0510
 <PSH0520
 <PSH0530
+<POP<END
+
+//same but only if all exist
+#0611
+<UFJ0702:Cave1$
+<UFJ0702:Cave2$
+<UFJ0702:Cave3$
+<UFJ0702:Cave4$
+<PSH0610
+<POP<END
 
 
 //break blocks with smoke
@@ -375,36 +393,48 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <MML0002:0057:0018:0000
 <POP
 
+//skip out
+#0699
+<MS3SKIP<WAI0050<CLO<POP
 
 /////////////////PLAYBACK/////////////////
 
-//playback in-game~~~~~~~~~~~~~~~~
+//focuser
 #0700
+<CNP0700:0000:0000//remove so we don't get repeated triggers
+<FLJ0100:0731//preview mode
+<FLJ0101:0721//replay mode
+<EVE0711//in-game event
+
+//load focuser event (checked)
+#0701
+<UFJ0699:Cave1$
+<UFJ0699:Cave2$
+<UFJ0699:Cave3$
+<UFJ0699:Cave4$
+<CNP0700:0374:0000
+<POP
+
+
+//playback in-game~~~~~~~~~~~~~~~~
+#0710
 <HMC
 <PSH0617//remove barrier
-<FON0702:0001
-<KEY<MNP0702:0027:0015:0000
+<FON0700:0016//look at focuser
+<KEY//no player movement
+<MNP0700:0027:0015:0000//move to center
 <FAI0004
 <MS2<TURHere is what everyone did:<NOD<CLO
-<PSH0610//start NPCs
-<PSH0701//start focuser
+<PSH0611//start NPCs
+<PSH0701//start focuser (checked)
 <MS2<TURUse weapon- and weapon+ to change focus.
  
    Press jump key to skip replay.<WAI9999
 <END
 
-//load focuser while first checking for all files
-#0701
-<UFJ0799:Cave1$
-<UFJ0799:Cave2$
-<UFJ0799:Cave3$
-<UFJ0799:Cave4$
-<CNP0702:0374:0000//start focuser
-<POP
 
-//focuser (in game)
-#0702
-<CNP0702:0000:0000//remove so we don't get repeated events
+//end/skip event
+#0711
 <KEY<CLR
 <WAI0050
 <FAO0004
@@ -414,69 +444,42 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 
 
 //playback in-replay~~~~~~~~~~~~~~~~
-#0710
-<HMC<EQ+0512
-<PSH0617//remove barrier
-<KEY<FON0712:0001
-<MNP0712:0027:0015:0000
-<FAI0004
-<PSH0610//start NPCs
-<PSH0711//start focuser
-<WAI9999<END
+#0720
+<FL+0101//set replay mode
+<EVE0710//normal opening
 
-
-#0711
-<UFJ0799:Cave1$
-<UFJ0799:Cave2$
-<UFJ0799:Cave3$
-<UFJ0799:Cave4$
-<CNP0712:0374:0000//start focuser
-<POP
-
-//focuser (in replay)
-#0712
-<CNP0712:0000:0000//remove so we don't get repeated events
+//end/skip event
+#0721
+<KEY<CLR
 <WAI0050
 <FAO0004
-//todo: quit back to select screen
+<FOM0016
+//TODO: back to title
 <END
 
 
 
 //playback in-preview~~~~~~~~~~~~~~~~
-#0720
+#0730
+<FL+0100//set preview mode
 <HMC<EQ+0512
 <PSH0617//remove barrier
-<FON0722:0001
-<MNP0722:0027:0015:0000
+<FON0700:0016//focus on switcher
+<MNP0700:0027:0015:0000//move switcher to center
 <FAI0004
-<PSH0610//start NPCs
-<PSH0721//start focuser
+<PSH0611//start NPCs
+<PSH0701//start focuser (checked)
+<ANP0700:0000:0001//disable skip option (non-left direction)
 <WAI9999<END
 
 
-#0721
-<UFJ0799:Cave1$
-<UFJ0799:Cave2$
-<UFJ0799:Cave3$
-<UFJ0799:Cave4$
-<CNP0722:0374:0000//start focuser
 
-//focuser (in preview)
-#0722
-<CNP0722:0000:0000//remove so we don't get repeated events
+//end/skip event 
+#0731
 <WAI0050
 <FAO0004
-<TRA0004:0720:0000:0000//repeat
-
-
-
-//skip-out
-#0799
-<KEY<MSGOUT<NOD
-<POP<END
-
-
+<TRA0004:0730:0000:0000//restart replay
+<END
 
 
 

@@ -222,7 +222,7 @@ impl NPC {
                     self.action_counter = 0;
 
                     let player = self.get_closest_player_ref(&players);
-                    self.face_player(player);
+                    self.face_player(*player);
                 }
 
                 self.action_counter += 1;
@@ -488,7 +488,7 @@ impl NPC {
                     self.action_counter = 0;
 
                     let player = self.get_closest_player_ref(&players);
-                    self.face_player(player);
+                    self.face_player(*player);
                 }
 
                 self.action_counter += 1;
@@ -520,7 +520,7 @@ impl NPC {
 
                 if self.action_counter > 82 {
                     self.action_num = 10;
-                    self.face_player(player);
+                    self.face_player(*player);
                 }
             }
             _ => (),

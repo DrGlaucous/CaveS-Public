@@ -109,7 +109,7 @@ impl NPC {
                 }
 
                 let player = self.get_closest_player_ref(&players);
-                self.face_player(player);
+                self.face_player(*player);
 
                 if self.action_counter >= 8
                     && self.x - 0xe000 < player.x

@@ -112,7 +112,7 @@ impl NPC {
                 }
             }
             5 => {
-                self.face_player(player);
+                self.face_player(*player);
                 self.anim_num = if self.action_counter % 2 != 0 { 5 } else { 0 };
                 self.action_counter += 1;
 

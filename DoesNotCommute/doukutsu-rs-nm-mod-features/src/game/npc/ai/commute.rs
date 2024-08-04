@@ -305,7 +305,26 @@ impl NPC {
     //sub-part: is the fPC's body/gun
     pub(crate) fn tick_n372_n373_fake_pc_sub(
         &mut self,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
     ) -> GameResult {
+
+        // //debug the closeness functions
+        // let rc = Rect::new(168, 96, 192, 112);
+        // let rc2 = Rect::new(168, 112, 192, 128);
+
+        // let mut aa = 0;
+        // aa += 1;
+
+
+        // let player = self.get_closest_pseudo_player_mut(players, npc_list);
+        // self.face_player(player);
+
+        // if self.direction == Direction::Left {
+        //     self.anim_rect = rc;
+        // } else {
+        //     self.anim_rect = rc2;
+        // }
 
         Ok(())
     }

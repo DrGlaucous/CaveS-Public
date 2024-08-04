@@ -186,17 +186,18 @@ impl NPC {
 
         //get closest fake player
         let mut return_player = true;
-        let pcx = players[pc_idx].x as f64;
-        let pcy = players[pc_idx].y as f64;
+        let pcx = (self.x - players[pc_idx].x) as f64;
+        let pcy = (self.y - players[pc_idx].y) as f64;
         let mut max_dist = (pcx * pcx + pcy * pcy).sqrt();
         let mut npc_idx = 0;
         for (idx, npc) in npc_list.iter().enumerate() {
-            if !npc.cond.alive() || npc.cond.hidden() {
+            //if !npc.cond.alive() || npc.cond.hidden() || npc.npc_type != 371 {
+            if !npc.cond.alive() || npc.npc_type != 371 {
                 continue;
             }
 
-            let dist_x = abs(self.x - npc.x) as f64;
-            let dist_y = abs(self.y - npc.y) as f64;
+            let dist_x = (self.x - npc.x) as f64;
+            let dist_y = (self.y - npc.y) as f64;
             let dist = (dist_x * dist_x + dist_y * dist_y).sqrt();
 
             if dist < max_dist {
@@ -256,8 +257,8 @@ impl NPC {
 
     
     /// Sets direction of NPC to face towards Player.
-    pub fn face_player(&mut self, player: &Player) {
-        self.direction = if self.x > player.x { Direction::Left } else { Direction::Right };
+    pub fn face_player(&mut self, player: &dyn PhysicalEntity) {
+        self.direction = if self.x > player.x() { Direction::Left } else { Direction::Right };
     }
 
     /// Clamps +Y velocity if above `MAX_FALL_SPEED`.

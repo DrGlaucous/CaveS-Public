@@ -2,6 +2,7 @@ use num_traits::clamp;
 
 use crate::common::Direction;
 use crate::framework::error::GameResult;
+use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
 use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
@@ -73,6 +74,7 @@ impl NPC {
         &mut self,
         state: &mut SharedGameState,
         players: [&mut Player; 2],
+        npc_list: &NPCList,
     ) -> GameResult {
         match self.action_num {
             0 | 1 => {
@@ -82,7 +84,7 @@ impl NPC {
                     self.anim_num = 0;
                 }
 
-                let player = self.get_closest_player_mut(players);
+                let player = self.get_closest_pseudo_player_mut(players, npc_list); //get_closest_player_mut(players);
                 self.face_player(player);
 
                 if self.target_x < 100 {
@@ -90,10 +92,10 @@ impl NPC {
                 }
 
                 if self.action_counter >= 8
-                    && self.x - 0xe000 < player.x
-                    && self.x + 0xe000 > player.x
-                    && self.y - 0xa000 < player.y
-                    && self.y + 0xa000 > player.y
+                    && self.x - 0xe000 < player.x()
+                    && self.x + 0xe000 > player.x()
+                    && self.y - 0xa000 < player.y()
+                    && self.y + 0xa000 > player.y()
                 {
                     self.anim_num = 1;
                 } else {
@@ -113,10 +115,10 @@ impl NPC {
 
                 if self.action_counter >= 8
                     && self.target_x >= 100
-                    && self.x - 0x8000 < player.x
-                    && self.x + 0x8000 > player.x
-                    && self.y - 0xa000 < player.y
-                    && self.y + 0x6000 > player.y
+                    && self.x - 0x8000 < player.x()
+                    && self.x + 0x8000 > player.x()
+                    && self.y - 0xa000 < player.y()
+                    && self.y + 0x6000 > player.y()
                 {
                     self.action_num = 2;
                     self.action_counter = 0;
@@ -165,6 +167,7 @@ impl NPC {
         &mut self,
         state: &mut SharedGameState,
         players: [&mut Player; 2],
+        npc_list: &NPCList,
     ) -> GameResult {
         match self.action_num {
             0 | 1 => {
@@ -184,8 +187,8 @@ impl NPC {
                 }
             }
             2 => {
-                let player = self.get_closest_player_mut(players);
-                if self.x > player.x {
+                let player = self.get_closest_pseudo_player_mut(players, npc_list);
+                if self.x > player.x() {
                     self.direction = Direction::Left;
                 } else {
                     self.direction = Direction::Right;

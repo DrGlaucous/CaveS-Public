@@ -581,7 +581,7 @@ impl NPC {
                     self.anim_num = 0;
                     self.action_counter = 0;
                 }
-                self.face_player(player);
+                self.face_player(*player);
                 self.animate(40, 0, 1);
 
                 if player.x > self.x - 0x28000
