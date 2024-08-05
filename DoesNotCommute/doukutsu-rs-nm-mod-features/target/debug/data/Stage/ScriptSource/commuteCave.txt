@@ -365,10 +365,10 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 
 //same but only if all exist
 #0611
-<UFJ0702:Cave1$
-<UFJ0702:Cave2$
-<UFJ0702:Cave3$
-<UFJ0702:Cave4$
+<UFJ0699:Cave1$
+<UFJ0699:Cave2$
+<UFJ0699:Cave3$
+<UFJ0699:Cave4$
 <PSH0610
 <POP<END
 
@@ -393,9 +393,18 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <MML0002:0057:0018:0000
 <POP
 
+
+//return to stage select screen
+#0698
+//return to title
+<RET0004:0100:0000:0000
+<END
+
 //skip out
 #0699
-<MS3SKIP<WAI0050<CLO<POP
+<MS3SKIP<WAI0050<CLO
+<POP
+
 
 /////////////////PLAYBACK/////////////////
 
@@ -425,7 +434,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <MNP0700:0027:0015:0000//move to center
 <FAI0004
 <MS2<TURHere is what everyone did:<NOD<CLO
-<PSH0611//start NPCs
+<PSH0611//start NPCs (checked)
 <PSH0701//start focuser (checked)
 <MS2<TURUse weapon- and weapon+ to change focus.
  
@@ -455,6 +464,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <FAO0004
 <FOM0016
 //TODO: back to title
+<RET0004:0100:0000:0000
 <END
 
 

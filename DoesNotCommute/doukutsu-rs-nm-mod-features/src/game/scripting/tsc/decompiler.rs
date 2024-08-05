@@ -161,6 +161,7 @@ impl TextScript {
                         | TSCOpCode::BKP
                         | TSCOpCode::CFG
                         | TSCOpCode::MML
+                        | TSCOpCode::RET
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;

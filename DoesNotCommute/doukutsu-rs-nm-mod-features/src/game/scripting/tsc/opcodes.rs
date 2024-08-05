@@ -327,6 +327,9 @@ pub enum TSCOpCode {
     /// <MMLwwww:xxxx:yyyy:zzzz, Make Map Layer, Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore] (no smoke)
     MML,
 
+    /// <RETxxxx:yyyy:zzzz:wwww, RETurn to title screen, Travels to map xxxx, starts event yyyy, places the player at tile (zzzz,wwww)
+    RET,
+
 
 
 }

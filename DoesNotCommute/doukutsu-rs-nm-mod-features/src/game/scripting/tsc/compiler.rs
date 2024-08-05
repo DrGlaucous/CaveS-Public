@@ -301,6 +301,7 @@ impl TextScript {
             | TSCOpCode::CML
             | TSCOpCode::CFG
             | TSCOpCode::MML
+            | TSCOpCode::RET
             => {
                 let operand_a = read_number(iter)?;
                 if strict {

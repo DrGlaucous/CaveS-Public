@@ -29,7 +29,7 @@ use crate::game::scripting::tsc::text_script::TextScriptExecutionState;
 #[derive(PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
 #[allow(unused)]
-enum CurrentMenu {
+pub enum CurrentMenu {
     MainMenu,
     OptionMenu,
     SaveSelectMenu,
@@ -84,7 +84,7 @@ impl Default for ConfirmMenuEntry {
 pub struct TitleScene {
     tick: usize,
     controller: CombinedMenuController,
-    current_menu: CurrentMenu,
+    pub current_menu: CurrentMenu,
     main_menu: Menu<MainMenuEntry>,
     //save_select_menu: SaveSelectMenu,
     challenges_menu: Menu<ChallengesMenuEntry>,
@@ -100,7 +100,7 @@ pub struct TitleScene {
 
     stage_select_menu: StageSelectMenu,
 
-    game_scene: Option<Box<GameScene>>,
+    pub game_scene: Option<Box<GameScene>>,
 }
 
 impl TitleScene {

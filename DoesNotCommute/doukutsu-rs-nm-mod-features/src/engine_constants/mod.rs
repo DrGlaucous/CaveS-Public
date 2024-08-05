@@ -316,7 +316,7 @@ impl EngineConstants {
                 intro_event: 100,
                 intro_player_pos: (3, 3),
                 new_game_stage: 1,
-                new_game_event: 200,
+                new_game_event: 100,
                 new_game_player_pos: (10, 8),
                 tile_offset_x: 0,
 

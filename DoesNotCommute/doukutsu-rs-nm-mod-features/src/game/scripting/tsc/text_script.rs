@@ -28,11 +28,12 @@ use crate::game::scripting::tsc::opcodes::TSCOpCode;
 use crate::game::shared_game_state::ReplayState;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::shared_game_state::TimingMode;
-use crate::game::weapon::{ WeaponType, WeaponLevel };
+use crate::game::weapon::{WeaponType, WeaponLevel};
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameMode;
 use crate::scene::game_scene::GameScene;
+use crate::scene::title_scene::{TitleScene, CurrentMenu};
 use crate::components::tilemap::TileLayer;
 use crate::components::record::{Record, RecordState};
 
@@ -2390,8 +2391,37 @@ impl TextScriptVM {
                     exec_state = TextScriptExecutionState::Running(event_num, 0);
                 }
             }
+            TSCOpCode::RET => {
 
+                let map_id = read_cur_varint(&mut cursor)? as usize;
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+                let block_x = read_cur_varint(&mut cursor)? as i32;
+                let block_y = read_cur_varint(&mut cursor)? as i32;
 
+                let mut next_scene = TitleScene::new(state, ctx);
+                next_scene.current_menu = CurrentMenu::SaveSelectMenu;
+
+                next_scene.game_scene = if let Ok(mut next_scene) = GameScene::new(state, ctx, map_id) {
+
+                    let block_size = next_scene.stage.map.tile_size.as_int() * 0x200;
+                    let pos_x = block_x * block_size;
+                    let pos_y = block_y * block_size;
+
+                    next_scene.player1.cond.set_hidden(true);
+                    next_scene.player1.x = pos_x;
+                    next_scene.player1.y = pos_y;
+                    next_scene.mode = GameMode::Title;
+    
+                    Some(Box::new(next_scene))
+                } else {
+                    None
+                };
+
+                state.next_scene = Some(Box::new(next_scene));
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
 
         }
 
