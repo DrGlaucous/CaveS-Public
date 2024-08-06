@@ -1987,12 +1987,16 @@ impl Scene for GameScene {
         self.player1.damage_popup.prev_y = self.player1.damage_popup.y;
         self.player1.exp_popup.prev_x = self.player1.exp_popup.x;
         self.player1.exp_popup.prev_y = self.player1.exp_popup.y;
+        self.player1.time_popup.prev_x = self.player1.time_popup.x;
+        self.player1.time_popup.prev_y = self.player1.time_popup.y;
         self.player2.prev_x = self.player2.x;
         self.player2.prev_y = self.player2.y;
         self.player2.damage_popup.prev_x = self.player2.damage_popup.x;
         self.player2.damage_popup.prev_y = self.player2.damage_popup.y;
         self.player2.exp_popup.prev_x = self.player2.exp_popup.x;
         self.player2.exp_popup.prev_y = self.player2.exp_popup.y;
+        self.player2.time_popup.prev_x = self.player2.time_popup.x;
+        self.player2.time_popup.prev_y = self.player2.time_popup.y;
 
         for npc in self.npc_list.iter_alive() {
             npc.prev_x = npc.x;
@@ -2084,8 +2088,10 @@ impl Scene for GameScene {
         self.draw_carets(state, ctx)?;
         self.player1.exp_popup.draw(state, ctx, &self.frame)?;
         self.player1.damage_popup.draw(state, ctx, &self.frame)?;
+        self.player1.time_popup.draw(state, ctx, &self.frame)?;
         self.player2.exp_popup.draw(state, ctx, &self.frame)?;
         self.player2.damage_popup.draw(state, ctx, &self.frame)?;
+        self.player2.time_popup.draw(state, ctx, &self.frame)?;
         self.draw_npc_popup(state, ctx)?;
         self.draw_boss_popup(state, ctx)?;
 

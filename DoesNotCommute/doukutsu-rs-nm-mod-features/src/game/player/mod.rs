@@ -1073,6 +1073,10 @@ impl GameEntity<&NPCList> for Player {
             self.exp_popup.update_displayed_value();
         }
 
+        if self.time_popup.value != 0 {
+            self.time_popup.update_displayed_value();
+        }
+
         match (self.control_mode, state.settings.noclip) {
             (_, true) => self.tick_ironhead(state)?,
             (ControlMode::Normal, _) => self.tick_normal(state, npc_list)?,

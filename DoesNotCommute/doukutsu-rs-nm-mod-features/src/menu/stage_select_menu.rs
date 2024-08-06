@@ -15,7 +15,7 @@ use crate::graphics::font::{Font, Symbols};
 #[repr(u8)]
 #[allow(unused)]
 pub enum CurrentMenu {
-    SlectMenu,
+    SelectMenu,
     ConfirmMenu,
 }
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -43,7 +43,7 @@ pub struct StageSelectMenu {
 impl StageSelectMenu {
     pub fn new() -> StageSelectMenu {
         StageSelectMenu {
-            current_menu: CurrentMenu::SlectMenu,
+            current_menu: CurrentMenu::SelectMenu,
             load_confirm: Menu::new(0, 0, 130, 0),
             left_arrow_visible: true,
             right_arrow_visible: true,
@@ -61,9 +61,12 @@ impl StageSelectMenu {
         self.load_confirm
             .push_entry(ConfirmMenuEntry::Play, MenuEntry::Active(state.loc.t("menus.load_confirm_menu.play").to_owned()));
         
-        self.load_confirm
-            .push_entry(ConfirmMenuEntry::WatchReplay, MenuEntry::Active(state.loc.t("menus.load_confirm_menu.watch_replay").to_owned()));
+        //self.load_confirm
+        //    .push_entry(ConfirmMenuEntry::WatchReplay, MenuEntry::Active(state.loc.t("menus.load_confirm_menu.watch_replay").to_owned()));
         
+        //start with this menu entry hidden
+        self.load_confirm.push_entry(ConfirmMenuEntry::WatchReplay, MenuEntry::Hidden);
+
         self.load_confirm
             .push_entry(ConfirmMenuEntry::Back, MenuEntry::Active(state.loc.t("common.back").to_owned()));
 
@@ -90,8 +93,13 @@ impl StageSelectMenu {
 
         self.update_sizes(state);
 
+
+        //self.load_confirm.set_entry(ConfirmMenuEntry::WatchReplay, MenuEntry::Hidden);
+        //self.load_confirm.set_entry(ConfirmMenuEntry::WatchReplay, MenuEntry::Active(state.loc.t("menus.load_confirm_menu.watch_replay").to_owned()));
+
+
         match self.current_menu {
-            CurrentMenu::SlectMenu => {
+            CurrentMenu::SelectMenu => {
 
                 //it's up to the TSC to load stuff. this just reacts to what's there
 
@@ -109,6 +117,20 @@ impl StageSelectMenu {
 
                 //TSC will try to load all NPC keylogs, and finally CNP a null to the camera switcher, an indicator that the level was completed
                 self.stage_completed = game_scene.npc_list.is_alive_by_type(374);
+
+                //change replay visibility based on stage_completed var (but only if it's not already set to this) (we could also use "set_id"... would it have much impact on performance?)
+                for a in &mut self.load_confirm.entries {
+                    match (self.stage_completed, &a) {
+                        (true, (ConfirmMenuEntry::WatchReplay, MenuEntry::Hidden)) => {
+                            a.1 = MenuEntry::Active(state.loc.t("menus.load_confirm_menu.watch_replay").to_owned());
+                        }
+                        (false, (ConfirmMenuEntry::WatchReplay,  MenuEntry::Active(_))) => {
+                            a.1 = MenuEntry::Hidden;
+                        }
+                        _ => {}
+                    }
+                }
+
 
                 //lockout while keyed
                 if !(state.control_flags.control_enabled()) {
@@ -157,7 +179,7 @@ impl StageSelectMenu {
             CurrentMenu::ConfirmMenu => {
                 match self.load_confirm.tick(controller, state) {
                     MenuSelectionResult::Selected(ConfirmMenuEntry::Back, _) | MenuSelectionResult::Canceled => {
-                        self.current_menu = CurrentMenu::SlectMenu;
+                        self.current_menu = CurrentMenu::SelectMenu;
                     }
                     MenuSelectionResult::Selected(ConfirmMenuEntry::Play, _) => {
 
@@ -200,7 +222,7 @@ impl StageSelectMenu {
     ) -> GameResult {
         
         match self.current_menu {
-            CurrentMenu::SlectMenu => {
+            CurrentMenu::SelectMenu => {
 
                 let play = Rect::new(56, 152, 80, 176);
                 let lock = Rect::new(80, 152, 104, 176);

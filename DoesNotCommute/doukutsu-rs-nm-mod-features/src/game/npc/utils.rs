@@ -191,8 +191,10 @@ impl NPC {
         let mut max_dist = (pcx * pcx + pcy * pcy).sqrt();
         let mut npc_idx = 0;
         for (idx, npc) in npc_list.iter().enumerate() {
-            //if !npc.cond.alive() || npc.cond.hidden() || npc.npc_type != 371 {
-            if !npc.cond.alive() || npc.npc_type != 371 {
+            //if dead or not fakechar or is not active (1/2)
+            if !npc.cond.alive() 
+            || npc.npc_type != 371 
+            || (npc.action_num != 1 && npc.action_num != 2) {
                 continue;
             }
 

@@ -407,7 +407,8 @@ impl Player {
 
     /// Returns true if the the [Player] collides with a [Bullet].
     pub fn collides_with_bullet(&self, state: &mut SharedGameState, bullet: &Bullet) -> bool {
-            !state.settings.god_mode
+            self.cond.alive()
+            && !state.settings.god_mode
             && !state.settings.noclip
             && (self.x - self.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
             && (self.x + self.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)

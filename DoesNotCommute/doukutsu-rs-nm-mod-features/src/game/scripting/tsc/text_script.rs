@@ -2204,7 +2204,7 @@ impl TextScriptVM {
             
                 if is_read {
                     //failure to read the file sets the time to 0
-                    game_scene.nikumaru.tick = game_scene.nikumaru.load_time(state, ctx, Some(&timer_name.as_str())).unwrap_or_else( |_| 0) as usize;
+                    game_scene.nikumaru.tick = NikumaruCounter::load_time(state, ctx, Some(&timer_name.as_str())).unwrap_or_else( |_| 0) as usize;
                 } else {
                     let _ = game_scene.nikumaru.save_time(state, ctx, game_scene.nikumaru.tick as u32, Some(&timer_name.as_str()))?;
                 }
@@ -2422,7 +2422,25 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
 
             }
+            TSCOpCode::TIJ => {
+                //get event
+                let event_num = read_cur_varint(&mut cursor)? as u16;
 
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let timer_name = String::from("/") + read_string(&mut cursor, len).unwrap().as_str();
+
+                let ticks = NikumaruCounter::load_time(state, ctx, Some(&timer_name.as_str())).unwrap_or_else( |_| 0) as usize;
+
+                if game_scene.nikumaru.tick < ticks && ticks != 0 {
+                    state.textscript_vm.clear_text_box();
+                    exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+                } else {
+                    exec_state = TextScriptExecutionState::Running(event_num, 0);
+                }
+
+
+            }
         }
 
         Ok(exec_state)

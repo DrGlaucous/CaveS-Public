@@ -382,6 +382,7 @@ impl TextScript {
             | TSCOpCode::ARL
             | TSCOpCode::UFJ
             | TSCOpCode::DFJ
+            | TSCOpCode::TIJ
             =>
             {
 

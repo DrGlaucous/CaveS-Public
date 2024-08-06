@@ -130,7 +130,12 @@ impl NPC {
         Ok(())
     }
 
-    pub(crate) fn tick_n075_kanpachi(&mut self, state: &mut SharedGameState, players: [&mut Player; 2]) -> GameResult {
+    pub(crate) fn tick_n075_kanpachi(
+        &mut self, 
+        state: &mut SharedGameState, 
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
         if self.action_num == 0 {
             self.action_num = 1;
             self.anim_num = 0;
@@ -138,11 +143,11 @@ impl NPC {
         }
 
         if self.action_num == 1 {
-            let player = self.get_closest_player_mut(players);
-            if (self.x - 0x6000 < player.x)
-                && (self.x + 0x6000 > player.x)
-                && (self.y - 0x6000 < player.y)
-                && (self.y + 0x2000 > player.y)
+            let player = self.get_closest_pseudo_player_mut(players, npc_list);
+            if (self.x - 0x6000 < player.x())
+                && (self.x + 0x6000 > player.x())
+                && (self.y - 0x6000 < player.y())
+                && (self.y + 0x2000 > player.y())
             {
                 self.anim_num = 1;
             } else {
@@ -189,7 +194,12 @@ impl NPC {
         Ok(())
     }
 
-    pub(crate) fn tick_n079_mahin(&mut self, state: &mut SharedGameState, players: [&mut Player; 2]) -> GameResult {
+    pub(crate) fn tick_n079_mahin(
+        &mut self, 
+        state: &mut SharedGameState, 
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
         match self.action_num {
             0 => {
                 self.action_num = 1;
@@ -204,11 +214,11 @@ impl NPC {
                     self.anim_num = 1;
                 }
 
-                let player = self.get_closest_player_mut(players);
-                if (self.x - (0x4000) < player.x)
-                    && (self.x + (0x4000) > player.x)
-                    && (self.y - (0x4000) < player.y)
-                    && (self.y + (0x2000) > player.y)
+                let player = self.get_closest_pseudo_player_mut(players, npc_list);
+                if (self.x - (0x4000) < player.x())
+                    && (self.x + (0x4000) > player.x())
+                    && (self.y - (0x4000) < player.y())
+                    && (self.y + (0x2000) > player.y())
                 {
                     self.face_player(player);
                 }
@@ -239,6 +249,7 @@ impl NPC {
         &mut self,
         state: &mut SharedGameState,
         players: [&mut Player; 2],
+        npc_list: &NPCList,
     ) -> GameResult {
         match self.action_num {
             0 | 1 => {
@@ -251,8 +262,8 @@ impl NPC {
 
                 self.anim_num = 0;
 
-                let player = self.get_closest_player_mut(players);
-                if abs(player.x - self.x) < 0x10000 && self.y - 0x6000 < player.y && self.y + 0x4000 > player.y {
+                let player = self.get_closest_pseudo_player_mut(players, npc_list);
+                if abs(player.x() - self.x) < 0x10000 && self.y - 0x6000 < player.y() && self.y + 0x4000 > player.y() {
                     self.anim_counter = 0;
                     self.action_num = 2;
                 }
@@ -269,8 +280,8 @@ impl NPC {
             2 => {
                 self.animate(6, 0, 3);
 
-                let player = self.get_closest_player_mut(players);
-                if abs(player.x - self.x) < 0x2000 {
+                let player = self.get_closest_pseudo_player_mut(players, npc_list);
+                if abs(player.x() - self.x) < 0x2000 {
                     self.hit_bounds.left = 0x2400;
                     self.action_counter = 0;
                     self.action_num = 3;
@@ -334,6 +345,7 @@ impl NPC {
         &mut self,
         state: &mut SharedGameState,
         players: [&mut Player; 2],
+        npc_list: &NPCList,
     ) -> GameResult {
         match self.action_num {
             0 | 1 => {
@@ -400,8 +412,8 @@ impl NPC {
         }
 
         if self.shock > 0 && [1, 2, 4].contains(&self.action_num) {
-            let player = self.get_closest_player_mut(players);
-            self.vel_x = if self.x < player.x { 0x100 } else { -0x100 };
+            let player = self.get_closest_pseudo_player_mut(players, npc_list);
+            self.vel_x = if self.x < player.x() { 0x100 } else { -0x100 };
             self.vel_y = -0x200;
             self.anim_num = 5;
             self.action_num = 5;
@@ -438,7 +450,7 @@ impl NPC {
         npc_list: &NPCList,
         bullet_manager: &mut BulletManager,
     ) -> GameResult {
-        let player = self.get_closest_player_mut(players);
+        let player = self.get_closest_pseudo_player_mut(players, npc_list);
 
         match self.action_num {
             0 | 1 => {
@@ -456,7 +468,7 @@ impl NPC {
                     self.anim_num = 1;
                 }
 
-                if player.x > self.x - 0x4000 && player.x < self.x + 0x4000 {
+                if player.x() > self.x - 0x4000 && player.x() < self.x + 0x4000 {
                     self.face_player(player);
                 }
             }
@@ -529,7 +541,7 @@ impl NPC {
                     self.vel_x = 0;
                 }
 
-                if self.action_counter2 > 4 && player.y < self.y + 0x800 {
+                if self.action_counter2 > 4 && player.y() < self.y + 0x800 {
                     self.action_num = 200;
                     self.action_counter = 0;
                     self.vel_x = 0;
@@ -608,7 +620,7 @@ impl NPC {
 
                 self.vel_x = if self.direction == Direction::Left { -0x400 } else { 0x400 };
 
-                if player.x > self.x - 0x800 && player.x < self.x + 0x800 {
+                if player.x() > self.x - 0x800 && player.x() < self.x + 0x800 {
                     self.action_num = 310;
                     self.action_counter = 0;
                     self.anim_num = 2;
@@ -721,7 +733,7 @@ impl NPC {
         npc_list: &NPCList,
         stage: &Stage,
     ) -> GameResult {
-        let player = self.get_closest_player_mut(players);
+        let player = self.get_closest_pseudo_player_mut(players, npc_list);
 
         match self.action_num {
             0 | 100 => {
@@ -772,7 +784,7 @@ impl NPC {
 
         self.animate(6, 0, 2);
 
-        self.damage = if player.y > self.y { 10 } else { 0 };
+        self.damage = if player.y() > self.y { 10 } else { 0 };
 
         self.y += self.vel_y;
 
@@ -785,9 +797,10 @@ impl NPC {
         &mut self,
         state: &mut SharedGameState,
         players: [&mut Player; 2],
+        npc_list: &NPCList,
         bullet_manager: &mut BulletManager,
     ) -> GameResult {
-        let player = self.get_closest_player_mut(players);
+        let player = self.get_closest_pseudo_player_mut(players, npc_list);
 
         match self.action_num {
             0 => {

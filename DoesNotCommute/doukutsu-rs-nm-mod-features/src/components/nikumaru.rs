@@ -25,7 +25,7 @@ impl NikumaruCounter {
         NikumaruCounter { tick: 0, shown: false, event: 0}
     }
 
-    pub fn load_time(&mut self, state: &mut SharedGameState, ctx: &mut Context, custom_filename: Option<&str>) -> GameResult<u32> {
+    pub fn load_time(state: &mut SharedGameState, ctx: &mut Context, custom_filename: Option<&str>) -> GameResult<u32> {
 
         let path = if custom_filename.is_none() {
             [state.get_rec_filename(), ".rec".to_string()].join("")
@@ -98,7 +98,7 @@ impl NikumaruCounter {
     }
 
     pub fn load_counter(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
-        self.tick = self.load_time(state, ctx, None)? as usize;
+        self.tick = Self::load_time(state, ctx, None)? as usize;
         if self.tick > 0 {
             self.shown = true;
         } else {
@@ -108,7 +108,7 @@ impl NikumaruCounter {
     }
 
     pub fn save_counter(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult<bool> {
-        let old_record = self.load_time(state, ctx, None)? as usize;
+        let old_record = Self::load_time(state, ctx, None)? as usize;
         if self.tick < old_record || old_record == 0 {
             self.save_time(state, ctx, self.tick as u32, None)?;
             return Ok(true);
