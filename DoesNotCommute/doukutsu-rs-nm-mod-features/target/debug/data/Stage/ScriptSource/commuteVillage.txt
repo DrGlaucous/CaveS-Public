@@ -676,8 +676,9 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 #0730
 <FL+0100//set preview mode
 <HMC<EQ+0512
-<FON0700:0016//focus on switcher
 <MNP0700:0028:0049:0000//move switcher to CENTER
+<FON0700:0001<WAI0001//snap to switcher
+<FON0700:0016//focus on switcher
 <FAI0004
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)

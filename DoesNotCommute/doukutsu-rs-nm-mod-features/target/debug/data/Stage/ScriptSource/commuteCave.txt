@@ -530,8 +530,9 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <FL+0100//set preview mode
 <HMC<EQ+0512
 <PSH0617//remove barrier
-<FON0700:0016//focus on switcher
 <MNP0700:0027:0015:0000//move switcher to center
+<FON0700:0001<WAI0001//snap to switcher
+<FON0700:0016//focus on switcher
 <FAI0004
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)

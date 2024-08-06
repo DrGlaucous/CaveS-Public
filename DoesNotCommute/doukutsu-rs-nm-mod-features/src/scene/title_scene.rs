@@ -246,6 +246,14 @@ impl TitleScene {
             Rect::new(48, 120, 64, 176), //B
         ];
 
+        let speaker_rc: [Rect<u16>; 4] = [
+            Rect::new(112, 104, 128, 152), //L
+            Rect::new(128, 104, 144, 152), //C
+            Rect::new(144, 104, 160, 152), //R
+            Rect::new(160, 104, 176, 136), //Fabric
+        ];
+        
+
         let logo_rc: Rect<u16> = Rect::new(144, 32, 296, 56);
 
         let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
@@ -319,6 +327,29 @@ impl TitleScene {
                 &logo_rc,
             );
         }
+
+
+        //draw speaker grille
+        {
+
+            let edge_margin = 32.0;
+            let inner_width = state.canvas_size.0 - (edge_margin * 2.0);
+
+            let inner_repeat_ct = inner_width as u16 / speaker_rc[1].width();
+
+            for i in 0..inner_repeat_ct {
+                batch.add_rect(
+                    edge_margin + (i * speaker_rc[1].width()) as f32 + (inner_width - (inner_repeat_ct * speaker_rc[1].width()) as f32) / 2.0,
+                    state.canvas_size.1 - speaker_rc[1].height() as f32,
+                    if i == 0 {&speaker_rc[0]}
+                    else if i == (inner_repeat_ct - 1) {&speaker_rc[2]}
+                    else {&speaker_rc[1]},
+                );
+            }
+        }
+
+
+
         batch.draw(ctx)?;
 
         Ok(())

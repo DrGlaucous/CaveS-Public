@@ -272,8 +272,9 @@ impl NPC {
     pub(crate) fn tick_n007_basil(&mut self, state: &mut SharedGameState, players: [&mut Player; 2]) -> GameResult {
         match self.action_num {
             0 => {
-                let player = self.get_closest_player_mut(players);
-                self.x = player.x;
+                //remove this functionality
+                //let player = self.get_closest_player_mut(players);
+                //self.x = player.x;
 
                 if self.direction == Direction::Left {
                     self.action_num = 1;
