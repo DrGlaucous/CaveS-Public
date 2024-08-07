@@ -163,7 +163,7 @@ to do.<NOD<CLO//PART 1 MESSAGE
 <CNP0400:0376:0003//config arrow
 <CFG0400:0001:0002:0024//LOCATION
 <CNP0401:0377:0000//config outline
-<MNP0401:0058:0002:0024//LOCATION
+<MNP0401:0002:0024:0000//LOCATION
 <MSGBecause of this, she must waste no
 time and get to the door
 on the bottom left.<NOD<CLO//PART 2 MESSAGE
@@ -327,6 +327,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //<AM-0002//de-equip WEAPONS
 <FL-0530//PLAYER'S FLAG
 //<FL+0530//NEXT PLAYER FLAG
+<PSH0620//SAVE TIME
 <FAO0002
 <TRA0004:0710:0055:0010
 
@@ -440,6 +441,19 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <POP
 
 
+//save time if better
+#0620
+<TIJ0621:Cave.rec$
+<POP
+
+//less time, save
+#0621
+<SLT0000:Cave.rec$
+<POP
+
+
+
+
 //return to stage select screen
 #0698
 //return to title
@@ -495,17 +509,8 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <FAO0004
 <FOM0016
 //to next level
-<TIJ0712:Cave.rec$
-<EVE0713
-<END
-
-//less time, save
-#0712
-<SLT0000:Cave.rec$
-<EVE0713
-
-#0713
 <TRA0005:0104:0000:0000
+<END
 
 
 //playback in-replay~~~~~~~~~~~~~~~~

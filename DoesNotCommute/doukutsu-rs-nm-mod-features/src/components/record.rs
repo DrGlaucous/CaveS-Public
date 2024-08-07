@@ -6,6 +6,7 @@ use crate::framework::error::GameError;
 
 use byteorder::{LE, ReadBytesExt, WriteBytesExt};
 
+use crate::common::Direction;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::{GameResult, GameError::ResourceLoadError};
@@ -38,6 +39,10 @@ bitfield! {
     pub shock_frame, set_shock_frame: 2; // 0x02
     pub up, set_up: 3; // 0x04
     pub down, set_down: 4; // 0x08
+
+    //special options for booster (direction of heading only; we re-use the sound flag for boost boolean)
+    pub boost_a, set_boost_a: 5; //0x16
+    pub boost_b, set_boost_b: 6; //0x32
 
 }
 
@@ -268,6 +273,28 @@ impl Record {
         flags.set_trigger_shoot(player.controller.trigger_shoot());
         flags.set_up(player.up);
         flags.set_down(player.down);
+
+        match player.booster_dir {
+            Direction::Left => {
+                flags.set_boost_a(false);
+                flags.set_boost_b(false);
+            },
+            Direction::Right => {
+                flags.set_boost_a(true);
+                flags.set_boost_b(false);
+            },
+            Direction::Up => {
+                flags.set_boost_a(false);
+                flags.set_boost_b(true);
+            },
+            Direction::Bottom => {
+                flags.set_boost_a(true);
+                flags.set_boost_b(true);
+            },
+            _ => {},
+        }
+
+        flags.set_boost_b(true);
 
         // if player.anim_num == 11 {
         //     let mut da = flags.0;

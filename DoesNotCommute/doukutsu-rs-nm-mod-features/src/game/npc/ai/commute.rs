@@ -129,6 +129,23 @@ impl NPC {
                             }
                         }
 
+                        //make boost particles
+                        if frame.sound_flags.booster_113() {
+                            let smoke_dir = match (frame.flags.boost_a(), frame.flags.boost_b()) {
+                                (false, false) => Direction::Left,
+                                (true, false) => Direction::Right,
+                                (false, true) => Direction::Up,
+                                _ => Direction::Bottom, //TT
+                            }.opposite();
+
+                            state.create_caret(
+                                self.x,
+                                self.y + self.hit_bounds.bottom as i32 / 2,
+                                CaretType::Exhaust,
+                                smoke_dir,
+                            );
+
+                        }
 
                         //required for the weapon
                         self.more_items.shooter_vals.shoot = frame.flags.shoot();

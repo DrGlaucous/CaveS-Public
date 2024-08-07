@@ -821,7 +821,16 @@ impl TextScriptVM {
                 }
                 TextScriptExecutionState::Reset => {
                     state.reset();
-                    state.start_new_game(ctx)?;
+                    //state.start_new_game(ctx)?;
+                    //also see: pause_menu.rs ln 207
+                    state.start_new_game_at(
+                        ctx,
+                        game_scene.stage_id as u16,
+                        state.constants.game.stage_play_event,
+                        0,
+                        0,
+                    )?;
+
                     break;
                 }
                 TextScriptExecutionState::MapSystem => {

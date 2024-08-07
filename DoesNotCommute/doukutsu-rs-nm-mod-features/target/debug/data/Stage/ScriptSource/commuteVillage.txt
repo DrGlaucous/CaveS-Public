@@ -396,6 +396,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //<EQ-0000//de-equip equips
 <AM-0002//de-equip WEAPONS
 <FL-0550//PLAYER'S FLAG
+<PSH0620//SAVE TIME
 <FAO0004
 <TRA0005:0710:0010:0035//TO REPLAY
 
@@ -583,7 +584,15 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <PSH0610
 <POP<END
 
+//save time if better
+#0620
+<TIJ0621:Village.rec$
+<POP
 
+//less time, save
+#0621
+<SLT0000:Village.rec$
+<POP
 
 
 //return to stage select screen
@@ -642,18 +651,8 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <FAO0004
 <FOM0016
 //to next level
-<TIJ0712:Village.rec$
-<EVE0713
+<TRA0006:0200:0000:0000
 <END
-
-//less time, save
-#0712
-<SLT0000:Village.rec$
-<EVE0713
-
-#0713
-<TRA0005:0104:0000:0000
-
 
 //playback in-replay~~~~~~~~~~~~~~~~
 #0720
@@ -666,8 +665,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <WAI0050
 <FAO0004
 <FOM0016
-//TODO: back to title
-<RET0004:0100:0000:0000
+<RET0005:0100:0000:0000
 <END
 
 

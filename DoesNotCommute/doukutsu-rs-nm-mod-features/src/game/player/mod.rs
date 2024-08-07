@@ -133,6 +133,7 @@ pub struct Player {
 
     pub recorder: Record,
     pub sound_flags: SoundFlags,
+    pub booster_dir: Direction,
 
     pub time_popup: NumberPopup,
 }
@@ -194,6 +195,7 @@ impl Player {
             weapon_offset2_y: 0,
             recorder: Record::new(),
             sound_flags: SoundFlags(0),
+            booster_dir: Direction::Right,
             time_popup: NumberPopup::new(),
         }
     }
@@ -463,7 +465,7 @@ impl Player {
                         self.vel_y = -0x100;
                     }
 
-                    let mut booster_dir = self.direction;
+                    self.booster_dir = self.direction;
 
                     if self.controller.strafe() && state.settings.allow_strafe {
                         if self.controller.move_left() {
@@ -473,13 +475,13 @@ impl Player {
                         }
 
                         if self.booster_switch == BoosterSwitch::Left {
-                            booster_dir = Direction::Left;
+                            self.booster_dir = Direction::Left;
                         } else if self.booster_switch == BoosterSwitch::Right {
-                            booster_dir = Direction::Right;
+                            self.booster_dir = Direction::Right;
                         }
                     }
 
-                    self.vel_x += match booster_dir {
+                    self.vel_x += match self.booster_dir {
                         Direction::Left => -0x20,
                         Direction::Right => 0x20,
                         _ => 0,
@@ -491,7 +493,7 @@ impl Player {
                                 self.x - (0x400 * self.direction.vector_x()),
                                 self.y + 0x400,
                                 CaretType::Exhaust,
-                                booster_dir.opposite(),
+                                self.booster_dir.opposite(),
                             );
                         }
                         self.play_sound(state,113);
@@ -516,12 +518,14 @@ impl Player {
         } else if self.equip.has_booster_0_8() && self.booster_switch != BoosterSwitch::None && self.vel_y > -0x400 {
             self.vel_y -= 0x20;
 
+            self.booster_dir = Direction::Up;
+
             if self.booster_fuel % 3 == 0 {
                 state.create_caret(
                     self.x,
                     self.y + self.hit_bounds.bottom as i32 / 2,
                     CaretType::Exhaust,
-                    Direction::Bottom,
+                    self.booster_dir.opposite(),
                 );
                 self.play_sound(state,113);
             }

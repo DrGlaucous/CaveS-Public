@@ -22,6 +22,7 @@
 
 //play current stage (also retry event)
 #0104
+<EVE0200
 <END
 
 //watch current stage
@@ -35,7 +36,21 @@
 
 //entry event
 #0200
-
+<IT+0035//add ITEMS
+//<EQ+0000//add EQUIPS
+<LIS0011:0011//SET LIFE
+<AM+0002:0000//add ARMS
+<AML0002:0002:0015//LEVEL-ARMS
+<TCL0050:0000:0043//set run event (load time next)
+<SLT0001:Village.rec$
+//<EQ+0512//give timer
+<FL+0500//set active flag
+<HMC<MOV0017:0008<MYD0000
+<FAI0004
+<ANP0240:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0240:0000:0000<SOU0011<WAI0020//DOOR
+<END
 
 //save point
 #0216
