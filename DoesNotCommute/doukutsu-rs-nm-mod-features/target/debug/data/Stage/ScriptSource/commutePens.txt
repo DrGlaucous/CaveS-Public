@@ -43,7 +43,7 @@
 <AML0002:0002:0015//LEVEL-ARMS
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Village.rec$
-//<EQ+0512//give timer
+<EQ+0512//give timer
 <FL+0500//set active flag
 <HMC<MOV0017:0008<MYD0000
 <FAI0004

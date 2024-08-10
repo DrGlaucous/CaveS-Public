@@ -1,0 +1,13 @@
+# A file for Sky Dragon Editor containing info about this project.
+# https://jakzie.eu/cavestory/editor
+
+# You can change the settings bellow manually here or use the UI in the editor:
+force_load_files: []
+image_scale: 1
+
+# The settings bellow are changed internally by the editor. Changing them manually CAN BREAK things!
+__unused_stage_preferences__:
+  'commuteEE10Security ':
+    back_name: bkMoon
+    tile_set: Stage\0
+__version__: alpha 0.0.13

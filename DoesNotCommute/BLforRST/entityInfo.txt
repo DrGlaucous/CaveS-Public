@@ -382,3 +382,7 @@
 #375	Time	Pickup	Time Pickup	48:48:64:64	Adds time to the user's clock	ALL:ALL ;
 #376	Dir	Arrow	Direction Arrow	0:480:32:512	Points to a target set with CFG	ALL:ALL ;
 #377	Door	Outline	Door Outline	256:480:320:544	Flashing outline for a doorframe	ALL:ALL ;
+#378	Wind	Left	Wind Left	48:48:64:64	Invisible fan	ALL:ALL ;
+#379	Wind	Up	Wind Up 	48:48:64:64	Invisible fan	ALL:ALL ;
+#380	Wind	Right	Wind Right	48:48:64:64	Invisible fan	ALL:ALL ;
+#381	Wind	Down	Wind Down	48:48:64:64	Invisible fan	ALL:ALL ;

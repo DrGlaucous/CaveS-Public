@@ -1,5 +1,7 @@
 use crate::common::{CDEG_RAD, Direction, Rect, SliceExt};
 use crate::components::flash::Flash;
+use crate::components::nikumaru::NikumaruCounter;
+use crate::game::TimingMode;
 use crate::game::npc::boss::BossNPC;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
@@ -60,7 +62,16 @@ impl BossNPC {
                 self.parts[5].id = 5;
                 self.parts[5].action_counter2 = 128;
             }
-            20 => {
+            19 | 20 => {
+                //start from middle
+                if self.parts[0].action_num == 19 {
+                    self.parts[0].action_num = 20;
+                    self.parts[0].x = 10 * 16 * 0x200; //(originally at 10,8)
+                    self.parts[0].y = 4 * 16 * 0x200;
+                    self.parts[3].action_num = 50;//bodies
+                    self.parts[5].action_num = 50;
+                }
+
                 self.parts[0].target_x -= 1;
                 if self.parts[0].target_x <= 112 {
                     self.parts[0].action_num = 100;
@@ -72,6 +83,13 @@ impl BossNPC {
                 }
             }
             100 => {
+
+                //lower centerpoint (should only do this at the start)
+                if self.parts[0].y < (8 * 16 * 0x200) {
+                    self.parts[0].y += 0x80;
+                }
+			
+
                 let actr2: &mut i16 = unsafe { std::mem::transmute(&mut self.parts[0].action_counter2) };
                 let mut b = true;
 
@@ -329,8 +347,27 @@ impl BossNPC {
             }
             220 => {
                 part.action_counter += 1;
+
+
+                //let last_shot = (50 - part.action_counter) / 8 == 0;
+                let clocks_present = npc_list.is_alive_by_type(375);
+
                 if part.action_counter % 8 == 1 {
-                    let mut npc = NPC::create(202, &state.npc_table);
+
+                    //probability that the projectile will be a clock
+                    let mut npc = if part.rng.range(0..4) == 0 || !clocks_present {
+                        let mut npc = NPC::create(375, &state.npc_table);
+
+                        npc.event_num = part.rng.range(3..8) as u16;
+                        npc.action_counter2 = 1; //set to despawn
+                        npc.action_counter3 = NikumaruCounter::seconds_to_ticks(8, TimingMode::_50Hz) as u16; //despawn time is 8 seconds (50 TPS)
+                        npc
+
+                    } else {
+                        NPC::create(202, &state.npc_table)
+                    };
+
+                    //let mut npc = NPC::create(202, &state.npc_table);
                     npc.cond.set_alive(true);
 
                     npc.x = part.x + 0x1000 * part.direction.vector_x();
@@ -380,7 +417,23 @@ impl BossNPC {
                 }
 
                 if part.action_counter > 20 && part.action_counter % 32 == 1 {
-                    let mut npc = NPC::create(202, &state.npc_table);
+
+
+                    let clocks_present = npc_list.is_alive_by_type(375);
+
+                    //probability that the projectile will be a clock
+                    let mut npc = if part.rng.range(0..4) == 0 || !clocks_present {
+                        let mut npc = NPC::create(375, &state.npc_table);
+
+                        npc.event_num = part.rng.range(1..8) as u16;
+                        npc.action_counter2 = 1; //set to despawn
+                        npc.action_counter3 = NikumaruCounter::seconds_to_ticks(8, TimingMode::_50Hz) as u16; //despawn time is 8 seconds (50 TPS)
+                        npc
+
+                    } else {
+                        NPC::create(202, &state.npc_table)
+                    };
+
                     npc.cond.set_alive(true);
 
                     let player = part.get_closest_player_ref(players);
@@ -435,6 +488,13 @@ impl BossNPC {
                 let player = part.get_closest_player_ref(players);
                 part.direction = if part.x > player.x { Direction::Left } else { Direction::Right };
             }
+
+            50 => {
+                part.x = base.x;
+                part.y = base.y;
+                part.action_num = 10;
+            }
+
             100 => {
                 let angle =
                     ((part.action_counter2) as u8).wrapping_add((base.action_counter2 / 4) as u8) as f64 * CDEG_RAD;

@@ -14,7 +14,7 @@ use crate::game::npc::NPCList;
 use crate::game::weapon::bullet::BulletManager;
 use crate::game::stage::Stage;
 use crate::game::frame::Frame;
-
+//use crate::game::npc::ai::misc;
 
 
 impl NPC {
@@ -362,6 +362,7 @@ impl NPC {
                     self.child_ids.push(npc.id);
                 }
             }
+            self.target_y = 0; //"no-follow" mode
             return Ok(());
         }
 
@@ -387,8 +388,10 @@ impl NPC {
         //switch observed index
         if players[0].controller.trigger_prev_weapon() {
             self.target_x -= 1;
+            self.target_y = 1; //put into "follow" mode
         } else if players[0].controller.trigger_next_weapon() {
             self.target_x += 1;
+            self.target_y = 1;
         }
 
         //wrapping
@@ -396,9 +399,11 @@ impl NPC {
         if self.target_x >= self.child_ids.len() as i32 {self.target_x = 0}
 
         //snap to this NPC's location
-        if let Some(npc) = npc_list.get_npc(self.child_ids[self.target_x as usize] as usize) {
-            self.x = npc.x;
-            self.y = npc.y;
+        if self.target_y != 0 {
+            if let Some(npc) = npc_list.get_npc(self.child_ids[self.target_x as usize] as usize) {
+                self.x = npc.x;
+                self.y = npc.y;
+            }
         }
 
         Ok(())
@@ -427,7 +432,13 @@ impl NPC {
             self.action_counter += 1;
             if self.action_counter >= self.action_counter3 {
                 //turn into smoke
-                self.npc_type = 4;
+                let mut smoke = NPC::create(4, &state.npc_table);
+                smoke.cond.set_alive(true);
+                (smoke.x, smoke.y) = (self.x, self.y);
+                let _ = npc_list.spawn(0x100, smoke)?;
+
+                self.cond.set_alive(false);
+                
             } else if self.action_counter > self.action_counter3.saturating_sub(200) {
                 //extra blinking
                 if self.anim_num > 3 {
@@ -446,6 +457,25 @@ impl NPC {
                 self.anim_num = 0
             }
         }
+
+        //hack: hitting a floor or ceiling will zero vertical velocity, so we save it in target_y
+        if self.vel_y != 0 {
+            self.target_y = self.vel_y;
+        }
+
+        //bounce off the wall
+        if self.flags.hit_bottom_wall() || self.flags.hit_top_wall() {
+            self.vel_y = -1 * self.target_y;
+        }
+        if self.flags.hit_left_wall() || self.flags.hit_right_wall() {
+            self.vel_x *= -1;
+        }
+
+        self.x += self.vel_x;
+        self.y += self.vel_y;
+
+
+
 
         self.anim_rect = state.constants.npc.n375_time_collectible[self.anim_num as usize];
 
@@ -605,6 +635,89 @@ impl NPC {
 
 
     }
+
+
+
+    pub(crate) fn tick_n378_wind_left(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+        self.tick_n096_fan_left(state, players, npc_list)?;
+        self.anim_rect = Rect::new(0,0,0,0);
+        Ok(())
+    }
+    pub(crate) fn tick_n379_wind_up(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+        self.tick_n097_fan_up(state, players, npc_list)?;
+        self.anim_rect = Rect::new(0,0,0,0);
+        Ok(())
+    }
+    pub(crate) fn tick_n380_wind_right(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+        self.tick_n098_fan_right(state, players, npc_list)?;
+        self.anim_rect = Rect::new(0,0,0,0);
+        Ok(())
+    }
+    pub(crate) fn tick_n381_wind_down(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+        self.tick_n099_fan_down(state, players, npc_list)?;
+        self.anim_rect = Rect::new(0,0,0,0);
+        Ok(())
+    }
+
+
+    pub(crate) fn tick_n381_omnidirectional_hockaloogie(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+
+        let rect = [
+            Rect::new(0, 0, 0, 0),//invisible
+            Rect::new(0, 0, 48, 48),//frame 1 fly
+            Rect::new(48, 0, 96, 48),//frame 2
+            Rect::new(96, 0, 144, 48),//frame 3
+            Rect::new(144, 0, 192, 48),//frame 1 chew
+            Rect::new(192, 0, 240, 48),//frame 2
+            Rect::new(240, 0, 288, 48),//frame 3
+            Rect::new(0, 48, 48, 96),//frame 1 spit
+            Rect::new(48, 48, 96, 96),//frame 2
+            Rect::new(96, 48, 144, 96),//frame 3
+        ];
+
+        let apple = [3,4,5,];
+
+
+	    //for shooting at angle
+	    let (deg, xm, ym);
+
+	    //for finding PC location
+	    let (xx, yy, direct);
+
+
+
+
+        Ok(())
+
+    }
+
+
+
 
 
 

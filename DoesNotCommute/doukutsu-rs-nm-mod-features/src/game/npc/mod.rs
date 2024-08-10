@@ -714,6 +714,10 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             375 => self.tick_n375_time_collectible(state, players, npc_list),
             376 => self.tick_n376_direction_arrow(state, stage,  players, npc_list, frame),
             377 => self.tick_n377_door_outline(state),
+            378 => self.tick_n378_wind_left(state, players, npc_list),
+            379 => self.tick_n379_wind_up(state, players, npc_list),
+            380 => self.tick_n380_wind_right(state, players, npc_list),
+            381 => self.tick_n381_wind_down(state, players, npc_list),
             _ => Ok(()),
         }?;
 

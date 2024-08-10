@@ -308,6 +308,26 @@ impl<T: Num + PartialOrd + Copy> Rect<T> {
             self.bottom.sub(self.top)
         }
     }
+
+    pub fn check_overlaps_rect(&self, x: T, y: T, other: Rect<T>, ox: T, oy: T ) -> bool {
+        let hit = (x - self.left) < (ox + other.right)
+        && (x + self.right) > (ox - other.left)
+        && (y - self.top) < (oy + other.bottom)
+        && (y + self.bottom) > (oy - other.top);
+
+        hit
+    }
+
+    pub fn check_overlaps_point(&self, x: T, y: T, ox: T, oy: T ) -> bool {
+        let hit = (x - self.right) < ox
+        && (x + self.right) > ox
+        && (y - self.top) < oy
+        && (y + self.bottom) > oy;
+
+        hit
+    }
+
+
 }
 
 impl<T: Num + PartialOrd + Copy + Serialize> Serialize for Rect<T> {

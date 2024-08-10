@@ -346,7 +346,8 @@ impl NPC {
 
     pub(crate) fn tick_n020_computer(&mut self, state: &mut SharedGameState) -> GameResult {
         match self.direction {
-            Direction::Left if self.anim_num == 0 => {
+            // Direction::Left if self.anim_num == 0 => { //what? CSE2 doesn't have this if statement
+            Direction::Left => {
                 self.anim_num = 1;
                 self.anim_rect = state.constants.npc.n020_computer[0];
             }

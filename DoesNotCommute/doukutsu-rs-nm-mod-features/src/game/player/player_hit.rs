@@ -410,7 +410,7 @@ impl Player {
             self.cond.alive()
             && !state.settings.god_mode
             && !state.settings.noclip
-            && (self.x - self.hit_bounds.right as i32) < (bullet.x + bullet.enemy_hit_width as i32)
+            && (self.x - self.hit_bounds.left as i32) < (bullet.x + bullet.enemy_hit_width as i32)
             && (self.x + self.hit_bounds.right as i32) > (bullet.x - bullet.enemy_hit_width as i32)
             && (self.y - self.hit_bounds.top as i32) < (bullet.y + bullet.enemy_hit_height as i32)
             && (self.y + self.hit_bounds.bottom as i32) > (bullet.y - bullet.enemy_hit_height as i32)
