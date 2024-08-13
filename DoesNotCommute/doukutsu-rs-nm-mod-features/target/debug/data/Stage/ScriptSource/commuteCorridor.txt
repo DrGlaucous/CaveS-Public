@@ -45,7 +45,7 @@
 #0100
 //initialize timer to 0 and then add 30 seconds to start
 <SLT0001:Village.rec$
-<FRE
+<FRE<REP0000//REP is only active when we're KEYED in replay mode (non-preview replays)
 <EVE0730//start "preview" event
 
 //selected "start game" in title menu
@@ -719,6 +719,7 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <MS2<TURHere is what everyone did:<NOD<CLO
 <PSH0611//start NPCs (checked)
 <PSH0701//start focuser (checked)
+<REP0001
 <MS2<TURUse weapon- and weapon+ to change focus.
  
    Press jump key to skip replay.<WAI9999
@@ -756,13 +757,14 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //playback in-preview~~~~~~~~~~~~~~~~
 #0730
 <FL+0100//set preview mode
-<HMC<EQ+0512
+<FRE<HMC<EQ+0512
 <MNP0700:0027:0015:0000//move switcher to center
 <FON0700:0001<WAI0001//snap to switcher
 <FON0700:0016//focus on switcher
 <FAI0004
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
+<REP0001
 <ANP0700:0000:0001//disable skip option (non-left direction)
 <WAI9999<END
 

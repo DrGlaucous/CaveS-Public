@@ -217,21 +217,51 @@ impl NPC {
         state: &mut SharedGameState,
         npc_list: &NPCList,
     ) -> GameResult {
+
+
         if self.action_num == 0 {
             self.action_num = 1;
             self.npc_flags.set_ignore_solidity(true);
         }
 
+        let mut anim_offset = 0;
         if self.action_num == 1 {
+
             self.animate(2, 0, 2);
 
-            self.vel_x -= 0x19;
+            match self.direction {
+                Direction::Left =>{
+                    self.vel_x -= 0x19;
+                    if self.vel_x < 0 {
+                        self.npc_flags.set_ignore_solidity(false);
+                    }
+                }
+                Direction::Up =>{
+                    self.vel_y -= 0x19;
+                    if self.vel_y < 0 {
+                        self.npc_flags.set_ignore_solidity(false);
+                    }
+                    anim_offset = 3;
+                }
+                Direction::Right =>{
+                    self.vel_x += 0x19;
+                    if self.vel_x > 0 {
+                        self.npc_flags.set_ignore_solidity(false);
+                    }
+                    anim_offset = 6;
+                }
+                Direction::Bottom =>{
+                    self.vel_y += 0x19;
+                    if self.vel_y > 0 {
+                        self.npc_flags.set_ignore_solidity(false);
+                    }
+                    anim_offset = 9;
+                }
+                _ => {}
+            }
             self.x += self.vel_x;
             self.y += self.vel_y;
 
-            if self.vel_x < 0 {
-                self.npc_flags.set_ignore_solidity(false);
-            }
 
             if self.flags.hit_anything() {
                 npc_list.create_death_smoke(self.x, self.y, self.display_bounds.right as usize, 4, state, &self.rng);
@@ -240,7 +270,20 @@ impl NPC {
             }
         }
 
-        self.anim_rect = state.constants.npc.n214_night_spirit_projectile[self.anim_num as usize];
+        //for testing purposes only
+        if self.action_num == 2 {
+            self.x += self.vel_x;
+            self.y += self.vel_y;
+
+            if self.flags.hit_anything() {
+                npc_list.create_death_smoke(self.x, self.y, self.display_bounds.right as usize, 4, state, &self.rng);
+                state.sound_manager.play_sfx(28);
+                self.cond.set_alive(false);
+            }
+
+        }
+
+        self.anim_rect = state.constants.npc.n214_night_spirit_projectile[self.anim_num as usize + anim_offset];
 
         Ok(())
     }
@@ -331,7 +374,49 @@ impl NPC {
         Ok(())
     }
 
-    pub(crate) fn tick_n347_hoppy(&mut self, state: &mut SharedGameState, players: [&mut Player; 2]) -> GameResult {
+    pub(crate) fn tick_n347_hoppy(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+
+        //lock out if keyed and not hidden + camera liveness hack
+        if !state.control_flags.control_enabled() && !state.control_flags.replay_mode() {
+
+            self.anim_rect = state.constants.npc.n347_hoppy[self.anim_num as usize];
+            if self.direction != Direction::Left {
+                let height = self.anim_rect.height();
+                self.anim_rect.top += height;
+                self.anim_rect.bottom += height;
+            }
+            return Ok(());
+        }
+
+
+        let player = self.get_closest_pseudo_player_mut(players, &npc_list);
+
+        let (
+            slide_dy,
+            hop_dx,
+            relative_x,
+            relative_y,
+        ) = if self.direction == Direction::Left {
+            (
+                &mut self.y,
+                &mut self.x,
+                player.x(),
+                player.y()
+            )
+        } else {
+            (
+                &mut self.x,
+                &mut self.y,
+                player.y(),
+                player.x()
+            )
+        };
+
         match self.action_num {
             0 | 1 => {
                 if self.action_num == 0 {
@@ -339,8 +424,8 @@ impl NPC {
                 }
 
                 self.anim_num = 0;
-                let player = self.get_closest_player_ref(&players);
-                if player.y < self.y + 0x10000 && player.y > self.y - 0x10000 {
+                //let player = self.get_closest_player_ref(&players);
+                if relative_y < *slide_dy + 0x10000 && relative_y > *slide_dy - 0x10000 {
                     self.action_num = 10;
                     self.action_counter = 0;
                     self.anim_num = 1;
@@ -360,14 +445,16 @@ impl NPC {
                 }
             }
             12 => {
-                let player = self.get_closest_player_ref(&players);
-                if player.y < self.y {
+
+                if relative_y < *slide_dy {
                     self.vel_y = -0xAA;
                 } else {
                     self.vel_y = 0xAA;
                 }
 
-                if self.flags.hit_left_wall() {
+                if (self.direction == Direction::Left && self.flags.hit_left_wall())
+                || (self.direction != Direction::Left && self.flags.hit_top_wall())
+                {
                     self.action_num = 13;
                     self.action_counter = 0;
                     self.anim_num = 2;
@@ -378,8 +465,8 @@ impl NPC {
                     if self.vel_x < -0x5FF {
                         self.vel_x = -0x5FF;
                     }
-                    self.x += self.vel_x;
-                    self.y += self.vel_y;
+                    *hop_dx += self.vel_x;
+                    *slide_dy += self.vel_y;
                 }
             }
             13 => {
@@ -400,6 +487,12 @@ impl NPC {
         }
 
         self.anim_rect = state.constants.npc.n347_hoppy[self.anim_num as usize];
+
+        if self.direction != Direction::Left {
+            let height = self.anim_rect.height();
+            self.anim_rect.top += height;
+            self.anim_rect.bottom += height;
+        }
 
         Ok(())
     }

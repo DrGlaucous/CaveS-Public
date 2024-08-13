@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	127
+[CE_TSC]	128
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -159,6 +159,7 @@ TSC List revised by Jackalope and Lace
 <MML	4	#xyt	Make Map Layer	Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore] (no smoke)
 <RET	4	mexy	RETurn to  title	Travel to map W, run event X, and move the PC to coordinates Y:Z in the title screen (PC hidden by default).
 <TIJ	1	#---	TIme Jump	Jump to wwww if current time is less than name_of_file, <TIJwwww:name_of_file$
+<REP	1	#---	REPlay Mode	Set replay mode to wwww: <REP[0-off/1-on]
 
 
 

@@ -128,8 +128,12 @@ bitfield! {
     // Flag 0x10 prevents the OK button from restarting the item description event (resets when the cursor is moved)
     // (it does not prevent the cancel button from exiting the inventory, however)
     pub ok_button_disabled, set_ok_button_disabled: 4; // 0x10
+
     // engine specific flags
-    pub friendly_fire, set_friendly_fire: 14;
+    pub friendly_fire, set_friendly_fire: 5; //0x20
+
+    //some entities don't run when control_enabled is false. this overrides that.
+    pub replay_mode, set_replay_mode: 6; //0x40
 }
 
 bitfield! {

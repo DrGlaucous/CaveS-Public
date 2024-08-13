@@ -233,10 +233,11 @@ impl Record {
                     // file.write_u16::<LE>(input.anim_no)?;
                     //let ttt = RecordStateFlags{0: 5}; //another way to initialize the bifiteld
                     
+                    let flags = f.read_u8()?;
 
                     inputs.push(
                         RecordFrame{
-                            flags: RecordStateFlags(f.read_u8()?),
+                            flags: RecordStateFlags(flags),
                             weapon: WeaponType::from_u8(f.read_u8()?),
                             weapon_level: WeaponLevel::from_u8(f.read_u8()?),
                             ammo: f.read_u16::<LE>()?,
@@ -294,7 +295,7 @@ impl Record {
             _ => {},
         }
 
-        flags.set_boost_b(true);
+        //flags.set_boost_b(true);
 
         // if player.anim_num == 11 {
         //     let mut da = flags.0;

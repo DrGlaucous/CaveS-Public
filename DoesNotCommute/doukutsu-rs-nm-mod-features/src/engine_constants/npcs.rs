@@ -669,7 +669,7 @@ pub struct NPCConsts {
     pub n202_zombie_dragon_projectile: SafeNPCRect<3>,
 
     #[serde(default = "default_n203_critter_destroyed_egg_corridor")]
-    pub n203_critter_destroyed_egg_corridor: SafeNPCRect<6>,
+    pub n203_critter_destroyed_egg_corridor: SafeNPCRect<10>,
 
     #[serde(default = "default_n204_small_falling_spike")]
     pub n204_small_falling_spike: SafeNPCRect<2>,
@@ -702,7 +702,7 @@ pub struct NPCConsts {
     pub n213_night_spirit: SafeNPCRect<10>,
 
     #[serde(default = "default_n214_night_spirit_projectile")]
-    pub n214_night_spirit_projectile: SafeNPCRect<3>,
+    pub n214_night_spirit_projectile: SafeNPCRect<12>,
 
     #[serde(default = "default_n215_sandcroc_outer_wall")]
     pub n215_sandcroc_outer_wall: SafeNPCRect<5>,
@@ -3381,14 +3381,19 @@ fn default_n202_zombie_dragon_projectile() -> SafeNPCRect<3> {
     ])
 }
 
-fn default_n203_critter_destroyed_egg_corridor() -> SafeNPCRect<6> {
+fn default_n203_critter_destroyed_egg_corridor() -> SafeNPCRect<10> {
     SafeNPCRect([
         Rect { left: 0, top: 80, right: 16, bottom: 96 },
         Rect { left: 16, top: 80, right: 32, bottom: 96 },
         Rect { left: 32, top: 80, right: 48, bottom: 96 },
+        Rect { left: 48, top: 80, right: 64, bottom: 96 },
+        Rect { left: 64, top: 80, right: 80, bottom: 96 },
+        //right
         Rect { left: 0, top: 96, right: 16, bottom: 112 },
         Rect { left: 16, top: 96, right: 32, bottom: 112 },
         Rect { left: 32, top: 96, right: 48, bottom: 112 },
+        Rect { left: 48, top: 96, right: 64, bottom: 112 },
+        Rect { left: 64, top: 96, right: 80, bottom: 112 },
     ])
 }
 
@@ -3486,11 +3491,24 @@ fn default_n213_night_spirit() -> SafeNPCRect<10> {
     ])
 }
 
-fn default_n214_night_spirit_projectile() -> SafeNPCRect<3> {
+fn default_n214_night_spirit_projectile() -> SafeNPCRect<12> {
     SafeNPCRect([
+        //left
         Rect { left: 144, top: 48, right: 176, bottom: 64 },
         Rect { left: 176, top: 48, right: 208, bottom: 64 },
         Rect { left: 208, top: 48, right: 240, bottom: 64 },
+        //up
+        Rect::new(144, 64, 160, 96),
+        Rect::new(160, 64, 176, 96),
+        Rect::new(176, 64, 192, 96),
+        //right
+        Rect::new(288, 0, 320, 16),
+        Rect::new(288, 16, 320, 32),
+        Rect::new(288, 32, 320, 48),
+        //down
+        Rect::new(192, 64, 208, 96),
+        Rect::new(208, 64, 224, 96),
+        Rect::new(224, 64, 240, 96),
     ])
 }
 

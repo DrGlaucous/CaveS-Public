@@ -1,6 +1,7 @@
+use std::borrow::Borrow;
 use std::cell::{RefCell};
 use std::f32::consts::PI;
-use crate::common::{Direction, Rect};
+use crate::common::{Direction, Rect, CDEG_RAD};
 use crate::entity::GameEntity;
 use crate::framework::error::GameResult;
 use crate::game::caret::CaretType;
@@ -355,6 +356,9 @@ impl NPC {
         npc_list: &NPCList,
     ) -> GameResult {
 
+        //for now, if this exists, we will assume we are in replay mode (an egregious hack)
+        state.control_flags.set_replay_mode(true);
+
         //search for commuter NPCs to add to the list
         if self.child_ids.len() == 0 {
             for npc in npc_list.iter() {
@@ -680,12 +684,13 @@ impl NPC {
     }
 
 
-    pub(crate) fn tick_n381_omnidirectional_hockaloogie(
+    pub(crate) fn tick_n382_omnidirectional_hockaloogie(
         &mut self,
         state: &mut SharedGameState,
         players: [&mut Player; 2],
         npc_list: &NPCList,
     ) -> GameResult {
+
 
         let rect = [
             Rect::new(0, 0, 0, 0),//invisible
@@ -700,16 +705,238 @@ impl NPC {
             Rect::new(96, 48, 144, 96),//frame 3
         ];
 
-        let apple = [3,4,5,];
+        //let apple = [3,4,5,];
 
 
 	    //for shooting at angle
-	    let (deg, xm, ym);
+	    //let (deg, xm, ym);
 
 	    //for finding PC location
-	    let (xx, yy, direct);
+	    //let (xx, yy, direct);
+
+        let player = self.get_closest_pseudo_player_mut(players, npc_list);
+
+        //idle if far away from PC or if the PC is keyed (AND we're not in replay mode)
+        if (!state.control_flags.control_enabled() && !state.control_flags.replay_mode())
+        || (player.x() < self.x - 0x200 * 16 * 22
+        || player.x() > self.x + 0x200 * 16 * 22
+        || player.y() < self.y - 0x200 * 16 * 22
+        || player.y() > self.y + 0x200 * 16 * 22)
+        {
+            self.animate(2, 1, 3);
+            self.anim_rect = rect[self.anim_num as usize];
+            return Ok(());
+        }
 
 
+        match self.action_num {
+            0 => {
+                //snap desired location to current location to start with
+                self.target_x = self.x;
+                self.target_y = self.y;
+                self.npc_flags.set_shootable(true);
+                self.action_num = 10; //todo: fallthrough
+            }
+            //float
+            10 => {
+
+                //animation
+                self.animate(2, 1, 3);
+
+                //after 200 ticks, make a spitball
+                self.action_counter += 1;
+                if self.action_counter > 200 {
+                    self.action_num = 20;
+                    self.action_counter = 0;
+                    self.anim_num = 4;
+                }
+
+            }
+            //chew
+            20 => {
+
+                //animation
+                self.animate(2, 4, 6);
+
+                //after 50 ticks, make a spitball
+                self.action_counter += 1;
+                if self.action_counter > 50 {
+                    self.action_num = 30;
+                    self.action_counter = 0;
+                    self.anim_num = 7;
+                }
+
+            }
+            //spit
+            30 => {
+                //animation
+                self.animate(2, 7, 9);
+
+                //every 5 ticks, spawn a spitball (total 10)
+                self.action_counter += 1;
+                if self.action_counter % 5 == 1 {
+
+                    /*
+                        unit circle:
+                          3pi/2
+                            |
+                        pi-------0
+                            |
+                           pi/2
+                    */
+
+                    let xx = self.x - player.x();// - self.x;
+                    let yy = self.y - player.y();// - self.y;
+                    let direction;
+
+                    //if more above/below NPC than side to side
+                    if xx.abs() < yy.abs() {
+                        //player is below
+                        if yy.is_negative() {
+                            direction = Direction::Bottom;
+                        } else {
+                            direction = Direction::Up;
+                        }
+                    } else {
+                        //player is to the right
+                        if xx.is_negative() {
+                            direction = Direction::Right;
+                        } else {
+                            direction = Direction::Left;
+                        }
+                    }
+
+                    let mut deg = (yy as f32).atan2(xx as f32);
+                    //range by pi/2 (+- PI/4) (78.539)
+                    deg += self.rng.range(-78..78) as f32 / 100.0;
+                    let vel_x = deg.cos() * 512.0;
+                    let vel_y = deg.sin() * 512.0;
+
+                    let mut npc = NPC::create(214, &state.npc_table);
+                    //npc.action_num = 2;
+                    npc.x = self.x;
+                    npc.y = self.y;
+                    npc.vel_x = vel_x as i32;
+                    npc.vel_y = vel_y as i32;
+                    npc.direction = direction;
+                    npc.cond.set_alive(true);
+                    let _ = npc_list.spawn(0x100, npc);
+
+                    state.sound_manager.play_sfx(21);
+                }
+
+                if self.action_counter > 50 {
+                    self.action_num = 10;
+                    self.action_counter = 0;
+                    self.anim_num = 1;
+                }
+
+            }
+
+            _ => {}
+        }
+
+        //targeting
+        {
+            let follow_zone = Rect::new( 128 * 0x200, 128 * 0x200, 128 * 0x200, 128 * 0x200 );
+            let nogo_zone =  Rect::new( 64 * 0x200, 64 * 0x200, 64 * 0x200, 64 * 0x200 );
+
+            //if PC is outside the follow zone
+            if !follow_zone.check_overlaps_point(self.x, self.y, player.x(), player.y()) {
+                
+                if self.target_x < player.x() {
+                    self.target_x += 0x400;
+                } else {
+                    self.target_x -= 0x400;
+                }
+
+                if self.target_y < player.y() {
+                    self.target_y += 0x400;
+                } else {
+                    self.target_y -= 0x400;
+                }
+            } else if nogo_zone.check_overlaps_point(self.x, self.y, player.x(), player.y()){
+                //TOO close to the PC
+
+                if self.target_x < player.x() {
+                    self.target_x -= 0x400;
+                } else {
+                    self.target_x += 0x400;
+                }
+
+                if self.target_y < player.y() {
+                    self.target_y -= 0x400;
+                } else {
+                    self.target_y += 0x400;
+                }
+
+            }
+        }
+
+
+        //move to target
+        {
+
+            if self.x < self.target_x {
+                self.vel_x += 15;
+            } else {
+                self.vel_x -= 15;
+            }
+
+            if self.y < self.target_y {
+                self.vel_y += 15;
+            } else {
+                self.vel_y -= 15;
+            }
+
+            //speed limit
+            if self.vel_x > 0x400 {
+                self.vel_x = 0x400;
+            } else if self.vel_x < -0x400 {
+                self.vel_x = -0x400;
+            }
+
+            if self.vel_y > 0x400 {
+                self.vel_y = 0x400;
+            } else if self.vel_y < -0x400 {
+                self.vel_y = -0x400;
+            }
+
+            //bumping
+            if self.flags.hit_top_wall() {
+                self.vel_y = 0x200;
+            }
+            if self.flags.hit_bottom_wall() {
+                self.vel_y = -0x200;
+            }
+            if self.flags.hit_left_wall() {
+                self.vel_x = 0x200;
+            }
+            if self.flags.hit_right_wall() {
+                self.vel_x = -0x200;
+            }
+
+        }
+
+
+        //debug
+        //state.settings.noclip = true;
+        //self.x = self.target_x;
+        //self.y = self.target_y;
+
+        self.x += self.vel_x;
+        self.y += self.vel_y;
+
+        //left looking
+        self.anim_rect = rect[self.anim_num as usize];
+
+        //right looking
+        if self.x < player.x() {
+            //let height = self.anim_rect.height();
+            self.anim_rect.top += 128;
+            self.anim_rect.bottom += 128;
+        }
+        
 
 
         Ok(())
@@ -717,8 +944,362 @@ impl NPC {
     }
 
 
+    pub(crate) fn tick_n383_shield_generator(
+        &mut self,
+        state: &mut SharedGameState,
+        npc_list: &NPCList,
+    ) -> GameResult {
+
+        let rc_list = [
+            Rect::new( 240, 48, 256, 64 ), //off //the x2 y2 coordinates seem to be +1... check this..YES.
+            Rect::new( 240, 64, 256, 80 ), //redlighted
+            Rect::new( 240, 80, 256, 96 ), //destroyed
+        ];
+
+        let infl_life = 1000;
+
+        match self.action_num {
+            //initialize
+            0 => {
+                //set inflated life so we don't die when our life is destroyed
+                let set_life = self.life;
+                self.life = set_life.saturating_add(infl_life);
+
+                //find other NPCs that share our event number (these will be deleted when this npc "dies")
+                for npc in npc_list.iter_alive() {
+                    if npc.event_num == self.event_num //matches NPC type
+                    && npc.id != self.id {
+                        self.child_ids.push(npc.id);
+                    }
+                }
+                //start idleing
+                self.action_num = 1;
+
+            },
+            //aninmate idle
+            1 => {
+
+                self.animate(6, 0, 1);
+
+                //we've "died"
+                if self.life < infl_life {
+
+                    for id in &self.child_ids {
+                        if let Some(npc) = npc_list.get_npc(*id as usize) {
+                            let x = npc.x;
+                            let y = npc.y;
+                            let mut smoke = NPC::create(4, &state.npc_table);
+                            smoke.x = x;
+                            smoke.y = y;
+                            smoke.cond.set_alive(true);
+                            *npc = smoke;
+                            
+                        }
+                    }
+
+                    //make death sound
+                    if let Some(table_entry) = state.npc_table.get_entry(self.npc_type) {
+                        state.sound_manager.play_sfx(table_entry.death_sound);
+                    }
+
+                    //make smoke at NPC location
+                    {
+                        let x = self.x;
+                        let y = self.y;
+                        let mut smoke = NPC::create(4, &state.npc_table);
+                        smoke.x = x;
+                        smoke.y = y;
+                        smoke.cond.set_alive(true);
+                        let _ = npc_list.spawn(0x100, smoke)?;
+                    }
+                    //recover life, remove shootability
+                    self.life = infl_life;
+                    self.npc_flags.set_shootable(false);
+                    self.anim_num = 2; //look "dead"
 
 
+
+                    //full idle
+                    self.action_num = 2;
+                }
+            }
+            _ => {}
+        }
+
+
+        self.anim_rect = rc_list[self.anim_num as usize];
+
+        Ok(())
+    }
+
+    pub(crate) fn tick_n384_moving_shield(
+        &mut self,
+        state: &mut SharedGameState,
+    ) -> GameResult {
+
+        match self.action_num {
+            //choose starting direction
+            0 => {
+                self.action_num = 1;
+
+                match self.direction {
+                    Direction::Left => {
+                        self.action_num = 1;
+                    }
+                    Direction::Right => {
+                        self.action_num = 3;
+                    }
+                    _ => (),
+                }
+            }
+            //move to the left
+            1 => {
+                self.vel_x = -0x400;
+
+
+                if self.flags.hit_left_wall() {
+                    self.action_num = 2;
+                    self.action_counter = 0;
+                    self.anim_num = 0;
+                    self.vel_x = 0;
+                    self.direction = Direction::Right;
+                }
+            }
+            //wait
+            2 => {
+                self.action_counter += 1;
+                if self.action_counter > 30 {
+                    self.action_num = 3;
+                    self.anim_counter = 0;
+                    self.anim_num = 1;
+                }
+            }
+            //move to the right
+            3 => {
+                self.vel_x = 0x400;
+
+
+                if self.flags.hit_right_wall() {
+                    self.action_num = 4;
+                    self.action_counter = 0;
+                    self.anim_num = 0;
+                    self.vel_x = 0;
+                    self.direction = Direction::Left;
+                }
+            }
+            //wait
+            4 => {
+                self.action_counter += 1;
+                if self.action_counter > 30 {
+                    self.action_num = 1;
+                    self.anim_counter = 0;
+                    self.anim_num = 1;
+                }
+            }
+            _ => (),
+        }
+
+        self.x += self.vel_x;
+        self.y += self.vel_y;
+
+        //draw rects
+        self.animate(1, 0, 3);
+        self.anim_rect = state.constants.npc.n013_forcefield[self.anim_num as usize];
+
+        Ok(())
+    }
+
+    
+    pub(crate) fn tick_n385_8_tesla_shooter_ai(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+        frame: &Frame,
+        direction: Direction,
+    ) -> GameResult {
+
+
+        let rc_list = [
+            //left
+            Rect::new( 256, 0, 272, 16 ), //idle
+            Rect::new( 272, 0, 288, 16 ), //charging
+            Rect::new( 288, 0, 304, 16 ), //supercharging
+
+            //up
+            Rect::new( 256, 16, 272, 32 ), //idle
+            Rect::new( 272, 16, 288, 32 ), //charging
+            Rect::new( 288, 16, 304, 32 ), //supercharging
+
+            //right
+            Rect::new( 256, 32, 272, 48 ), //idle
+            Rect::new( 272, 32, 288, 48 ), //charging
+            Rect::new( 288, 32, 304, 48 ), //supercharging     
+        
+            //down
+            Rect::new( 256, 48, 272, 64 ), //idle
+            Rect::new( 272, 48, 288, 64 ), //charging
+            Rect::new( 288, 48, 304, 64 ), //supercharging
+        
+        ];
+
+        let dir_offset = match direction {
+            Direction::Left => 0,
+            Direction::Up => 3,
+            Direction::Right => 6,
+            _ => 9,
+        };
+
+        let player = self.get_closest_pseudo_player_mut(players, &npc_list);
+
+        let vis_rect = Rect::new(0x28000, 0x1E000, 0x28000, 0x1E000);
+
+        // //don't do anything of OOB
+        // if self.x > player.x() + 0x28000
+        // || self.x < player.x() - 0x28000
+        // || self.y > player.y() + 0x1E000
+        // || self.y < player.y() - 0x1E000
+
+        if !vis_rect.check_overlaps_point(self.x, self.y, frame.x, frame.y) {
+            self.anim_rect = rc_list[dir_offset];
+            return Ok(());
+        }
+
+        match self.action_num {
+            0 | 1 => {
+                if self.action_num == 0 {
+                    self.anim_num = 0;
+                    self.action_num = 1;
+
+
+                    self.action_counter2 = self.rng.range(1..3) as u16; //bullets to fire
+                    self.action_counter3 = 0; //current number fired
+
+                    //delay handler
+                    self.action_counter = self.rng.range(70..120) as u16;
+
+                }
+
+
+                if self.action_counter != 0 {
+                    self.action_counter -= 1;
+                } else {
+                    self.action_counter = 40; //time before firing
+                    self.action_num = 2;
+                    self.anim_num = 2;
+                }
+            }
+            2 => {
+                
+                //delay between fires
+                if self.action_counter > 0 {
+
+                    self.action_counter -= 1;
+
+                    //animate between frames 0 and 1
+                    self.animate(1, 0, 1);
+                    // self.anim_num += 1;
+                    // if self.anim_num > 1 {
+                    //     self.anim_num = 0;
+                    // }
+                }
+                else {
+                    
+                    //reached our quota
+                    self.action_counter3 += 1;
+                    if self.action_counter3 > self.action_counter2 {
+                        //return to start
+                        self.action_num = 0;
+
+                    } else {
+                        //assign delay for next cycle
+                        self.action_counter = 20;
+                    }
+
+                    //shoot a bullet
+                    let angle = f64::atan2((self.y - player.y()) as f64, (self.x - player.x()) as f64)
+                            + (self.rng.range(-6..6) as f64 * CDEG_RAD);
+    
+                    let mut npc = NPC::create(389, &state.npc_table);
+                    npc.cond.set_alive(true);
+                    npc.x = self.x;
+                    npc.y = self.y;
+                    npc.vel_x = (angle.cos() * -1536.0) as i32;
+                    npc.vel_y = (angle.sin() * -1536.0) as i32;
+
+                    let _ = npc_list.spawn(0x100, npc);
+
+                    if !player.cond().hidden() {
+                        state.sound_manager.play_sfx(62);
+                    }
+
+
+                    //animate between frames 1 and 2
+                    self.animate(1, 1, 2);
+                    // self.anim_num += 1;
+                    // if self.anim_num > 2 {
+                    //     self.anim_num = 1;
+                    // }
+
+
+                }
+
+
+            }
+            _ => (),
+        }
+
+
+
+        self.anim_rect = rc_list[self.anim_num as usize + dir_offset];
+
+        // if self.life <= 985 {
+        //     self.npc_type = 154;
+        //     self.action_num = 0;
+        // }
+
+
+
+
+        Ok(())
+    }
+
+    
+    pub(crate) fn tick_n389_tesla_bullet(
+        &mut self,
+        state: &mut SharedGameState,
+    ) -> GameResult {
+
+        self.action_counter += 1;
+        if self.flags.hit_anything() || self.action_counter > 300 {
+
+            state.create_caret(
+                self.x,
+                self.y,
+                CaretType::ProjectileDissipation,
+                Direction::Left,
+            );
+            self.cond.set_alive(false);
+        }
+
+        let rc_list = [
+            Rect::new( 256, 64, 272, 80 ),
+            Rect::new( 272, 64, 288, 80 ),
+            Rect::new( 288, 64, 304, 80 ),
+            Rect::new( 304, 64, 320, 80 ),
+        ];
+
+        self.x += self.vel_x;
+        self.y += self.vel_y;
+
+        
+        self.animate(1, 0, 3);
+
+        self.anim_rect = rc_list[self.anim_num as usize];
+
+
+        Ok(())
+    }
 
 
 

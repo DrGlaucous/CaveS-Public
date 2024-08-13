@@ -15,6 +15,12 @@ use crate::util::rng::RNG;
 
 impl NPC {
     pub(crate) fn tick_n069_pignon(&mut self, state: &mut SharedGameState) -> GameResult {
+
+        //key lockout (force in idle mode)
+        if !state.control_flags.control_enabled() && !state.control_flags.replay_mode() {
+            self.action_num = 0;
+        }
+
         match self.action_num {
             0 | 1 => {
                 if self.action_num == 0 {
@@ -251,6 +257,13 @@ impl NPC {
         players: [&mut Player; 2],
         npc_list: &NPCList,
     ) -> GameResult {
+
+        //key lockout (force in idle mode)
+        if !state.control_flags.control_enabled() && !state.control_flags.replay_mode() {
+            self.action_num = 0;
+        }
+
+
         match self.action_num {
             0 | 1 => {
                 if self.action_num == 0 {
@@ -347,6 +360,15 @@ impl NPC {
         players: [&mut Player; 2],
         npc_list: &NPCList,
     ) -> GameResult {
+
+        let cte = state.control_flags.control_enabled();
+        let rpm = state.control_flags.replay_mode();
+        
+        //key lockout (force in idle mode)
+        if !state.control_flags.control_enabled() && !state.control_flags.replay_mode() {
+            self.action_num = 0;
+        }
+
         match self.action_num {
             0 | 1 => {
                 if self.action_num == 0 {

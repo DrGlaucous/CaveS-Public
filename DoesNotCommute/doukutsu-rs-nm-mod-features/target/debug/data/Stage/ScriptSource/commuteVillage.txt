@@ -44,7 +44,7 @@
 #0100
 //initialize timer with time from Cave
 <SLT0001:Cave.rec$
-<FRE
+<FRE<REP0000
 <EVE0730//start "preview" event
 
 //selected "start game" in title menu
@@ -673,7 +673,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //playback in-preview~~~~~~~~~~~~~~~~
 #0730
 <FL+0100//set preview mode
-<HMC<EQ+0512
+<FRE<HMC<EQ+0512
 <MNP0700:0028:0049:0000//move switcher to CENTER
 <FON0700:0001<WAI0001//snap to switcher
 <FON0700:0016//focus on switcher

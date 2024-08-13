@@ -107,6 +107,7 @@ impl TextScript {
                         | TSCOpCode::PSH
                         | TSCOpCode::BKD
                         | TSCOpCode::BKE
+                        | TSCOpCode::REP
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
 

@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::cell::{Ref, RefCell};
 use std::io;
 use std::io::Cursor;
@@ -28,7 +27,7 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::{Stage, StageTexturePaths};
 use crate::game::weapon::bullet::BulletManager;
 use crate::game::weapon::{Shooter, Weapon};
-use crate::scene::game_scene::GameScene;
+//use crate::scene::game_scene::GameScene;
 use crate::util::rng::Xoroshiro32PlusPlus;
 
 use crate::game::player::skin::basic::{SkinMeta, DEFAULT_SKINMETA, SUPPORTED_SKINMETA_VERSIONS};
@@ -341,10 +340,10 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             2 => self.tick_n002_behemoth(state, npc_list),
             3 => self.tick_n003_dead_enemy(),
             4 => self.tick_n004_smoke(state),
-            5 => self.tick_n005_green_critter(state, players),
+            5 => self.tick_n005_green_critter(state, players, npc_list),
             6 => self.tick_n006_green_beetle(state),
-            7 => self.tick_n007_basil(state, players),
-            8 => self.tick_n008_blue_beetle(state, players),
+            7 => self.tick_n007_basil(state, players, npc_list),
+            8 => self.tick_n008_blue_beetle(state, players, npc_list),
             9 => self.tick_n009_balrog_falling_in(state, npc_list),
             10 => self.tick_n010_balrog_shooting(state, players, npc_list),
             11 => self.tick_n011_balrogs_projectile(state),
@@ -539,14 +538,14 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             200 => self.tick_n200_zombie_dragon(state, players, npc_list),
             201 => self.tick_n201_zombie_dragon_dead(state),
             202 => self.tick_n202_zombie_dragon_projectile(state),
-            203 => self.tick_n203_critter_destroyed_egg_corridor(state, players),
+            203 => self.tick_n203_critter_destroyed_egg_corridor(state, players, npc_list),
             204 => self.tick_n204_small_falling_spike(state, players, npc_list),
             205 => self.tick_n205_large_falling_spike(state, players, npc_list, bullet_manager),
             206 => self.tick_n206_counter_bomb(state, players, npc_list),
             207 => self.tick_n207_counter_bomb_countdown(state),
             208 => self.tick_n208_basu_destroyed_egg_corridor(state, players, npc_list),
             209 => self.tick_n209_basu_projectile_destroyed_egg_corridor(state),
-            210 => self.tick_n210_beetle_destroyed_egg_corridor(state, players),
+            210 => self.tick_n210_beetle_destroyed_egg_corridor(state, players, npc_list),
             211 => self.tick_n211_small_spikes(state),
             212 => self.tick_n212_sky_dragon(state, players, npc_list),
             213 => self.tick_n213_night_spirit(state, players, npc_list),
@@ -683,7 +682,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             344 => self.tick_n344_ballos_3_eyes(state, boss),
             345 => self.tick_n345_ballos_skull_projectile(state, npc_list, stage),
             346 => self.tick_n346_ballos_orbiting_platform(state, players, stage, boss),
-            347 => self.tick_n347_hoppy(state, players),
+            347 => self.tick_n347_hoppy(state, players, npc_list),
             348 => self.tick_n348_ballos_4_spikes(state),
             349 => self.tick_n349_statue(state),
             350 => self.tick_n350_flying_bute_archer(state, players, npc_list, stage),
@@ -718,6 +717,16 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             379 => self.tick_n379_wind_up(state, players, npc_list),
             380 => self.tick_n380_wind_right(state, players, npc_list),
             381 => self.tick_n381_wind_down(state, players, npc_list),
+            382 => self.tick_n382_omnidirectional_hockaloogie(state, players, npc_list),
+
+            383 => self.tick_n383_shield_generator(state, npc_list),
+            384 => self.tick_n384_moving_shield(state),
+            385 => self.tick_n385_8_tesla_shooter_ai(state, players, npc_list, frame, Direction::Left),
+            386 => self.tick_n385_8_tesla_shooter_ai(state, players, npc_list, frame, Direction::Up),
+            387 => self.tick_n385_8_tesla_shooter_ai(state, players, npc_list, frame, Direction::Right),
+            388 => self.tick_n385_8_tesla_shooter_ai(state, players, npc_list, frame, Direction::Bottom),
+            389 => self.tick_n389_tesla_bullet(state),
+
             _ => Ok(()),
         }?;
 

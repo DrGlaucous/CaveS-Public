@@ -475,7 +475,18 @@ impl Scene for TitleScene {
     fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {   
         state.touch_controls.control_type = TouchControlType::None;
 
-        self.background.tick(state, &self.stage, &self.frame)?;
+        //self.background.tick(state, &self.stage, &self.frame)?;
+        if let Some(subscene) = &mut self.game_scene {
+            subscene.tick(state, ctx)?;
+
+            //swap scenes if we hit a TRA
+            if let Some(_) = &state.next_title_subscene {
+                self.game_scene = mem::take(&mut state.next_title_subscene);
+                self.game_scene.as_mut().unwrap().mode = GameMode::Title;
+                self.game_scene.as_mut().unwrap().init(state, ctx).unwrap();
+                
+            }
+        }
 
         self.controller.update(state, ctx)?;
         self.controller.update_trigger();
@@ -672,18 +683,6 @@ impl Scene for TitleScene {
         self.confirm_menu.y = ((state.canvas_size.1 + 30.0 - self.confirm_menu.height as f32) / 2.0).floor() as isize;
 
         self.tick += 1;
-
-        if let Some(subscene) = &mut self.game_scene {
-            subscene.tick(state, ctx)?;
-
-            //swap scenes if we hit a TRA
-            if let Some(_) = &state.next_title_subscene {
-                self.game_scene = mem::take(&mut state.next_title_subscene);
-                self.game_scene.as_mut().unwrap().mode = GameMode::Title;
-                self.game_scene.as_mut().unwrap().init(state, ctx).unwrap();
-                
-            }
-        }
 
         Ok(())
     }

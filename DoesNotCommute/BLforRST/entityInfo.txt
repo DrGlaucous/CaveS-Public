@@ -386,3 +386,11 @@
 #379	Wind	Up	Wind Up 	48:48:64:64	Invisible fan	ALL:ALL ;
 #380	Wind	Right	Wind Right	48:48:64:64	Invisible fan	ALL:ALL ;
 #381	Wind	Down	Wind Down	48:48:64:64	Invisible fan	ALL:ALL ;
+#382	NitS	Omni	Omnidirectional Hockaloogie	0:0:96:96	Alternate Night Spirit that follows in all directions	ALL:ALL ;
+#383	Shield	Gen	Shield Generator	48:48:64:64	A shootable NPC that looks like a power supply	ALL:ALL ;
+#384	Force	Move	Moving Force Field	48:48:64:64	A forcefield object that moves left and right (like a beetle)	ALL:ALL ;
+#385	Tesla	L	Tesla Shooter (L)	512:0:544:32	Left facing shooty thingy	ALL:ALL ;
+#386	Tesla	U	Tesla Shooter (U)	512:32:544:64	Up facing shooty thingy	ALL:ALL ;
+#387	Tesla	R	Tesla Shooter (R)	512:64:544:96	Right facing shooty thingy	ALL:ALL ;
+#388	Tesla	D	Tesla Shooter (D)	512:96:544:128	Down facing shooty thingy	ALL:ALL ;
+#389	Tesla	Shot	Tesla Orb Projectile	416:128:448:160	Shot by the Tesla Shooter	ALL:ALL ;

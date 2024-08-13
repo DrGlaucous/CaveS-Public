@@ -11,6 +11,7 @@ pub enum UpdateTarget {
     Boss(u16),
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct Frame {
     pub x: i32,
     pub y: i32,

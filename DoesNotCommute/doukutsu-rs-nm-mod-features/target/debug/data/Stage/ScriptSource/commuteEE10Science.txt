@@ -1,6 +1,6 @@
 //stage entry event (titlescreen preview)
 #0100
-<HMC<FRE
+<HMC<FRE<REP0000
 <FAI0004
 <WAI9999
 <END

@@ -330,9 +330,11 @@ pub enum TSCOpCode {
     /// <RETxxxx:yyyy:zzzz:wwww, RETurn to title screen, Travels to map xxxx, starts event yyyy, places the player at tile (zzzz,wwww)
     RET,
 
-    // <TIJwwww:name_of_file$, Jump to wwww if the current time is less than the time in the file
+    /// <TIJwwww:name_of_file$, Jump to wwww if the current time is less than the time in the file
     TIJ,
 
+    /// <REPwwww, Set the "replay mode" flag (like KEY and FRE), <REP[0-false/1-true] 
+    REP,
 
 
 }

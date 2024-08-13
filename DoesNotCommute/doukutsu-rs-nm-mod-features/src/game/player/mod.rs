@@ -501,13 +501,14 @@ impl Player {
                 }
                 BoosterSwitch::Up => {
                     self.vel_y -= 0x20;
-
+                    self.booster_dir = Direction::Up;
                     if self.controller.trigger_jump() || self.booster_fuel % 3 == 1 {
                         state.create_caret(self.x, self.y + 0xc00, CaretType::Exhaust, Direction::Bottom);
                         self.play_sound(state,113);
                     }
                 }
                 BoosterSwitch::Down if self.controller.trigger_jump() || self.booster_fuel % 3 == 1 => {
+                    self.booster_dir = Direction::Bottom;
                     state.create_caret(self.x, self.y - 0xc00, CaretType::Exhaust, Direction::Up);
                     self.play_sound(state,113);
                 }

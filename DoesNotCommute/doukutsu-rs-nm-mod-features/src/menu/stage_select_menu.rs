@@ -97,6 +97,22 @@ impl StageSelectMenu {
         //self.load_confirm.set_entry(ConfirmMenuEntry::WatchReplay, MenuEntry::Hidden);
         //self.load_confirm.set_entry(ConfirmMenuEntry::WatchReplay, MenuEntry::Active(state.loc.t("menus.load_confirm_menu.watch_replay").to_owned()));
 
+        
+        //TSC will try to load all NPC keylogs, and finally CNP a null to the camera switcher, an indicator that the level was completed
+        self.stage_completed = state.control_flags.replay_mode(); //game_scene.npc_list.is_alive_by_type(374);
+
+        //change replay visibility based on stage_completed var (but only if it's not already set to this) (we could also use "set_id"... would it have much impact on performance?)
+        for a in &mut self.load_confirm.entries {
+            match (self.stage_completed, &a) {
+                (true, (ConfirmMenuEntry::WatchReplay, MenuEntry::Hidden)) => {
+                    a.1 = MenuEntry::Active(state.loc.t("menus.load_confirm_menu.watch_replay").to_owned());
+                }
+                (false, (ConfirmMenuEntry::WatchReplay,  MenuEntry::Active(_))) => {
+                    a.1 = MenuEntry::Hidden;
+                }
+                _ => {}
+            }
+        }
 
         match self.current_menu {
             CurrentMenu::SelectMenu => {
@@ -114,22 +130,6 @@ impl StageSelectMenu {
                 ); 
 
                 self.stage_unlocked = game_scene.nikumaru.tick > 0;
-
-                //TSC will try to load all NPC keylogs, and finally CNP a null to the camera switcher, an indicator that the level was completed
-                self.stage_completed = game_scene.npc_list.is_alive_by_type(374);
-
-                //change replay visibility based on stage_completed var (but only if it's not already set to this) (we could also use "set_id"... would it have much impact on performance?)
-                for a in &mut self.load_confirm.entries {
-                    match (self.stage_completed, &a) {
-                        (true, (ConfirmMenuEntry::WatchReplay, MenuEntry::Hidden)) => {
-                            a.1 = MenuEntry::Active(state.loc.t("menus.load_confirm_menu.watch_replay").to_owned());
-                        }
-                        (false, (ConfirmMenuEntry::WatchReplay,  MenuEntry::Active(_))) => {
-                            a.1 = MenuEntry::Hidden;
-                        }
-                        _ => {}
-                    }
-                }
 
 
                 //lockout while keyed

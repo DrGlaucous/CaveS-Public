@@ -1409,10 +1409,15 @@ impl TextScriptVM {
                 // Reset player interaction flag upon TRA
                 new_scene.player1.cond.set_interacted(false);
                 new_scene.player2.cond.set_interacted(false);
+
                 // Reset ground collision for WAS / WaitStanding
                 new_scene.player1.flags.set_hit_bottom_wall(false);
                 new_scene.player2.flags.set_hit_bottom_wall(false);
-                new_scene.frame.wait = game_scene.frame.wait;
+
+                //new: carry frame location over from previous scene
+                new_scene.frame = game_scene.frame.clone();
+                //new_scene.frame.wait = game_scene.frame.wait;
+
                 new_scene.nikumaru = game_scene.nikumaru;
                 new_scene.replay = game_scene.replay.clone();
                 // Reset player invincibility (kind of hacky, but oh well)
@@ -2450,6 +2455,16 @@ impl TextScriptVM {
 
 
             }
+        
+            TSCOpCode::REP => {
+                //get event
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+
+                state.control_flags.set_replay_mode(event_num != 0);
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+        
         }
 
         Ok(exec_state)

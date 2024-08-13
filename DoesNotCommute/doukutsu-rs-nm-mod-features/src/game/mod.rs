@@ -115,6 +115,10 @@ impl Game {
 
                     for _ in 0..self.loops {
                         scene.tick(state_ref, ctx)?;
+                        //break out immediately if the scene has changed because the old scene can still apply changes to the shared state
+                        if state_ref.next_scene.is_some() {
+                            break;
+                        }
                     }
                     self.fps.tick_count = self.fps.tick_count.saturating_add(self.loops as u32);
                 }

@@ -1758,16 +1758,16 @@ impl Scene for GameScene {
         state.npc_table.stage_textures = self.stage_textures.clone();
 
         self.boss.boss_type = self.stage.data.boss_no as u16;
-        self.player1.target_x = self.player1.x;
-        self.player1.target_y = self.player1.y;
-        self.player1.camera_target_x = 0;
-        self.player1.camera_target_y = 0;
+        //self.player1.target_x = self.player1.x;
+        //self.player1.target_y = self.player1.y;
+        //self.player1.camera_target_x = 0; //modification for ::TRA!
+        //self.player1.camera_target_y = 0;
         self.player2.target_x = self.player2.x;
         self.player2.target_y = self.player2.y;
-        self.player2.camera_target_x = 0;
-        self.player2.camera_target_y = 0;
-        self.frame.target_x = self.player1.x;
-        self.frame.target_y = self.player1.y;
+        //self.player2.camera_target_x = 0;
+        //self.player2.camera_target_y = 0;
+        //self.frame.target_x = self.player1.x;
+        //self.frame.target_y = self.player1.y;
         self.frame.immediate_update(state, &self.stage);
 
         // I'd personally set it to something higher but left it as is for accuracy.
