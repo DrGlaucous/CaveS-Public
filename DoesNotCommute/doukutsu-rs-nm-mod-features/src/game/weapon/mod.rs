@@ -22,6 +22,7 @@ mod super_missile_launcher;
 mod electric_therapy;
 mod melee;
 mod bucket;
+mod camera;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, FromPrimitive)]
 #[repr(u8)]
@@ -40,6 +41,9 @@ pub enum WeaponType {
     ElectricTherapy = 14,
     Shovel = 15,
     Bucket = 16,
+    Pills = 17,
+    Camera = 18,
+    Plunger = 19,
 }
 impl WeaponType {
     pub fn from_u8(id: u8) -> WeaponType {
@@ -57,6 +61,9 @@ impl WeaponType {
             14 => Self::ElectricTherapy,
             15 => Self::Shovel,
             16 => Self::Bucket,
+            17 => Self::Pills,
+            18 => Self::Camera,
+            19 => Self::Plunger,
             _ => Self::None,
         }
     }
@@ -239,7 +246,10 @@ impl Weapon {
             WeaponType::ElectricTherapy => self.tick_electric_therapy(player, player_id, bullet_manager, state),
             WeaponType::Shovel => self.tick_melee(player, player_id, bullet_manager, state),
             WeaponType::Bucket => self.tick_bucket(player, player_id, bullet_manager, state, false),
+            WeaponType::Pills => self.tick_bucket(player, player_id, bullet_manager, state, true),
             //todo: retouch camera
+            WeaponType::Camera => self.tick_camera(player, player_id, bullet_manager, state),
+            WeaponType::Plunger => self.tick_melee(player, player_id, bullet_manager, state),
 
             _ => { unreachable!() }
         }

@@ -425,6 +425,11 @@ impl Player {
 
     pub fn tick_bullet_collisions(&mut self, state: &mut SharedGameState, bullet_manager: &mut BulletManager, npc_list: &NPCList) {
 
+        //ignore collisions if friendly fire is disabled
+        if !state.control_flags.friendly_fire() {
+            return;
+        }
+
         for bullet in bullet_manager.bullets.iter_mut() {
             
             if !bullet.cond.alive()

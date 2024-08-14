@@ -2,6 +2,7 @@ use num_traits::{clamp, pow, Float};
 use std::f64::consts::PI;
 
 use crate::common::{BulletFlag, Condition, Direction, Flag, Rect};
+use crate::components::flash::Flash;
 use crate::engine_constants::{BulletData, EngineConstants};
 use crate::game::caret::CaretType;
 use crate::game::npc::list::NPCList;
@@ -50,14 +51,21 @@ impl BulletManager {
         self.bullets.push(bullet);
     }
 
-    pub fn tick_bullets(&mut self, state: &mut SharedGameState, players: [&Player; 2], npc_list: &NPCList, boss: &BossNPC) {
+    pub fn tick_bullets(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&Player; 2],
+        npc_list: &NPCList,
+        boss: &BossNPC,
+        flash: &mut Flash,
+    ) {
         let mut i = 0;
         while i < self.bullets.len() {
             {
                 let bullet = unsafe { self.bullets.get_unchecked_mut(i) };
                 i += 1;
 
-                bullet.tick(state, players, npc_list, boss, &mut self.new_bullets);
+                bullet.tick(state, players, npc_list, boss, &mut self.new_bullets, flash);
             }
 
             for bullet in &mut self.new_bullets {
@@ -1850,7 +1858,6 @@ impl Bullet {
     fn tick_bucket_pill (
         &mut self,
         state: &mut SharedGameState,
-        shooter: &dyn Shooter,
     ) {
         //times out or bounces more than the "life" attribute
         self.action_counter += 1;
@@ -1945,6 +1952,127 @@ impl Bullet {
 
     }
 
+    fn tick_bullet_camera(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&Player; 2],
+        npc_list: &NPCList,
+        new_bullets: &mut Vec<Bullet>,
+        flash: &mut Flash,
+    ) {
+
+        match self.action_num {
+            //instigate (target NPCs and spawn additional "selves")
+            0 => {
+                
+                let canvas_rc = Rect::new(
+                    state.canvas_size.0 as i32 / 2 * 0x200,
+                    state.canvas_size.1 as i32 / 2 * 0x200,
+                    state.canvas_size.0 as i32 / 2 * 0x200,
+                    state.canvas_size.1 as i32 / 2 * 0x200,
+                );
+    
+                let mut exclude_id = -1;
+    
+                match self.owner {
+                    TargetShooter::NPC(id) => {
+    
+                        //check for overlapping players
+                        for pc in players {
+
+                            //ignore dead ones
+                            if !pc.cond.alive() {
+                                continue;
+                            }
+
+                            let cast_hitbox = Rect::new(
+                                pc.hit_bounds.left as i32, 
+                                pc.hit_bounds.top as i32,
+                                pc.hit_bounds.right as i32,
+                                pc.hit_bounds.bottom as i32,                    
+                            );
+
+                            //check if PC is within screen bounds
+                            if canvas_rc.check_overlaps_rect(self.x, self.y, cast_hitbox, pc.x, pc.y) {
+                                //spawn a bullet on this player
+                                let mut bullet = Bullet::new(pc.x, pc.y,
+                                    self.btype, self.owner, Direction::Left, &state.constants);
+
+                                //set to "damage" mode
+                                bullet.action_num = 1;
+
+                                new_bullets.push(bullet);
+
+                                //"damage" flash
+                                flash.set_blink_red();
+                            }
+
+
+                        }
+    
+                        exclude_id = id as i32
+                    },
+                    _ => {
+                        //"normal" flash
+                        flash.set_blink()
+                    },
+                };
+    
+                for npc in npc_list.iter_alive() {
+                    if npc.npc_flags.shootable()
+                    && npc.id as i32 != exclude_id {
+    
+                        let cast_hitbox = Rect::new(
+                            npc.hit_bounds.left as i32, 
+                            npc.hit_bounds.top as i32,
+                            npc.hit_bounds.right as i32,
+                            npc.hit_bounds.bottom as i32,                    
+                        );
+    
+                        //check if NPC is within screen bounds
+                        if canvas_rc.check_overlaps_rect(self.x, self.y, cast_hitbox, npc.x, npc.y) {
+                            //spawn a bullet on this NPC
+    
+                            let mut bullet = Bullet::new(npc.x, npc.y,
+                                self.btype, self.owner, Direction::Left, &state.constants);
+
+                            //set to "damage" mode
+                            bullet.action_num = 1;
+
+                            new_bullets.push(bullet);
+                        }
+    
+                    }
+                }
+    
+                //the instigator bullet does no damage
+                self.damage = 0;
+                self.cond.set_alive(false);
+                return;
+            }
+,
+            //damage
+            1 => {
+                self.action_num += 1;
+                state.create_caret(self.x, self.y, CaretType::Shoot, Direction::Left);
+            },
+            //idle
+            _ => {
+
+            },
+        }
+
+        self.action_counter += 1;
+        if self.action_counter > self.lifetime {
+            self.cond.set_alive(false);
+            return;
+        }
+
+
+    }
+
+
+
 
     pub fn tick(
         &mut self,
@@ -1953,6 +2081,7 @@ impl Bullet {
         npc_list: &NPCList,
         boss: &BossNPC,
         new_bullets: &mut Vec<Bullet>,
+        flash: &mut Flash,
     ) {
         if self.life == 0 {
             self.cond.set_alive(false);
@@ -2015,7 +2144,8 @@ impl Bullet {
 
             46 | 47 | 48 => self.tick_electric_therapy(state, npc_list, boss), //Elec. Therapy
             49 | 50 | 51 => self.tick_melee(state, shooter),
-            52 | 53 | 54 => self.tick_bucket_pill(state, shooter),
+            52 | 53 | 54 => self.tick_bucket_pill(state),
+            55 | 56 | 57 => self.tick_bullet_camera(state, players, npc_list, new_bullets, flash),
 
 
             _ => self.cond.set_alive(false),

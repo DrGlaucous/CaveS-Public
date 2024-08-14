@@ -172,7 +172,7 @@ pub struct BulletRects {
 pub struct WeaponConsts {
     pub bullet_table: Vec<BulletData>,
     pub bullet_rects: BulletRects,
-    pub level_table: [[u16; 3]; 19],
+    pub level_table: [[u16; 3]; 20],
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -310,7 +310,7 @@ impl EngineConstants {
             is_demo: false,
             supports_og_textures: false,
             has_difficulty_menu: true,
-            supports_two_player: cfg!(not(target_os = "android")),
+            supports_two_player: false, //sorry, this is disabled for now!  //cfg!(not(target_os = "android")),
             game: GameConsts {
                 intro_stage: 0,
                 intro_event: 100,
@@ -1132,7 +1132,7 @@ impl EngineConstants {
                         block_hit_width: 4,
                         block_hit_height: 4,
                         display_bounds: Rect { left: 4, top: 4, right: 4, bottom: 4 },
-                    },
+                    },       
                     BulletData {
                         damage: 4,
                         life: 2,
@@ -1155,7 +1155,40 @@ impl EngineConstants {
                         block_hit_height: 4,
                         display_bounds: Rect { left: 4, top: 4, right: 4, bottom: 4 },
                     },
-
+                    //55 camera flash
+                    BulletData {
+                        damage: 2,
+                        life: 1,
+                        lifetime: 5,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 4,
+                        block_hit_height: 4,
+                        display_bounds: Rect { left: 0, top: 0, right: 0, bottom: 0 },
+                    },       
+                    BulletData {
+                        damage: 3,
+                        life: 1,
+                        lifetime: 5,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 4,
+                        block_hit_height: 4,
+                        display_bounds: Rect { left: 0, top: 0, right: 0, bottom: 0 },
+                    },    
+                    BulletData {
+                        damage: 4,
+                        life: 1,
+                        lifetime: 5,
+                        flags: BulletFlag(32),
+                        enemy_hit_width: 6,
+                        enemy_hit_height: 6,
+                        block_hit_width: 4,
+                        block_hit_height: 4,
+                        display_bounds: Rect { left: 0, top: 0, right: 0, bottom: 0 },
+                    },    
 
 
 
@@ -1443,7 +1476,7 @@ impl EngineConstants {
                     
                 },
                 level_table: [
-                    [0, 0, 100], //none
+                    [100, 100, 100], //none
                     [30, 40, 16], //snake
                     [10, 20, 10], //polar
                     [10, 20, 20], //fireball
@@ -1462,6 +1495,7 @@ impl EngineConstants {
                     [2, 2, 1], //bucket
                     [4, 4, 3], //pills
                     [10, 10, 10], //camera
+                    [10, 10, 10], //plunger
                 ],
             },
             tex_sizes: case_insensitive_hashmap! {

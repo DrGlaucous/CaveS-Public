@@ -73,7 +73,7 @@
 //send to start point
 //<FAI0004<TRA0005:0240:0001:0011//test debug
 <FAI0004<FL+0510
-<TRA0009:0210:0000:0000//0002:0044
+<TRA0009:0200:0000:0000//0002:0044
 <END
 
 //watch current stage
@@ -127,7 +127,7 @@
 <KEY<HMC
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Egg8.rec$
-//<EQ+0512//show timer
+<EQ+0512//show timer
 <LIS0007:0007//SET LIFE
 <MOV0002:0044//MOVE TO START
 <MYD0002//SET DIRECTION
@@ -788,7 +788,7 @@ He's someone else's problem, now.<NOD<CLO
 <FAO0004
 <FOM0016
 //to next level
-<TRA0010:0200:0000:0000
+<TRA0010:0104:0000:0000
 <END
 
 //playback in-replay~~~~~~~~~~~~~~~~

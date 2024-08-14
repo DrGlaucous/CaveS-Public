@@ -1152,6 +1152,7 @@ impl NPC {
 
         let player = self.get_closest_pseudo_player_mut(players, &npc_list);
 
+        //zone of activity
         let vis_rect = Rect::new(0x28000, 0x1E000, 0x28000, 0x1E000);
 
         // //don't do anything of OOB
@@ -1160,7 +1161,8 @@ impl NPC {
         // || self.y > player.y() + 0x1E000
         // || self.y < player.y() - 0x1E000
 
-        if !vis_rect.check_overlaps_point(self.x, self.y, frame.x, frame.y) {
+        if (!state.control_flags.control_enabled() && !state.control_flags.replay_mode())
+        || !vis_rect.check_overlaps_point(self.x, self.y, player.x(), player.y()) {
             self.anim_rect = rc_list[dir_offset];
             return Ok(());
         }
@@ -1292,7 +1294,7 @@ impl NPC {
         self.x += self.vel_x;
         self.y += self.vel_y;
 
-        
+
         self.animate(1, 0, 3);
 
         self.anim_rect = rc_list[self.anim_num as usize];

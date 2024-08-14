@@ -186,6 +186,11 @@ known to portend the future.<WAI9999<END
 <MSG<TURWhimsical Star<WAI9999<END
 #5039
 <MSG<TURIron Bond<WAI9999<END
+#5040
+<MSG<TURBottle of Kill-All<WAI9999<END
+#5041
+<MSG<TURPile of parts<WAI9999<END
+
 
 #6000
 <MSG<TURNo item.<WAI9999<END
@@ -348,6 +353,16 @@ Equipped the Whimsical Star.<NOD<WAI0003<FRE<EVE5038
 <MSG<TURYour tie to Curly Brace, the only
 warrior you would trust your back to.
 Surely you will meet again one day...<WAI9999<END
+
+#6040
+<KEY<MSGA Jumbo-Size bottle of Kill-All.<NOD<CLRInstructions on the side state:<WAI0040<TUR
+Take once daily until thoroughly
+dead.<FRE<WAI9999<END
+
+#6041
+<MSG<TURTheir purpose requires no
+explanation, really.<WAI9999<END
+
 
 #7002
 <MLP<END

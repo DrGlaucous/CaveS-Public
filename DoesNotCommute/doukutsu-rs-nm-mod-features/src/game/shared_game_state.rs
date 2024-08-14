@@ -631,6 +631,7 @@ impl SharedGameState {
         self.reset_map_flags();
         self.control_flags.set_control_enabled(true);
         self.control_flags.set_tick_world(true);
+        self.control_flags.set_friendly_fire(true);
         self.control_flags.set_replay_mode(false);
         self.fade_state = FadeState::Hidden;
         self.textscript_vm.state = TextScriptExecutionState::Running(event_no, 0);

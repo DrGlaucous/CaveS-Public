@@ -10,6 +10,7 @@ pub enum FlashState {
     None,
     Cross(i32, i32, u16),
     Blink(u16),
+    BlinkRed(u16),
 }
 
 pub struct Flash {
@@ -29,6 +30,10 @@ impl Flash {
 
     pub fn set_blink(&mut self) {
         self.state = FlashState::Blink(0);
+    }
+
+    pub fn set_blink_red(&mut self) {
+        self.state = FlashState::BlinkRed(0);
     }
 
     pub fn stop(&mut self) {
@@ -54,12 +59,20 @@ impl GameEntity<()> for Flash {
                     FlashState::Blink(tick + 1)
                 };
             }
+            FlashState::BlinkRed(tick) => {
+                self.state = if tick > 20 {
+                    FlashState::None
+                } else {
+                    FlashState::BlinkRed(tick + 1)
+                };
+            }
         }
         Ok(())
     }
 
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context, frame: &Frame) -> GameResult<()> {
         const WHITE: Color = Color::new(1.0, 1.0, 1.0, 1.0);
+        const RED: Color = Color::new(1.0, 0.0, 0.0, 1.0);
 
         match self.state {
             FlashState::None => {}
@@ -102,6 +115,11 @@ impl GameEntity<()> for Flash {
             FlashState::Blink(tick) => {
                 if tick / 2 % 2 != 0 {
                     graphics::clear(ctx, WHITE);
+                }
+            }
+            FlashState::BlinkRed(tick) => {
+                if tick / 2 % 2 != 0 {
+                    graphics::clear(ctx, RED);
                 }
             }
         }

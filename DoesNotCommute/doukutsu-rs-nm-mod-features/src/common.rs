@@ -133,6 +133,7 @@ bitfield! {
     pub friendly_fire, set_friendly_fire: 5; //0x20
 
     //some entities don't run when control_enabled is false. this overrides that.
+    //we may not need this: we probably don't have to key replays if we hide the PC.
     pub replay_mode, set_replay_mode: 6; //0x40
 }
 

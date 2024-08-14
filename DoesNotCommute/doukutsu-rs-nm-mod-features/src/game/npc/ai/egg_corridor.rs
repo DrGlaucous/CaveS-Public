@@ -392,7 +392,16 @@ impl NPC {
     }
 
     pub(crate) fn tick_n025_lift(&mut self, state: &mut SharedGameState) -> GameResult {
+        
+        let height_travel = if self.direction != Direction::Left {
+            8 * 16
+        } else {
+            4 * 16 //64
+        };
+        
+        
         match self.action_num {
+            //init+wait
             0 | 1 => {
                 if self.action_num == 0 {
                     self.x += 0x1000;
@@ -407,9 +416,10 @@ impl NPC {
                     self.action_counter = 0;
                 }
             }
+            //up
             2 => {
                 self.action_counter += 1;
-                if self.action_counter > 64 {
+                if self.action_counter > height_travel {
                     self.action_num = 3;
                     self.action_counter = 0;
                 } else {
@@ -417,16 +427,23 @@ impl NPC {
                 }
                 self.animate(1, 0, 1);
             }
+            //wait
             3 => {
                 self.action_counter += 1;
                 if self.action_counter > 150 {
-                    self.action_num = 4;
+                    //alt direction, only one stop
+                    if self.direction != Direction::Left {
+                        self.action_num = 8;
+                    } else {
+                        self.action_num = 4;
+                    }
                     self.action_counter = 0;
                 }
             }
+            //up
             4 => {
                 self.action_counter += 1;
-                if self.action_counter > 64 {
+                if self.action_counter > height_travel {
                     self.action_num = 5;
                     self.action_counter = 0;
                 } else {
@@ -434,6 +451,7 @@ impl NPC {
                 }
                 self.animate(1, 0, 1);
             }
+            //wait
             5 => {
                 self.action_counter += 1;
                 if self.action_counter > 150 {
@@ -441,9 +459,10 @@ impl NPC {
                     self.action_counter = 0;
                 }
             }
+            //down
             6 => {
                 self.action_counter += 1;
-                if self.action_counter > 64 {
+                if self.action_counter > height_travel {
                     self.action_num = 7;
                     self.action_counter = 0;
                 } else {
@@ -451,6 +470,7 @@ impl NPC {
                 }
                 self.animate(1, 0, 1);
             }
+            //wait
             7 => {
                 self.action_counter += 1;
                 if self.action_counter > 150 {
@@ -458,9 +478,10 @@ impl NPC {
                     self.action_counter = 0;
                 }
             }
+            //down
             8 => {
                 self.action_counter += 1;
-                if self.action_counter > 64 {
+                if self.action_counter > height_travel {
                     self.action_num = 1;
                     self.action_counter = 0;
                 } else {
