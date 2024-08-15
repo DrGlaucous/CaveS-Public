@@ -356,9 +356,6 @@ impl NPC {
         npc_list: &NPCList,
     ) -> GameResult {
 
-        //for now, if this exists, we will assume we are in replay mode (an egregious hack)
-        state.control_flags.set_replay_mode(true);
-
         //search for commuter NPCs to add to the list
         if self.child_ids.len() == 0 {
             for npc in npc_list.iter() {

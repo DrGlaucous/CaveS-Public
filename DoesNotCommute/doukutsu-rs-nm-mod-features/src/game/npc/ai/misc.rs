@@ -1881,6 +1881,26 @@ impl NPC {
                         self.action_num = 5;
                     }
                 }
+
+                //check valid psuedo-players
+                for npc in npc_list.iter_alive() {
+                    if !npc.cond.alive() 
+                    || npc.npc_type != 371 
+                    || (npc.action_num != 1 && npc.action_num != 2)
+                    || npc.id == self.id {
+                        continue;
+                    }
+                    if npc.x < self.x + 0x1000
+                        && npc.x > self.x - 0x1000
+                        && npc.y > self.y + 0x1000
+                        && npc.y < self.y + 0x10000
+                    {
+                        self.action_num = 5;
+                    }
+
+                }
+
+
             }
             5 => {
                 if !self.flags.hit_bottom_wall() {

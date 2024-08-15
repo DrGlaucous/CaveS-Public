@@ -42,6 +42,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0052//try to reload title screen music
 //initialize timer with time from Cave
 <SLT0001:Egg8.rec$
 <FRE<REP0000
@@ -72,6 +73,7 @@
 <FL+0500//equip PC flag
 //send to start point
 //<FAI0004<TRA0005:0240:0001:0011//test debug
+<REP0000//replay OFF
 <FAI0004<FL+0510
 <TRA0009:0200:0000:0000//0002:0044
 <END
@@ -125,6 +127,7 @@
 //sue intro
 #0200
 <KEY<HMC
+<PSH0056//start MUSIC (jmdisco)
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Egg8.rec$
 <EQ+0512//show timer
@@ -591,6 +594,9 @@ He's someone else's problem, now.<NOD<CLO
 <END
 
 
+#0415
+<KEY<MSG<FAC0008Marcus<NOD<END
+
 /////////////////FAKECHARS/////////////////
 
 //Flag 0500: on ONLY when sue is active
@@ -775,6 +781,7 @@ He's someone else's problem, now.<NOD<CLO
 <MS2<TURHere is what everyone did:<NOD<CLO
 <PSH0611//start NPCs (checked)
 <PSH0701//start focuser (checked)
+<REP0001//replay mode ON
 <MS2<TURUse weapon- and weapon+ to change focus.
  
    Press jump key to skip replay.<WAI9999
@@ -787,8 +794,9 @@ He's someone else's problem, now.<NOD<CLO
 <WAI0050
 <FAO0004
 <FOM0016
+<REP0000//replay OFF
 //to next level
-<TRA0010:0104:0000:0000
+<TRA0010:0200:0000:0000
 <END
 
 //playback in-replay~~~~~~~~~~~~~~~~
@@ -802,6 +810,7 @@ He's someone else's problem, now.<NOD<CLO
 <WAI0050
 <FAO0004
 <FOM0016
+<REP0000//replay OFF
 <RET0009:0100:0000:0000
 <END
 
@@ -818,6 +827,7 @@ He's someone else's problem, now.<NOD<CLO
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
 <ANP0700:0000:0001//disable skip option (non-left direction)
+<REP0001//replay mode ON
 <WAI9999<END
 
 

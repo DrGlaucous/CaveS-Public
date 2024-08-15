@@ -13,7 +13,7 @@ fn main() {
     #[cfg(target_os = "windows")]
     {
         let mut res = winres::WindowsResource::new();
-        res.set_icon("res/sue.ico");
+        res.set_icon("res/commute.ico");
         res.compile().unwrap();
 
         if target.contains("i686") {

@@ -1,5 +1,6 @@
 //stage entry event (titlescreen preview)
 #0100
+<PSH0052//try to reload title screen music
 <SLT0001:Security.rec$
 <HMC<FRE<REP0000
 <WAI9999
@@ -26,6 +27,7 @@
 
 //play current stage (also retry event)
 #0104
+<REP0000
 <EVE0200
 <END
 

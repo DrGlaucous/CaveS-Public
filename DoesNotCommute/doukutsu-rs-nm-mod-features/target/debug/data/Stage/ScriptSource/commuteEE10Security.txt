@@ -10,6 +10,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0052//try to reload title screen music
 <SLT0001:Science.rec$
 <HMC<FRE<REP0000
 <FON0350:0001
@@ -38,6 +39,7 @@
 
 //play current stage (also retry event)
 #0104
+<REP0000
 <EVE0200
 <END
 
@@ -51,9 +53,9 @@
 
 
 
-
-#0200
 //intro event
+#0200
+<PSH0057//start MUSIC (rung)
 <SKJ0017:0201
 <PSH0210
 <HMC<KEY<MYD0002
@@ -160,7 +162,7 @@ TERMINATING OFFENDER...<NOD<CLO
 <EQ+0256//start timer
 //originally had close doors here
 <FOM0016<BOA0010<BSL0000
-<CMU0054
+<PSH0054//start MUSIC (rung)
 <WAI0010<END
 
 
@@ -182,7 +184,8 @@ We can finally leave!<NOD<CLO
 <MYD0002<FON0400:0020<CNP0400:0004:0000<SOU0101<QUA0060<WAI0060//open door
 <FOM0016
 <MNP0270:0082:0028:0000<CNP0270:0046:0002
-<CMU0050<MS3The gunsmith happily went on his
+<PSH0057//start MUSIC (rung)
+<MS3The gunsmith happily went on his
 way, eager to put these parts to
 good use.<NOD<END
 

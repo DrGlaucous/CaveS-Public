@@ -609,12 +609,12 @@ impl GameScene {
                             _ => ((150u8, 150u8, 150u8), 0.92),
                         };
 
-                        let (_, gun_off_y) = player.skin.get_gun_offset();
+                        let (gun_off_x, gun_off_y) = player.skin.get_gun_offset();
 
                         self.draw_light_raycast(
                             state.tile_size,
-                            player.x + player.direction.vector_x() * 0x800,
-                            player.y + gun_off_y * 0x200 + 0x400,
+                            player.x + player.direction.vector_x() * 0x800, //gun_off_x * 0x200 + (player.direction.vector_x() * 12 * 0x200), //player.direction.vector_x() * 0x800,
+                            player.y + gun_off_y * 0x200 + (8 * 0x200), //center of gun y
                             color,
                             att,
                             range,

@@ -2481,7 +2481,7 @@ impl TextScriptVM {
                 let len = read_cur_varint(&mut cursor)? as usize;
                 let filepath = read_string(&mut cursor, len).unwrap();
 
-                state.sound_manager.play_song_filepath(&filepath, &state.constants, song_type,  &state.settings, ctx, false)?;
+                state.sound_manager.play_song_filepath(&filepath, song_type, &state.constants,  &state.settings, ctx, false)?;
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
 
 

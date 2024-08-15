@@ -42,6 +42,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0052//try to reload title screen music
 //initialize timer with time from Cave
 <SLT0001:Cave.rec$
 <FRE<REP0000
@@ -70,6 +71,7 @@
 //<TRA0001:0100:0015:0007//debug TRA
 //<TRA0004:0600:0000:0000//watch preview
 <FL+0500//equip PC flag
+<REP0000//replay OFF
 //send to start point
 //<FAI0004<TRA0005:0240:0001:0011//test debug
 <TRA0005:0200:0001:0011
@@ -123,6 +125,7 @@
 
 //king intro
 #0200
+<PSH0055//start MUSIC (hday2)
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Cave.rec$
 <EQ+0512//show timer
@@ -635,6 +638,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <KEY//no player movement
 <MNP0700:0028:0049:0000//move to CENTER
 <FAI0004
+<REP0001//replay mode ON
 <MS2<TURHere is what everyone did:<NOD<CLO
 <PSH0611//start NPCs (checked)
 <PSH0701//start focuser (checked)
@@ -650,6 +654,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <WAI0050
 <FAO0004
 <FOM0016
+<REP0000//replay OFF
 //to next level
 <TRA0006:0200:0000:0000
 <END
@@ -665,6 +670,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <WAI0050
 <FAO0004
 <FOM0016
+<REP0000//replay OFF
 <RET0005:0100:0000:0000
 <END
 
@@ -681,6 +687,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
 <ANP0700:0000:0001//disable skip option (non-left direction)
+<REP0001//replay mode ON
 <WAI9999<END
 
 

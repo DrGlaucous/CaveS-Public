@@ -43,6 +43,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0052//try to reload title screen music
 //initialize timer to 0 and then add 30 seconds to start
 <SLT0001:Village.rec$
 <FRE<REP0000//REP is only active when we're KEYED in replay mode (non-preview replays)
@@ -69,6 +70,7 @@
 #0104
 //<TRA0001:0100:0015:0007//debug TRA
 //<TRA0004:0600:0000:0000//watch preview
+<REP0000//replay OFF
 //send to start point
 <TRA0006:0200:0000:0000
 <END
@@ -121,6 +123,7 @@
 
 //quote intro (there's a lead-in map; it's a little different)
 #0200
+<PSH0056//start MUSIC (timetodo)
 //timer already initialized
 //IT+0000//add ITEMS
 //<EQ+0000//add EQUIPS
@@ -719,7 +722,7 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <MS2<TURHere is what everyone did:<NOD<CLO
 <PSH0611//start NPCs (checked)
 <PSH0701//start focuser (checked)
-<REP0001
+<REP0001//replay mode ON
 <MS2<TURUse weapon- and weapon+ to change focus.
  
    Press jump key to skip replay.<WAI9999
@@ -732,6 +735,7 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <WAI0050
 <FAO0004
 <FOM0016
+<REP0000//replay OFF
 //to next level
 //<TRA0008:0104:0000:0000
 <END
@@ -748,6 +752,7 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <WAI0050
 <FAO0004
 <FOM0016
+<REP0000//replay OFF
 //TODO: back to title
 <RET0007:0100:0000:0000
 <END
@@ -766,6 +771,7 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <PSH0701//start focuser (checked)
 <REP0001
 <ANP0700:0000:0001//disable skip option (non-left direction)
+<REP0001//replay mode ON
 <WAI9999<END
 
 

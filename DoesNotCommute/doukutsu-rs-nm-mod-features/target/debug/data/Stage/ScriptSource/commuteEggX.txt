@@ -7,6 +7,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0052//try to reload title screen music
 <SLT0001:Corridor.rec$
 <HMC<FRE<REP0000
 <FAI0004
@@ -49,6 +50,7 @@
 
 //entry event
 #0200
+<PSH0057//start MUSIC (rung)
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Corridor.rec$
 <HMC<MYD0002
@@ -102,7 +104,7 @@ That did... something...<NOD<CLO<FLA<SOU0025
 <EQ+0256//start timer!
 <FL+1200
 <BSL0000<CMU0004<BOA0019<CNP0400:0000:0000//apply boss bar, change to fight music, set boss animation to 20, stop quake
-<CMU0049//dragon sister fight
+<PSH0053//dragon sister fight
 <END
 
 //sisters die event (from 1000)
@@ -120,7 +122,7 @@ That did... something...<NOD<CLO<FLA<SOU0025
 #0242
 <BOA1000<WAI0250<CMU0000//death animation
 <FL-1200<FL+1201//fight over
-<CMU0015<WAI0160
+<PSH0057<WAI0160
 <KEY<MSGAnd just like that, her foes were
 defeated.<NOD<CLRSue had never felt more alive,
 and yet, now that it was over...<NOD

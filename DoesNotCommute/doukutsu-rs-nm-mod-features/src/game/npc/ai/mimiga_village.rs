@@ -361,10 +361,10 @@ impl NPC {
         npc_list: &NPCList,
     ) -> GameResult {
 
-        let cte = state.control_flags.control_enabled();
-        let rpm = state.control_flags.replay_mode();
-        
-        //key lockout (force in idle mode)
+        //let cte = state.control_flags.control_enabled();
+        //let rpm = state.control_flags.replay_mode();
+
+        //lockout if we're keyed AND replay mode is OFF
         if !state.control_flags.control_enabled() && !state.control_flags.replay_mode() {
             self.action_num = 0;
         }

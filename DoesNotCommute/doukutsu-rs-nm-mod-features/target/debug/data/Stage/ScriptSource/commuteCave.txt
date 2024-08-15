@@ -40,6 +40,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0052//try to reload title screen music
 //initialize timer to 0 and then add 30 seconds to start
 <SLT0001:$
 <ADT0050:0000:0030
@@ -64,8 +65,9 @@
 
 //play current stage
 #0104
-<TRA0011:0100:0015:0007//debug TRA
-<TRA0009:0200:0000:0000<TRA0004:0600:0000:0000//watch preview
+//<TRA0011:0100:0015:0007//debug TRA
+//<TRA0009:0200:0000:0000<TRA0004:0600:0000:0000//watch preview
+<REP0000//ensure replay mode is OFF
 //send to start point
 <TRA0003:0200:0010:0008
 <END
@@ -118,6 +120,7 @@
 
 //quote intro (there's a lead-in map; it's a little different)
 #0200
+<PSH0051//start MUSIC (bclass)
 //timer already initialized
 //IT+0000//add ITEMS
 //<EQ+0000//add EQUIPS
@@ -265,7 +268,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //stop logging and save to file
 <FNJ0510:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Cave2$
+<ALC0000:Cave1$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -285,7 +288,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //stop logging and save to file
 <FNJ0500:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Cave1$
+<ALC0000:Cave0$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -305,7 +308,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //stop logging and save to file
 <FNJ0520:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Cave3$
+<ALC0000:Cave2$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -321,7 +324,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //h/v trigger (king)
 #0350
 <EQ-0256//stop timer
-<ALC0000:Cave4$
+<ALC0000:Cave3$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 //<EQ-0000//de-equip equips
 //<AM-0002//de-equip WEAPONS
@@ -357,7 +360,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //quote NPC (+fresh load)
 #0500
 <NIM0500:Quote$
-<ARL0500:Cave1$
+<ARL0500:Cave0$
 <ANP0500:0001:0000//start playback
 <POP<END
 #0501
@@ -368,7 +371,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //curly NPC
 #0510
 <NIM0510:Curly$
-<ARL0510:Cave2$
+<ARL0510:Cave1$
 <ANP0510:0001:0000//start playback
 <POP<END
 #0511
@@ -379,7 +382,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //gero NPC
 #0520
 <NIM0520:Gero$
-<ARL0520:Cave3$
+<ARL0520:Cave2$
 <ANP0520:0001:0000//start playback
 <POP<END
 #0521
@@ -390,7 +393,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 //king NPC
 #0530
 <NIM0530:King$
-<ARL0530:Cave4$
+<ARL0530:Cave3$
 <ANP0530:0001:0000//start playback
 <POP<END
 #0531
@@ -412,10 +415,10 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 
 //same but only if all exist
 #0611
+<UFJ0699:Cave0$
 <UFJ0699:Cave1$
 <UFJ0699:Cave2$
 <UFJ0699:Cave3$
-<UFJ0699:Cave4$
 <PSH0610
 <POP<END
 
@@ -477,10 +480,10 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 
 //load focuser event (checked)
 #0701
+<UFJ0699:Cave0$
 <UFJ0699:Cave1$
 <UFJ0699:Cave2$
 <UFJ0699:Cave3$
-<UFJ0699:Cave4$
 <CNP0700:0374:0000
 <POP
 
@@ -496,9 +499,10 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <MS2<TURHere is what everyone did:<NOD<CLO
 <PSH0611//start NPCs (checked)
 <PSH0701//start focuser (checked)
+<REP0001//replay mode ON
 <MS2<TURUse weapon- and weapon+ to change focus.
  
-   Press jump key to skip replay.<WAI9999
+   Press jump key to skip replay.<WAI0080<CLO<WAI9999
 <END
 
 
@@ -508,6 +512,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <WAI0050
 <FAO0004
 <FOM0016
+<REP0000//replay OFF
 //to next level
 <TRA0005:0104:0000:0000
 <END
@@ -524,7 +529,8 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <WAI0050
 <FAO0004
 <FOM0016
-//TODO: back to title
+<REP0000//replay OFF
+//back to title
 <RET0004:0100:0000:0000
 <END
 
@@ -542,6 +548,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
 <ANP0700:0000:0001//disable skip option (non-left direction)
+<REP0001//replay mode ON
 <WAI9999<END
 
 

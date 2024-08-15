@@ -43,20 +43,42 @@ mod stuff;
 mod wav;
 mod wave_bank;
 
+
+#[derive(Clone)]
+pub struct SongId {
+    pub loaded_from_path: bool,
+    pub song_format: SongFormat,
+    pub path: String,
+    pub id: usize,
+}
+impl SongId {
+    pub fn new() -> Self {
+        SongId {
+            loaded_from_path: false,
+            song_format: SongFormat::Organya,
+            path: String::new(),
+            id: 0,
+        }
+    }
+}
+
 pub struct SoundManager {
     soundbank: Option<SoundBank>,
     tx: Sender<PlaybackMessage>,
-    prev_song_id: usize,
-    current_song_id: usize,
+    //prev_song_id: usize,
+    //current_song_id: usize,
     no_audio: bool,
     load_failed: bool,
     stream: Option<cpal::Stream>,
 
+    c_song_id: SongId,
+    p_song_id: SongId,
     
     //string paths for songs
-    current_song_path: String,
+    //current_song_path: String,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum SongFormat {
     Organya,
     #[cfg(feature = "ogg-playback")]
@@ -86,12 +108,15 @@ impl SoundManager {
             return Ok(SoundManager {
                 soundbank: None,
                 tx: tx.clone(),
-                prev_song_id: 0,
-                current_song_id: 0,
+
                 no_audio: true,
                 load_failed: false,
                 stream: None,
-                current_song_path: String::new(),
+
+                c_song_id: SongId::new(),
+                p_song_id: SongId::new(),
+
+
             });
         }
 
@@ -107,12 +132,14 @@ impl SoundManager {
         let mut sound_manager = SoundManager {
             soundbank: Some(soundbank.to_owned()),
             tx,
-            prev_song_id: 0,
-            current_song_id: 0,
+            //prev_song_id: 0,
+            //current_song_id: 0,
             no_audio: false,
             load_failed: false,
             stream: None,
-            current_song_path: String::new(),
+            //current_song_path: String::new(),
+            c_song_id: SongId::new(),
+            p_song_id: SongId::new(),
         };
 
         let host = cpal::default_host();
@@ -261,17 +288,40 @@ impl SoundManager {
     }
 
     pub fn reload_songs(&mut self, constants: &EngineConstants, settings: &Settings, ctx: &mut Context) -> GameResult {
-        let prev_song = self.prev_song_id;
-        let current_song = self.current_song_id;
+        let mut prev_song = self.p_song_id.clone();
+        let mut current_song = self.c_song_id.clone();
 
-        self.play_song(0, constants, settings, ctx, false)?;
-        self.play_song(prev_song, constants, settings, ctx, false)?;
+        // self.play_song(0, constants, settings, ctx, false)?;
+        // self.play_song(prev_song, constants, settings, ctx, false)?;
+        // self.save_state()?;
+        // self.play_song(current_song, constants, settings, ctx, false)?;
+
+        self.play_song_from_id(&mut SongId::new(), constants, settings, ctx, false);
+        self.play_song_from_id(&mut prev_song, constants, settings, ctx, false);
         self.save_state()?;
-        self.play_song(current_song, constants, settings, ctx, false)?;
+        self.play_song_from_id(&mut current_song, constants, settings, ctx, false);
 
         Ok(())
     }
 
+    pub fn play_song_from_id(
+        &mut self,
+        song_id: &mut SongId,
+        constants: &EngineConstants,
+        settings: &Settings,
+        ctx: &mut Context,
+        fadeout: bool,
+    ) {
+
+        if song_id.loaded_from_path {
+            self.play_song_filepath(&song_id.path, song_id.song_format, constants, settings, ctx, fadeout);
+        } else {
+            self.play_song(song_id.id, constants, settings, ctx, fadeout);
+        }
+
+    }
+
+    //load song using numeric ID
     pub fn play_song(
         &mut self,
         song_id: usize,
@@ -280,15 +330,18 @@ impl SoundManager {
         ctx: &mut Context,
         fadeout: bool,
     ) -> GameResult {
-        if self.current_song_id == song_id || self.no_audio {
+
+
+        if self.c_song_id.id == song_id || self.no_audio {
             return Ok(());
         }
 
         if song_id == 0 {
             log::info!("Stopping BGM");
 
-            self.prev_song_id = self.current_song_id;
-            self.current_song_id = 0;
+            self.p_song_id = self.c_song_id.clone();
+            self.c_song_id = SongId::new();
+
 
             self.send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation)).unwrap();
             self.send(PlaybackMessage::SaveState).unwrap();
@@ -336,8 +389,16 @@ impl SoundManager {
                                 Ok(Ok(org)) => {
                                     log::info!("Playing Organya BGM: {} {}", song_id, path);
 
-                                    self.prev_song_id = self.current_song_id;
-                                    self.current_song_id = song_id;
+                                    self.p_song_id = self.c_song_id.clone();
+                                    self.c_song_id = SongId{
+                                        loaded_from_path: false,
+                                        song_format: *format,
+                                        path: path.clone(),
+                                        id: song_id,
+                                    };
+                                    // self.current_song_path = path.clone();
+                                    // self.prev_song_id = self.current_song_id;
+                                    // self.current_song_id = song_id;
                                     let _ = self
                                         .send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation))
                                         .unwrap();
@@ -362,8 +423,13 @@ impl SoundManager {
                                 Ok(Ok(song)) => {
                                     log::info!("Playing single part Ogg BGM: {} {}", song_id, path);
 
-                                    self.prev_song_id = self.current_song_id;
-                                    self.current_song_id = song_id;
+                                    self.p_song_id = self.c_song_id.clone();
+                                    self.c_song_id = SongId{
+                                        loaded_from_path: false,
+                                        song_format: *format,
+                                        path: path.clone(),
+                                        id: song_id,
+                                    };
                                     self.send(PlaybackMessage::SaveState).unwrap();
                                     self.send(PlaybackMessage::PlayOggSongSinglePart(Box::new(song))).unwrap();
 
@@ -396,8 +462,13 @@ impl SoundManager {
                                         path_loop
                                     );
 
-                                    self.prev_song_id = self.current_song_id;
-                                    self.current_song_id = song_id;
+                                    self.p_song_id = self.c_song_id.clone();
+                                    self.c_song_id = SongId{
+                                        loaded_from_path: false,
+                                        song_format: *format,
+                                        path: path_intro.clone(),
+                                        id: song_id,
+                                    };
                                     self.send(PlaybackMessage::SaveState).unwrap();
                                     self.send(PlaybackMessage::PlayOggSongMultiPart(
                                         Box::new(song_intro),
@@ -421,8 +492,13 @@ impl SoundManager {
                                 Ok(Ok(module_s)) => {
                                     log::info!("Playing Tracker: {} {}", song_id, path);
 
-                                    self.prev_song_id = self.current_song_id;
-                                    self.current_song_id = song_id;
+                                    self.p_song_id = self.c_song_id.clone();
+                                    self.c_song_id = SongId{
+                                        loaded_from_path: false,
+                                        song_format: *format,
+                                        path: path.clone(),
+                                        id: song_id,
+                                    };
                                     self.send(PlaybackMessage::SaveState).unwrap();
                                     self.send(PlaybackMessage::PlayTrackerSong(Box::new(module_s))).unwrap();
 
@@ -442,154 +518,174 @@ impl SoundManager {
     }
 
 
-        //load song using file path
-        pub fn play_song_filepath(
-            &mut self,
-            song_path: &String,
-            constants: &EngineConstants,
-            file_format: SongFormat,
-            settings: &Settings,
-            ctx: &mut Context,
-            fadeout: bool,
-        ) -> GameResult {
-    
-    
-            if self.current_song_path == *song_path || self.no_audio {
-                return Ok(());
-            }
-    
-            if song_path.is_empty() {
-                log::info!("Stopping BGM");
-    
-                self.prev_song_id = self.current_song_id;
-                self.current_song_id = 0;
-    
-                self.send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation)).unwrap();
-                self.send(PlaybackMessage::SaveState).unwrap();
-    
-    
-    
-                if fadeout {
-                    self.send(PlaybackMessage::FadeoutSong).unwrap();
-                } else {
-                    self.send(PlaybackMessage::Stop).unwrap();
-                }
-            }
-            else
-            {
-    
-                match file_format {
-                    SongFormat::Organya => {
-    
-                        match filesystem::open(ctx, song_path).map(organya::Song::load_from) {
-                            Ok(Ok(org)) => {
-                                log::info!("Playing Organya BGM: {}", song_path);
-    
-                                self.current_song_path = song_path.clone();
-                                self.prev_song_id = self.current_song_id;
-                                self.current_song_id = 0;
-                                let _ = self
-                                    .send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation))
-                                    .unwrap();
-                                self.send(PlaybackMessage::SaveState).unwrap();
-                                self.send(PlaybackMessage::PlayOrganyaSong(Box::new(org.clone()))).unwrap();
-    
-                                return Ok(());
-                            }
-                            Ok(Err(err)) | Err(err) => {
-                                log::warn!("Failed to load Organya BGM {}: {}", song_path, err);
-                            }
-                        }
-                    }
-                    #[cfg(feature = "ogg-playback")]
-                    SongFormat::OggSinglePart => {
-    
-                        match filesystem::open(ctx, song_path).map(|f| {
-                            OggStreamReader::new(f).map_err(|e| GameError::ResourceLoadError(e.to_string()))
-                        }) {
-                            Ok(Ok(song)) => {
-                                log::info!("Playing single part Ogg BGM: {}", song_path);
-    
-                                self.current_song_path = song_path.clone();
-                                self.prev_song_id = self.current_song_id;
-                                self.current_song_id = 0;
-                                self.send(PlaybackMessage::SaveState).unwrap();
-                                self.send(PlaybackMessage::PlayOggSongSinglePart(Box::new(song))).unwrap();
-    
-                                return Ok(());
-                            }
-                            Ok(Err(err)) | Err(err) => {
-                                log::warn!("Failed to load single part Ogg BGM {}: {}", song_path, err);
-                            }
-                        }
-                    }
-                    #[cfg(feature = "ogg-playback")]
-                    SongFormat::OggMultiPart => {
-                        // we're sure that there are two elements
-                        let path_intro = format!("{}_intro.ogg", song_path);
-                        let path_loop = format!("{}_loop.ogg", song_path);
-    
-                        match (
-                            filesystem::open(ctx, path_intro).map(|f| {
-                                OggStreamReader::new(f).map_err(|e| GameError::ResourceLoadError(e.to_string()))
-                            }),
-                            filesystem::open(ctx, path_loop).map(|f| {
-                                OggStreamReader::new(f).map_err(|e| GameError::ResourceLoadError(e.to_string()))
-                            }),
-                        ) {
-                            (Ok(Ok(song_intro)), Ok(Ok(song_loop))) => {
-                                log::info!(
-                                    "Playing multi part Ogg BGM: {} {} + {}",
-                                    -1,
-                                    song_path,
-                                    song_path,
-                                    //&path_intro,
-                                    //&path_loop
-                                );
-    
-                                self.current_song_path = song_path.clone();
-                                self.prev_song_id = self.current_song_id;
-                                self.current_song_id = 0;
-                                self.send(PlaybackMessage::SaveState).unwrap();
-                                self.send(PlaybackMessage::PlayOggSongMultiPart(
-                                    Box::new(song_intro),
-                                    Box::new(song_loop),
-                                ))
-                                    .unwrap();
-    
-                                return Ok(());
-                            }
-                            (Ok(Err(err)), _) | (Err(err), _) | (_, Ok(Err(err))) | (_, Err(err)) => {
-                                log::warn!("Failed to load multi part Ogg BGM {}: {}", -1, err);
-                            }
-                        }
-                    }
-                    #[cfg(feature = "tracker-playback")]
-                    SongFormat::Tracker => {
+    //load song using file path
+    pub fn play_song_filepath(
+        &mut self,
+        song_path: &String,
+        file_format: SongFormat,
+        constants: &EngineConstants,
+        settings: &Settings,
+        ctx: &mut Context,
+        fadeout: bool,
+    ) -> GameResult {
 
-                        match filesystem::open(ctx, song_path).map(TrackerPlaybackEngine::load_from) {
-                            Ok(Ok(module_s)) => {
-                                log::info!("Playing Tracker: {} {}", song_path, song_path);
 
-                                self.current_song_path = song_path.clone();
-                                self.prev_song_id = self.current_song_id;
-                                self.current_song_id = 0;
-                                self.send(PlaybackMessage::SaveState).unwrap();
-                                self.send(PlaybackMessage::PlayTrackerSong(Box::new(module_s))).unwrap();
-
-                                return Ok(());
-                            }
-                            Ok(Err(err)) | Err(err) => {
-                                log::warn!("Failed to load Tracker BGM {}: {}", -1, err);
-                            }
-                        }
-                    }
-                    _ =>{}
-                }
-            }
-    
-            Ok(())
+        if self.c_song_id.path == *song_path || self.no_audio {
+            return Ok(());
         }
+
+        if song_path.is_empty() {
+            log::info!("Stopping BGM");
+
+            self.p_song_id = self.c_song_id.clone();
+            self.c_song_id = SongId::new();
+
+            self.send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation)).unwrap();
+            self.send(PlaybackMessage::SaveState).unwrap();
+
+
+
+            if fadeout {
+                self.send(PlaybackMessage::FadeoutSong).unwrap();
+            } else {
+                self.send(PlaybackMessage::Stop).unwrap();
+            }
+        }
+        else
+        {
+
+            match file_format {
+                SongFormat::Organya => {
+
+                    match filesystem::open(ctx, song_path).map(organya::Song::load_from) {
+                        Ok(Ok(org)) => {
+                            log::info!("Playing Organya BGM: {}", song_path);
+
+                            self.p_song_id = self.c_song_id.clone();
+                            self.c_song_id = SongId{
+                                loaded_from_path: true,
+                                song_format: file_format,
+                                path: song_path.clone(),
+                                id: 0,
+                            };
+
+                            let _ = self
+                                .send(PlaybackMessage::SetOrgInterpolation(settings.organya_interpolation))
+                                .unwrap();
+                            self.send(PlaybackMessage::SaveState).unwrap();
+                            self.send(PlaybackMessage::PlayOrganyaSong(Box::new(org.clone()))).unwrap();
+
+                            return Ok(());
+                        }
+                        Ok(Err(err)) | Err(err) => {
+                            log::warn!("Failed to load Organya BGM {}: {}", song_path, err);
+                        }
+                    }
+                }
+                #[cfg(feature = "ogg-playback")]
+                SongFormat::OggSinglePart => {
+
+                    match filesystem::open(ctx, song_path).map(|f| {
+                        OggStreamReader::new(f).map_err(|e| GameError::ResourceLoadError(e.to_string()))
+                    }) {
+                        Ok(Ok(song)) => {
+                            log::info!("Playing single part Ogg BGM: {}", song_path);
+
+                            self.p_song_id = self.c_song_id.clone();
+                            self.c_song_id = SongId{
+                                loaded_from_path: true,
+                                song_format: file_format,
+                                path: song_path.clone(),
+                                id: 0,
+                            };
+
+                            self.send(PlaybackMessage::SaveState).unwrap();
+                            self.send(PlaybackMessage::PlayOggSongSinglePart(Box::new(song))).unwrap();
+
+                            return Ok(());
+                        }
+                        Ok(Err(err)) | Err(err) => {
+                            log::warn!("Failed to load single part Ogg BGM {}: {}", song_path, err);
+                        }
+                    }
+                }
+                #[cfg(feature = "ogg-playback")]
+                SongFormat::OggMultiPart => {
+                    // we're sure that there are two elements
+                    let path_intro = format!("{}_intro.ogg", song_path);
+                    let path_loop = format!("{}_loop.ogg", song_path);
+
+                    match (
+                        filesystem::open(ctx, path_intro).map(|f| {
+                            OggStreamReader::new(f).map_err(|e| GameError::ResourceLoadError(e.to_string()))
+                        }),
+                        filesystem::open(ctx, path_loop).map(|f| {
+                            OggStreamReader::new(f).map_err(|e| GameError::ResourceLoadError(e.to_string()))
+                        }),
+                    ) {
+                        (Ok(Ok(song_intro)), Ok(Ok(song_loop))) => {
+                            log::info!(
+                                "Playing multi part Ogg BGM: {} {} + {}",
+                                -1,
+                                song_path,
+                                song_path,
+                                //&path_intro,
+                                //&path_loop
+                            );
+
+                            self.p_song_id = self.c_song_id.clone();
+                            self.c_song_id = SongId{
+                                loaded_from_path: true,
+                                song_format: file_format,
+                                path: song_path.clone(),
+                                id: 0,
+                            };
+
+                            self.send(PlaybackMessage::SaveState).unwrap();
+                            self.send(PlaybackMessage::PlayOggSongMultiPart(
+                                Box::new(song_intro),
+                                Box::new(song_loop),
+                            ))
+                                .unwrap();
+
+                            return Ok(());
+                        }
+                        (Ok(Err(err)), _) | (Err(err), _) | (_, Ok(Err(err))) | (_, Err(err)) => {
+                            log::warn!("Failed to load multi part Ogg BGM {}: {}", -1, err);
+                        }
+                    }
+                }
+                #[cfg(feature = "tracker-playback")]
+                SongFormat::Tracker => {
+
+                    match filesystem::open(ctx, song_path).map(TrackerPlaybackEngine::load_from) {
+                        Ok(Ok(module_s)) => {
+                            log::info!("Playing Tracker: {} {}", song_path, song_path);
+
+                            self.p_song_id = self.c_song_id.clone();
+                            self.c_song_id = SongId{
+                                loaded_from_path: true,
+                                song_format: file_format,
+                                path: song_path.clone(),
+                                id: 0,
+                            };
+
+                            self.send(PlaybackMessage::SaveState).unwrap();
+                            self.send(PlaybackMessage::PlayTrackerSong(Box::new(module_s))).unwrap();
+
+                            return Ok(());
+                        }
+                        Ok(Err(err)) | Err(err) => {
+                            log::warn!("Failed to load Tracker BGM {}: {}", -1, err);
+                        }
+                    }
+                }
+                _ =>{}
+            }
+        }
+
+        Ok(())
+    }
 
         
     pub fn save_state(&mut self) -> GameResult {
@@ -598,7 +694,7 @@ impl SoundManager {
         }
 
         self.send(PlaybackMessage::SaveState).unwrap();
-        self.prev_song_id = self.current_song_id;
+        self.p_song_id = self.c_song_id.clone();
 
         Ok(())
     }
@@ -609,7 +705,7 @@ impl SoundManager {
         }
 
         self.send(PlaybackMessage::RestoreState).unwrap();
-        self.current_song_id = self.prev_song_id;
+        self.c_song_id = self.p_song_id.clone();
 
         Ok(())
     }
@@ -628,8 +724,8 @@ impl SoundManager {
         Ok(())
     }
 
-    pub fn current_song(&self) -> usize {
-        self.current_song_id
+    pub fn current_song(&self) -> SongId {
+        self.c_song_id.clone()
     }
 
     pub fn set_sample_params_from_file<R: io::Read>(&mut self, id: u8, data: R) -> GameResult {
