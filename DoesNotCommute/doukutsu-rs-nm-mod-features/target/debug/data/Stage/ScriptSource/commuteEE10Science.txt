@@ -1,4 +1,6 @@
 //Flag List
+//SkipFlag 0016: curly's door intro (sci)
+//SkipFlag 0017: boss intro skip (secu)
 //
 //These flags do not persist because we do not save and the title game and main game do not share flags
 //Flag 0100: on when in preview mode
@@ -15,7 +17,7 @@
 //Flag 0560: on ONLY when gunsmith is active
 //
 //
-//SkipFlag 0016: curly's door intro
+//
 //Flag 6100: realized self-insert
 //Flag 6101: rant-a complete
 //Flag 6102: rant-b complete

@@ -64,7 +64,7 @@
 
 //play current stage
 #0104
-<TRA0001:0100:0015:0007//debug TRA
+<TRA0011:0100:0015:0007//debug TRA
 <TRA0009:0200:0000:0000<TRA0004:0600:0000:0000//watch preview
 //send to start point
 <TRA0003:0200:0010:0008

@@ -1,26 +1,192 @@
+//Flags
+//SkipFlag 0016: curly's door intro (sci)
+//SkipFlag 0017: boss intro skip (secu)
 
+
+//1125: tried to leave
+
+
+
+
+//stage entry event (titlescreen preview)
 #0100
-<HMC<FRE
+<SLT0001:Science.rec$
+<HMC<FRE<REP0000
+<FON0350:0001
 <FAI0004
 <WAI9999
 <END
 
-
+//selected "start game" in title menu
+//or "esc" in stage select menu
 #0101
 <KEY<FAO0004
 <TRA0002:0100:0000:0000
+<END
 
-
+//left arrow
 #0102
 <KEY<FAO0004
 <TRA0010:0100:0000:0000
-
-
-
-
-
-#0104
 <END
 
+//right arrow
+#0103
+<KEY<FAO0004
+<TRA0012:0100:0000:0000
+<END
+
+//play current stage (also retry event)
+#0104
+<EVE0200
+<END
+
+//the boss playback does not have a replay mode right now... (maybe we could use traditional replay mode...)
+//watch current stage
 #0105
 <END
+
+//...199 is reserved
+
+
+
+
+
+#0200
+//intro event
+<SKJ0017:0201
+<PSH0210
+<HMC<KEY<MYD0002
+<MOV0045:0028<FON0220:0001<WAI0001
+<FAI0004<WAI0020
+<ANP0220:0000:0002<SOU0011<WAI0020//open DOOR
+<SMC<WAI0020
+<ANP0220:0000:0000<SOU0011<WAI0060//close DOOR
+<BOA0001//make boss idle
+<MS3What?<WAI0020 More?<NOD
+We were supposed to be done with
+the developer's self plug!<NOD<CLRWhy'd they add more?<NOD<CLRHonestly, I'm not sure how much
+more of this shenanigans I can put
+up with-<WAI0070 -Oh, wait.<NOD<CLR
+This is just a hallway.<NOD<FON0300:0020
+The exit is right over there.<NOD<FON0350:0020
+Just through this big
+computer room.<NOD<CLR<FOM0016<SK+0017<END
+
+//fast intro event
+#0201
+<PSH0210
+<MOV0090:0028
+<FOM0016
+<FAI0004<END
+
+//equip items
+#0210
+<TCL0050:0000:0043//set run event (load time next)
+<SLT0001:Science.rec$
+<EQ+0512//add counter
+<MIM0000:Gunsmith$
+<IT+0041//give TRASH
+<AM+0012:0000//give WEAPON
+<LIS0018:0018
+<POP
+
+
+#0220
+//in door
+<FLJ1125:0221
+<FL+1125
+<KEY<MS3The gunsmith must have hit his
+head while out on his errands,<NOD
+for this obviously the door he
+entered a just few moments earlier.<NOD<CLRMaybe he should
+go home and lie down for a bit.<NOD<END
+
+#0221
+<KEY<MS3Yes, a nice nap is exactly
+what he needs.<NOD Far.<WAI0020 Away.<WAI0020 From.<WAI0020
+This.<WAI0020 Level.<WAI0020<NOD<END
+
+
+
+
+#0270
+//try to leave the computer room
+<DNP0270
+<KEY<MS3Unfortunately, this shield cannot
+turn off.<NOD<CLRDuring the fight, its mechanism
+conveniently broke such
+that it can only stay powered.<NOD<CLR
+Such a shame.<NOD<END
+
+
+#0300
+//exit door
+<KEY
+<ANP0300:0000:0002<SOU0011<WAI0020<FAO0004<CMU0000//open DOOR
+<AM-0012//de-equip WEAPONS
+<TRA0010:0104:0000:0000
+
+#0350
+//NULL entity for camera focus
+
+
+//boss shields
+//left
+#0400
+//right
+#0401
+
+
+//boss init event (H/V Trigger)
+#0500
+<DNP0500
+<CNP0401:0013:0000
+<CNP0400:0013:0000
+<SOU0101
+<QUA0060<WAI0060//close doors
+<KEY<MS3No no no!<NOD<CLRWe were so close to leaving
+this whole mess behind.<NOD<CLRWhy did that happen?<NOD<CLRLet's see...<NOD
+According to the script,
+the computer apparently caught
+the gunsmith stealing parts.<NOD<MYD0000<CLRLooks like he
+"conveniently" forgot to disable
+the security cameras earlier.<NOD<CLRWell, that's just great.<NOD<CLO
+<FMU<FON0350:0020<SOU0065<BOA0005<WAI0050<CMU0000//boss script 10
+<MS2
+COMPONENT EMBEZZLEMENT ATTEMPT
+DISCOVERED.<NOD<CLR
+TERMINATING OFFENDER...<NOD<CLO
+<EQ+0256//start timer
+//originally had close doors here
+<FOM0016<BOA0010<BSL0000
+<CMU0054
+<WAI0010<END
+
+
+#1000
+<EQ-0256//disable timer
+<TIJ1001
+<EVE1002
+
+#1001
+<SLT0000:Security.rec$
+<EVE1002
+
+#1002
+<KEY<BOA0003<FLA<FMU<QUA0100<WAI0100
+<EQ-0256//disable timer
+<FLA<BOA0002<CMU0015<SOU0025
+<MS3Yes!<WAI0020 You beat it!<NOD
+We can finally leave!<NOD<CLO
+<MYD0002<FON0400:0020<CNP0400:0004:0000<SOU0101<QUA0060<WAI0060//open door
+<FOM0016
+<MNP0270:0082:0028:0000<CNP0270:0046:0002
+<CMU0050<MS3The gunsmith happily went on his
+way, eager to put these parts to
+good use.<NOD<END
+
+
+
+
+

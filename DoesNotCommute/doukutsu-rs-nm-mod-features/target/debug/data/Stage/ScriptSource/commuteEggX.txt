@@ -49,6 +49,7 @@
 
 //entry event
 #0200
+<TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Corridor.rec$
 <HMC<MYD0002
 <MIM0000:Sue$
@@ -162,6 +163,9 @@ plot element.<NOD<END
 
 //done with fight
 #0311
+<IT-0020//remove ITEMS
+<EQ-0008//remove EQUIPS
+<AM-0014//remove ARMS
 <TRA0009:0104:0000:0000//goto oside
 
 

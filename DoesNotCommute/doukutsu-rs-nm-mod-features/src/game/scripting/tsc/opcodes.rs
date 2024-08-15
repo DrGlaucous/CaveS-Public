@@ -333,8 +333,12 @@ pub enum TSCOpCode {
     /// <TIJwwww:name_of_file$, Jump to wwww if the current time is less than the time in the file
     TIJ,
 
-    /// <REPwwww, Set the "replay mode" flag (like KEY and FRE), <REP[0-false/1-true] 
+    /// <REPwwww, Set the "replay mode" flag (like KEY and FRE), <REP[0-false/1-true] (may be redundant and removed later)
     REP,
+
+
+    // <CMFwwww:name_of_file$ Cue Music File, loads and starts music from `./data` (subdirectories can be included)
+    CMF,
 
 
 }

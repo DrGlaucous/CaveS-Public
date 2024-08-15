@@ -948,7 +948,7 @@ impl Player {
         self.damage_popup.update_displayed_value();
 
         if self.life == 0 {
-            self.play_sound(state,17);
+            //self.play_sound(state,17); //just use sound 16 and forego the loud death
             self.cond.0 = 0;
             state.control_flags.set_tick_world(true);
             state.control_flags.set_interactions_disabled(true);
