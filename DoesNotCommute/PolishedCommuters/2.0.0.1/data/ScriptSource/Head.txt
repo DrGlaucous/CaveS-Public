@@ -1,0 +1,121 @@
+#0000
+<END
+
+#0001
+<PRI<MSGEmpty.<NOD<END
+
+#0016
+<PRI<MSG
+Do you want to save?<YNJ0000<FL+0431<SVP<CLRGame saved.<NOD<END
+
+#0017
+<PRI<FLJ0201:0018
+<LI+1000<SOU0020<AE+<MSG
+Health refilled.<NOD<END
+#0018
+<PRI
+<LI+1000<SOU0020<AE+<MSG
+Health and missiles refilled.<NOD<END
+
+#0019
+<KEY<MSG
+Do you want to rest?<YNJ0000<FAO0004<CMU0000<WAI0020<CLR.....<NOD<CLO
+<WAI0050
+<LI+1000<SOU0020<MYD0002<MSG
+Health restored.<NOD<CLO<RMU<FAI0004<END
+
+#0030
+<PRI<FLJ0202:0032<FLJ0201:0031<FL+0201<GIT0005<AM+0005:0010
+<CMU0010Got the =Missile Launcher=!<WAI0160<NOD<RMU<CLRThe Missile Launcher is a powerful
+weapon, but its ammo is limited.<NOD
+You can replenish your stockpile
+with items dropped by enemies.<NOD<END
+#0031
+<PRI<AM+0005:0005<MSG
+<GIT0006Max missiles increased by <NUM0000!<NOD<END
+#0032
+<PRI<AM+0010:0005<MSG
+<GIT0011Max missiles increased by <NUM0000!<NOD<END
+
+#0040
+<KEY<CMU0000<WAI0040<PRI<WAI0040
+<PSH0050//cue music
+<MSG
+You have died.<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<FLJ0431:0048<INI<END
+
+#0041
+//no more HMC since we're using switch-style drowning
+<KEY<CMU0000<WAI0040<PRI<WAI0040
+<PSH0050//cue music
+<MSG
+You have drowned.<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<FLJ0431:0048<INI<END
+
+#0042
+<KEY<CMU0000<WAI0040<PRI<WAI0040
+<PSH0050//cue music
+<MSG<HMC
+You were never seen again...<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<FLJ0431:0048<INI<END
+
+
+#0043
+<KEY<CMU0000<WAI0040<PRI<WAI0040
+<PSH0050//cue music
+<MSG
+Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
+<FAO0001<WAI0050<INI<END
+
+
+
+#0049
+<CLO<FAO0004<ESC
+
+
+//song list
+
+#0050
+<CMF0003:/Resource/Other/wirehead.mod$
+<POP
+
+#0051
+<CMF0003:/Resource/Other/business_class_loop.xm$
+<POP
+
+#0052
+<CMF0003:/Resource/Other/electric_heating_loop.xm$
+<POP
+
+#0053
+<CMF0003:/Resource/Other/npls.xm$
+<POP
+
+#0054
+<CMF0003:/Resource/Other/space-chase_loop.mod$
+<POP
+
+#0055
+<CMF0003:/Resource/Other/jk_timetodosomething_loop.xm$
+<POP
+
+#0056
+<CMF0003:/Resource/Other/funkadelic_loop.xm$
+<POP
+
+#0057
+<CMF0003:/Resource/Other/rung.xm$
+<POP
+
+#0058
+<CMF0003:/Resource/Other/jm_disco_loop.xm$
+<POP
+
+#0059
+<CMF0003:/Resource/Other/space_debris_loop.mod$
+<POP
+
+
+
+
+

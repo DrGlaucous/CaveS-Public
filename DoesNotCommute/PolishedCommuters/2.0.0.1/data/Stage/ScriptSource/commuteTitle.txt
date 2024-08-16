@@ -1,0 +1,28 @@
+//stage entry event (titlescreen preview)
+#0100
+<PSH0052//cue music
+<BKGbk_title$
+<HMC<FRE
+<FAI0004
+<WAI9999
+<END
+
+//selected "start game" in title menu
+//or "esc" in stage select menu
+#0101
+<KEY<FAO0004
+<TRA0004:0100:0000:0000
+
+//left arrow
+//#0102
+
+//right arrow
+//#0103
+
+//play current stage
+//#0104
+
+//watch current stage
+//#0105
+
+//...199 is reserved

@@ -42,14 +42,15 @@
 
 
 #0200
-<KEY<MSGLevel 8:<NOD<CLRWait...<NOD Not again...<NOD<CLR
+<CMU0000<KEY<MSGLevel 8:<NOD<CLRWait...<NOD Not again...<NOD<CLR
 We've run out of levels!<NOD<CLRIt happened before, but that
 was understandable.<NOD
 Now it's just embarrassing.<NOD<CLRAnd of all the places to end it,
 too.<NOD Just when it was getting
 good.<NOD<CLR.<WAI0030.<WAI0030.<WAI0030Well...<NOD<CLR
 I think you know what this means.<NOD<CLR
-Cue up the Techno Trousers!<CMU0048<NOD<CLR
+Cue up the Techno Trousers!<NOD<CLO<CMF0000:/Resource/Other/Trousers.org$
+<MSG
 Until Next Time.<WAI9999<END
 
 

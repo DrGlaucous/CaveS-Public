@@ -332,7 +332,7 @@ impl SoundManager {
     ) -> GameResult {
 
 
-        if self.c_song_id.id == song_id || self.no_audio {
+        if (self.c_song_id.id == song_id || self.no_audio) && !self.c_song_id.loaded_from_path {
             return Ok(());
         }
 
@@ -530,7 +530,7 @@ impl SoundManager {
     ) -> GameResult {
 
 
-        if self.c_song_id.path == *song_path || self.no_audio {
+        if self.c_song_id.path == *song_path && self.c_song_id.loaded_from_path || self.no_audio {
             return Ok(());
         }
 

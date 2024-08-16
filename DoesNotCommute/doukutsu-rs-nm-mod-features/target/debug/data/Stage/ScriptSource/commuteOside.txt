@@ -173,6 +173,7 @@ floor.<NOD<CLO//PART 2 MESSAGE (odd case where the TSC box auto-wraps)
 <MYD0002//SET DIRECTION
 <IT+0023//add ITEMS
 <EQ+0032//add EQUIPS
+<FL+0743//booster2 eq flag
 //<AM+0012:0000//add ARMS
 //<AML0004:0001:0030//set arms LEVEL
 <MIM0000:Booster$
@@ -489,6 +490,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 <ANP0370:0000:0000<SOU0011<WAI0060//close DOOR
 <IT-0023//de-equip ITEMS
 <EQ-0032//de-equip equips
+<FL-0743//booster2 eq flag
 //<AM-0014//de-equip WEAPONS
 <FL-0510//PLAYER'S FLAG
 <FL+0520//NEXT PLAYER FLAG
@@ -795,7 +797,7 @@ He's someone else's problem, now.<NOD<CLO
 <FOM0016
 <REP0000//replay OFF
 //to next level
-<TRA0010:0200:0000:0000
+<TRA0010:0104:0000:0000
 <END
 
 //playback in-replay~~~~~~~~~~~~~~~~

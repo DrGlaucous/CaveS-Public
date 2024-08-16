@@ -1,0 +1,716 @@
+//Flag List
+//
+//These flags do not persist because we do not save and the title game and main game do not share flags
+//Flag 0100: on when in preview mode
+//Flag 0101: on when in replay mode
+//
+//
+//
+//Flag 0500: on ONLY when king is active
+//Flag 0510: on ONLY when gunsmith is active
+//Flag 0520: on ONLY when mimi1 is active
+//Flag 0530: on ONLY when gamemaster is active
+//Flag 0540: on ONLY when mimi2 is active
+//Flag 0550: on ONLY when quote is active
+//
+//
+//
+
+
+
+
+//time file list
+//Cave = first cave complete
+//Village = village complete
+//Corridor = corridor complete
+//Eggx = eggx boss complete
+//Oside = oside complete
+//Sci = science complete
+//Sciboss = securitron complete
+
+
+
+//event range:
+//$0100 = intro events, bound to the title screen
+//$0200 = intro doors, each character gets 10 (210, 220, etc)
+//$0300 = exit doors, each door gets 10, starting at 300, 399 is common wrong door script
+//$0400 = 400 for arrow + any other ingame elements
+//$0500 = fakechars, each gets 1, starting at 500, includes their initialization events
+//$0600 = environmental functions like CML, CMP and service NPC ANPs
+
+
+
+//stage entry event (titlescreen preview)
+#0100
+<PSH0052//try to reload title screen music
+//initialize timer with time from Cave
+<SLT0001:Cave.rec$
+<FRE<REP0000
+<EVE0730//start "preview" event
+
+//selected "start game" in title menu
+//or "esc" in stage select menu
+#0101
+<KEY<TRA0002:0100:0000:0000
+<END
+
+//left arrow (disabled: no older maps)
+#0102
+<KEY<FAO0004
+<TRA0004:0100:0000:0000
+//<END
+
+//right arrow
+#0103
+<KEY<FAO0004
+<TRA0007:0100:0000:0000
+<END
+
+//play current stage
+#0104
+//<TRA0001:0100:0015:0007//debug TRA
+//<TRA0004:0600:0000:0000//watch preview
+<FL+0500//equip PC flag
+<REP0000//replay OFF
+//send to start point
+//<FAI0004<TRA0005:0240:0001:0011//test debug
+<TRA0005:0200:0001:0011
+<END
+
+//watch current stage
+#0105
+<TRA0005:0720:0000:0000
+<END
+
+
+//kick out (reserved for missing files)
+#0110
+<RET0004:0100:0000:0000<END
+
+
+
+//...199 is reserved
+
+
+/////////////////INTROS/////////////////
+
+//TEMPLATE
+<KEY<HMC<LIS0011:0011//SET LIFE
+<MOV0003:0004//MOVE TO START
+<MYD0002//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+//<AM+0004:0100//add ARMS
+//<AML0004:0001:0030//set arms LEVEL
+<MIM0000:SKIN$
+<FON0300:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0300:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0300:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSG<MSGMESSAGE<NOD<CLO//PART 1 MESSAGE
+<FON0340:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0055:0010//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0055:0010:0000//LOCATION
+<MSGMESSAGE<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+//king intro
+#0200
+<PSH0055//start MUSIC (hday2)
+<TCL0050:0000:0043//set run event (load time next)
+<SLT0001:Cave.rec$
+<EQ+0512//show timer
+<LIS0009:0009//SET LIFE
+<MOV0001:0011//MOVE TO START
+<MYD0002//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0009:0000//add ARMS
+<AML0009:0002:0008//set arms LEVEL
+<MIM0000:King$
+//<FON0300:0016//FOCUS ON DOOR
+<KEY<SMC//appear (no door)
+<FAI0004<MNA//FADE IN
+<WAI0060
+//<ANP0300:0000:0002//DOOR
+//<SOU0011<WAI0010<SMC<WAI0010
+//<ANP0300:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGKing wants to return home.<NOD<CLRIt seems that the mushroom
+problem has gotten worse.<NOD<CLRHe makes a note to ask Jack
+about this later.<NOD<CLO//PART 1 MESSAGE
+<FON0300:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0010:0035//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0010:0035:0000//LOCATION
+<MSG"Home", as a matter of speaking,
+is inside this door right here.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+//<PSH0500//START NPCs
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END01:$
+<END
+
+
+
+//gunsmith intro
+#0210
+<KEY<HMC<LIS0006:0006//SET LIFE
+<MOV0058:0051//MOVE TO START
+<MYD0000//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0012:0000//add ARMS
+//<AML0004:0001:0030//set arms LEVEL
+<MIM0000:Gunsmith$
+<FON0320:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0320:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0320:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGThe hermit gunsmith is
+out purchasing parts for his
+latest creation.<NOD<CLRHe is in to Cowboy themes
+lately, and the name of
+his project reflects this.<NOD<CLO//PART 1 MESSAGE
+<FON0330:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0062:0024//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0062:0024:0000//LOCATION
+<MSGDon't tell anyone that the gun
+he's using isn't his...<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+//mimiga1 (Dwight) intro
+#0220
+<KEY<HMC<LIS0005:0005//SET LIFE
+<MOV0010:0056//MOVE TO START
+<MYD0002//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0015:0000//add ARMS
+//<AML0004:0001:0030//set arms LEVEL
+<MIM0000:Mimiga$
+<FON0310:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0310:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0310:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGThis is the Mimiga village, so
+here's a Mimiga.<NOD<CLRI don't
+know this one's name.<NOD I guess
+we could call him...<WAI0020 Umm...<NOD<CLR
+Dwight.<NOD<CLO//PART 1 MESSAGE
+<FON0330:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0062:0024//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0062:0024:0000//LOCATION
+<MSGWell, Dwight<WAI0010 (that's right)
+wishes to go here.<NOD<CLRYou just took the
+gunsmith there, so it should
+be a cakewalk.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+//action gamemaster intro
+#0230
+<KEY<HMC<LIS0011:0011//SET LIFE
+<MOV0057:0010//MOVE TO START
+<MYD0000//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0002:0100//add ARMS
+<AML0002:0003:0010//set arms LEVEL
+<MIM0000:ActionGamemaster$
+<FON0340:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0340:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0340:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGThe action gamemaster was at
+home playing his video game when
+suddenly...<NOD<CLRAn arm reached out of
+the TV and pulled him inside.<NOD<CLRWaiiit a moment...
+This is the wrong game.<NOD<CLO//PART 1 MESSAGE
+<FON0320:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0058:0051//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0058:0051:0000//LOCATION
+<MSGEh... Oh, well.<NOD
+This door.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<PSH0520
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+//mimiga2 (Earnest)
+#0240
+<KEY<HMC<LIS0005:0005//SET LIFE
+<MOV0010:0035//MOVE TO START
+<MYD0002//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0015:0000//add ARMS
+//<AML0004:0001:0030//set arms LEVEL
+<MIM0000:Mimiga$
+<FON0300:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0300:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0300:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGWhat do you think about
+"Earnest"?<NOD<CLR...What?<WAI0030 I can't hear you...<NOD<CLO//PART 1 MESSAGE
+<FON0340:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0057:0010//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0057:0010:0000//LOCATION
+<MSGI'll take your silence as
+a sign of approval.<NOD<CLRBased on our =unanimous=
+approval, he will be called
+Earnest.<NOD<CLRPlease guide Earnest to this
+door.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<PSH0520
+<PSH0530
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+//Quote
+#0250
+<KEY<HMC<LIS0011:0011//SET LIFE
+<MOV0062:0024//MOVE TO START
+<MYD0000//SET DIRECTION
+<IT+0035//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0002:0000//add ARMS
+<AML0002:0002:0015//set arms LEVEL
+<MIM0000:Quote$
+<FON0330:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0330:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0330:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGOh, look! It's Quote again!<NOD<CLRThis time, his inventory is
+<GIT1035laden with panties.<NOD<CLRI guess we know why
+he wanted to go into that
+other door earlier, huh?<NOD<CLO<GIT0000//PART 1 MESSAGE
+<FON0310:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0010:0056//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0010:0056:0000//LOCATION
+<MSGWhy panties?<NOD
+-Don't look at me,<WAI0020
+I couldn't even begin
+to understand myself.<NOD<CLRQuote isn't the most
+open when it comes to his private
+thoughts.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<PSH0520
+<PSH0530
+<PSH0540
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+
+
+/////////////////DOORS/////////////////
+
+//template
+<FNJ0520:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Cave3$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0340:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+//<AM-0002//de-equip WEAPONS
+<FL-0520//PLAYER'S FLAG
+<FL+0530//NEXT PLAYER FLAG
+<TRA0004:0230:0055:0010//TO NEXT DOOR (USE CURR COORDS)
+
+
+
+
+//left cave (king)
+#0300
+<FNJ0500:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Village0$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0300:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0009//de-equip WEAPONS
+<FL-0500//PLAYER'S FLAG
+<FL+0510//NEXT PLAYER FLAG
+<TRA0005:0210:0010:0035//TO NEXT DOOR (USE CURR COORDS)
+
+
+
+//left house (quote)
+#0310
+<FNJ0550:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Village5$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0310:0000:0000<SOU0011<WAI0060//close DOOR
+<IT-0035//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0002//de-equip WEAPONS
+<FL-0550//PLAYER'S FLAG
+<PSH0620//SAVE TIME
+<FAO0004
+<TRA0005:0710:0010:0035//TO REPLAY
+
+
+
+
+//right house(agamemaster)
+#0320
+<FNJ0530:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Village3$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0320:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0320:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0002//de-equip WEAPONS
+<FL-0530//PLAYER'S FLAG
+<FL+0540//NEXT PLAYER FLAG
+<TRA0005:0240:0058:0051//TO NEXT DOOR (USE CURR COORDS)
+
+
+
+
+//right cave (gunsmith/mimi1)
+#0330
+<FNJ0510:0331//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Village1$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0330:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0012//de-equip WEAPONS
+<FL-0510//PLAYER'S FLAG
+<FL+0520//NEXT PLAYER FLAG
+<TRA0005:0220:0062:0024//TO NEXT DOOR (USE CURR COORDS)
+
+
+
+//mimi1
+#0331
+<FNJ0520:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Village2$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0330:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0015//de-equip WEAPONS
+<FL-0520//PLAYER'S FLAG
+<FL+0530//NEXT PLAYER FLAG
+<TRA0005:0230:0062:0024//TO NEXT DOOR (USE CURR COORDS)
+
+
+
+//top right house (mimi2)
+#0340
+<FNJ0540:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Village4$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0340:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0015//de-equip WEAPONS
+<FL-0540//PLAYER'S FLAG
+<FL+0550//NEXT PLAYER FLAG
+<TRA0005:0250:0057:0010//TO NEXT DOOR (USE CURR COORDS)
+
+
+
+//Wrong door
+#0399
+<PRI<MSGThis is not your door!<NOD<END
+
+
+/////////////////ITEMS/////////////////
+
+//arrow
+#0400
+<END
+
+//door outline
+#0401
+<END
+
+
+/////////////////FAKECHARS/////////////////
+
+//king NPC (+fresh load)
+#0500
+<NIM0500:King$
+<ARL0500:Village0$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0501
+<CFG0500:0003:0000:0000//rewind
+<ANP0500:0001:0000//start playback
+<POP<END
+
+//gunsmith NPC
+#0510
+<NIM0510:Gunsmith$
+<ARL0510:Village1$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0511
+<CFG0510:0003:0000:0000//rewind
+<ANP0510:0001:0000//start playback
+<POP<END
+
+//mimi1 NPC
+#0520
+<NIM0520:Mimiga$
+<ARL0520:Village2$
+<ANP0520:0001:0000//start playback
+<POP<END
+#0521
+<CFG0520:0003:0000:0000//rewind
+<ANP0520:0001:0000//start playback
+<POP<END
+
+//gamemaster NPC
+#0530
+<NIM0530:ActionGamemaster$
+<ARL0530:Village3$
+<ANP0530:0001:0000//start playback
+<POP<END
+#0531
+<CFG0530:0003:0000:0000//rewind
+<ANP0530:0001:0000//start playback
+<POP<END
+
+//mimi2 NPC
+#0540
+<NIM0540:Mimiga$
+<ARL0540:Village4$
+<ANP0540:0001:0000//start playback
+<POP<END
+#0541
+<CFG0540:0003:0000:0000//rewind
+<ANP0540:0001:0000//start playback
+<POP<END
+
+//quote NPC
+#0550
+<NIM0550:Quote$
+<ARL0550:Village5$
+<ANP0550:0001:0000//start playback
+<POP<END
+#0551
+<CFG0550:0003:0000:0000//rewind
+<ANP0550:0001:0000//start playback
+<POP<END
+
+/////////////////ENVIRONMENT/////////////////
+
+
+//load all NPC actions
+#0610
+<PSH0500
+<PSH0510
+<PSH0520
+<PSH0530
+<PSH0540
+<PSH0550
+<POP<END
+
+//same but only if all exist
+#0611
+<UFJ0699:Village0$
+<UFJ0699:Village1$
+<UFJ0699:Village2$
+<UFJ0699:Village3$
+<UFJ0699:Village4$
+<UFJ0699:Village5$
+<PSH0610
+<POP<END
+
+//save time if better
+#0620
+<TIJ0621:Village.rec$
+<POP
+
+//less time, save
+#0621
+<SLT0000:Village.rec$
+<POP
+
+
+//return to stage select screen
+#0698
+//return to title
+<RET0004:0100:0000:0000
+<END
+
+//skip out
+#0699
+//<MS3SKIP<WAI0050<CLO
+<POP
+
+
+/////////////////PLAYBACK/////////////////
+
+//focuser
+#0700
+<CNP0700:0000:0000//remove so we don't get repeated triggers
+<FLJ0100:0731//preview mode
+<FLJ0101:0721//replay mode
+<EVE0711//in-game event
+
+//load focuser event (checked)
+#0701
+<UFJ0699:Village0$
+<UFJ0699:Village1$
+<UFJ0699:Village2$
+<UFJ0699:Village3$
+<UFJ0699:Village4$
+<UFJ0699:Village5$
+<CNP0700:0374:0000
+<POP
+
+
+//playback in-game~~~~~~~~~~~~~~~~
+#0710
+<HMC
+<FON0700:0016//look at focuser
+<KEY//no player movement
+<MNP0700:0028:0049:0000//move to CENTER
+<FAI0004
+<REP0001//replay mode ON
+<MS2<TURHere is what everyone did:<NOD<CLO
+<PSH0611//start NPCs (checked)
+<PSH0701//start focuser (checked)
+<MS2<TURUse weapon- and weapon+ to change focus.
+ 
+   Press jump key to skip replay.<WAI0080<CLO<WAI9999
+<END
+
+
+//end/skip event
+#0711
+<KEY<CLR
+<WAI0050
+<FAO0004
+<FOM0016
+<REP0000//replay OFF
+//to next level
+<TRA0006:0200:0000:0000
+<END
+
+//playback in-replay~~~~~~~~~~~~~~~~
+#0720
+<FL+0101//set replay mode
+<EVE0710//normal opening
+
+//end/skip event
+#0721
+<KEY<CLR
+<WAI0050
+<FAO0004
+<FOM0016
+<REP0000//replay OFF
+<RET0005:0100:0000:0000
+<END
+
+
+
+//playback in-preview~~~~~~~~~~~~~~~~
+#0730
+<FL+0100//set preview mode
+<FRE<HMC<EQ+0512
+<MNP0700:0028:0049:0000//move switcher to CENTER
+<FON0700:0001<WAI0001//snap to switcher
+<FON0700:0016//focus on switcher
+<FAI0004
+<PSH0611//start NPCs
+<PSH0701//start focuser (checked)
+<ANP0700:0000:0001//disable skip option (non-left direction)
+<PSH0732//set replay mode
+<WAI9999<END
+
+
+
+//end/skip event 
+#0731
+<WAI0050
+<FAO0004
+<TRA0005:0730:0000:0000//restart replay
+<END
+
+
+//set replay mode (checked)
+#0732
+<UFJ0699:Village0$
+<UFJ0699:Village1$
+<UFJ0699:Village2$
+<UFJ0699:Village3$
+<UFJ0699:Village4$
+<UFJ0699:Village5$
+<REP0001//replay mode ON
+<POP
+
+
+
+

@@ -265,6 +265,7 @@ if he has it.<NOD<CLO//PART 2 MESSAGE
 <MYD0002//SET DIRECTION
 <IT+0023//add ITEMS
 <EQ+0032//add EQUIPS
+<FL+0743//booster2 eq flag
 //<AM+0004:0100//add ARMS
 //<AML0004:0001:0030//set arms LEVEL
 <MIM0000:Booster$
@@ -513,6 +514,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <IT-0023//de-equip ITEMS
 <EQ-0032//de-equip equips
+<FL-0743//booster2 eq flag
 //<AM-0002//de-equip WEAPONS
 <FL-0540//PLAYER'S FLAG
 <FL+0550//NEXT PLAYER FLAG

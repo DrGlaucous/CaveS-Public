@@ -96,11 +96,11 @@ Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
 <POP
 
 #0055
-<CMF0003:/Resource/Other/ds_fb_loop.xm$
+<CMF0003:/Resource/Other/jk_timetodosomething_loop.xm$
 <POP
 
 #0056
-<CMF0003:/Resource/Other/jk_timetodosomething_loop.xm$
+<CMF0003:/Resource/Other/funkadelic_loop.xm$
 <POP
 
 #0057
@@ -112,7 +112,7 @@ Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
 <POP
 
 #0059
-<CMF0003:/Resource/Other/djisox-r_loop.xm$
+<CMF0003:/Resource/Other/space_debris_loop.mod$
 <POP
 
 
