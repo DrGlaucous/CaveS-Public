@@ -725,7 +725,7 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <REP0001//replay mode ON
 <MS2<TURUse weapon- and weapon+ to change focus.
  
-   Press jump key to skip replay.<WAI9999
+   Press jump key to skip replay.<WAI0080<CLO<WAI9999
 <END
 
 
@@ -737,7 +737,7 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <FOM0016
 <REP0000//replay OFF
 //to next level
-//<TRA0008:0104:0000:0000
+<TRA0008:0104:0000:0000
 <END
 
 
@@ -769,9 +769,8 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 <FAI0004
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
-<REP0001
 <ANP0700:0000:0001//disable skip option (non-left direction)
-<REP0001//replay mode ON
+<PSH0732//set replay mode
 <WAI9999<END
 
 
@@ -785,5 +784,16 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 
 
 
+//set replay mode (checked)
+#0732
+<UFJ0699:Corridor0$
+<UFJ0699:Corridor1$
+<UFJ0699:Corridor2$
+<UFJ0699:Corridor3$
+<UFJ0699:Corridor4$
+<UFJ0699:Corridor5$
+<UFJ0699:Corridor6$
+<REP0001//replay mode ON
+<POP
 
 

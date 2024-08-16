@@ -609,7 +609,7 @@ impl GameScene {
                             _ => ((150u8, 150u8, 150u8), 0.92),
                         };
 
-                        let (gun_off_x, gun_off_y) = player.skin.get_gun_offset();
+                        let (_, gun_off_y) = player.skin.get_gun_offset();
 
                         self.draw_light_raycast(
                             state.tile_size,

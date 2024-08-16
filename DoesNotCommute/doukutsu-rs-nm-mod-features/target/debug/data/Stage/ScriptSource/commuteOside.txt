@@ -74,7 +74,6 @@
 //send to start point
 //<FAI0004<TRA0005:0240:0001:0011//test debug
 <REP0000//replay OFF
-<FAI0004<FL+0510
 <TRA0009:0200:0000:0000//0002:0044
 <END
 
@@ -127,7 +126,7 @@
 //sue intro
 #0200
 <KEY<HMC
-<PSH0056//start MUSIC (jmdisco)
+<PSH0058//start MUSIC (jmdisco)
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Egg8.rec$
 <EQ+0512//show timer
@@ -746,7 +745,7 @@ He's someone else's problem, now.<NOD<CLO
 
 //skip out
 #0699
-<MS3SKIP<WAI0050<CLO
+//<MS3SKIP<WAI0050<CLO
 <POP
 
 
@@ -784,7 +783,7 @@ He's someone else's problem, now.<NOD<CLO
 <REP0001//replay mode ON
 <MS2<TURUse weapon- and weapon+ to change focus.
  
-   Press jump key to skip replay.<WAI9999
+   Press jump key to skip replay.<WAI0080<CLO<WAI9999
 <END
 
 
@@ -827,7 +826,7 @@ He's someone else's problem, now.<NOD<CLO
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
 <ANP0700:0000:0001//disable skip option (non-left direction)
-<REP0001//replay mode ON
+<PSH0732//set replay mode
 <WAI9999<END
 
 
@@ -839,6 +838,17 @@ He's someone else's problem, now.<NOD<CLO
 <TRA0009:0730:0000:0000//restart replay
 <END
 
+
+//set replay mode (checked)
+#0732
+<UFJ0699:Oside0$
+<UFJ0699:Oside1$
+<UFJ0699:Oside2$
+<UFJ0699:Oside3$
+<UFJ0699:Oside4$
+<UFJ0699:Oside5$
+<REP0001//replay mode ON
+<POP
 
 
 

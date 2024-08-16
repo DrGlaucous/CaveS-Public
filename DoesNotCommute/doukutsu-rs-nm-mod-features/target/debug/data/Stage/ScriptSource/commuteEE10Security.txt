@@ -78,7 +78,7 @@ computer room.<NOD<CLR<FOM0016<SK+0017<END
 //fast intro event
 #0201
 <PSH0210
-<MOV0090:0028
+<MOV0108:0028
 <FOM0016
 <FAI0004<END
 
@@ -145,7 +145,7 @@ Such a shame.<NOD<END
 <DNP0500
 <CNP0401:0013:0000
 <CNP0400:0013:0000
-<SOU0101
+<SOU0101<CMU0000
 <QUA0060<WAI0060//close doors
 <KEY<MS3No no no!<NOD<CLRWe were so close to leaving
 this whole mess behind.<NOD<CLRWhy did that happen?<NOD<CLRLet's see...<NOD

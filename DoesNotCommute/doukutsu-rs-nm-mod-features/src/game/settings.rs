@@ -433,7 +433,7 @@ impl Default for Settings {
             shader_effects: false,
             light_cone: true,
             subpixel_coords: true,
-            motion_interpolation: true,
+            motion_interpolation: false,
             touch_controls: cfg!(target_os = "android"),
             display_touch_controls: true,
             soundtrack: "Organya".to_string(),

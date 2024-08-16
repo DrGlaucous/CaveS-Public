@@ -404,7 +404,11 @@ impl NPC {
             if let Some(npc) = npc_list.get_npc(self.child_ids[self.target_x as usize] as usize) {
                 self.x = npc.x;
                 self.y = npc.y;
+                self.anim_rect = Rect::new(224,240, 256, 272);
+                self.layer = NPCLayer::Foreground;
             }
+        } else {
+            self.anim_rect = Rect::new(0,0,0,0);
         }
 
         Ok(())

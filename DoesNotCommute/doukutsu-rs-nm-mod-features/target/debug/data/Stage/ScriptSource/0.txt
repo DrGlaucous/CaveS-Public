@@ -19,6 +19,9 @@
 
 //title entry event
 #0100
+<MS2<TUR       ======================
+          Dr. G Presents...
+       ======================<WAI0080<CLO<WAI0030<WAI9999
 <END
 
 //selected "start game" in title menu

@@ -36,6 +36,7 @@
 
 //entry event
 #0200
+<PSH0057//start MUSIC (rung)
 <IT+0035//add ITEMS
 //<EQ+0000//add EQUIPS
 <LIS0011:0011//SET LIFE

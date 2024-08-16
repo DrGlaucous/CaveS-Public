@@ -539,21 +539,25 @@ impl Ft2Play {
 
             // Bxx - position jump
             if ch.eff_typ == 11 {
-                self.song.song_pos      = ch.eff as i16 - 1;
+                self.song.song_pos      = ch.eff as i16 - 1; //FIXME
                 self.song.p_break_pos   = 0;
                 self.song.pos_jump_flag = true;
             }
 
-            // Dxx - pattern break
+            // Dxx - pattern break (CURRENTLY BROKEN?)
             else if ch.eff_typ == 13 {
                 self.song.pos_jump_flag = true;
 
                 let tmp_eff = (ch.eff>>4)*10 + ch.eff&0x0F;
+
+                //eeeeh.... um... FIXME
                 self.song.p_break_pos = if tmp_eff <= 63 {
                     tmp_eff
                 } else {
                     0
-                }
+                };
+                //self.song.p_break_flag = true;
+                //self.song.song_pos += 1; //FIXME
             }
 
             // Exx - E effects
@@ -2289,6 +2293,12 @@ impl FormatPlayer for Ft2Play {
         data.speed = self.song.tempo as usize;
         data.tempo = self.song.speed as f32;
         data.time += 20.0 * 125.0 / data.tempo as f32;
+
+        //reset row location if we've jumped (I think this is standard behavior)
+        if self.song.pos_jump_flag {
+            //self.song.pos_jump_flag = false;
+            data.pos = self.song.song_pos.wrapping_add(1) as usize;            
+        }
 
         /*if self.position_jump_cmd {
             data.pos = self.ft_song_pos.wrapping_add(1) as usize;

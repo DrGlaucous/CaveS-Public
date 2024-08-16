@@ -644,7 +644,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <PSH0701//start focuser (checked)
 <MS2<TURUse weapon- and weapon+ to change focus.
  
-   Press jump key to skip replay.<WAI9999
+   Press jump key to skip replay.<WAI0080<CLO<WAI9999
 <END
 
 
@@ -687,7 +687,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
 <ANP0700:0000:0001//disable skip option (non-left direction)
-<REP0001//replay mode ON
+<PSH0732//set replay mode
 <WAI9999<END
 
 
@@ -699,6 +699,17 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 <TRA0005:0730:0000:0000//restart replay
 <END
 
+
+//set replay mode (checked)
+#0732
+<UFJ0699:Village0$
+<UFJ0699:Village1$
+<UFJ0699:Village2$
+<UFJ0699:Village3$
+<UFJ0699:Village4$
+<UFJ0699:Village5$
+<REP0001//replay mode ON
+<POP
 
 
 

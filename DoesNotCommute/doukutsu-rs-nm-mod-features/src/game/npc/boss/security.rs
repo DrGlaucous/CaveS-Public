@@ -872,7 +872,7 @@ impl BossNPC {
 
                 //cycle through "disabled" phases
                 if self.parts[0].action_counter > 300
-                || self.parts[0].action_counter2 - self.parts[0].life > 100 {
+                || self.parts[0].action_counter2 - self.parts[0].life > 200 {
                     //restart (all init work done in action 11)
                     self.parts[0].action_num = 11
                 } else if self.parts[0].action_counter == 150 {

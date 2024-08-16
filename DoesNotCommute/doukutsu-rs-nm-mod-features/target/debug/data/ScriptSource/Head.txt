@@ -80,11 +80,11 @@ Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
 <POP
 
 #0051
-<CMF0003:/Resource/Other/business_class.xm$
+<CMF0003:/Resource/Other/business_class_loop.xm$
 <POP
 
 #0052
-<CMF0003:/Resource/Other/electric_heating.xm$
+<CMF0003:/Resource/Other/electric_heating_loop.xm$
 <POP
 
 #0053
@@ -92,15 +92,15 @@ Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
 <POP
 
 #0054
-<CMF0003:/Resource/Other/space-chase.mod$
+<CMF0003:/Resource/Other/space-chase_loop.mod$
 <POP
 
 #0055
-<CMF0003:/Resource/Other/happy_day_2.mod$
+<CMF0003:/Resource/Other/ds_fb_loop.xm$
 <POP
 
 #0056
-<CMF0003:/Resource/Other/jk_timetodosomething.xm$
+<CMF0003:/Resource/Other/jk_timetodosomething_loop.xm$
 <POP
 
 #0057
@@ -108,11 +108,11 @@ Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
 <POP
 
 #0058
-<CMF0003:/Resource/Other/jm_disco.xm$
+<CMF0003:/Resource/Other/jm_disco_loop.xm$
 <POP
 
 #0059
-<CMF0003:/Resource/Other/djisox-r.xm$
+<CMF0003:/Resource/Other/djisox-r_loop.xm$
 <POP
 
 

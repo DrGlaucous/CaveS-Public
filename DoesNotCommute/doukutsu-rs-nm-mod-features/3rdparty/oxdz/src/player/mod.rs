@@ -235,9 +235,18 @@ impl<'a> Player<'a> {
 
                 // FIXME
                 //debug!("scan: check {}/{}", pos, row);
+
+                //also debug (to force the compiler to put a breakpoint within this "if" statement)
+                if row == 67 {
+                    let mut apple = 9;
+                    let pear = apple + row;
+                    apple += pear;
+                    debug!("scan: check {}/{} -- {}", pos, row, apple);
+                }
+
                 if self.scan_cnt[pos][row] > 0 {
                     if self.data.inside_loop {
-                        //debug!("inside loop");
+                        debug!("inside loop");
                     } else {
                         debug!("scan: already visited");
                         break;

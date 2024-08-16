@@ -548,7 +548,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
 <ANP0700:0000:0001//disable skip option (non-left direction)
-<REP0001//replay mode ON
+<PSH0732//set replay mode
 <WAI9999<END
 
 
@@ -560,6 +560,15 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 <TRA0004:0730:0000:0000//restart replay
 <END
 
+
+//set replay mode (checked)
+#0732
+<UFJ0699:Cave0$
+<UFJ0699:Cave1$
+<UFJ0699:Cave2$
+<UFJ0699:Cave3$
+<REP0001//replay mode ON
+<POP
 
 
 

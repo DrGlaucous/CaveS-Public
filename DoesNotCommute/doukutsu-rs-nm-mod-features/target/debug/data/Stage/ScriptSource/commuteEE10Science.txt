@@ -143,7 +143,7 @@
 <AM+0004:0100//add ARMS
 <AML0004:0003:0010//set arms LEVEL
 <MIM0000:Curly$
-<MSG<TURPRE-DOOR<WAI0040<CLO
+//<MSG<TURPRE-DOOR<WAI0040<CLO
 <KEY<HMC<MYD0002<FON0410:0001
 <MOV0003:0039
 <FAI0004<WAI0020
@@ -168,7 +168,7 @@ in Cave Story...<NOD<FOM0016<END
 <MIM0000:Curly$
 <KEY<FON0380:0016
 <FAI0004<MNA//FADE IN
-<MSG<TURSKIPFLAG-DOOR<WAI0040<CLO
+//<MSG<TURSKIPFLAG-DOOR<WAI0040<CLO
 <WAI0060<EVE0202
 
 
@@ -815,7 +815,7 @@ and we'll be fine.<NOD<END
 <REP0001//replay mode ON
 <MS2<TURUse weapon- and weapon+ to change focus.
  
-   Press jump key to skip replay.<WAI9999
+   Press jump key to skip replay.<WAI0080<CLO<WAI9999
 <END
 
 
@@ -858,7 +858,7 @@ and we'll be fine.<NOD<END
 <PSH0611//start NPCs
 <PSH0701//start focuser (checked)
 <ANP0700:0000:0001//disable skip option (non-left direction)
-<REP0001//replay mode ON
+<PSH0732//set replay mode
 <WAI9999<END
 
 
@@ -871,6 +871,17 @@ and we'll be fine.<NOD<END
 <END
 
 
+//set replay mode (checked)
+#0732
+<UFJ0699:Science0$
+<UFJ0699:Science1$
+<UFJ0699:Science2$
+<UFJ0699:Science3$
+<UFJ0699:Science4$
+<UFJ0699:Science5$
+<UFJ0699:Science6$
+<REP0001//replay mode ON
+<POP
 
 
 
