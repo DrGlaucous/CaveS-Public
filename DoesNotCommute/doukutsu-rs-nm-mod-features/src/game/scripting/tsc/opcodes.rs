@@ -330,7 +330,7 @@ pub enum TSCOpCode {
     /// <RETxxxx:yyyy:zzzz:wwww, RETurn to title screen, Travels to map xxxx, starts event yyyy, places the player at tile (zzzz,wwww)
     RET,
 
-    /// <TIJwwww:name_of_file$, Jump to wwww if the current time is less than the time in the file
+    /// <TIJwwww:name_of_file$, Jump to wwww if the current time is more than the time in the file
     TIJ,
 
     /// <REPwwww, Set the "replay mode" flag (like KEY and FRE), <REP[0-false/1-true] (may be redundant and removed later)
@@ -339,6 +339,9 @@ pub enum TSCOpCode {
 
     // <CMFwwww:name_of_file$ Cue Music File, loads and starts music from `./data` (subdirectories can be included)
     CMF,
+
+    // <UCPname_of_src$:name_of_dst$ User File Copy: Copies file contents from src to dst in the user directory
+    UFC,
 
 
 }

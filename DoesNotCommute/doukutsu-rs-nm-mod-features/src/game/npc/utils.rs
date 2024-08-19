@@ -5,7 +5,7 @@ use crate::common::{Condition, Direction, Flag, Rect};
 use crate::components::number_popup::NumberPopup;
 use crate::game::caret::CaretType;
 use crate::game::map::NPCData;
-use crate::game::npc::{NPC, NPCFlag, NPCLayer, NPCTable, ShooterVals, MoreItems};
+use crate::game::npc::{NPC, NPCFlag, NPCLayer, NPCTable, ShooterVals, MoreItems, NPCLightOptions};
 use crate::game::npc::list::NPCList;
 use crate::game::physics::PhysicalEntity;
 use crate::game::player::Player;
@@ -89,10 +89,10 @@ impl NPC {
             rng: Xoroshiro32PlusPlus::new(0),
             popup: NumberPopup::new(),
             splash: false,
-            //running this is entirely up to the NPC: it has to be done in the NPC's AI code
             child_ids: Vec::new(),
-
+            light_options: NPCLightOptions::new(),
             more_items: Box::new(MoreItems{
+                //running this is entirely up to the NPC: it has to be done in the NPC's AI code
                 recorder: None,
                 pc_skin: None,
                 shooter_vals: ShooterVals::new(),

@@ -2447,6 +2447,7 @@ impl TextScriptVM {
 
                 let ticks = NikumaruCounter::load_time(state, ctx, Some(&timer_name.as_str())).unwrap_or_else( |_| 0) as usize;
 
+                //if time is less, keep running the current event
                 if game_scene.nikumaru.tick < ticks && ticks != 0 {
                     state.textscript_vm.clear_text_box();
                     exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
@@ -2482,6 +2483,25 @@ impl TextScriptVM {
                 let filepath = read_string(&mut cursor, len).unwrap();
 
                 state.sound_manager.play_song_filepath(&filepath, song_type, &state.constants,  &state.settings, ctx, false)?;
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+
+            }
+
+            TSCOpCode::UFC =>{
+                //get src path
+                let len_s = read_cur_varint(&mut cursor)? as usize;
+                let from_path = format!{"/{}", read_string(&mut cursor, len_s).unwrap()};
+
+                //get dst path
+                let len_d = read_cur_varint(&mut cursor)? as usize;
+                let to_path = format!{"/{}", read_string(&mut cursor, len_d).unwrap()};
+
+
+                if let Err(a) = filesystem::copy_file_user(ctx, from_path, to_path) {
+                    log::warn!("UFC command Failed: {}", a);
+                }
+
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
 
 

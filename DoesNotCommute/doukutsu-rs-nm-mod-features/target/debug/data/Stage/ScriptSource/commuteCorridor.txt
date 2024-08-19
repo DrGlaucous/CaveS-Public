@@ -71,8 +71,8 @@
 //<TRA0001:0100:0015:0007//debug TRA
 //<TRA0004:0600:0000:0000//watch preview
 <REP0000//replay OFF
-//send to start point
-<TRA0006:0200:0000:0000
+<SKJ0007:0200//goto fast intro
+<TRA0006:0200:0000:0000//send to pens
 <END
 
 //watch current stage
@@ -122,7 +122,21 @@
 
 
 //quote intro (there's a lead-in map; it's a little different)
+
+//fast intro
 #0200
+<IT+0035//add ITEMS
+//<EQ+0000//add EQUIPS
+<LIS0011:0011//SET LIFE
+<AM+0002:0000//add ARMS
+<AML0002:0002:0015//LEVEL-ARMS
+<TCL0050:0000:0043//set run event (load time next)
+<SLT0001:Village.rec$
+<EQ+0512//give timer
+<FL+0500//set active flag
+<TRA0007:0201:0000:0000
+
+#0201
 <PSH0056//start MUSIC (timetodo)
 //timer already initialized
 //IT+0000//add ITEMS
@@ -401,7 +415,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 #0300
 <FNJ0530:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Corridor3$
+<ALC0000:3$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -417,7 +431,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 #0310
 <FNJ0510:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Corridor1$
+<ALC0000:1$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -434,7 +448,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 #0320
 <FNJ0500:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Corridor0$
+<ALC0000:0$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0320:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -451,7 +465,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 #0330
 <FNJ0520:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Corridor2$
+<ALC0000:2$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -469,7 +483,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 #0340
 <FNJ0550:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Corridor5$
+<ALC0000:5$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -490,7 +504,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 #0360
 <FNJ0560:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Corridor6$
+<ALC0000:6$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0360:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -510,7 +524,7 @@ endangered species...)<NOD<CLO//PART 2 MESSAGE
 <DNP0370//remove HV trigger
 <FNJ0540:0000//PLAYER'S FLAG (event 0 because hv trigger)
 <EQ-0256//stop timer
-<ALC0000:Corridor4$
+<ALC0000:4$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <IT-0023//de-equip ITEMS
 <EQ-0032//de-equip equips
@@ -565,10 +579,15 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //quote NPC (+fresh load)
 #0500
 <NIM0500:Quote$
-<ARL0500:Corridor0$
+<ARL0500:0$
 <ANP0500:0001:0000//start playback
 <POP<END
 #0501
+<NIM0500:Quote$
+<ARL0500:Corridor0$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0502
 <CFG0500:0003:0000:0000//rewind
 <ANP0500:0001:0000//start playback
 <POP<END
@@ -576,10 +595,15 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //curly NPC
 #0510
 <NIM0510:Curly$
-<ARL0510:Corridor1$
+<ARL0510:1$
 <ANP0510:0001:0000//start playback
 <POP<END
 #0511
+<NIM0510:Curly$
+<ARL0510:Corridor1$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0512
 <CFG0510:0003:0000:0000//rewind
 <ANP0510:0001:0000//start playback
 <POP<END
@@ -587,10 +611,15 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //bluebot NPC
 #0520
 <NIM0520:Bluebot$
-<ARL0520:Corridor2$
+<ARL0520:2$
 <ANP0520:0001:0000//start playback
 <POP<END
 #0521
+<NIM0520:Bluebot$
+<ARL0520:Corridor2$
+<ANP0520:0001:0000//start playback
+<POP<END
+#0522
 <CFG0520:0003:0000:0000//rewind
 <ANP0520:0001:0000//start playback
 <POP<END
@@ -598,10 +627,15 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //hasumi NPC
 #0530
 <NIM0530:Hasumi$
-<ARL0530:Corridor3$
+<ARL0530:3$
 <ANP0530:0001:0000//start playback
 <POP<END
 #0531
+<NIM0530:Hasumi$
+<ARL0530:Corridor3$
+<ANP0530:0001:0000//start playback
+<POP<END
+#0532
 <CFG0530:0003:0000:0000//rewind
 <ANP0530:0001:0000//start playback
 <POP<END
@@ -609,10 +643,15 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //booster NPC
 #0540
 <NIM0540:Booster$
-<ARL0540:Corridor4$
+<ARL0540:4$
 <ANP0540:0001:0000//start playback
 <POP<END
 #0541
+<NIM0540:Booster$
+<ARL0540:Corridor4$
+<ANP0540:0001:0000//start playback
+<POP<END
+#0542
 <CFG0540:0003:0000:0000//rewind
 <ANP0540:0001:0000//start playback
 <POP<END
@@ -620,10 +659,15 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //headman NPC
 #0550
 <NIM0550:Headman$
-<ARL0550:Corridor5$
+<ARL0550:5$
 <ANP0550:0001:0000//start playback
 <POP<END
 #0551
+<NIM0550:Headman$
+<ARL0550:Corridor5$
+<ANP0550:0001:0000//start playback
+<POP<END
+#0552
 <CFG0550:0003:0000:0000//rewind
 <ANP0550:0001:0000//start playback
 <POP<END
@@ -631,10 +675,15 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //sue NPC
 #0560
 <NIM0560:Sue$
-<ARL0560:Corridor6$
+<ARL0560:6$
 <ANP0560:0001:0000//start playback
 <POP<END
 #0561
+<NIM0560:Sue$
+<ARL0560:Corridor6$
+<ANP0560:0001:0000//start playback
+<POP<END
+#0562
 <CFG0560:0003:0000:0000//rewind
 <ANP0560:0001:0000//start playback
 <POP<END
@@ -645,13 +694,13 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 
 //load all NPC actions
 #0610
-<PSH0500
-<PSH0510
-<PSH0520
-<PSH0530
-<PSH0540
-<PSH0550
-<PSH0560
+<PSH0501
+<PSH0511
+<PSH0521
+<PSH0531
+<PSH0541
+<PSH0551
+<PSH0561
 <POP<END
 
 //same but only if all exist
@@ -675,6 +724,14 @@ regress in your progress.<NOD<CLRBummer.<NOD<END
 //less time, save
 #0621
 <SLT0000:Corridor.rec$
+//copy best character replays to long-term
+<UFC0$:Corridor0$
+<UFC1$:Corridor1$
+<UFC2$:Corridor2$
+<UFC3$:Corridor3$
+<UFC4$:Corridor4$
+<UFC5$:Corridor5$
+<UFC6$:Corridor6$
 <POP
 
 

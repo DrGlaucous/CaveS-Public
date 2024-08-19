@@ -1,7 +1,3 @@
-//Flag List
-//SkipFlag 0016: curly's door intro (sci)
-//SkipFlag 0017: boss intro skip (secu)
-//
 //These flags do not persist because we do not save and the title game and main game do not share flags
 //Flag 0100: on when in preview mode
 //Flag 0101: on when in replay mode
@@ -18,9 +14,6 @@
 //
 //
 //
-//Flag 6100: realized self-insert
-//Flag 6101: rant-a complete
-//Flag 6102: rant-b complete
 //
 //
 
@@ -132,7 +125,7 @@
 //second entry door
 #0200
 <PSH0059//start MUSIC (digsox)
-<SKJ0016:0201//goto quick intro
+<SKJ0010:0201//goto quick intro
 //pre-door intro (will be skipflagged)
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Oside.rec$
@@ -175,7 +168,7 @@ in Cave Story...<NOD<FOM0016<END
 //come out of door
 #0202
 <FL-6100<FL-6101<FL-6102//remove rant flags
-<SK+0016//do faster intros now
+<SK+0010//do faster intros now
 <MOV0032:0031//MOVE TO START
 <MYD0002//SET DIRECTION
 //<FON0300:0016//FOCUS ON DOOR
@@ -438,7 +431,7 @@ cannon at this point.<NOD<CLO//PART 2 MESSAGE
 #0300
 <FNJ0500:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Science0$
+<ALC0000:0$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -456,7 +449,7 @@ cannon at this point.<NOD<CLO//PART 2 MESSAGE
 #0310
 <FNJ0540:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Science4$
+<ALC0000:4$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -480,7 +473,7 @@ cannon at this point.<NOD<CLO//PART 2 MESSAGE
 #0330
 <FNJ0550:0331//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Science5$
+<ALC0000:5$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -498,7 +491,7 @@ cannon at this point.<NOD<CLO//PART 2 MESSAGE
 #0340
 <FNJ0510:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Science1$
+<ALC0000:1$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -514,7 +507,7 @@ cannon at this point.<NOD<CLO//PART 2 MESSAGE
 #0350
 <FNJ0520:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Science2$
+<ALC0000:2$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0350:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -531,7 +524,7 @@ cannon at this point.<NOD<CLO//PART 2 MESSAGE
 #0360
 <FNJ0530:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Science3$
+<ALC0000:3$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0360:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -548,7 +541,7 @@ cannon at this point.<NOD<CLO//PART 2 MESSAGE
 #0370
 <FNJ0560:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Science6$
+<ALC0000:6$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0370:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -656,10 +649,15 @@ and we'll be fine.<NOD<END
 //curly NPC (+fresh load)
 #0500
 <NIM0500:Curly$
-<ARL0500:Science0$
+<ARL0500:0$
 <ANP0500:0001:0000//start playback
 <POP<END
 #0501
+<NIM0500:Curly$
+<ARL0500:Science0$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0502
 <CFG0500:0003:0000:0000//rewind
 <ANP0500:0001:0000//start playback
 <POP<END
@@ -667,10 +665,15 @@ and we'll be fine.<NOD<END
 //king NPC
 #0510
 <NIM0510:King$
-<ARL0510:Science1$
+<ARL0510:1$
 <ANP0510:0001:0000//start playback
 <POP<END
 #0511
+<NIM0510:King$
+<ARL0510:Science1$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0512
 <CFG0510:0003:0000:0000//rewind
 <ANP0510:0001:0000//start playback
 <POP<END
@@ -678,10 +681,15 @@ and we'll be fine.<NOD<END
 //jack NPC
 #0520
 <NIM0520:Jack$
-<ARL0520:Science2$
+<ARL0520:2$
 <ANP0520:0001:0000//start playback
 <POP<END
 #0521
+<NIM0520:Jack$
+<ARL0520:Science2$
+<ANP0520:0001:0000//start playback
+<POP<END
+#0522
 <CFG0520:0003:0000:0000//rewind
 <ANP0520:0001:0000//start playback
 <POP<END
@@ -689,10 +697,15 @@ and we'll be fine.<NOD<END
 //wilco NPC
 #0530
 <NIM0530:Wilco$
-<ARL0530:Science3$
+<ARL0530:3$
 <ANP0530:0001:0000//start playback
 <POP<END
 #0531
+<NIM0530:Wilco$
+<ARL0530:Science3$
+<ANP0530:0001:0000//start playback
+<POP<END
+#0532
 <CFG0530:0003:0000:0000//rewind
 <ANP0530:0001:0000//start playback
 <POP<END
@@ -700,10 +713,15 @@ and we'll be fine.<NOD<END
 //gero NPC
 #0540
 <NIM0540:Gero$
-<ARL0540:Science4$
+<ARL0540:4$
 <ANP0540:0001:0000//start playback
 <POP<END
 #0541
+<NIM0540:Gero$
+<ARL0540:Science4$
+<ANP0540:0001:0000//start playback
+<POP<END
+#0542
 <CFG0540:0003:0000:0000//rewind
 <ANP0540:0001:0000//start playback
 <POP<END
@@ -711,10 +729,15 @@ and we'll be fine.<NOD<END
 //quote NPC
 #0550
 <NIM0550:Quote$
-<ARL0550:Science5$
+<ARL0550:5$
 <ANP0550:0001:0000//start playback
 <POP<END
 #0551
+<NIM0550:Quote$
+<ARL0550:Science5$
+<ANP0550:0001:0000//start playback
+<POP<END
+#0552
 <CFG0550:0003:0000:0000//rewind
 <ANP0550:0001:0000//start playback
 <POP<END
@@ -722,10 +745,15 @@ and we'll be fine.<NOD<END
 //gunsmith NPC
 #0560
 <NIM0560:Gunsmith$
-<ARL0560:Science6$
+<ARL0560:6$
 <ANP0560:0001:0000//start playback
 <POP<END
 #0561
+<NIM0560:Gunsmith$
+<ARL0560:Science6$
+<ANP0560:0001:0000//start playback
+<POP<END
+#0562
 <CFG0560:0003:0000:0000//rewind
 <ANP0560:0001:0000//start playback
 <POP<END
@@ -736,13 +764,13 @@ and we'll be fine.<NOD<END
 
 //load all NPC actions
 #0610
-<PSH0500
-<PSH0510
-<PSH0520
-<PSH0530
-<PSH0540
-<PSH0550
-<PSH0560
+<PSH0501
+<PSH0511
+<PSH0521
+<PSH0531
+<PSH0541
+<PSH0551
+<PSH0561
 <POP<END
 
 //same but only if all exist
@@ -765,6 +793,14 @@ and we'll be fine.<NOD<END
 //less time, save
 #0621
 <SLT0000:Science.rec$
+//copy best character replays to long-term
+<UFC0$:Science0$
+<UFC1$:Science1$
+<UFC2$:Science2$
+<UFC3$:Science3$
+<UFC4$:Science4$
+<UFC5$:Science5$
+<UFC6$:Science6$
 <POP
 
 

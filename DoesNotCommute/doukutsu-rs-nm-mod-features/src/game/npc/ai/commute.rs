@@ -1,11 +1,12 @@
+use std::any::Any;
 use std::borrow::Borrow;
 use std::cell::{RefCell};
 use std::f32::consts::PI;
-use crate::common::{Direction, Rect, CDEG_RAD};
+use crate::common::{Direction, Rect, CDEG_RAD, Color};
 use crate::entity::GameEntity;
 use crate::framework::error::GameResult;
 use crate::game::caret::CaretType;
-use crate::game::npc::{NPCLayer, NPC};
+use crate::game::npc::{NPCLayer, NPCLightType, NPC};
 use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::{Weapon, WeaponType, WeaponLevel, TargetShooter};
@@ -272,6 +273,35 @@ impl NPC {
                                 self.more_items.weapon = Some(weapon);
                             }
                         
+                            //update lighting
+                            {
+                                self.light_options.light_angle = match () {
+                                    _ if self.more_items.shooter_vals.up => 60..120,
+                                    _ if self.more_items.shooter_vals.down => 240..300,
+                                    _ if self.more_items.shooter_vals.direction == Direction::Left => -30..30,
+                                    _ if self.more_items.shooter_vals.direction == Direction::Right => 150..210,
+                                    _ => 0..0,
+                                };
+
+                                let (color, power) = match frame.weapon {
+                                    WeaponType::Fireball => ((170u8, 80u8, 0u8), 0.92),
+                                    WeaponType::PolarStar => ((150u8, 150u8, 160u8), 0.92),
+                                    WeaponType::Spur => ((170u8, 170u8, 200u8), 0.92),
+                                    WeaponType::Blade | WeaponType::None => ((0u8, 0u8, 0u8), 0.0),
+                                    _ => ((150u8, 150u8, 150u8), 0.92),
+                                };
+                                self.light_options.light_color = Color::from(color);
+                                self.light_options.light_power = power;
+
+                                self.light_options.x = self.x;
+                                self.light_options.y = self.y;
+                                self.light_options.prev_x = self.prev_x;
+                                self.light_options.prev_y = self.prev_y;
+
+                                self.light_options.light_type = NPCLightType::Cone;
+
+
+                            }
                         }
                 
 
@@ -308,8 +338,12 @@ impl NPC {
                     gun.anim_rect = Rect::new(0,0,0,0);
                 }
                 
+
+                //mute light
+                self.light_options.light_type = NPCLightType::None;
             }
         }
+
 
         //may not be needed; hide parent NPC
         self.anim_rect = Rect::new(0,0,0,0);

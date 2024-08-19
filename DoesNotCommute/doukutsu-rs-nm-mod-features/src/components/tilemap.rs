@@ -275,4 +275,20 @@ impl Tilemap {
 
         Ok(())
     }
+
+    //checks all tiles (layers or not) for "light" attributes
+    // fn draw_lights( &self,
+    //     state: &mut SharedGameState,
+    //     ctx: &mut Context,
+    //     frame: &Frame,
+    //     layer: TileLayer,
+    //     textures: &StageTexturePaths,
+    //     stage: &Stage,
+    // ) -> GameResult {
+    //     Ok(())
+    // }
+
+
+    
+
 }

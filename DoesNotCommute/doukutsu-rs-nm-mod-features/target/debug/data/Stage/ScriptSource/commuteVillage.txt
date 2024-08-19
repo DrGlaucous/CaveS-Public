@@ -372,7 +372,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 #0300
 <FNJ0500:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Village0$
+<ALC0000:0$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -390,7 +390,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 #0310
 <FNJ0550:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Village5$
+<ALC0000:5$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -410,7 +410,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 #0320
 <FNJ0530:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Village3$
+<ALC0000:3$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0320:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -429,7 +429,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 #0330
 <FNJ0510:0331//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Village1$
+<ALC0000:1$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -447,7 +447,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 #0331
 <FNJ0520:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Village2$
+<ALC0000:2$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -465,7 +465,7 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 #0340
 <FNJ0540:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Village4$
+<ALC0000:4$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -500,10 +500,15 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //king NPC (+fresh load)
 #0500
 <NIM0500:King$
-<ARL0500:Village0$
+<ARL0500:0$
 <ANP0500:0001:0000//start playback
 <POP<END
 #0501
+<NIM0500:King$
+<ARL0500:Village0$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0502
 <CFG0500:0003:0000:0000//rewind
 <ANP0500:0001:0000//start playback
 <POP<END
@@ -511,10 +516,15 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //gunsmith NPC
 #0510
 <NIM0510:Gunsmith$
-<ARL0510:Village1$
+<ARL0510:1$
 <ANP0510:0001:0000//start playback
 <POP<END
 #0511
+<NIM0510:Gunsmith$
+<ARL0510:Village1$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0512
 <CFG0510:0003:0000:0000//rewind
 <ANP0510:0001:0000//start playback
 <POP<END
@@ -522,10 +532,15 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //mimi1 NPC
 #0520
 <NIM0520:Mimiga$
-<ARL0520:Village2$
+<ARL0520:2$
 <ANP0520:0001:0000//start playback
 <POP<END
 #0521
+<NIM0520:Mimiga$
+<ARL0520:Village2$
+<ANP0520:0001:0000//start playback
+<POP<END
+#0522
 <CFG0520:0003:0000:0000//rewind
 <ANP0520:0001:0000//start playback
 <POP<END
@@ -533,10 +548,15 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //gamemaster NPC
 #0530
 <NIM0530:ActionGamemaster$
-<ARL0530:Village3$
+<ARL0530:3$
 <ANP0530:0001:0000//start playback
 <POP<END
 #0531
+<NIM0530:ActionGamemaster$
+<ARL0530:Village3$
+<ANP0530:0001:0000//start playback
+<POP<END
+#0532
 <CFG0530:0003:0000:0000//rewind
 <ANP0530:0001:0000//start playback
 <POP<END
@@ -544,10 +564,15 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //mimi2 NPC
 #0540
 <NIM0540:Mimiga$
-<ARL0540:Village4$
+<ARL0540:4$
 <ANP0540:0001:0000//start playback
 <POP<END
 #0541
+<NIM0540:Mimiga$
+<ARL0540:Village4$
+<ANP0540:0001:0000//start playback
+<POP<END
+#0542
 <CFG0540:0003:0000:0000//rewind
 <ANP0540:0001:0000//start playback
 <POP<END
@@ -555,10 +580,15 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //quote NPC
 #0550
 <NIM0550:Quote$
-<ARL0550:Village5$
+<ARL0550:5$
 <ANP0550:0001:0000//start playback
 <POP<END
 #0551
+<NIM0550:Quote$
+<ARL0550:Village5$
+<ANP0550:0001:0000//start playback
+<POP<END
+#0552
 <CFG0550:0003:0000:0000//rewind
 <ANP0550:0001:0000//start playback
 <POP<END
@@ -566,14 +596,14 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 /////////////////ENVIRONMENT/////////////////
 
 
-//load all NPC actions
+//load all NPC actions (best)
 #0610
-<PSH0500
-<PSH0510
-<PSH0520
-<PSH0530
-<PSH0540
-<PSH0550
+<PSH0501
+<PSH0511
+<PSH0521
+<PSH0531
+<PSH0541
+<PSH0551
 <POP<END
 
 //same but only if all exist
@@ -595,6 +625,13 @@ thoughts.<NOD<CLO//PART 2 MESSAGE
 //less time, save
 #0621
 <SLT0000:Village.rec$
+//copy best character replays to long-term
+<UFC0$:Village0$
+<UFC1$:Village1$
+<UFC2$:Village2$
+<UFC3$:Village3$
+<UFC4$:Village4$
+<UFC5$:Village5$
 <POP
 
 

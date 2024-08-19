@@ -202,7 +202,7 @@ impl PauseMenu {
                 }
                 MenuSelectionResult::Selected(PauseMenuEntry::Retry, _) => {
                     state.stop_noise();
-                    state.sound_manager.play_song(0, &state.constants, &state.settings, ctx, false)?;
+                    //state.sound_manager.play_song(0, &state.constants, &state.settings, ctx, false)?;
                     //state.load_or_start_game(ctx)?;
                     state.start_new_game_at(
                         ctx,

@@ -1,12 +1,3 @@
-//Flags
-//SkipFlag 0016: curly's door intro (sci)
-//SkipFlag 0017: boss intro skip (secu)
-
-
-//1125: tried to leave
-
-
-
 
 //stage entry event (titlescreen preview)
 #0100
@@ -56,7 +47,7 @@
 //intro event
 #0200
 <PSH0057//start MUSIC (rung)
-<SKJ0017:0201
+<SKJ0011:0201//goto fast intro
 <PSH0210
 <HMC<KEY<MYD0002
 <MOV0045:0028<FON0220:0001<WAI0001
@@ -73,7 +64,7 @@ up with-<WAI0070 -Oh, wait.<NOD<CLR
 This is just a hallway.<NOD<FON0300:0020
 The exit is right over there.<NOD<FON0350:0020
 Just through this big
-computer room.<NOD<CLR<FOM0016<SK+0017<END
+computer room.<NOD<CLR<FOM0016<END
 
 //fast intro event
 #0201
@@ -143,6 +134,7 @@ Such a shame.<NOD<END
 //boss init event (H/V Trigger)
 #0500
 <DNP0500
+<SKJ0011:0501//fast boss start event
 <CNP0401:0013:0000
 <CNP0400:0013:0000
 <SOU0101<CMU0000
@@ -154,6 +146,20 @@ the computer apparently caught
 the gunsmith stealing parts.<NOD<MYD0000<CLRLooks like he
 "conveniently" forgot to disable
 the security cameras earlier.<NOD<CLRWell, that's just great.<NOD<CLO
+<SK+0011
+<EVE0502
+
+//fast boss start event
+#0501
+<CNP0401:0013:0000
+<CNP0400:0013:0000
+<SOU0101<CMU0000
+<QUA0060<WAI0060//close doors
+<KEY<MYD0000
+<EVE0502
+
+//final boss start
+#0502
 <FMU<FON0350:0020<SOU0065<BOA0005<WAI0050<CMU0000//boss script 10
 <MS2
 COMPONENT EMBEZZLEMENT ATTEMPT
@@ -162,13 +168,13 @@ TERMINATING OFFENDER...<NOD<CLO
 <EQ+0256//start timer
 //originally had close doors here
 <FOM0016<BOA0010<BSL0000
-<PSH0054//start MUSIC (rung)
-<WAI0010<END
+<PSH0054//start MUSIC (spacefight)
+<END
 
 
 #1000
 <EQ-0256//disable timer
-<TIJ1001
+<TIJ1001:Security.rec$
 <EVE1002
 
 #1001

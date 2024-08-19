@@ -1,4 +1,4 @@
-use crate::common::Direction;
+use crate::common::{Direction, Rect};
 use crate::framework::error::GameResult;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
@@ -298,8 +298,33 @@ impl NPC {
             _ => (),
         }
 
-        let dir_offset = if self.direction == Direction::Left { 0 } else { 10 };
-        self.anim_rect = state.constants.npc.n150_quote[self.anim_num as usize + dir_offset];
+        if let Some(skin) = &self.more_items.pc_skin {
+            let dir_offset = if self.direction == Direction::Left { 0 } else { 1 };
+            
+            //config display bounds
+            let rc = skin.metadata.display_box;
+            self.display_bounds = Rect::new(
+                rc.left as u32 * 0x200,
+                rc.top as u32 * 0x200,
+                rc.right as u32 * 0x200,
+                rc.bottom as u32 * 0x200,
+            );
+            let rc = skin.metadata.hit_box;
+            self.hit_bounds = Rect::new(
+                rc.left as u32 * 0x200,
+                rc.top as u32 * 0x200,
+                rc.right as u32 * 0x200,
+                rc.bottom as u32 * 0x200,
+            );
+
+            self.anim_rect = skin.get_anim_rect(self.anim_num, dir_offset);
+        } else {
+            self.display_bounds = state.npc_table.get_display_bounds(150);
+            self.hit_bounds = state.npc_table.get_hit_bounds(150);
+
+            let dir_offset = if self.direction == Direction::Left { 0 } else { 10 };
+            self.anim_rect = state.constants.npc.n150_quote[self.anim_num as usize + dir_offset];
+        }
 
         if self.action_num == 21 {
             self.anim_rect.bottom = self.anim_rect.top + self.action_counter / 4;
@@ -466,8 +491,33 @@ impl NPC {
             _ => (),
         }
 
-        let dir_offset = if self.direction == Direction::Left { 0 } else { 10 };
-        self.anim_rect = state.constants.npc.n150_quote[self.anim_num as usize + dir_offset];
+        if let Some(skin) = &self.more_items.pc_skin {
+            let dir_offset = if self.direction == Direction::Left { 0 } else { 1 };
+            
+            //config display bounds
+            let rc = skin.metadata.display_box;
+            self.display_bounds = Rect::new(
+                rc.left as u32 * 0x200,
+                rc.top as u32 * 0x200,
+                rc.right as u32 * 0x200,
+                rc.bottom as u32 * 0x200,
+            );
+            let rc = skin.metadata.hit_box;
+            self.hit_bounds = Rect::new(
+                rc.left as u32 * 0x200,
+                rc.top as u32 * 0x200,
+                rc.right as u32 * 0x200,
+                rc.bottom as u32 * 0x200,
+            );
+
+            self.anim_rect = skin.get_anim_rect(self.anim_num, dir_offset);
+        } else {
+            self.display_bounds = state.npc_table.get_display_bounds(150);
+            self.hit_bounds = state.npc_table.get_hit_bounds(150);
+
+            let dir_offset = if self.direction == Direction::Left { 0 } else { 10 };
+            self.anim_rect = state.constants.npc.n150_quote[self.anim_num as usize + dir_offset];
+        }
 
         if self.action_num == 21 {
             self.anim_rect.bottom = self.anim_rect.top + self.action_counter / 4;

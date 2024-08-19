@@ -36,7 +36,7 @@ use crate::game::inventory::{Inventory, TakeExperienceResult};
 use crate::game::map::WaterParams;
 use crate::game::npc::boss::BossNPC;
 use crate::game::npc::list::NPCList;
-use crate::game::npc::{NPCLayer, NPC};
+use crate::game::npc::{NPCLayer, NPCLightOptions, NPCLightType, NPC};
 use crate::game::physics::{PhysicalEntity, OFFSETS};
 use crate::game::player::{ControlMode, Player, TargetPlayer};
 use crate::game::scripting::tsc::credit_script::CreditScriptVM;
@@ -567,6 +567,7 @@ impl GameScene {
 
         graphics::clear(ctx, Color::from_rgb(100, 100, 110));
 
+        //"glow" lighting (unused)
         for npc in self.npc_list.iter_alive() {
             if npc.x < (self.frame.x - 128 * 0x200 - npc.display_bounds.width() as i32 * 0x200)
                 || npc.x
@@ -585,6 +586,7 @@ impl GameScene {
             npc.draw_lightmap(state, ctx, &self.frame)?;
         }
 
+        //point/raycast lighting
         {
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "builtin/lightmap/spot")?;
 
@@ -697,431 +699,482 @@ impl GameScene {
                     continue;
                 }
 
-                // NPC lighting
-                match npc.npc_type {
-                    1 => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            0.33,
-                            (255, 255, 50),
-                            batch,
-                        );
-                    }
-                    4 if npc.direction == Direction::Up => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        1.0,
-                        (200, 100, 0),
-                        batch,
-                    ),
-                    7 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        1.0,
-                        (100, 100, 100),
-                        batch,
-                    ),
-                    17 if npc.anim_num == 0 => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            1.25,
-                            (100, 0, 0),
-                            batch,
-                        );
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            0.5,
-                            (255, 10, 10),
-                            batch,
-                        );
-                    }
-                    20 if npc.direction == Direction::Right => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            1.5,
-                            (30, 30, 130),
-                            batch,
-                        );
-
-                        if npc.anim_num < 2 {
-                            self.draw_light(
-                                interpolate_fix9_scale(
-                                    npc.prev_x - self.frame.prev_x,
-                                    npc.x - self.frame.x,
-                                    state.frame_time,
-                                ),
-                                interpolate_fix9_scale(
-                                    npc.prev_y - self.frame.prev_y,
-                                    npc.y - self.frame.y,
-                                    state.frame_time,
-                                ),
-                                1.0,
-                                (0, 0, 20),
-                                batch,
-                            );
-                        }
-                    }
-                    22 if npc.action_num == 1 && npc.anim_num == 1 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        3.0,
-                        (0, 0, 255),
-                        batch,
-                    ),
-                    32 | 87 => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            0.75,
-                            (255, 30, 30),
-                            batch,
-                        );
-                    }
-                    211 => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            1.0,
-                            (90, 0, 0),
-                            batch,
-                        );
-                    }
-                    27 => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ) + 0.5,
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            3.0,
-                            (96, 0, 0),
-                            batch,
-                        );
-                    }
-                    38 => {
-                        let flicker = ((npc.anim_num.wrapping_add(npc.id) ^ 5) & 3) as u8 * 24;
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            3.5,
-                            (150 + flicker, 60 + flicker, 0),
-                            batch,
-                        );
-                    }
-                    69 | 81 => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            if npc.npc_type == 69 { 0.5 } else { 1.0 },
-                            (200, 200, 200),
-                            batch,
-                        );
-                    }
-                    70 => {
-                        let flicker = 50 + npc.anim_num as u8 * 15;
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            2.0,
-                            (flicker, flicker, flicker),
-                            batch,
-                        );
-                    }
-                    85 if npc.action_num == 1 => {
-                        let (color, color2) = if npc.direction == Direction::Left {
-                            if state.constants.is_cs_plus {
-                                ((20, 100, 20), (20, 50, 20))
-                            } else {
-                                ((20, 20, 100), (20, 20, 50))
-                            }
-                        } else {
-                            ((150, 0, 0), (50, 0, 0))
-                        };
-
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            0.75,
-                            color,
-                            batch,
-                        );
-
-                        if npc.anim_num < 2 && npc.direction == Direction::Right {
-                            self.draw_light(
-                                interpolate_fix9_scale(
-                                    npc.prev_x - self.frame.prev_x,
-                                    npc.x - self.frame.x,
-                                    state.frame_time,
-                                ),
-                                interpolate_fix9_scale(
-                                    npc.prev_y - self.frame.prev_y,
-                                    npc.y - self.frame.y,
-                                    state.frame_time,
-                                ) - 8.0,
-                                2.1,
-                                color2,
-                                batch,
-                            );
-                        }
-                    }
-                    101 | 102 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        1.0,
-                        (100, 100, 200),
-                        batch,
-                    ),
-                    175 if npc.action_num < 10 => {
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            1.0,
-                            (128, 175, 200),
-                            batch,
-                        );
-                    }
-                    189 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        1.0,
-                        (10, 50, 255),
-                        batch,
-                    ),
-                    270 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        0.4,
-                        (192, 0, 0),
-                        batch,
-                    ),
-                    285 | 287 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        1.0,
-                        (150, 90, 0),
-                        batch,
-                    ),
-                    293 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        4.0,
-                        (255, 255, 255),
-                        batch,
-                    ),
-                    311 => {
-                        let size = if npc.anim_num % 7 == 2 || npc.anim_num % 7 == 5 { 1.0 } else { 0.0 };
-
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            size,
-                            (255, 255, 255),
-                            batch,
-                        )
-                    }
-                    312 => self.draw_light(
-                        interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
-                        interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
-                        0.5,
-                        (255, 255, 255),
-                        batch,
-                    ),
-                    319 => {
-                        let color = if npc.anim_num == 2 { (255, 29, 0) } else { (234, 157, 68) };
-
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            1.0,
-                            color,
-                            batch,
-                        )
-                    }
-                    180 => {
-                        if state.settings.light_cone {
-                            // Curly's looking upward frames
-                            let range = if [5, 6, 7, 8, 9].contains(&(npc.anim_num % 11)) {
-                                60..120
-                            } else if npc.action_num == 40 || npc.action_num == 41 {
-                                0..0
-                            } else if npc.direction() == Direction::Left {
-                                -30..30
-                            } else if npc.direction() == Direction::Right {
-                                150..210
-                            } else {
-                                0..0
-                            };
-
-                            self.draw_light_raycast(
-                                state.tile_size,
-                                npc.x + npc.direction.opposite().vector_x() * 0x800,
-                                npc.y + 2 * 0x200,
-                                (19u8, 34u8, 117u8),
-                                0.95,
-                                range,
-                                batch,
-                            );
-                        }
-                    }
-                    320 => {
-                        if state.settings.light_cone {
-                            let range = match npc.direction() {
-                                Direction::Up => 60..120,
-                                Direction::Bottom => 240..300,
-                                Direction::Left => -30..30,
-                                Direction::Right => 150..210,
-                                _ => 0..0,
-                            };
-
-                            self.draw_light_raycast(
-                                state.tile_size,
-                                npc.x + npc.direction.opposite().vector_x() * 0x800,
-                                npc.y + 2 * 0x200,
-                                (19u8, 34u8, 117u8),
-                                0.95,
-                                range,
-                                batch,
-                            );
-                        }
-                    }
-                    322 => {
-                        let scale = 0.004 * (npc.action_counter as f32);
-
-                        self.draw_light_raycast(state.tile_size, npc.x, npc.y, (255, 0, 0), scale, 0..360, batch)
-                    }
-                    325 => {
-                        let size = 0.5 * (npc.anim_num as f32 + 1.0);
-                        self.draw_light(
-                            interpolate_fix9_scale(
-                                npc.prev_x - self.frame.prev_x,
-                                npc.x - self.frame.x,
-                                state.frame_time,
-                            ),
-                            interpolate_fix9_scale(
-                                npc.prev_y - self.frame.prev_y,
-                                npc.y - self.frame.y,
-                                state.frame_time,
-                            ),
-                            size,
-                            (255, 255, 255),
-                            batch,
-                        )
-                    }
-                    _ => {}
+                if npc.id == 196 {
+                    let apple = 23;
+                    let mut pear = apple * 2 + npc.id / apple;
                 }
+
+                // NPC lighting
+                match npc.light_options.light_type {
+                    //normal pre-made lighting effects
+                    NPCLightType::None => {
+                        match npc.npc_type {
+                            1 => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    0.33,
+                                    (255, 255, 50),
+                                    batch,
+                                );
+                            }
+                            4 if npc.direction == Direction::Up => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                1.0,
+                                (200, 100, 0),
+                                batch,
+                            ),
+                            7 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                1.0,
+                                (100, 100, 100),
+                                batch,
+                            ),
+                            17 if npc.anim_num == 0 => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    1.25,
+                                    (100, 0, 0),
+                                    batch,
+                                );
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    0.5,
+                                    (255, 10, 10),
+                                    batch,
+                                );
+                            }
+                            20 if npc.direction == Direction::Right => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    1.5,
+                                    (30, 30, 130),
+                                    batch,
+                                );
+        
+                                if npc.anim_num < 2 {
+                                    self.draw_light(
+                                        interpolate_fix9_scale(
+                                            npc.prev_x - self.frame.prev_x,
+                                            npc.x - self.frame.x,
+                                            state.frame_time,
+                                        ),
+                                        interpolate_fix9_scale(
+                                            npc.prev_y - self.frame.prev_y,
+                                            npc.y - self.frame.y,
+                                            state.frame_time,
+                                        ),
+                                        1.0,
+                                        (0, 0, 20),
+                                        batch,
+                                    );
+                                }
+                            }
+                            22 if npc.action_num == 1 && npc.anim_num == 1 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                3.0,
+                                (0, 0, 255),
+                                batch,
+                            ),
+                            32 | 87 => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    0.75,
+                                    (255, 30, 30),
+                                    batch,
+                                );
+                            }
+                            211 => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    1.0,
+                                    (90, 0, 0),
+                                    batch,
+                                );
+                            }
+                            27 => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ) + 0.5,
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    3.0,
+                                    (96, 0, 0),
+                                    batch,
+                                );
+                            }
+                            38 => {
+                                let flicker = ((npc.anim_num.wrapping_add(npc.id) ^ 5) & 3) as u8 * 24;
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    3.5,
+                                    (150 + flicker, 60 + flicker, 0),
+                                    batch,
+                                );
+                            }
+                            69 | 81 => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    if npc.npc_type == 69 { 0.5 } else { 1.0 },
+                                    (200, 200, 200),
+                                    batch,
+                                );
+                            }
+                            70 => {
+                                let flicker = 50 + npc.anim_num as u8 * 15;
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    2.0,
+                                    (flicker, flicker, flicker),
+                                    batch,
+                                );
+                            }
+                            85 if npc.action_num == 1 => {
+                                let (color, color2) = if npc.direction == Direction::Left {
+                                    if state.constants.is_cs_plus {
+                                        ((20, 100, 20), (20, 50, 20))
+                                    } else {
+                                        ((20, 20, 100), (20, 20, 50))
+                                    }
+                                } else {
+                                    ((150, 0, 0), (50, 0, 0))
+                                };
+        
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    0.75,
+                                    color,
+                                    batch,
+                                );
+        
+                                if npc.anim_num < 2 && npc.direction == Direction::Right {
+                                    self.draw_light(
+                                        interpolate_fix9_scale(
+                                            npc.prev_x - self.frame.prev_x,
+                                            npc.x - self.frame.x,
+                                            state.frame_time,
+                                        ),
+                                        interpolate_fix9_scale(
+                                            npc.prev_y - self.frame.prev_y,
+                                            npc.y - self.frame.y,
+                                            state.frame_time,
+                                        ) - 8.0,
+                                        2.1,
+                                        color2,
+                                        batch,
+                                    );
+                                }
+                            }
+                            101 | 102 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                1.0,
+                                (100, 100, 200),
+                                batch,
+                            ),
+                            175 if npc.action_num < 10 => {
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    1.0,
+                                    (128, 175, 200),
+                                    batch,
+                                );
+                            }
+                            189 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                1.0,
+                                (10, 50, 255),
+                                batch,
+                            ),
+                            270 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                0.4,
+                                (192, 0, 0),
+                                batch,
+                            ),
+                            285 | 287 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                1.0,
+                                (150, 90, 0),
+                                batch,
+                            ),
+                            293 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                4.0,
+                                (255, 255, 255),
+                                batch,
+                            ),
+                            311 => {
+                                let size = if npc.anim_num % 7 == 2 || npc.anim_num % 7 == 5 { 1.0 } else { 0.0 };
+        
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    size,
+                                    (255, 255, 255),
+                                    batch,
+                                )
+                            }
+                            312 => self.draw_light(
+                                interpolate_fix9_scale(npc.prev_x - self.frame.prev_x, npc.x - self.frame.x, state.frame_time),
+                                interpolate_fix9_scale(npc.prev_y - self.frame.prev_y, npc.y - self.frame.y, state.frame_time),
+                                0.5,
+                                (255, 255, 255),
+                                batch,
+                            ),
+                            319 => {
+                                let color = if npc.anim_num == 2 { (255, 29, 0) } else { (234, 157, 68) };
+        
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    1.0,
+                                    color,
+                                    batch,
+                                )
+                            }
+                            180 => {
+                                if state.settings.light_cone {
+                                    // Curly's looking upward frames
+                                    let range = if [5, 6, 7, 8, 9].contains(&(npc.anim_num % 11)) {
+                                        60..120
+                                    } else if npc.action_num == 40 || npc.action_num == 41 {
+                                        0..0
+                                    } else if npc.direction() == Direction::Left {
+                                        -30..30
+                                    } else if npc.direction() == Direction::Right {
+                                        150..210
+                                    } else {
+                                        0..0
+                                    };
+        
+                                    self.draw_light_raycast(
+                                        state.tile_size,
+                                        npc.x + npc.direction.opposite().vector_x() * 0x800,
+                                        npc.y + 2 * 0x200,
+                                        (19u8, 34u8, 117u8),
+                                        0.95,
+                                        range,
+                                        batch,
+                                    );
+                                }
+                            }
+                            320 => {
+                                if state.settings.light_cone {
+                                    let range = match npc.direction() {
+                                        Direction::Up => 60..120,
+                                        Direction::Bottom => 240..300,
+                                        Direction::Left => -30..30,
+                                        Direction::Right => 150..210,
+                                        _ => 0..0,
+                                    };
+        
+                                    self.draw_light_raycast(
+                                        state.tile_size,
+                                        npc.x + npc.direction.opposite().vector_x() * 0x800,
+                                        npc.y + 2 * 0x200,
+                                        (19u8, 34u8, 117u8),
+                                        0.95,
+                                        range,
+                                        batch,
+                                    );
+                                }
+                            }
+                            322 => {
+                                let scale = 0.004 * (npc.action_counter as f32);
+        
+                                self.draw_light_raycast(state.tile_size, npc.x, npc.y, (255, 0, 0), scale, 0..360, batch)
+                            }
+                            325 => {
+                                let size = 0.5 * (npc.anim_num as f32 + 1.0);
+                                self.draw_light(
+                                    interpolate_fix9_scale(
+                                        npc.prev_x - self.frame.prev_x,
+                                        npc.x - self.frame.x,
+                                        state.frame_time,
+                                    ),
+                                    interpolate_fix9_scale(
+                                        npc.prev_y - self.frame.prev_y,
+                                        npc.y - self.frame.y,
+                                        state.frame_time,
+                                    ),
+                                    size,
+                                    (255, 255, 255),
+                                    batch,
+                                )
+                            }
+                            _ => {}
+                        }
+                    },
+                    NPCLightType::Point => {
+                        let x = npc.light_options.x;
+                        let y = npc.light_options.y;
+                        let px = npc.light_options.prev_x;
+                        let py = npc.light_options.prev_y;
+
+                        self.draw_light(
+                            interpolate_fix9_scale(
+                                px - self.frame.prev_x,
+                                x - self.frame.x,
+                                state.frame_time,
+                            ),
+                            interpolate_fix9_scale(
+                                py - self.frame.prev_y,
+                                y - self.frame.y,
+                                state.frame_time,
+                            ),
+                            npc.light_options.light_power,
+                            npc.light_options.light_color.to_rgb(),
+                            batch,
+                        ); 
+
+
+                    },
+                    NPCLightType::Cone => {
+                        let x = npc.light_options.x;
+                        let y = npc.light_options.y;
+                        //let px = npc.light_options.prev_x;
+                        //let py = npc.light_options.prev_y;
+
+                        self.draw_light_raycast(
+                            state.tile_size,
+                            x,
+                            y,
+                            npc.light_options.light_color.to_rgb(),
+                            npc.light_options.light_power,
+                            npc.light_options.light_angle.clone(),
+                            batch,
+                        );
+                    },
+                }
+
             }
 
             batch.draw_filtered(FilterMode::Linear, ctx)?;
@@ -1129,7 +1182,7 @@ impl GameScene {
 
         graphics::set_blend_mode(ctx, BlendMode::Multiply)?;
         graphics::set_render_target(ctx, None)?;
-
+        //put on screen
         {
             let canvas = state.lightmap_canvas.as_mut().unwrap();
             let rect = Rect { left: 0.0, top: 0.0, right: state.screen_size.0, bottom: state.screen_size.1 };

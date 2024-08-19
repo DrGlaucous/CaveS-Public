@@ -1,3 +1,26 @@
+//global skipflag list:
+
+//SkipFlag 0004: fast quote's door intro (cave)
+//SkipFlag 0007: fast quote's TP intro (eggcorr)
+//SkipFlag 0008: fast sue's intro (egg8)
+//SkipFlag 0010: fast curly's door intro (sci)
+//SkipFlag 0011: boss intro skip (secu)
+
+
+//set and not guaranteed unset flags (may persist through rounds):
+
+//Flag 1123: tried to save in pens
+//Flag 1124: tried to leave dragon fight
+//Flag 1125: tried to leave EE10 security
+//Flag 6100: realized self-insert (sci)
+//Flag 6101: rant-a complete (sci)
+//Flag 6102: rant-b complete (sci)
+
+
+
+
+
+
 //event range 100 reserved for menu events
 
 //stage entry event (titlescreen preview)
@@ -49,8 +72,7 @@
 #0152
 
 #0200
-<KEY<SKJ0005:0091<PRI<CMU0000<MSG
-From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0004:0500:0002:0000
+<FAI0004<END
 
 
 #0300
@@ -124,6 +146,10 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0004:0500:0002:0000
 // 
 //  Press jump key to skip replay.<WAI9999
 //<END
+
+//<EQ+0512
+//<ADT0050:0000:0050
+//<TIJ1110:Cave.rec$
 <ML+0060
 <MIM0000:AIM$
 <AM+0002:0000
@@ -133,7 +159,6 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0004:0500:0002:0000
 <AM+0014:0000
 <AM+0018:0003
 <END
-
 
 
 

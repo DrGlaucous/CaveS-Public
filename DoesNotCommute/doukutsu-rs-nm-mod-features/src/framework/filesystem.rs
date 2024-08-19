@@ -1,6 +1,10 @@
+use byteorder::{ReadBytesExt, WriteBytesExt};
+
 use std::fmt;
 use std::io;
+use std::io::Read;
 use std::io::SeekFrom;
+use std::io::Write;
 use std::path;
 use std::path::PathBuf;
 
@@ -459,4 +463,37 @@ pub fn get_writable_file(path_buf: PathBuf) -> GameResult<std::fs::File> {
 
     Ok(file_handle)
 
+}
+
+/// copies a file in the user directory (we COULD use std::fs::copy, but I'd like to play by the abstraction layers and am too lazy to implement it in the vFS)
+pub fn copy_file_user<P: AsRef<path::Path>>(ctx: &Context, from_path: P, to_path: P) -> GameResult {
+
+    match (user_open(ctx, from_path), user_create(ctx, to_path)) {
+        (Ok(mut data), Ok(mut target)) => {
+            //64k page
+            let mut buf = [0u8; 0x10000];
+            //copy by pages
+            while let Ok(bytes_read) = data.read(&mut buf) {
+                if bytes_read == 0 {break;}
+                let _ = target.write(&buf[0..bytes_read]);
+            }
+            
+            //brute simple way to do it (also slower)
+            // while let Ok(b) = data.read_u8() {
+            //     target.write_u8(b);
+            // }
+        },
+        (Err(a), _) => {
+            return Err(GameError::FilesystemError(format!("Failed to open source for copy: {}", a)));
+        }
+        (_, Err(a)) => {
+            return Err(GameError::FilesystemError(format!("Failed to open destination for copy: {}", a)));
+        }
+        (Err(a), Err(b)) => {
+            return Err(GameError::FilesystemError(format!("Failed to open both files for copy: {}, {}", a, b)));
+        }
+    }
+
+
+    Ok(())
 }

@@ -353,6 +353,7 @@ impl TextScript {
                     {
                         //i give up on terminating with <CRF. Nasty iterators. just end at any command.
                         b'<' | b'$' => {
+                            iter.next();
                             break;
                         }
                         //move reader forward
@@ -411,6 +412,7 @@ impl TextScript {
                     {
                         //i give up on terminating with <CRF. Nasty iterators. just end at any command.
                         b'<' | b'$' => {
+                            iter.next();
                             break;
                         }
                         //move reader forward
@@ -434,7 +436,60 @@ impl TextScript {
 
 
             }
-        
+
+            // parses two strings delimeted by $, separated by a colon
+            TSCOpCode::UFC
+            =>
+            {
+
+                //stow opcode
+                put_varint(instr as i32, out);
+
+                let max = 2; //number of string entries to be read (can be arbitrarily expanded)
+                for i in 0..max {
+                    //terminates with < or end of file
+
+                    //holds directory string
+                    let mut char_buf = Vec::with_capacity(64);
+                    while let Some(&chr) = iter.peek() {
+                        match chr
+                        {
+                            //I give up on terminating with <CRF. Nasty iterators. just end at any command.
+                            b'<' | b'$' => {
+                                iter.next();
+                                break;
+                            }
+                            //move reader forward
+                            b'\r' => {
+                                iter.next();
+                            }
+                            //add char to holding tank
+                            _ => {
+                                char_buf.push(chr);
+                                iter.next();
+                            }
+                        }
+                    }                
+
+                    //don't use fancy encoding for now: the string goes directly into the compiled code
+                    put_varint(char_buf.len() as  i32, out);
+                    out.append(&mut char_buf);
+
+                    //for all entries except the last one, check for the delimiter colon
+                    if i < max - 1 {
+                        if strict {
+                            expect_char(b':', iter)?;
+                        } else {
+                            iter.next().ok_or_else(|| ParseError("Script unexpectedly ended.".to_owned()))?;
+                        }
+                    }
+
+                }
+
+
+
+            }
+
         }
 
         Ok(())

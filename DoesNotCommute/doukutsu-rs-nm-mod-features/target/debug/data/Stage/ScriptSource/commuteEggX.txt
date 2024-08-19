@@ -63,10 +63,11 @@
 <EQ+0008//add EQUIPS
 <AM+0014:0020//add ARMS
 <AML0014:0003:0020//set LEVEL
-<KEY<FAI0004<WAI0060
+<KEY<FAI0004<WAI0040
 <ANP0300:0000:0002<SOU0011//open door
 <SMC<WAI0020
 <ANP0300:0000:0000<SOU0011//close door
+<SKJ0008:0000//skip narration if skipflag
 <MSGSue entered the room of
 Egg 00 <WAI0030-er 08.<NOD<CLRAll she needs to do is
 press a button on that computer
@@ -85,6 +86,7 @@ and her foe will hatch.<NOD<END
 
 //start fight event
 #0220
+<SKJ0008:0221
 <KEY<SOU0043<MSG<TURPassword required:<NOD<CLR<MSGWhat's this?<NOD It looks like
 the egg's owner anticipated people
 like Sue.<NOD<CLRThey've put a password on the egg
@@ -95,7 +97,16 @@ Wait, what?<NOD<CLR<SNP0004:0010:0008:0000<SOU0070It appears that Sue is now
 punching the computer with some
 kind of otherworldly vigor.<NOD<CLO<ANP0320:0000:0000<SNP0004:0010:0008:0000<SOU0012//we close the message here, but don't see it because it is all in 1 tick.
 <MSGYikes.<NOD<CNP0400:0292:0000 Um...<WAI0020//start quake NPC
-That did... something...<NOD<CLO<FLA<SOU0025
+That did... something...<NOD<CLO<SK+0008<EVE0222
+
+//fast start event
+#0221
+<KEY<SNP0004:0010:0008:0000<ANP0320:0000:0000
+<CNP0400:0292:0000<WAI0060<EVE0222
+
+//final init (used by both above)
+#0222
+<FLA<SOU0025
 <PSH0500//xplode floor
 <CNP0320:0004:0000//smoke computer
 <MNP0010:0012:0008:0000<CNP0010:0375:0000//move and make a clock where the computer was
@@ -104,15 +115,17 @@ That did... something...<NOD<CLO<FLA<SOU0025
 <EQ+0256//start timer!
 <FL+1200
 <BSL0000<CMU0004<BOA0019<CNP0400:0000:0000//apply boss bar, change to fight music, set boss animation to 20, stop quake
-<PSH0053//dragon sister fight
+<PSH0053//dragon sister fight music
 <END
+
+
 
 //sisters die event (from 1000)
 #0240
 //sister die script
 <KEY<FMU
 <EQ-0256//stop timer
-<TIJ0241
+<TIJ0241:Egg8.rec$
 <EVE0242
 
 #0241

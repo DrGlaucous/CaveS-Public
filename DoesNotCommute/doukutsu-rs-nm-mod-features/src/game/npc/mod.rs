@@ -1,7 +1,7 @@
 use std::cell::{Ref, RefCell};
 use std::io;
 use std::io::Cursor;
-use std::ops::Deref;
+use std::ops::{Deref, Range};
 use std::rc::Rc;
 
 use byteorder::{LE, ReadBytesExt};
@@ -10,6 +10,7 @@ use crate::bitfield;
 use crate::common::{interpolate_fix9_scale, Condition, Equipment, Rect};
 use crate::common::Direction;
 use crate::common::Flag;
+use crate::common::Color;
 use crate::components::flash::Flash;
 use crate::components::number_popup::NumberPopup;
 use crate::components::record::Record;
@@ -119,6 +120,43 @@ impl PCSkin {
 }
 
 
+#[derive(Debug, Clone)]
+pub enum NPCLightType {
+    None,
+    Point,
+    Cone,
+}
+
+#[derive(Debug, Clone)]
+pub struct NPCLightOptions {
+    pub light_type: NPCLightType,
+    pub light_angle: Range<i32>, //angle of light cone in degrees (0-359)
+    pub light_color: Color, //color of emitted light
+    pub light_power: f32, //power of the emitted light (either type) (decimal)
+
+    pub x: i32,
+    pub y: i32,
+    pub prev_x: i32,
+    pub prev_y: i32,
+
+    pub npc_tint: Color, //tinted color of NPC, by default, no tint
+}
+impl NPCLightOptions {
+    pub fn new() -> NPCLightOptions {
+        NPCLightOptions {
+            light_type: NPCLightType::None,
+            light_angle: 0..0,
+            light_color: Color::new(1.0, 1.0, 1.0, 1.0),
+            light_power: 1.0,
+            npc_tint: Color::new(1.0, 1.0, 1.0, 1.0),
+            x: 0,
+            y: 0,
+            prev_x: 0,
+            prev_y: 0,
+        }
+    }
+}
+
 //new items will go in here because appearently the stack is too small
 #[derive(Debug, Clone)]
 pub struct MoreItems {
@@ -192,6 +230,7 @@ pub struct NPC {
     pub splash: bool,
 
     pub child_ids: Vec<u16>,
+    pub light_options: NPCLightOptions,
 
     //we gotta box this crap because the stack is too puny to handle its power directly (even though the NPC array is in a box already?)
     pub more_items: Box<MoreItems>,
@@ -241,6 +280,9 @@ impl NPC {
             popup: NumberPopup::new(),
             splash: false,
 
+            light_options: NPCLightOptions::new(),
+            child_ids: Vec::new(),
+
             more_items: Box::new(MoreItems{
                 recorder: None,
                 pc_skin: None,
@@ -248,7 +290,6 @@ impl NPC {
                 weapon: None,
             }),
 
-            child_ids: Vec::new(),
 
         }
     }
@@ -274,6 +315,7 @@ impl NPC {
 
         let texture = &*state.npc_table.get_texture_ref(self.spritesheet_id);
 
+        //glow currently unsupported
         if let Some(batch) = state.texture_set.get_or_load_batch(ctx, &state.constants, texture)?.glow() {
             let off_x =
                 if self.direction == Direction::Left { self.display_bounds.left } else { self.display_bounds.right }

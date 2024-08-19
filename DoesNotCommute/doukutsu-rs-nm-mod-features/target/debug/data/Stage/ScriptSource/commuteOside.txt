@@ -372,7 +372,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 <FLJ0540:0380
 <FNJ0550:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Oside5$
+<ALC0000:5$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -392,7 +392,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 <FLJ0540:0381
 <FNJ0520:0311//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Oside2$
+<ALC0000:2$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -408,7 +408,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 #0311
 <FNJ0530:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Oside3$
+<ALC0000:3$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -441,7 +441,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 <FLJ0540:0384
 <FNJ0500:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Oside0$
+<ALC0000:0$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -465,7 +465,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 #0360
 <FNJ0540:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Oside4$
+<ALC0000:4$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0360:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -483,7 +483,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 <FLJ0540:0387
 <FNJ0510:0399//PLAYER'S FLAG
 <EQ-0256//stop timer
-<ALC0000:Oside1$
+<ALC0000:1$
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <KEY<ANP0370:0000:0002<SOU0011<WAI0020//open DOOR
 <HMC
@@ -565,7 +565,7 @@ Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
 
 //common conclusion
 #0389
-<ALC0000:Oside4$
+<ALC0000:4$
 <PSH0612//halt other players
 <CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
 <MSGThis was not the correct way
@@ -611,98 +611,129 @@ He's someone else's problem, now.<NOD<CLO
 //sue NPC (+fresh load)
 #0500
 <NIM0500:Sue$
-<ARL0500:Oside0$
+<ARL0500:0$
 <ANP0500:0001:0000//start playback
 <POP<END
 #0501
-<CFG0500:0003:0000:0000//rewind
+<NIM0500:Sue$
+<ARL0500:Oside0$
 <ANP0500:0001:0000//start playback
 <POP<END
 #0502
+<CFG0500:0003:0000:0000//rewind
+<ANP0500:0001:0000//start playback
+<POP<END
+#0503
 <ANP0500:0000:0000//pause
 <POP<END
 
 //booster NPC
 #0510
 <NIM0510:Booster$
-<ARL0510:Oside1$
+<ARL0510:1$
 <ANP0510:0001:0000//start playback
 <POP<END
 #0511
-<CFG0510:0003:0000:0000//rewind
+<NIM0510:Booster$
+<ARL0510:Oside1$
 <ANP0510:0001:0000//start playback
 <POP<END
 #0512
+<CFG0510:0003:0000:0000//rewind
+<ANP0510:0001:0000//start playback
+<POP<END
+#0513
 <ANP0510:0000:0000//pause
 <POP<END
 
 //gero NPC
 #0520
 <NIM0520:Gero$
-<ARL0520:Oside2$
+<ARL0520:2$
 <ANP0520:0001:0000//start playback
 <POP<END
 #0521
-<CFG0520:0003:0000:0000//rewind
+<NIM0520:Gero$
+<ARL0520:Oside2$
 <ANP0520:0001:0000//start playback
 <POP<END
 #0522
+<CFG0520:0003:0000:0000//rewind
+<ANP0520:0001:0000//start playback
+<POP<END
+#0523
 <ANP0520:0000:0000//pause
 <POP<END
 
 //quote NPC
 #0530
 <NIM0530:Quote$
-<ARL0530:Oside3$
+<ARL0530:3$
 <ANP0530:0001:0000//start playback
 <POP<END
 #0531
-<CFG0530:0003:0000:0000//rewind
+<NIM0530:Quote$
+<ARL0530:Oside3$
 <ANP0530:0001:0000//start playback
 <POP<END
 #0532
+<CFG0530:0003:0000:0000//rewind
+<ANP0530:0001:0000//start playback
+<POP<END
+#0533
 <ANP0530:0000:0000//pause
 <POP<END
 
 //stanley NPC
 #0540
 <NIM0540:Stanley$
-<ARL0540:Oside4$
+<ARL0540:4$
 <ANP0540:0001:0000//start playback
 <POP<END
 #0541
-<CFG0540:0003:0000:0000//rewind
+<NIM0540:Stanley$
+<ARL0540:Oside4$
 <ANP0540:0001:0000//start playback
 <POP<END
 #0542
+<CFG0540:0003:0000:0000//rewind
+<ANP0540:0001:0000//start playback
+<POP<END
+#0543
 <ANP0540:0000:0000//pause
 <POP<END
 
 //curly NPC
 #0550
 <NIM0550:Curly$
+<ARL0550:5$
+<ANP0550:0001:0000//start playback
+<POP<END
+//load best times
+#0551
+<NIM0550:Curly$
 <ARL0550:Oside5$
 <ANP0550:0001:0000//start playback
 <POP<END
-#0551
+#0552
 <CFG0550:0003:0000:0000//rewind
 <ANP0550:0001:0000//start playback
 <POP<END
-#0552
+#0553
 <ANP0550:0000:0000//pause
 <POP<END
 
 /////////////////ENVIRONMENT/////////////////
 
 
-//load all NPC actions
+//load all NPC actions (best)
 #0610
-<PSH0500
-<PSH0510
-<PSH0520
-<PSH0530
-<PSH0540
-<PSH0550
+<PSH0501
+<PSH0511
+<PSH0521
+<PSH0531
+<PSH0541
+<PSH0551
 <POP<END
 
 //same but only if all exist
@@ -719,12 +750,12 @@ He's someone else's problem, now.<NOD<CLO
 
 //pause all NPCs
 #0612
-<PSH0502
-<PSH0512
-<PSH0522
-<PSH0532
-<PSH0542
-<PSH0552
+<PSH0503
+<PSH0513
+<PSH0523
+<PSH0533
+<PSH0543
+<PSH0553
 <POP<END
 
 
@@ -736,6 +767,13 @@ He's someone else's problem, now.<NOD<CLO
 //less time, save
 #0621
 <SLT0000:Oside.rec$
+//copy best character replays to long-term
+<UFC0$:Oside0$
+<UFC1$:Oside1$
+<UFC2$:Oside2$
+<UFC3$:Oside3$
+<UFC4$:Oside4$
+<UFC5$:Oside5$
 <POP
 
 

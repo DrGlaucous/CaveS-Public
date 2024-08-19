@@ -42,7 +42,7 @@
 
 
 #0200
-<CMU0000<KEY<MSGLevel 8:<NOD<CLRWait...<NOD Not again...<NOD<CLR
+<CMU0000<KEY<MSGHmm... <WAI0030Any minute now...<NOD<CLRWait...<NOD Not again...<NOD<CLR
 We've run out of levels!<NOD<CLRIt happened before, but that
 was understandable.<NOD
 Now it's just embarrassing.<NOD<CLRAnd of all the places to end it,
