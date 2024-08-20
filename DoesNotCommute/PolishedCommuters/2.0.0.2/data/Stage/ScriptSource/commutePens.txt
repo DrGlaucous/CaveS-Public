@@ -1,0 +1,102 @@
+//stage entry event (titlescreen preview)
+#0100
+<HMC<FRE
+<FAI0004
+<WAI9999
+<END
+
+//selected "start game" in title menu
+//or "esc" in stage select menu
+#0101
+<KEY<FAO0004
+<TRA0002:0100:0000:0000
+<END
+
+//left arrow
+#0102
+<END
+
+//right arrow
+#0103
+<END
+
+//play current stage (also retry event)
+#0104
+<EVE0200
+<END
+
+//watch current stage
+#0105
+<END
+
+//...199 is reserved
+
+
+
+
+//entry event
+#0200
+<PSH0057//start MUSIC (rung)
+<IT+0035//add ITEMS
+//<EQ+0000//add EQUIPS
+<LIS0011:0011//SET LIFE
+<AM+0002:0000//add ARMS
+<AML0002:0002:0015//LEVEL-ARMS
+<TCL0050:0000:0043//set run event (load time next)
+<SLT0001:Village.rec$
+<EQ+0512//give timer
+<FL+0500//set active flag
+<HMC<MOV0017:0008<MYD0000
+<FAI0004
+<ANP0240:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0240:0000:0000<SOU0011<WAI0020//DOOR
+<END
+
+//save point
+#0216
+<FLJ1123:0217
+<PRI<MSG
+Do you want to save?<CMU0000<YNJ0117<CLR
+Well I'm sorry, but you can't.<NOD<CLRSaving would give you,
+the player, too much freedom in
+how each level will play out.<NOD<CLRControl like that
+could very well ruin the story, and
+I can't allow that.<NOD<CLRMy story must be pristine,
+from the start to the finish.<NOD<CLO<FL+1123<END
+
+#0217
+<PRI<MSGThe answer is still no.<NOD<CLR
+Sorry, I've made up my mind.<NOD<END
+
+
+#0240
+//door
+<KEY<MSGQuote finds that for some
+strange reason, the door is
+stuck closed.<NOD<CLRCould it be that the
+game is trying to tell
+him something?<NOD<END
+
+
+
+#0300
+//TP NPC
+
+#0301
+//TP NPC
+
+
+#0500
+//Teleporter
+<KEY<MSGA teleporter.<NOD<CLRDo you want to go to the
+Egg Corridor?<YNJ0000<CLO
+<KEY<CNP0300:0111:0002<HMC<WAI0060<ANP0500:0001:0000
+<WAI0100<FAO0004<CMU0045
+<SK+0007//use fast eggs intro
+<TRA0007:0201:0000:0000
+
+
+
+
+

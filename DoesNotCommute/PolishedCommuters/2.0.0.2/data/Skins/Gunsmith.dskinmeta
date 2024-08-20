@@ -1,0 +1,11 @@
+{
+	"name": "Gunsmith",
+    "author": "Pixel",
+    "version": 1,
+    "gunOffsetX": -8,
+    "gunOffsetY": -8,
+    "frameSizeWidth": 16,
+    "frameSizeHeight": 24,
+    "displayBox": [8, 16, 8, 8],
+    "hitBox": [5, 9, 5, 8]
+}
