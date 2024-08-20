@@ -6,7 +6,7 @@ use itertools::Itertools;
 
 use crate::framework::error::GameError::ParseError;
 use crate::framework::error::GameResult;
-use crate::game::scripting::tsc::bytecode_utils::{put_string, put_varint};
+use crate::game::scripting::tsc::bytecode_utils::{put_string, put_varint, put_string_multi_tsc};
 use crate::game::scripting::tsc::credit_script::CreditScript;
 use crate::game::scripting::tsc::opcodes::{CreditOpCode, TSCOpCode};
 use crate::game::scripting::tsc::parse_utils::{expect_char, read_number, skip_until};
@@ -340,40 +340,9 @@ impl TextScript {
             | TSCOpCode::LDM
             =>
             {
-
                 //stow opcode
                 put_varint(instr as i32, out);
-
-                //terminates with < or end of file
-
-                //holds directory string
-                let mut char_buf = Vec::with_capacity(64);
-                while let Some(&chr) = iter.peek() {
-                    match chr
-                    {
-                        //i give up on terminating with <CRF. Nasty iterators. just end at any command.
-                        b'<' | b'$' => {
-                            iter.next();
-                            break;
-                        }
-                        //move reader forward
-                        b'\r' => {
-                            iter.next();
-                        }
-                        //add char to holding tank
-                        _ => {
-                            char_buf.push(chr);
-                            iter.next();
-                        }
-                    }
-                }                
-                //stow the filepath string (starting with string count)
-                //put_string(&mut char_buf, out, TextScriptEncoding::UTF8);
-
-                //don't use fancy encoding for now: the string goes directly into the compiled code
-                put_varint(char_buf.len() as  i32, out);
-                out.append(&mut char_buf);
-
+                put_string_multi_tsc(iter, out, 1, strict)?;
             }
         
             // parses 1 operand + string delimited by $
@@ -398,42 +367,12 @@ impl TextScript {
                 } else {
                     iter.next().ok_or_else(|| ParseError("Script unexpectedly ended.".to_owned()))?;
                 }
-                //stow opcode
+                //stow opcode + numeric arg
                 put_varint(instr as i32, out);
                 put_varint(operand_a as i32, out);
 
 
-                //terminates with < or end of file
-
-                //holds directory string
-                let mut char_buf = Vec::with_capacity(64);
-                while let Some(&chr) = iter.peek() {
-                    match chr
-                    {
-                        //i give up on terminating with <CRF. Nasty iterators. just end at any command.
-                        b'<' | b'$' => {
-                            iter.next();
-                            break;
-                        }
-                        //move reader forward
-                        b'\r' => {
-                            iter.next();
-                        }
-                        //add char to holding tank
-                        _ => {
-                            char_buf.push(chr);
-                            iter.next();
-                        }
-                    }
-                }
-                //TODO: make a fancy decoder for the fancy encoder
-                //stow the filepath string (starting with string count)
-                //put_string(&mut char_buf, out, TextScriptEncoding::UTF8);
-                
-                //don't use fancy encoding for now: the string goes directly into the compiled code
-                put_varint(char_buf.len() as i32, out);
-                out.append(&mut char_buf);
-
+                put_string_multi_tsc(iter, out, 1, strict)?;
 
             }
 
@@ -441,52 +380,11 @@ impl TextScript {
             TSCOpCode::UFC
             =>
             {
-
                 //stow opcode
                 put_varint(instr as i32, out);
 
                 let max = 2; //number of string entries to be read (can be arbitrarily expanded)
-                for i in 0..max {
-                    //terminates with < or end of file
-
-                    //holds directory string
-                    let mut char_buf = Vec::with_capacity(64);
-                    while let Some(&chr) = iter.peek() {
-                        match chr
-                        {
-                            //I give up on terminating with <CRF. Nasty iterators. just end at any command.
-                            b'<' | b'$' => {
-                                iter.next();
-                                break;
-                            }
-                            //move reader forward
-                            b'\r' => {
-                                iter.next();
-                            }
-                            //add char to holding tank
-                            _ => {
-                                char_buf.push(chr);
-                                iter.next();
-                            }
-                        }
-                    }                
-
-                    //don't use fancy encoding for now: the string goes directly into the compiled code
-                    put_varint(char_buf.len() as  i32, out);
-                    out.append(&mut char_buf);
-
-                    //for all entries except the last one, check for the delimiter colon
-                    if i < max - 1 {
-                        if strict {
-                            expect_char(b':', iter)?;
-                        } else {
-                            iter.next().ok_or_else(|| ParseError("Script unexpectedly ended.".to_owned()))?;
-                        }
-                    }
-
-                }
-
-
+                put_string_multi_tsc(iter, out, max, strict)?;
 
             }
 
@@ -494,6 +392,9 @@ impl TextScript {
 
         Ok(())
     }
+
+
+
 }
 
 impl CreditScript {

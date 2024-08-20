@@ -22,7 +22,7 @@ use crate::framework::filesystem;
 use crate::game::frame::UpdateTarget;
 use crate::game::npc::{NPC, PCSkin};
 use crate::game::player::{ControlMode, TargetPlayer};
-use crate::game::scripting::tsc::bytecode_utils::{read_cur_varint, read_string};
+use crate::game::scripting::tsc::bytecode_utils::{read_cur_varint, read_string_tsc};
 use crate::game::scripting::tsc::encryption::decrypt_tsc;
 use crate::game::scripting::tsc::opcodes::TSCOpCode;
 use crate::game::shared_game_state::ReplayState;
@@ -2120,7 +2120,7 @@ impl TextScriptVM {
                 let textures = &mut*game_scene.stage_textures.deref().borrow_mut();
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filepath = read_string(&mut cursor, len).unwrap();
+                let filepath = read_string_tsc(&mut cursor, len).unwrap();
                 game_scene.background.load_bkg_custom(ctx, textures, &mut game_scene.stage, &mut game_scene.lighting_mode, &mut &filepath)?;
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
@@ -2149,12 +2149,12 @@ impl TextScriptVM {
             }
             TSCOpCode::SVM => {
                 let len = read_cur_varint(&mut cursor)? as usize;
-                state.textscript_vm.save_filepath = read_string(&mut cursor, len).unwrap();
+                state.textscript_vm.save_filepath = read_string_tsc(&mut cursor, len).unwrap();
                 exec_state = TextScriptExecutionState::SaveProfileName(event, cursor.position() as u32);
             }
             TSCOpCode::LDM => {
                 let len = read_cur_varint(&mut cursor)? as usize;
-                state.textscript_vm.save_filepath = read_string(&mut cursor, len).unwrap();
+                state.textscript_vm.save_filepath = read_string_tsc(&mut cursor, len).unwrap();
                 exec_state = TextScriptExecutionState::LoadProfileName;
             }
             TSCOpCode::MIM => {
@@ -2164,7 +2164,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filepath = String::from("Skins/") + read_string(&mut cursor, len).unwrap().as_str();
+                let filepath = String::from("Skins/") + read_string_tsc(&mut cursor, len).unwrap().as_str();
                 
                 if player_num == 0 {
                     game_scene.player1.load_skin(String::from(filepath), state, ctx);
@@ -2215,7 +2215,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let timer_name = read_string(&mut cursor, len).unwrap();
+                let timer_name = read_string_tsc(&mut cursor, len).unwrap();
             
                 if is_read {
                     //failure to read the file sets the time to 0
@@ -2234,7 +2234,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filepath = String::from("Skins/") + read_string(&mut cursor, len).unwrap().as_str();
+                let filepath = String::from("Skins/") + read_string_tsc(&mut cursor, len).unwrap().as_str();
                 
 
                 for npc in game_scene.npc_list.iter_alive() {
@@ -2257,7 +2257,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filename = read_string(&mut cursor, len).unwrap();
+                let filename = read_string_tsc(&mut cursor, len).unwrap();
 
                 if action > 0 {
                     game_scene.player1.recorder.start_recording();
@@ -2279,7 +2279,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filename = read_string(&mut cursor, len).unwrap();
+                let filename = read_string_tsc(&mut cursor, len).unwrap();
                 
                 
                 for npc in game_scene.npc_list.iter_alive() {
@@ -2345,7 +2345,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filepath = String::from("/") + read_string(&mut cursor, len).unwrap().as_str();
+                let filepath = String::from("/") + read_string_tsc(&mut cursor, len).unwrap().as_str();
 
                 if op == TSCOpCode::UFJ {
                     if filesystem::user_exists(ctx, filepath) {
@@ -2443,7 +2443,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let timer_name = String::from("/") + read_string(&mut cursor, len).unwrap().as_str();
+                let timer_name = String::from("/") + read_string_tsc(&mut cursor, len).unwrap().as_str();
 
                 let ticks = NikumaruCounter::load_time(state, ctx, Some(&timer_name.as_str())).unwrap_or_else( |_| 0) as usize;
 
@@ -2480,7 +2480,7 @@ impl TextScriptVM {
 
                 //get path
                 let len = read_cur_varint(&mut cursor)? as usize;
-                let filepath = read_string(&mut cursor, len).unwrap();
+                let filepath = read_string_tsc(&mut cursor, len).unwrap();
 
                 state.sound_manager.play_song_filepath(&filepath, song_type, &state.constants,  &state.settings, ctx, false)?;
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
@@ -2491,11 +2491,11 @@ impl TextScriptVM {
             TSCOpCode::UFC =>{
                 //get src path
                 let len_s = read_cur_varint(&mut cursor)? as usize;
-                let from_path = format!{"/{}", read_string(&mut cursor, len_s).unwrap()};
+                let from_path = format!{"/{}", read_string_tsc(&mut cursor, len_s).unwrap()};
 
                 //get dst path
                 let len_d = read_cur_varint(&mut cursor)? as usize;
-                let to_path = format!{"/{}", read_string(&mut cursor, len_d).unwrap()};
+                let to_path = format!{"/{}", read_string_tsc(&mut cursor, len_d).unwrap()};
 
 
                 if let Err(a) = filesystem::copy_file_user(ctx, from_path, to_path) {
