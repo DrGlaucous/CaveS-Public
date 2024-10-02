@@ -1369,7 +1369,8 @@ impl EngineConstants {
                     [30, 60, 10],
                     [10, 20, 100],
                     [1, 1, 1],
-                    [40, 60, 200],
+                    //[40, 60, 200], //spur
+                    [200, 0, 0], //curly-boss machine-gun
                 ],
             },
             tex_sizes: case_insensitive_hashmap! {

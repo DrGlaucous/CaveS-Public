@@ -13,153 +13,148 @@ impl Weapon {
         bullet_manager: &mut BulletManager,
         state: &mut SharedGameState,
     ) {
-        const BULLETS: [u16; 6] = [37, 38, 39, 40, 41, 42];
+        const BULLETS: [u16; 3] = [10, 11, 12];
 
-        let mut shoot = false;
-        let btype;
-
-        if player.controller.shoot() {
+        //charging (only if we've finished firing)
+        if player.controller.shoot() && self.counter2 == 0 {
             self.add_xp(if player.equip.has_turbocharge() { 3 } else { 2 }, player, state);
-            self.counter1 += 1;
 
-            if self.counter1 & 2 != 0 {
-                match self.level {
-                    WeaponLevel::Level1 => {
-                        state.sound_manager.play_sfx(59);
-                    }
-                    WeaponLevel::Level2 => {
-                        state.sound_manager.play_sfx(60);
-                    }
-                    WeaponLevel::Level3 => {
-                        if let (_, _, false) = self.get_max_exp(&state.constants) {
-                            state.sound_manager.play_sfx(61);
-                        }
-                    }
-                    WeaponLevel::None => unreachable!(),
+            if self.level == WeaponLevel::Level1 && self.counter1 == 0 {
+                state.sound_manager.play_sfx(103); //play power up sound 1x
+                self.counter1 = 1;
+            }
+
+            //play full sound 1x if we're at max EXP
+            if let (_, _, true) = self.get_max_exp(&state.constants) {
+
+                if self.counter1 == 1 {
+                    state.sound_manager.play_sfx(65);
+                    self.counter1 = 2;
                 }
             }
         } else if self.counter1 > 0 {
-            shoot = true;
-            self.counter1 = 0;
-        }
+            state.sound_manager.stop_sfx(103); //halt charge sound if not already
 
-        if let (_, _, true) = self.get_max_exp(&state.constants) {
-            if self.counter2 == 0 {
-                self.counter2 = 1;
-                state.sound_manager.play_sfx(65);
+            //player released the shoot button, fire the charge only if it's been full
+            if let (_, _, true) = self.get_max_exp(&state.constants) {
+                self.counter2 = 120; //20 bullets, 6 tick spacing
             }
+            self.counter1 = 0;
         } else {
-            self.counter2 = 0;
-        }
-
-        let level = self.level;
-        if !player.controller.shoot() {
             self.reset_xp();
         }
 
-        match level {
-            WeaponLevel::Level1 => {
-                btype = 6;
-                shoot = false;
-            }
-            WeaponLevel::Level2 => btype = 37,
-            WeaponLevel::Level3 => {
-                if self.counter2 == 1 {
-                    btype = 39;
-                } else {
-                    btype = 38;
-                }
-            }
-            WeaponLevel::None => unreachable!(),
+
+        //this is the only type that will be shot 
+        let btype = BULLETS[2];
+
+        //tick down the firing counter
+        if self.counter2 > 0 {
+            self.counter2 -= 1;
         }
 
-        if bullet_manager.count_bullets_multi(&BULLETS, player_id) > 0 || !(player.controller.trigger_shoot() || shoot)
-        {
-            return;
-        }
+        //every 6 ticks
+        if self.counter2 % 6 == 1 {
+            if !self.consume_ammo(1) {
+                state.sound_manager.play_sfx(37);
+            } else {
 
-        if !self.consume_ammo(1) {
-            state.sound_manager.play_sfx(37);
-        } else {
-            match player.direction {
-                Direction::Left if player.up => {
-                    bullet_manager.create_bullet(
-                        player.x - 0x200,
-                        player.y - 0x1000,
-                        btype,
-                        player_id,
-                        Direction::Up,
-                        &state.constants,
-                    );
-                    state.create_caret(player.x - 0x200, player.y - 0x1000, CaretType::Shoot, Direction::Left);
+
+                match () {
+                    _ if player.up => {
+                        player.vel_y += 0x100;
+    
+                        match player.direction {
+                            Direction::Left => {
+                                bullet_manager.create_bullet(
+                                    player.x - 0x600,
+                                    player.y - 0x1000,
+                                    btype,
+                                    player_id,
+                                    Direction::Up,
+                                    &state.constants,
+                                );
+                                state.create_caret(player.x - 0x600, player.y - 0x1000, CaretType::Shoot, Direction::Left);
+                            }
+                            Direction::Right => {
+                                bullet_manager.create_bullet(
+                                    player.x + 0x600,
+                                    player.y - 0x1000,
+                                    btype,
+                                    player_id,
+                                    Direction::Up,
+                                    &state.constants,
+                                );
+                                state.create_caret(player.x + 0x600, player.y - 0x1000, CaretType::Shoot, Direction::Left);
+                            }
+                            _ => {}
+                        }
+                    }
+                    _ if player.down => {
+                        if player.vel_y > 0 {
+                            player.vel_y /= 2;
+                        }
+                        if player.vel_y > -0x400 {
+                            player.vel_y = (player.vel_y - 0x200).max(-0x400);
+                        }
+    
+                        match player.direction {
+                            Direction::Left => {
+                                bullet_manager.create_bullet(
+                                    player.x - 0x600,
+                                    player.y + 0x1000,
+                                    btype,
+                                    player_id,
+                                    Direction::Bottom,
+                                    &state.constants,
+                                );
+                                state.create_caret(player.x - 0x600, player.y + 0x1000, CaretType::Shoot, Direction::Left);
+                            }
+                            Direction::Right => {
+                                bullet_manager.create_bullet(
+                                    player.x + 0x600,
+                                    player.y + 0x1000,
+                                    btype,
+                                    player_id,
+                                    Direction::Bottom,
+                                    &state.constants,
+                                );
+                                state.create_caret(player.x + 0x600, player.y + 0x1000, CaretType::Shoot, Direction::Left);
+                            }
+                            _ => {}
+                        }
+                    }
+                    _ => match player.direction {
+                        Direction::Left => {
+                            bullet_manager.create_bullet(
+                                player.x - 0x1800,
+                                player.y + 0x600,
+                                btype,
+                                player_id,
+                                Direction::Left,
+                                &state.constants,
+                            );
+                            state.create_caret(player.x - 0x1800, player.y + 0x600, CaretType::Shoot, Direction::Left);
+                        }
+                        Direction::Right => {
+                            bullet_manager.create_bullet(
+                                player.x + 0x1800,
+                                player.y + 0x600,
+                                btype,
+                                player_id,
+                                Direction::Right,
+                                &state.constants,
+                            );
+                            state.create_caret(player.x + 0x1800, player.y + 0x600, CaretType::Shoot, Direction::Right);
+                        }
+                        _ => {}
+                    },
                 }
-                Direction::Right if player.up => {
-                    bullet_manager.create_bullet(
-                        player.x + 0x200,
-                        player.y - 0x1000,
-                        btype,
-                        player_id,
-                        Direction::Up,
-                        &state.constants,
-                    );
-                    state.create_caret(player.x + 0x200, player.y - 0x1000, CaretType::Shoot, Direction::Left);
-                }
-                Direction::Left if player.down => {
-                    bullet_manager.create_bullet(
-                        player.x - 0x200,
-                        player.y + 0x1000,
-                        btype,
-                        player_id,
-                        Direction::Bottom,
-                        &state.constants,
-                    );
-                    state.create_caret(player.x - 0x200, player.y + 0x1000, CaretType::Shoot, Direction::Left);
-                }
-                Direction::Right if player.down => {
-                    bullet_manager.create_bullet(
-                        player.x + 0x200,
-                        player.y + 0x1000,
-                        btype,
-                        player_id,
-                        Direction::Bottom,
-                        &state.constants,
-                    );
-                    state.create_caret(player.x + 0x200, player.y + 0x1000, CaretType::Shoot, Direction::Left);
-                }
-                Direction::Left => {
-                    bullet_manager.create_bullet(
-                        player.x - 0xC00,
-                        player.y + 0x600,
-                        btype,
-                        player_id,
-                        Direction::Left,
-                        &state.constants,
-                    );
-                    state.create_caret(player.x - 0x1800, player.y + 0x600, CaretType::Shoot, Direction::Left);
-                }
-                Direction::Right => {
-                    bullet_manager.create_bullet(
-                        player.x + 0xC00,
-                        player.y + 0x600,
-                        btype,
-                        player_id,
-                        Direction::Right,
-                        &state.constants,
-                    );
-                    state.create_caret(player.x + 0x1800, player.y + 0x600, CaretType::Shoot, Direction::Right);
-                }
-                _ => {}
+    
+                state.sound_manager.play_sfx(49);
+    
             }
-
-            let sound = match btype {
-                6 => 49,
-                37 => 62,
-                38 => 63,
-                39 => 64,
-                _ => 0,
-            };
-
-            state.sound_manager.play_sfx(sound);
         }
+
     }
 }

@@ -158,6 +158,31 @@ impl FilesystemContainer {
         self.open_directory(self.game_path.clone())
     }
 
+    ///like `make_portable_user_directory`, but doesn't try to copy over files
+    pub fn make_new_portable_user_directory(&mut self, ctx: &mut Context) -> GameResult {
+        let mut user_dir = self.game_path.clone();
+        user_dir.pop();
+        user_dir.push("user");
+
+        if user_dir.is_dir() {
+            return Ok(()); // portable directory already exists
+        }
+
+        let _ = std::fs::create_dir_all(user_dir.clone());
+
+        // unmount old user dir
+        unmount_user_vfs(ctx, &self.user_path);
+
+        // mount new user dir
+        mount_user_vfs(ctx, Box::new(PhysicalFS::new(&user_dir, false)));
+
+        self.user_path = user_dir.clone();
+        self.is_portable = true;
+
+        Ok(())
+
+    }
+
     pub fn make_portable_user_directory(&mut self, ctx: &mut Context) -> GameResult {
         let mut user_dir = self.game_path.clone();
         user_dir.pop();

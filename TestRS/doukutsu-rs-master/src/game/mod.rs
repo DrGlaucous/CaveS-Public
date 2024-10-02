@@ -297,6 +297,8 @@ pub fn init(options: LaunchOptions) -> GameResult {
 
     let mut fs_container = FilesystemContainer::new();
     fs_container.mount_fs(&mut context)?;
+    // attempt to make the directory local right off the bat
+    fs_container.make_new_portable_user_directory(&mut context)?;
     
     if options.server_mode {
         log::info!("Running in server mode...");

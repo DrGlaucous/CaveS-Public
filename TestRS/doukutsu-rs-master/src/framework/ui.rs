@@ -108,6 +108,9 @@ impl UI {
     }
 
     pub fn draw(&mut self, state: &mut SharedGameState, ctx: &mut Context, scene: &mut Box<dyn Scene>) -> GameResult {
+        //hack: this old version of d-rs doesn't like new rust
+        return Ok(());
+
         let ctx2 = unsafe { &mut *(ctx as *const Context as *mut Context) };
         let imgui = imgui_context(ctx)?;
         let io = imgui.io_mut();
