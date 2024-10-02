@@ -1,0 +1,10 @@
+[package]
+name = "howto"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+glow = { path = "../../" }
+#sdl2 = { version = "0.35" }
+sdl2 = { git = "https://github.com/doukutsu-rs/rust-sdl2.git", rev = "f2f1e29a416bcc22f2faf411866db2c8d9536308", optional = true, features = ["unsafe_textures", "bundled", "static-link"] }
+#sdl2-sys = { git = "https://github.com/doukutsu-rs/rust-sdl2.git", rev = "f2f1e29a416bcc22f2faf411866db2c8d9536308", optional = true, features = ["bundled", "static-link"] }

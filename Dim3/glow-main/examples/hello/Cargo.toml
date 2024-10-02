@@ -1,0 +1,27 @@
+[package]
+name = "hello"
+version = "0.1.0"
+edition = "2018"
+
+[features]
+default = ["sdl2"]
+glutin_winit = ["glutin", "glutin-winit", "winit", "raw-window-handle"]
+
+
+[dependencies]
+glow = { path = "../../" }
+
+[target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
+glutin = { version = "0.31.2", optional = true }
+glutin-winit = { version = "0.4.2", optional = true}
+winit = { version = "0.29.10", features = ["rwh_05"], optional = true }
+raw-window-handle = { version = "0.5", optional = true }
+#sdl2 = { version = "0.37", optional = true, features = ["unsafe_textures", "bundled", "static-link"]}
+sdl2 = { git = "https://github.com/doukutsu-rs/rust-sdl2.git", rev = "f2f1e29a416bcc22f2faf411866db2c8d9536308", optional = true, features = ["unsafe_textures", "bundled", "static-link"] }
+sdl2-sys = { git = "https://github.com/doukutsu-rs/rust-sdl2.git", rev = "f2f1e29a416bcc22f2faf411866db2c8d9536308", optional = true, features = ["bundled", "static-link"] }
+
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window"] }
+wasm-bindgen = { version = "0.2" }
+
