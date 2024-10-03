@@ -8,16 +8,23 @@ use three_d_asset::Camera;
 use three_d::context::Context as GContext;
 use three_d::context::COLOR_BUFFER_BIT;
 
+use std::time::{Duration, Instant};
+
+
 pub fn main() {
 
-    // Create a window (a canvas on web)
-    let window = Window::new(WindowSettings {
-        title: "Core Triangle!".to_string(),
-        #[cfg(not(target_arch = "wasm32"))]
-        max_size: Some((1280, 720)),
-        ..Default::default()
-    })
-    .unwrap();
+    // // Create a window (a canvas on web)
+    // let window = Window::new(WindowSettings {
+    //     title: "Core Triangle!".to_string(),
+    //     #[cfg(not(target_arch = "wasm32"))]
+    //     max_size: Some((1280, 720)),
+    //     ..Default::default()
+    // })
+    // .unwrap();
+
+    // let ctt = window.gl();
+    // ctt.
+
 
     //create a window with sdl
     #[cfg(feature = "sdl2")]
@@ -96,6 +103,7 @@ pub fn main() {
     {
         let mut running = true;
         let mut time = 0.0;
+        window.gl_swap_window();
         while running {
             {
                 for event in events_loop.poll_iter() {
@@ -109,12 +117,13 @@ pub fn main() {
             //gl.clear(glow::COLOR_BUFFER_BIT);
             //gl.draw_arrays(glow::TRIANGLES, 0, 3);
             unsafe {
-                context.clear(COLOR_BUFFER_BIT);
+                //context.clear(COLOR_BUFFER_BIT);
+                //context.bind_buffer(target, buffer);
                 //context.set_blend(blend);
             }
             
 
-            time += 0.1;//1.0; //frame_input.accumulated_time as f32;
+            time = 100.0;//1.0; //frame_input.accumulated_time as f32;
             program.use_uniform("model", Mat4::from_angle_y(radians(time * 0.005)));
             program.use_uniform("viewProjection", camera.projection() * camera.view());
             program.use_vertex_attribute("position", &positions);
@@ -125,8 +134,15 @@ pub fn main() {
                 positions.vertex_count(),
             );
 
-
+            
             window.gl_swap_window();
+
+            std::thread::sleep(Duration::from_millis(1000));
+
+
+            
+
+            
 
             if !running {
                 //gl.delete_program(program);
