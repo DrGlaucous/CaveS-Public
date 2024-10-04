@@ -13,8 +13,12 @@ use three_d::*;
 
 pub fn main() {
 
+    //high-level textured things
+    {
+        
+    }
 
-    //high-level shapes
+    //high-level shapes with SDL
     {
 
         let (gl, shader_version, window, mut events_loop, _context) = {
@@ -213,7 +217,6 @@ pub fn main() {
 
 
     }
-
 
     //high-level triangle with three-d window
     /* 
@@ -428,7 +431,6 @@ pub fn main() {
 
     }
     */
-
 
     //low-level triangle
     /* 
