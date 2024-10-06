@@ -1,3 +1,5 @@
+use std::num::NonZeroU32;
+
 //includes for "core" demo
 use three_d::core::{
     degrees, radians, vec3, ClearState, Context, Mat4, Program, RenderStates, Srgba, VertexBuffer,
@@ -6,6 +8,7 @@ use three_d::window::{FrameOutput, Window, WindowSettings};
 //use three_d_asset::Camera;
 use three_d::{CoreError, HasContext, Viewport};
 use three_d::context::Context as GContext;
+use three_d::context::NativeFramebuffer;
 use three_d::context;
 
 use three_d::*;
@@ -19,6 +22,7 @@ pub fn main() {
     }
 
     //high-level shapes with SDL
+    /*
     {
 
         let (gl, shader_version, window, mut events_loop, _context) = {
@@ -217,6 +221,7 @@ pub fn main() {
 
 
     }
+    */
 
     //high-level triangle with three-d window
     /* 
@@ -433,8 +438,6 @@ pub fn main() {
     */
 
     //low-level triangle
-    /* 
-    return;
     {
         //original "window" object before we tried out SDL2
         // Create a window (a canvas on web)
@@ -545,7 +548,11 @@ pub fn main() {
                     context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
                     //context.bind_buffer(target, buffer);
                     //context.set_blend(blend);
-                    //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
+
+                    //all this red tape... and rust was supposed to be safe already!
+                    //let uu = NonZeroU32::new(32).unwrap();
+                    //let fbb = NativeFramebuffer(uu);
+                    //context.bind_framebuffer(context::FRAMEBUFFER, Some(fbb));
                 }
                 
 
@@ -580,7 +587,7 @@ pub fn main() {
 
 
     }
-    */
+    
 
 
 

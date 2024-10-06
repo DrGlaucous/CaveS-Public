@@ -1,6 +1,8 @@
 #![allow(special_module_name)]
 mod main;
 
+mod buffer_material;
+
 // Entry point for wasm
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;

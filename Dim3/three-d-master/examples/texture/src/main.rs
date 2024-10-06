@@ -5,6 +5,8 @@ async fn main() {
     run().await;
 }
 
+use std::borrow::Borrow;
+
 use three_d::*;
 
 pub async fn run() {
@@ -28,13 +30,13 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
     let mut loaded = three_d_asset::io::load_async(&[
-        "examples/assets/skybox_evening/right.jpg",
-        "examples/assets/skybox_evening/left.jpg",
-        "examples/assets/skybox_evening/top.jpg",
-        "examples/assets/skybox_evening/front.jpg",
-        "examples/assets/skybox_evening/back.jpg",
-        "examples/assets/Skybox_example.png",
-        "examples/assets/PenguinBaseMesh.obj",
+        "./../../examples/assets/skybox_evening/right.jpg",
+        "./../../examples/assets/skybox_evening/left.jpg",
+        "./../../examples/assets/skybox_evening/top.jpg",
+        "./../../examples/assets/skybox_evening/front.jpg",
+        "./../../examples/assets/skybox_evening/back.jpg",
+        "./../../examples/assets/Skybox_example.png",
+        "./../../examples/assets/PenguinBaseMesh.obj",
     ])
     .await
     .unwrap();
@@ -52,15 +54,40 @@ pub async fn run() {
     );
 
     // Box
-    let mut cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
-    cpu_texture.data.to_linear_srgb();
+    //let mut cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
+    //cpu_texture.data.to_linear_srgb();
+
+
+    let mut texx = Texture2D::new_empty::<[u8; 4]>(
+        &context,
+        200,
+        200,
+        Interpolation::Linear,
+        Interpolation::Linear,
+        None,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge
+    );
+    texx.as_color_target(None).clear(ClearState::color(1.0, 0.8, 1.0, 1.0));
+
+    //let mut apple = Texture2DRef::from_texture(texx);
+    //apple.texture.borrow_mut();//as_color_target(None).clear(ClearState::color(1.0, 0.0, 1.0, 1.0));
+    //apple.borrow.as_color_target(None).clear(ClearState::color(1.0, 0.0, 1.0, 1.0));
+
     let mut box_object = Gm::new(
         Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
-            texture: Some(Texture2DRef::from_cpu_texture(&context, &cpu_texture)),
+            texture: Some(Texture2DRef::from_texture(texx)), //Some(Texture2DRef::from_cpu_texture(&context, &cpu_texture)),
             ..Default::default()
         },
     );
+
+    // if let Some(mut txx) = box_object.material.texture {
+    //     txx.as_color_target(None).clear(ClearState::color(1.0, 0.0, 1.0, 1.0));
+    // }
+
+
+
     box_object.material.render_states.cull = Cull::Back;
 
     // Penguin

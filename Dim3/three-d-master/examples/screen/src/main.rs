@@ -39,10 +39,13 @@ pub fn main() {
     let mut viewport_zoom = 1.0;
     let mut scissor_zoom = 1.0;
     window.render_loop(move |mut frame_input| {
+
+        //move the triangle
         model.set_transformation(Mat4::from_angle_y(radians(
             (frame_input.accumulated_time * 0.005) as f32,
         )));
 
+        //width of the GUI on the side
         let mut panel_width = 0.0;
         gui.update(
             &mut frame_input.events,
@@ -61,6 +64,7 @@ pub fn main() {
             },
         );
 
+        //how big we should make the main viewport
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,
             y: 0,
@@ -73,18 +77,26 @@ pub fn main() {
         let viewport_zoomed = zoom(viewport_zoom, viewport);
         let scissor_box_zoomed = zoom(scissor_zoom, viewport).into();
 
-        camera.set_viewport(viewport_zoomed);
+        //viewport is the equivalent of a TV screen, shrinking this shrinks the image inside/
+        //scissor-box is a clipping rect. If we shrink this, the image does not shrink, but the section of it that's shown becomes less
+
+        camera.set_viewport(viewport_zoomed); //define the width and height of the camera
+
+
         frame_input
             .screen()
-            .clear(ClearState::color_and_depth(1.0, 1.0, 1.0, 1.0, 1.0))
+            .clear(ClearState::color_and_depth(1.0, 0.7, 1.0, 1.0, 1.0)) //wipe whole screen
+
+            //clear the bigger of the two boxes
             .clear_partially(
                 if viewport_zoom < scissor_zoom {
                     scissor_box_zoomed
                 } else {
                     viewport_zoomed.into()
                 },
-                ClearState::color(0.8, 0.8, 0.8, 1.0),
+                ClearState::color(0.8, 0.8, 0.8, 1.0), //wipe color
             )
+            //clear the smaller of the two boxes
             .clear_partially(
                 if viewport_zoom > scissor_zoom {
                     scissor_box_zoomed
@@ -93,28 +105,39 @@ pub fn main() {
                 },
                 ClearState::color(0.5, 0.5, 0.5, 1.0),
             )
+            //put the model in the big viewport
             .render_partially(scissor_box_zoomed, &camera, &model, &[])
-            .write(|| gui.render())
+            .write(|| gui.render()) //put GUI onscreen after main triangle
             .unwrap();
 
-        // Secondary view
+
+
+        // Secondary view (little triangle in bottom left corner)
         let secondary_viewport = Viewport {
             x: viewport.x,
             y: viewport.y,
             width: 200,
             height: 200,
         };
-        camera.set_viewport(secondary_viewport);
+        camera.set_viewport(secondary_viewport); //set camera to the size of the second viewport
         frame_input
             .screen()
+            //clear the little box in the bottom left corner
             .clear_partially(
                 secondary_viewport.into(),
                 ClearState::color_and_depth(0.3, 0.3, 0.3, 1.0, 1.0),
             )
+            //put model in the little viewport
             .render_partially(secondary_viewport.into(), &camera, &model, &[]);
+
+
 
         // Returns default frame output to end the frame
         FrameOutput::default()
+
+
+
+
     });
 }
 

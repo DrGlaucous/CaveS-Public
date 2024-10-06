@@ -13,6 +13,7 @@ impl Material for FireworksMaterial {
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         include_str!("particles.frag").to_string()
     }
+
     fn fragment_attributes(&self) -> FragmentAttributes {
         FragmentAttributes {
             uv: true,
@@ -20,10 +21,14 @@ impl Material for FireworksMaterial {
             ..FragmentAttributes::NONE
         }
     }
+
+    //define uniform input variables
     fn use_uniforms(&self, program: &Program, _camera: &Camera, _lights: &[&dyn Light]) {
         program.use_uniform("color", self.color.to_linear_srgb());
         program.use_uniform("fade", self.fade);
     }
+
+
     fn render_states(&self) -> RenderStates {
         RenderStates {
             cull: Cull::Back,
@@ -39,13 +44,18 @@ impl Material for FireworksMaterial {
             write_mask: WriteMask::COLOR,
         }
     }
+
+    //define material type (back->front vs front->back)
     fn material_type(&self) -> MaterialType {
         MaterialType::Transparent
     }
 
+    //give this an ID of "1" (just make sure this ID is unique...)
     fn id(&self) -> EffectMaterialId {
         EffectMaterialId(0b1u16)
     }
+
+
 }
 // Entry point for non-wasm
 #[cfg(not(target_arch = "wasm32"))]
@@ -71,12 +81,14 @@ pub fn run() {
         0.1,
         1000.0,
     );
-    let mut control = FlyControl::new(0.1);
+    let mut control = OrbitControl::new(vec3(0.0, 0.0, 0.0), 0.1, 100.0); //FlyControl::new(0.1);
 
     let mut rng = rand::thread_rng();
 
     let explosion_speed = 15.0;
     let explosion_time = 3.0;
+
+    //color array to be passed into uniforms
     let colors = [
         Srgba::new_opaque(255, 255, 178),
         Srgba::new_opaque(255, 51, 25),
@@ -87,6 +99,8 @@ pub fn run() {
         Srgba::new_opaque(76, 237, 38),
         Srgba::new_opaque(40, 178, 222),
     ];
+
+    //2d plane
     let mut square = CpuMesh::square();
     square.transform(&Mat4::from_scale(0.6)).unwrap();
 
@@ -101,8 +115,9 @@ pub fn run() {
         color: colors[0],
         fade: 0.0,
     };
+    //geometry + material
     let mut fireworks = Gm::new(particles, fireworks_material);
-
+    
     // main loop
     let mut time = explosion_time + 100.0; // Ensure initialisation on the first loop.
     let mut color_index = 0;
@@ -118,8 +133,11 @@ pub fn run() {
 
         // If the time exceeds the explosion duration, re-initialise the explosion.
         if time > explosion_time {
+
+            //cycle through color index
             color_index = (color_index + 1) % colors.len();
             fireworks.material.color = colors[color_index];
+
             time = 0.0;
             let start_position = vec3(
                 10.0 * rng.gen::<f32>() - 5.0,
@@ -160,21 +178,23 @@ pub fn run() {
 
         let f = time / explosion_time.max(0.0);
         fireworks.material.fade = 1.0 - f * f * f * f;
-        // Since our geometry is a square, we always want to view it from the same direction, nomatter how we change the camera.
-        fireworks.set_transformation(
-            Mat4::from_cols(
-                camera.view().x,
-                camera.view().y,
-                camera.view().z,
-                vec4(0.0, 0.0, 0.0, 1.0),
-            )
-            .invert()
-            .unwrap(),
-        );
+        // Since our geometry is a square, we always want to view it from the same direction, no matter how we change the camera. (sprite)
+        // fireworks.set_transformation(
+        //     Mat4::from_cols(
+        //         camera.view().x,
+        //         camera.view().y,
+        //         camera.view().z,
+        //         vec4(0.0, 0.0, 0.0, 1.0),
+        //     )
+        //     .invert()
+        //     .unwrap(),
+        // );
         fireworks.animate(time);
+
+        //put fireworks object onto the screen buffer
         frame_input
             .screen()
-            .clear(ClearState::color(0.0, 0.0, 0.0, 1.0))
+            .clear(ClearState::color(0.2, 0.2, 0.3, 1.0))
             .render(&camera, &fireworks, &[]);
 
         FrameOutput::default()

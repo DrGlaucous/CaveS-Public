@@ -18,6 +18,7 @@ vec3 srgb_from_linear_srgb(vec3 rgb) {
     return mix(lo, hi, select);
 }
 
+//makes a gradient dot
 void main()
 {
     float sqrDist = 2.0 * length(uvs - vec2(0.5, 0.5));
