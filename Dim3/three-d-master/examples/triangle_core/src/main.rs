@@ -16,10 +16,6 @@ use three_d::*;
 
 pub fn main() {
 
-    //high-level textured things
-    {
-        
-    }
 
     //high-level shapes with SDL
     /*
@@ -302,7 +298,7 @@ pub fn main() {
     */
 
     //high-level triangle with sdl
-    /*
+    /* 
     {
 
         let (gl, shader_version, window, mut events_loop, _context) = {
@@ -391,6 +387,8 @@ pub fn main() {
                 unsafe {
                     context.clear_color(0.0, 0.0, 0.0, 1.0);
                     context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
+
+                    //context.bind_texture(1, texture);
                     //context.bind_buffer(target, buffer);
                     //context.set_blend(blend);
                     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
@@ -438,6 +436,7 @@ pub fn main() {
     */
 
     //low-level triangle
+    
     {
         //original "window" object before we tried out SDL2
         // Create a window (a canvas on web)
@@ -516,6 +515,22 @@ pub fn main() {
         )
         .unwrap();
 
+        let program_2 = Program::from_source(
+            &context,
+            include_str!("triangle.vert"),
+            include_str!("simple_c_shader.frag"),
+        ).unwrap();
+
+        //let aapp = program_2.unwrap();
+
+        // if let Err(r) = program_2 {
+        //     let mut apple = 2 + vp.width;
+        //     let mut pear = apple * 2;
+        //     pear += 2;
+        // }
+
+        // let program_2 = program_2.unwrap();
+
         let mut camera = Camera::new_perspective(
             vp,
             vec3(0.0, 0.0, 2.0),
@@ -549,20 +564,20 @@ pub fn main() {
                     //context.bind_buffer(target, buffer);
                     //context.set_blend(blend);
 
-                    //all this red tape... and rust was supposed to be safe already!
-                    //let uu = NonZeroU32::new(32).unwrap();
-                    //let fbb = NativeFramebuffer(uu);
-                    //context.bind_framebuffer(context::FRAMEBUFFER, Some(fbb));
+                    // //all this red tape... and rust was supposed to be safe already!
+                    // let uu = NonZeroU32::new(32).unwrap();
+                    // let fbb = NativeFramebuffer(uu);
+                    // context.bind_framebuffer(context::FRAMEBUFFER, Some(fbb));
                 }
                 
 
                 //hello triangle demo
                 time += 1.0; //frame_input.accumulated_time as f32;
-                program.use_uniform("model", Mat4::from_angle_y(radians(time * 0.005)));
-                program.use_uniform("viewProjection", camera.projection() * camera.view());
-                program.use_vertex_attribute("position", &positions);
-                program.use_vertex_attribute("color", &colors);
-                program.draw_arrays(
+                program_2.use_uniform("model", Mat4::from_angle_y(radians(time * 0.005)));
+                program_2.use_uniform("viewProjection", camera.projection() * camera.view());
+                program_2.use_vertex_attribute("position", &positions);
+                program_2.use_vertex_attribute("color", &colors);
+                program_2.draw_arrays(
                     RenderStates::default(),
                     vp, //frame_input.viewport,
                     positions.vertex_count(),

@@ -18,6 +18,10 @@ pub async fn run() {
     .unwrap();
     let context = window.gl();
 
+
+    //let aaaaaaa = Program::from_source(&context, )
+
+
     let mut camera = Camera::new_perspective(
         window.viewport(),
         vec3(4.0, 1.5, 4.0),
@@ -54,30 +58,34 @@ pub async fn run() {
     );
 
     // Box
-    //let mut cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
-    //cpu_texture.data.to_linear_srgb();
+    let mut cpu_texture: CpuTexture = loaded.deserialize("Skybox_example").unwrap();
+    cpu_texture.data.to_linear_srgb();
 
 
-    let mut texx = Texture2D::new_empty::<[u8; 4]>(
-        &context,
-        200,
-        200,
-        Interpolation::Linear,
-        Interpolation::Linear,
-        None,
-        Wrapping::ClampToEdge,
-        Wrapping::ClampToEdge
-    );
-    texx.as_color_target(None).clear(ClearState::color(1.0, 0.8, 1.0, 1.0));
+    // let mut texx = Texture2D::new_empty::<[u8; 4]>(
+    //     &context,
+    //     200,
+    //     200,
+    //     Interpolation::Linear,
+    //     Interpolation::Linear,
+    //     None,
+    //     Wrapping::ClampToEdge,
+    //     Wrapping::ClampToEdge
+    // );
+    //texx.as_color_target(None).clear(ClearState::color(1.0, 0.8, 1.0, 1.0));
 
     //let mut apple = Texture2DRef::from_texture(texx);
     //apple.texture.borrow_mut();//as_color_target(None).clear(ClearState::color(1.0, 0.0, 1.0, 1.0));
     //apple.borrow.as_color_target(None).clear(ClearState::color(1.0, 0.0, 1.0, 1.0));
 
+
+
+
     let mut box_object = Gm::new(
-        Mesh::new(&context, &CpuMesh::cube()),
+        Mesh::new(&context, &CpuMesh::sphere(28)),
         ColorMaterial {
-            texture: Some(Texture2DRef::from_texture(texx)), //Some(Texture2DRef::from_cpu_texture(&context, &cpu_texture)),
+            //texture: Some(Texture2DRef::from_texture(texx)),
+            texture: Some(Texture2DRef::from_cpu_texture(&context, &cpu_texture)),
             ..Default::default()
         },
     );

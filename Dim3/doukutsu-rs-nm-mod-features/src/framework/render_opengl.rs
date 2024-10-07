@@ -7,6 +7,10 @@ use std::mem::MaybeUninit;
 use std::ptr::null;
 use std::sync::Arc;
 
+use three_d::*;
+use three_d::core::Context as ThreeDContext;
+use three_d::context::Context as GlowContext;
+
 use imgui::{DrawCmd, DrawCmdParams, DrawData, DrawIdx, DrawVert, TextureId, Ui};
 
 use crate::common::{Color, Rect};
@@ -20,6 +24,8 @@ use crate::framework::gl::types::*;
 use crate::framework::graphics::{BlendMode, VSyncMode};
 use crate::framework::util::{field_offset, return_param};
 use crate::game::GAME_SUSPENDED;
+
+use super::buffer_material::BufferMaterial;
 
 pub struct GLContext {
     pub gles2_mode: bool,
@@ -584,6 +590,116 @@ pub fn load_gl(gl_context: &mut GLContext) -> &'static Gl {
     }
 }
 
+
+pub struct ThreeDModelSetup {
+    pub vp: Viewport,
+    pub context: ThreeDContext, //three_d::core::context constructed from "glow" context: three_d::context::Context 
+    pub camera: Camera,
+    pub model: Gm<Mesh, BufferMaterial>,
+    pub time: f32,
+}
+
+impl ThreeDModelSetup {
+    pub fn new(gl_context: &mut GLContext) -> ThreeDModelSetup {
+
+        let gl = unsafe{
+            // F: FnMut(&'static str) -> *const __gl_imports::raw::c_void,
+            // let gl = gl::Gles2::load_with(|ptr| (gl_context.get_proc_address)(&mut gl_context.user_data, ptr));
+
+            // F: FnMut(&str) -> *const std::os::raw::c_void,
+            GlowContext::from_loader_function(|ptr| (gl_context.get_proc_address)(&mut gl_context.user_data, ptr) as *const _)
+        };
+        
+        // Get the graphics context from the window
+        let context: ThreeDContext = ThreeDContext::from_gl_context(gl.into()).unwrap();
+
+        unsafe {
+            // let frag_shader = context.create_shader(crate::context::FRAGMENT_SHADER);
+            
+            // let header: &str = if context.version().is_embedded {
+            //     "#version 300 es
+            //         #ifdef GL_FRAGMENT_PRECISION_HIGH
+            //             precision highp float;
+            //             precision highp int;
+            //             precision highp sampler2DArray;
+            //             precision highp sampler3D;
+            //         #else
+            //             precision mediump float;
+            //             precision mediump int;
+            //             precision mediump sampler2DArray;
+            //             precision mediump sampler3D;
+            //         #endif\n"
+            // } else {
+            //     "#version 330 core\n"
+            // };
+
+            // let fragment_shader_source = format!("{}{}", header, fragment_shader_source);
+
+            // context.shader_source(frag_shader, &fragment_shader_source);
+        }
+        
+
+
+
+        let vp = Viewport {
+            x: 0,
+            y: 0,
+            width: 640,
+            height: 480,
+        };
+
+        // Create a camera
+        let mut camera = Camera::new_perspective(
+            vp,
+            vec3(4.0, 1.5, 4.0),
+            vec3(0.0, 1.0, 0.0),
+            vec3(0.0, 1.0, 0.0),
+            degrees(45.0),
+            0.1,
+            1000.0,
+        );
+
+        // Create a CPU-side mesh consisting of a single colored triangle
+        let positions = vec![
+            vec3(0.5, -0.5, 0.0),  // bottom right
+            vec3(-0.5, -0.5, 0.0), // bottom left
+            vec3(0.0, 0.5, 0.0),   // top
+        ];
+        let colors = vec![
+            Srgba::new(128,128,128,0),//RED,   // bottom right
+            Srgba::new(128,128,128,0), // bottom left
+            Srgba::new(128,128,128,0),  // top
+        ];
+        let cpu_mesh = CpuMesh {
+            positions: Positions::F32(positions),
+            colors: Some(colors),
+            ..Default::default()
+        };
+
+        // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
+        //let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), BufferMaterial::default());
+
+        let mut model = Gm::new(
+            Mesh::new(&context, &CpuMesh::square()),
+            BufferMaterial::default(),
+        );
+
+        // Add an animation to the triangle.
+        //model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
+
+        ThreeDModelSetup {
+            vp,
+            context,
+            camera,
+            model,
+            time: 0.0,
+        }
+
+
+                
+    }
+}
+
 pub struct OpenGLRenderer {
     refs: GLContext,
     imgui: UnsafeCell<imgui::Context>,
@@ -591,6 +707,8 @@ pub struct OpenGLRenderer {
     context_active: Arc<RefCell<bool>>,
     def_matrix: [[f32; 4]; 4],
     curr_matrix: [[f32; 4]; 4],
+    model: Option<ThreeDModelSetup>,
+    
 }
 
 impl OpenGLRenderer {
@@ -602,6 +720,7 @@ impl OpenGLRenderer {
             context_active: Arc::new(RefCell::new(true)),
             def_matrix: [[0.0; 4]; 4],
             curr_matrix: [[0.0; 4]; 4],
+            model: None,
         }
     }
 
@@ -613,6 +732,9 @@ impl OpenGLRenderer {
 
         if !self.render_data.initialized {
             self.render_data.init(gles2, imgui, gl);
+        }
+        if(self.model.is_none()) {
+            self.model = Some(ThreeDModelSetup::new(&mut self.refs));
         }
 
         Some((&mut self.refs, gl))
@@ -651,7 +773,7 @@ impl BackendRenderer for OpenGLRenderer {
                 gl.gl.ClearColor(0.0, 0.0, 0.0, 1.0);
                 gl.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-                let matrix =
+                let matrix: [[f32; 4]; 4] =
                     [[2.0f32, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [-1.0, 1.0, 0.0, 1.0]];
 
                 self.render_data.tex_shader.bind_attrib_pointer(gl, self.render_data.vbo);
@@ -676,6 +798,44 @@ impl BackendRenderer for OpenGLRenderer {
 
                 gl.gl.Finish();
             }
+
+            //splice in three-d for testing
+            {
+                if let Some(model) = &mut self.model {
+                    
+                    //no need to clear: the normal stuff already does this.
+                    // unsafe {
+                    //     model.context.clear_color(0.0, 0.0, 0.0, 1.0);
+                    //     model.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
+                    //     //context.bind_buffer(target, buffer);
+                    //     //context.set_blend(blend);
+                    //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
+                    // }
+                    
+                    // Ensure the viewport matches the current window viewport which changes if the window is resized
+                    model.camera.set_viewport(model.vp);//(frame_input.viewport);
+    
+                    // Update the animation of the triangle
+                    model.time += 1.0;
+                    //model.model.animate(model.time); //(frame_input.accumulated_time as f32);
+    
+                    let scc = RenderTarget::screen(&model.context, model.vp.width, model.vp.height);
+    
+                    // Get the screen render target to be able to render something on the screen
+                    //frame_input.screen()
+                    scc
+                        // Clear the color and depth of the screen render target
+                        //.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                        // Render the triangle with the color material which uses the per vertex colors defined at construction
+                        .render(
+                            &model.camera, &model.model, &[]
+                        );
+    
+    
+    
+                }
+            }
+
 
             if let Some((context, _)) = self.get_context() {
                 (context.swap_buffers)(&mut context.user_data);
