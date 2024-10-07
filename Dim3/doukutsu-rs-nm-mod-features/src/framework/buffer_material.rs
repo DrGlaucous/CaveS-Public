@@ -9,96 +9,43 @@ use super::gl::TEXTURE_2D;
 /// A material that renders a [Geometry] in a color defined by multiplying a color with an optional texture and optional per vertex colors.
 /// This material is not affected by lights.
 ///
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct BufferMaterial {
     /// Base surface color.
-    pub color: Srgba,
+    //pub color: Srgba,
     /// An optional texture which is samples using uv coordinates (requires that the [Geometry] supports uv coordinates).
     /// The colors are assumed to be in linear sRGB (`RgbU8`), linear sRGB with an alpha channel (`RgbaU8`) or HDR color space.
-    pub texture: Option<Texture2DRef>,
+    //pub texture: Option<Texture2DRef>,
+    
     /// Render states.
     pub render_states: RenderStates,
+    
     /// Whether this material should be treated as a transparent material (An object needs to be rendered differently depending on whether it is transparent or opaque).
     pub is_transparent: bool,
+
+    pub tex_id: NonZeroU32,
 }
 
 impl BufferMaterial {
     ///
-    /// Constructs a new color material from a [CpuMaterial].
-    /// Tries to infer whether this material is transparent or opaque from the alpha value of the albedo color and the alpha values in the albedo texture.
-    /// Since this is not always correct, it is preferred to use [BufferMaterial::new_opaque] or [BufferMaterial::new_transparent].
+    /// Constructs a new buffer material, which targets a pre-existing raw lower-level buffer directly inside openGL
     ///
-    pub fn new(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        // if material::is_transparent(cpu_material) {
-        //     Self::new_transparent(context, cpu_material)
-        // } else {
-        //     Self::new_opaque(context, cpu_material)
-        // }
-        Self::new_transparent(context, cpu_material)
-    }
-
-    /// Constructs a new opaque color material from a [CpuMaterial].
-    pub fn new_opaque(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture =
-            cpu_material
-                .albedo_texture
-                .as_ref()
-                .map(|cpu_texture| match &cpu_texture.data {
-                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
-                        let mut cpu_texture = cpu_texture.clone();
-                        cpu_texture.data.to_linear_srgb();
-                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
-                    }
-                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
-                });
+    pub fn new(is_transparent: bool, tex_id: u32) -> Self {
         Self {
-            color: cpu_material.albedo,
-            texture,
-            is_transparent: false,
             render_states: RenderStates::default(),
-        }
-    }
-
-    /// Constructs a new transparent color material from a [CpuMaterial].
-    pub fn new_transparent(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        let texture =
-            cpu_material
-                .albedo_texture
-                .as_ref()
-                .map(|cpu_texture| match &cpu_texture.data {
-                    TextureData::RgbU8(_) | TextureData::RgbaU8(_) => {
-                        let mut cpu_texture = cpu_texture.clone();
-                        cpu_texture.data.to_linear_srgb();
-                        Texture2DRef::from_cpu_texture(context, &cpu_texture)
-                    }
-                    _ => Texture2DRef::from_cpu_texture(context, cpu_texture),
-                });
-        Self {
-            color: cpu_material.albedo,
-            texture,
-            is_transparent: true,
-            render_states: RenderStates {
-                write_mask: WriteMask::COLOR,
-                blend: Blend::TRANSPARENCY,
-                ..Default::default()
-            },
-        }
-    }
-
-    /// Creates a color material from a [PhysicalMaterial].
-    pub fn from_physical_material(physical_material: &PhysicalMaterial) -> Self {
-        Self {
-            color: physical_material.albedo,
-            texture: physical_material.albedo_texture.clone(),
-            render_states: physical_material.render_states,
-            is_transparent: physical_material.is_transparent,
+            is_transparent,
+            tex_id: NonZeroU32::new(tex_id).unwrap(),
         }
     }
 }
 
-impl FromCpuMaterial for BufferMaterial {
-    fn from_cpu_material(context: &Context, cpu_material: &CpuMaterial) -> Self {
-        Self::new(context, cpu_material)
+impl Default for BufferMaterial {
+    fn default() -> Self {
+        Self {
+            render_states: RenderStates::default(),
+            is_transparent: bool::default(),
+            tex_id: NonZeroU32::new(1).unwrap(),
+        }
     }
 }
 
@@ -111,50 +58,51 @@ impl Material for BufferMaterial {
 
     fn fragment_shader_source(&self, _lights: &[&dyn Light]) -> String {
         let mut shader = String::new();
-        // if self.texture.is_some() {
-        //     shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
-        // }
 
+        //default colored shader (it seems permanently washed out for some reason...)
         // shader.push_str("#define USE_TEXTURE\nin vec2 uvs;\n");
         // shader.push_str(include_str!("shaders/threed/shared.frag"));
         // shader.push_str(ColorMapping::fragment_shader_source());
         // shader.push_str(include_str!("shaders/threed/color_material.frag"));
         
+        //trimmed out all the fat with this one
         shader.push_str(include_str!("shaders/threed/simple_c_shader.frag"));
         
         shader
     }
 
     fn fragment_attributes(&self) -> FragmentAttributes {
+
+        //from the vertex shader, pass these two attributes into the fragment shader
         FragmentAttributes {
             color: true,
-            uv: true, //self.texture.is_some(),
+            uv: true,
             ..FragmentAttributes::NONE
         }
     }
 
     fn use_uniforms(&self, program: &Program, camera: &Camera, _lights: &[&dyn Light]) {
+        
+        //default stuff with original color shader
         //camera.color_mapping.use_uniforms(program);
         //program.use_uniform("surfaceColor", self.color.to_linear_srgb());
 
-        // if let Some(ref tex) = self.texture {
-        //     program.use_uniform("textureTransformation", tex.transformation);
-        //     //use_raw_texture
-        //     program.use_texture("tex", tex);
-        // }
 
-        //test: force the use of tex ID 1
         let transform = Mat3::new(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
         program.use_uniform("textureTransformation", transform);
 
+
+        //test: force the use of tex ID 1
         let uu = NonZeroU32::new(2).unwrap();
         let txx = NativeTexture(uu);
         program.use_raw_texture("tex", TEXTURE_2D, txx);
 
     }
+    
     fn render_states(&self) -> RenderStates {
         self.render_states
     }
+    
     fn material_type(&self) -> MaterialType {
         if self.is_transparent {
             MaterialType::Transparent

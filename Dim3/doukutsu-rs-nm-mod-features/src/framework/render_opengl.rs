@@ -665,27 +665,36 @@ impl ThreeDModelSetup {
             vec3(-0.5, -0.5, 0.0), // bottom left
             vec3(0.0, 0.5, 0.0),   // top
         ];
-        let colors = vec![
-            Srgba::new(128,128,128,0),//RED,   // bottom right
-            Srgba::new(128,128,128,0), // bottom left
-            Srgba::new(128,128,128,0),  // top
-        ];
-        let cpu_mesh = CpuMesh {
-            positions: Positions::F32(positions),
-            colors: Some(colors),
-            ..Default::default()
-        };
+        // let cpu_mesh = CpuMesh {
+        //     positions: Positions::F32(positions),
+        //     colors: Some(colors),
+        //     ..Default::default()
+        // };
+
+
+        // let colors = vec![
+        //     Srgba::new(0,255,255,255),
+        //     Srgba::new(255,0,255,255),
+        //     Srgba::new(255,255,0,0),
+        //     Srgba::new(0,255,255,0),
+        //     Srgba::new(255,0,255,0),
+        //     Srgba::new(255,255,0,0),
+        // ];
+
 
         // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
         //let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), BufferMaterial::default());
 
+        let mut mm = CpuMesh::cube();
+        //mm.colors = Some(colors);
+
         let mut model = Gm::new(
-            Mesh::new(&context, &CpuMesh::square()),
-            BufferMaterial::default(),
+            Mesh::new(&context, &mm),
+            BufferMaterial::new(true, 2),
         );
 
         // Add an animation to the triangle.
-        //model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
+        model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
 
         ThreeDModelSetup {
             vp,
@@ -768,6 +777,8 @@ impl BackendRenderer for OpenGLRenderer {
         }
 
         unsafe {
+
+            
             if let Some((_, gl)) = self.get_context() {
                 gl.gl.BindFramebuffer(gl::FRAMEBUFFER, 0);
                 gl.gl.ClearColor(0.0, 0.0, 0.0, 1.0);
@@ -798,26 +809,27 @@ impl BackendRenderer for OpenGLRenderer {
 
                 gl.gl.Finish();
             }
+            
 
             //splice in three-d for testing
             {
                 if let Some(model) = &mut self.model {
                     
                     //no need to clear: the normal stuff already does this.
-                    // unsafe {
-                    //     model.context.clear_color(0.0, 0.0, 0.0, 1.0);
-                    //     model.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
-                    //     //context.bind_buffer(target, buffer);
-                    //     //context.set_blend(blend);
-                    //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
-                    // }
+                    unsafe {
+                        model.context.clear_color(0.0, 0.0, 0.0, 1.0);
+                        model.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
+                        //context.bind_buffer(target, buffer);
+                        //context.set_blend(blend);
+                        //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
+                    }
                     
                     // Ensure the viewport matches the current window viewport which changes if the window is resized
                     model.camera.set_viewport(model.vp);//(frame_input.viewport);
     
                     // Update the animation of the triangle
-                    model.time += 1.0;
-                    //model.model.animate(model.time); //(frame_input.accumulated_time as f32);
+                    model.time += 2.0;
+                    model.model.animate(model.time); //(frame_input.accumulated_time as f32);
     
                     let scc = RenderTarget::screen(&model.context, model.vp.width, model.vp.height);
     

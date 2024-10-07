@@ -82,7 +82,7 @@ pub async fn run() {
 
 
     let mut box_object = Gm::new(
-        Mesh::new(&context, &CpuMesh::sphere(28)),
+        Mesh::new(&context, &CpuMesh::cube()),
         ColorMaterial {
             //texture: Some(Texture2DRef::from_texture(texx)),
             texture: Some(Texture2DRef::from_cpu_texture(&context, &cpu_texture)),
