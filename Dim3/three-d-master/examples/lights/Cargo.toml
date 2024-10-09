@@ -8,8 +8,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+gltf = { version = "1", features = ["KHR_materials_ior", "KHR_materials_transmission", "KHR_lights_punctual"]}
 three-d = { path = "../../", features=["egui-gui"] }
 three-d-asset = {version = "0.7",features = ["gltf", "png", "jpeg", "http"] }
+
+
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rand = "0.7"

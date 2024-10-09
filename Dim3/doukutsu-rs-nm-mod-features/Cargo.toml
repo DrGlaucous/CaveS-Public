@@ -44,7 +44,7 @@ ogg-playback = ["lewton"]
 backend-sdl = ["sdl2", "sdl2-sys"]
 backend-glutin = ["winit", "glutin", "render-opengl"]
 backend-horizon = []
-render-three-d = ["three-d"]
+render-three-d = ["three-d", "three-d-asset"]
 render-opengl = []
 discord-rpc = ["discord-rich-presence"]
 netplay = ["serde_cbor"]
@@ -95,7 +95,9 @@ winit = { git = "https://github.com/doukutsu-rs/winit.git", rev = "878f206d19af0
 xmltree = "0.10"
 
 #new backend thingy
-three-d = {version = "0.17.0", optional = true}
+gltf = { version = "1", features = ["KHR_materials_ior", "KHR_materials_transmission", "KHR_lights_punctual"]}
+three-d = {version = "0.17.0", optional = true }
+three-d-asset = {version = "0.7",features = ["gltf", "png", "jpeg", "http"], optional = true}
 
 #hack to not link SDL_image on Windows(causes a linker error)
 [target.'cfg(not(target_os = "windows"))'.dependencies]

@@ -730,6 +730,8 @@ impl SharedGameState {
         set_render_target(ctx, None)?;
         self.lightmap_canvas = Some(create_texture_mutable(ctx, width, height)?);
 
+        let _ = graphics::set_3d_viewport(ctx, width as u32, height as u32);
+
         Ok(())
     }
 

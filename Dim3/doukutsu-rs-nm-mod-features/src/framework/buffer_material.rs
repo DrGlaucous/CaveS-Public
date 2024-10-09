@@ -91,10 +91,8 @@ impl Material for BufferMaterial {
         let transform = Mat3::new(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
         program.use_uniform("textureTransformation", transform);
 
-
-        //test: force the use of tex ID 1
-        let uu = NonZeroU32::new(2).unwrap();
-        let txx = NativeTexture(uu);
+        //note: for stock d-rs, the "good stuff" seems to be on screen buffer 2
+        let txx = NativeTexture(self.tex_id);
         program.use_raw_texture("tex", TEXTURE_2D, txx);
 
     }

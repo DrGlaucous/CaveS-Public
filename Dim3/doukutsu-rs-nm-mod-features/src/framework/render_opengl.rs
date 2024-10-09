@@ -1,3 +1,4 @@
+use std::num::NonZeroU32;
 use std::any::Any;
 use std::cell::{RefCell, UnsafeCell};
 use std::ffi::{c_void, CStr};
@@ -7,9 +8,13 @@ use std::mem::MaybeUninit;
 use std::ptr::null;
 use std::sync::Arc;
 
+use context::NativeFramebuffer;
 use three_d::*;
 use three_d::core::Context as ThreeDContext;
 use three_d::context::Context as GlowContext;
+use three_d::context::NativeTexture;
+use three_d::geometry::CpuMesh;
+
 
 use imgui::{DrawCmd, DrawCmdParams, DrawData, DrawIdx, DrawVert, TextureId, Ui};
 
@@ -23,7 +28,7 @@ use crate::framework::gl;
 use crate::framework::gl::types::*;
 use crate::framework::graphics::{BlendMode, VSyncMode};
 use crate::framework::util::{field_offset, return_param};
-use crate::game::GAME_SUSPENDED;
+use crate::game::{Game, GAME_SUSPENDED};
 
 use super::buffer_material::BufferMaterial;
 
@@ -592,14 +597,19 @@ pub fn load_gl(gl_context: &mut GLContext) -> &'static Gl {
 
 
 pub struct ThreeDModelSetup {
-    pub vp: Viewport,
-    pub context: ThreeDContext, //three_d::core::context constructed from "glow" context: three_d::context::Context 
-    pub camera: Camera,
-    pub model: Gm<Mesh, BufferMaterial>,
-    pub time: f32,
+    vp: Viewport, //screen size
+    context: ThreeDContext, //three_d::core::context constructed from "glow" context: three_d::context::Context 
+    camera: Camera, //observation location of the 3D meshes
+    char_plane: Gm<Mesh, BufferMaterial>, //2d image that holds the user character and interractable elements
+    map_models: Vec<Model<PhysicalMaterial>>, //Vec<Gm<Mesh, BufferMaterial>>, //a list of map meshes
+    lights: Vec<DirectionalLight>, //list of lights in the model
+
+    //test: spin user plane
+    time: f32,
 }
 
 impl ThreeDModelSetup {
+
     pub fn new(gl_context: &mut GLContext) -> ThreeDModelSetup {
 
         let gl = unsafe{
@@ -640,7 +650,7 @@ impl ThreeDModelSetup {
         
 
 
-
+        //initial viewport size, should change with screen resizes
         let vp = Viewport {
             x: 0,
             y: 0,
@@ -659,54 +669,208 @@ impl ThreeDModelSetup {
             1000.0,
         );
 
-        // Create a CPU-side mesh consisting of a single colored triangle
-        let positions = vec![
-            vec3(0.5, -0.5, 0.0),  // bottom right
-            vec3(-0.5, -0.5, 0.0), // bottom left
-            vec3(0.0, 0.5, 0.0),   // top
-        ];
-        // let cpu_mesh = CpuMesh {
-        //     positions: Positions::F32(positions),
-        //     colors: Some(colors),
-        //     ..Default::default()
-        // };
-
-
-        // let colors = vec![
-        //     Srgba::new(0,255,255,255),
-        //     Srgba::new(255,0,255,255),
-        //     Srgba::new(255,255,0,0),
-        //     Srgba::new(0,255,255,0),
-        //     Srgba::new(255,0,255,0),
-        //     Srgba::new(255,255,0,0),
-        // ];
-
-
-        // Construct a model, with a default color material, thereby transferring the mesh data to the GPU
-        //let mut model = Gm::new(Mesh::new(&context, &cpu_mesh), BufferMaterial::default());
-
-        let mut mm = CpuMesh::cube();
-        //mm.colors = Some(colors);
-
-        let mut model = Gm::new(
-            Mesh::new(&context, &mm),
-            BufferMaterial::new(true, 2),
+        //holds the PC and other 2d elements
+        let mut plane = Self::new_rectangle(2.0, 1.0);//(vp.width as f32, vp.height as f32);
+        let mut char_plane = Gm::new(
+            Mesh::new(&context, &plane),
+            BufferMaterial::new(true, 2), //default tex ID is 2 for now...
         );
 
-        // Add an animation to the triangle.
-        model.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
+        // Add an animation to the mesh.
+        //char_plane.set_animation(|time| Mat4::from_angle_y(radians(time * 0.005)));
+
+        // //load gltf asset
+        // let mut loaded = if let Ok(loaded) =
+        // three_d_asset::io::load_async(&["../assets/BoxAnimated.gltf"])
+        // {
+        //     loaded
+        // }
+
+        let mut model_list: Vec<Model<PhysicalMaterial>> = Vec::new();
+
+        let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]);
+        if let Ok(mut raw_assets) = assets {
+
+            let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
+            cpu_model
+                .geometries
+                .iter_mut()
+                .for_each(|part| part.compute_normals());
+            let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+            model_list.push(model);
+        }
+
+        let mut lights: Vec<DirectionalLight> = Vec::new();
+        // let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
+        // let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
+        // lights.push(light0);
+        // lights.push(light1);
 
         ThreeDModelSetup {
             vp,
             context,
             camera,
-            model,
+            char_plane,
+            map_models: model_list, //Vec::new(),
+            lights,
             time: 0.0,
         }
 
 
                 
     }
+
+    /// Loads a GLTF into the three-d backend to be rendered onscreen, returns the index of the model if successful
+    pub fn load_gltf(path: &str) -> GameResult<u32> {
+        Ok(5)
+    }
+
+    /// unloads the GLTF at the provided index, returns error if OOB
+    pub fn unload_gltf(index: usize) -> GameResult {
+        Ok(())
+    }
+
+    /// use this surface to draw onto the char plane. Must be a non-zero unsigned integer
+    pub fn set_char_plane_target(&mut self, target: u32) -> GameResult {
+
+        if let Some(num) = NonZeroU32::new(target) {
+            self.char_plane.material.tex_id = num;
+            Ok(())
+        } else {
+            Err(GameError::InvalidValue(format!("Number {} was not a valid non-zero u32", target)))
+        }
+
+    }
+
+    /// returns the number currently being used as the texture target
+    pub fn get_char_plane_target(&self) {
+        let num = self.char_plane.material.tex_id.get();
+    }
+
+    /// draws all meshes and the PC plane to the gl surface set by the passed-in argument
+    /// Note that due to the framework, running this resets the binding back to 0 when finished
+    pub fn draw(&mut self, dest_id: u32) -> GameResult {
+
+        //what texture we're targeting (if 0, target the screenbuffer. Otherwise, target the ID we've been given)
+        let render_target = if dest_id == 0 {
+            RenderTarget::screen(&self.context, self.vp.width, self.vp.height)
+        } else {
+            let destination = NonZeroU32::new(dest_id);
+            if (destination.is_none()) {
+                return Err(GameError::InvalidValue(format!("Number {} was not a valid non-zero u32", dest_id)));
+            }
+            let destination = destination.unwrap();
+            RenderTarget::from_framebuffer(&self.context,self.vp.width, self.vp.height, NativeFramebuffer(destination))
+        };
+
+
+        //no need to clear: the normal stuff already does this.
+        //will need to clear if we're putting this on a 
+        // unsafe {
+        //     model.context.clear_color(0.0, 0.0, 0.0, 1.0);
+        //     model.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
+        //     //context.bind_buffer(target, buffer);
+        //     //context.set_blend(blend);
+        //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
+        // }
+
+        //slow test
+        let light0 = DirectionalLight::new(&self.context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
+        let light1 = DirectionalLight::new(&self.context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
+
+
+        // Ensure the viewport matches the current window viewport which changes if the window is resized
+        self.camera.set_viewport(self.vp);//(frame_input.viewport);
+
+        render_target
+            // Clear the color and depth of the screen render target
+            //.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            // Render the triangle with the color material which uses the per vertex colors defined at construction
+            .render(&self.camera, &self.char_plane, &[])
+            .render(&self.camera, &self.map_models[0], &[&light0, &light1]);
+
+        Ok(())
+
+
+    }
+
+    /// Set the mesh camera's location and target
+    pub fn set_camera_loc(&mut self, camera_loc: (f32, f32, f32), camera_target: (f32, f32, f32)) {
+        let up = self.camera.up().clone();
+        self.camera.set_view(
+            vec3(camera_loc.0, camera_loc.1, camera_loc.2),
+            vec3(camera_target.0, camera_target.1, camera_target.2),
+            up,
+        );
+    }
+
+    /// make a rectangle CpuMesh
+    fn new_rectangle(width: f32, height: f32) -> CpuMesh {
+        //how the points should be indexed
+        let indices = vec![0u8, 1, 2, 2, 3, 0];
+
+        let half_width = width / 2.0;
+        let half_height = height / 2.0;
+
+        let positions = vec![
+            Vec3::new(-half_width, -half_height, 0.0),
+            Vec3::new(half_width, -half_height, 0.0),
+            Vec3::new(half_width, half_height, 0.0),
+            Vec3::new(-half_width, half_height, 0.0),
+        ];
+        let normals = vec![
+            Vec3::new(0.0, 0.0, 1.0),
+            Vec3::new(0.0, 0.0, 1.0),
+            Vec3::new(0.0, 0.0, 1.0),
+            Vec3::new(0.0, 0.0, 1.0),
+        ];
+        let tangents = vec![
+            Vec4::new(1.0, 0.0, 0.0, 1.0),
+            Vec4::new(1.0, 0.0, 0.0, 1.0),
+            Vec4::new(1.0, 0.0, 0.0, 1.0),
+            Vec4::new(1.0, 0.0, 0.0, 1.0),
+        ];
+        let uvs = vec![
+            Vec2::new(0.0, 1.0),
+            Vec2::new(1.0, 1.0),
+            Vec2::new(1.0, 0.0),
+            Vec2::new(0.0, 0.0),
+        ];
+        CpuMesh {
+            indices: Indices::U8(indices),
+            positions: Positions::F32(positions),
+            normals: Some(normals),
+            tangents: Some(tangents),
+            uvs: Some(uvs),
+            ..Default::default()
+        }
+    }
+
+    /// Resize the internal "char_plane" rectangle to this width and height
+    pub fn resize_char_plane(&mut self, width: f32, height: f32) {
+
+        let half_width = width / 2.0;
+        let half_height = height / 2.0;
+
+        let positions = vec![
+            Vec3::new(-half_width, -half_height, 0.0),
+            Vec3::new(half_width, -half_height, 0.0),
+            Vec3::new(half_width, half_height, 0.0),
+            Vec3::new(-half_width, half_height, 0.0),
+        ];
+
+        self.char_plane.update_positions(&positions);
+    }
+
+    pub fn set_viewport_size(&mut self, width: u32, height: u32) {
+        
+        self.resize_char_plane(width as f32 / 320.0, height as f32 / 240.0);
+        
+        self.vp.width = width;
+        self.vp.height = height;
+
+    }
+
 }
 
 pub struct OpenGLRenderer {
@@ -716,7 +880,7 @@ pub struct OpenGLRenderer {
     context_active: Arc<RefCell<bool>>,
     def_matrix: [[f32; 4]; 4],
     curr_matrix: [[f32; 4]; 4],
-    model: Option<ThreeDModelSetup>,
+    pub model: Option<ThreeDModelSetup>,
     
 }
 
@@ -742,12 +906,16 @@ impl OpenGLRenderer {
         if !self.render_data.initialized {
             self.render_data.init(gles2, imgui, gl);
         }
+
+        //make new 3D context
         if(self.model.is_none()) {
             self.model = Some(ThreeDModelSetup::new(&mut self.refs));
         }
 
         Some((&mut self.refs, gl))
     }
+
+
 }
 
 impl BackendRenderer for OpenGLRenderer {
@@ -784,68 +952,36 @@ impl BackendRenderer for OpenGLRenderer {
                 gl.gl.ClearColor(0.0, 0.0, 0.0, 1.0);
                 gl.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-                let matrix: [[f32; 4]; 4] =
-                    [[2.0f32, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [-1.0, 1.0, 0.0, 1.0]];
+                // let matrix: [[f32; 4]; 4] =
+                //     [[2.0f32, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [-1.0, 1.0, 0.0, 1.0]];
 
-                self.render_data.tex_shader.bind_attrib_pointer(gl, self.render_data.vbo);
-                gl.gl.UniformMatrix4fv(self.render_data.tex_shader.proj_mtx, 1, gl::FALSE, matrix.as_ptr() as _);
+                // self.render_data.tex_shader.bind_attrib_pointer(gl, self.render_data.vbo);
+                // gl.gl.UniformMatrix4fv(self.render_data.tex_shader.proj_mtx, 1, gl::FALSE, matrix.as_ptr() as _);
 
-                let color = (255, 255, 255, 255);
-                let vertices = [
-                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
-                    VertexData { position: (0.0, 0.0), uv: (0.0, 1.0), color },
-                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
-                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
-                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
-                    VertexData { position: (1.0, 1.0), uv: (1.0, 0.0), color },
-                ];
+                // let color = (255, 255, 255, 255);
+                // let vertices = [
+                //     VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
+                //     VertexData { position: (0.0, 0.0), uv: (0.0, 1.0), color },
+                //     VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
+                //     VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
+                //     VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
+                //     VertexData { position: (1.0, 1.0), uv: (1.0, 0.0), color },
+                // ];
 
-                self.draw_arrays_tex_id(
-                    gl::TRIANGLES,
-                    &vertices,
-                    self.render_data.surf_texture,
-                    BackendShader::Texture,
-                )?;
+                // self.draw_arrays_tex_id(
+                //     gl::TRIANGLES,
+                //     &vertices,
+                //     self.render_data.surf_texture,
+                //     BackendShader::Texture,
+                // )?;
 
                 gl.gl.Finish();
             }
-            
 
             //splice in three-d for testing
-            {
-                if let Some(model) = &mut self.model {
-                    
-                    //no need to clear: the normal stuff already does this.
-                    unsafe {
-                        model.context.clear_color(0.0, 0.0, 0.0, 1.0);
-                        model.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
-                        //context.bind_buffer(target, buffer);
-                        //context.set_blend(blend);
-                        //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
-                    }
-                    
-                    // Ensure the viewport matches the current window viewport which changes if the window is resized
-                    model.camera.set_viewport(model.vp);//(frame_input.viewport);
-    
-                    // Update the animation of the triangle
-                    model.time += 2.0;
-                    model.model.animate(model.time); //(frame_input.accumulated_time as f32);
-    
-                    let scc = RenderTarget::screen(&model.context, model.vp.width, model.vp.height);
-    
-                    // Get the screen render target to be able to render something on the screen
-                    //frame_input.screen()
-                    scc
-                        // Clear the color and depth of the screen render target
-                        //.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-                        // Render the triangle with the color material which uses the per vertex colors defined at construction
-                        .render(
-                            &model.camera, &model.model, &[]
-                        );
-    
-    
-    
-                }
+            if let Some(model) = &mut self.model {
+                model.set_char_plane_target(2);
+                model.draw(0);
             }
 
 
@@ -1381,6 +1517,10 @@ impl BackendRenderer for OpenGLRenderer {
     }
 
     fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

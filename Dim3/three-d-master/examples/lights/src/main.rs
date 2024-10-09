@@ -1,14 +1,19 @@
-// Entry point for non-wasm
-#[cfg(not(target_arch = "wasm32"))]
-#[tokio::main]
-async fn main() {
-    run().await;
-}
-
+use std::path;
 use rand::prelude::*;
 use three_d::*;
 
-pub async fn run() {
+mod gltf_local;
+
+// Entry point for non-wasm
+//#[cfg(not(target_arch = "wasm32"))]
+//#[tokio::main]
+
+fn main() {
+    run();
+}
+
+
+pub fn run() {
     let window = Window::new(WindowSettings {
         title: "Lights!".to_string(),
         max_size: Some((1280, 720)),
@@ -29,18 +34,35 @@ pub async fn run() {
     let mut control = FlyControl::new(0.01);
     let mut gui = three_d::GUI::new(&context);
 
-    let mut loaded = if let Ok(loaded) =
-        three_d_asset::io::load_async(&["../assets/sponza/Sponza.gltf"]).await
-    {
-        loaded
-    } else {
-        three_d_asset::io::load_async(&["https://asny.github.io/three-d/assets/sponza/Sponza.gltf"])
-            .await
-            .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
-    };
+    let mut loaded = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]).unwrap();
+    // let mut loaded = if let Ok(loaded) =
+    //     three_d_asset::io::load_async(&["../../../../assets/sponza/Sponza.gltf"]).await
+    // {
+    //     loaded
+    // } else {
+    //     three_d_asset::io::load_async(&["https://asny.github.io/three-d/assets/sponza/Sponza.gltf"])
+    //         .await
+    //         .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
+    // };
 
-    let model = loaded.deserialize("Sponza.gltf").unwrap();
-    let model = Model::<DeferredPhysicalMaterial>::new(&context, &model).unwrap();
+    let mut pathh = path::PathBuf::new();
+    pathh.push("testOrigin.glb");
+    let (mm, mut lightts) = gltf_local::deserialize_gltf(&context, &mut loaded, &pathh).unwrap();
+
+    let model = mm.into();
+
+
+    //let model = loaded.deserialize("testOrigin.glb").unwrap();
+    let mut model = Model::<DeferredPhysicalMaterial>::new(&context, &model).unwrap();
+
+
+    let mut anim_list = model.animations();
+    for anim in anim_list.iter_mut() {
+        if let Some(aa) = anim {
+            print!("{}", aa);
+        }
+    }
+    model.choose_animation(Some("AnimA"));
 
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     for m in model.iter() {
@@ -122,13 +144,15 @@ pub async fn run() {
 
         control.handle_events(&mut camera, &mut frame_input.events);
 
+        model.animate(0.001 * frame_input.accumulated_time as f32);
+
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.2, 0.2, 0.8, 1.0, 1.0))
             .render(
                 &camera,
                 lights.iter().map(|l| l.object()).chain(&model),
-                &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
+                &lightts.iter().map(|l| l.as_ref()).collect::<Vec<_>>(), //&lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
             )
             .write(|| gui.render())
             .unwrap();

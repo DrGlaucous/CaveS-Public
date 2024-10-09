@@ -1,5 +1,7 @@
-#![allow(special_module_name)]
-mod main;
+//this tripped me up...
+//#![allow(special_module_name)]
+//mod main;
+
 
 // Entry point for wasm
 #[cfg(target_arch = "wasm32")]

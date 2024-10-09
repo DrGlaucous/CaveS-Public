@@ -2,6 +2,9 @@ use crate::common::{Color, Rect};
 use crate::framework::backend::{BackendShader, BackendTexture, VertexData};
 use crate::framework::context::Context;
 use crate::framework::error::{GameError, GameResult};
+use crate::game::Game;
+
+use super::render_opengl::OpenGLRenderer;
 
 pub enum FilterMode {
     Nearest,
@@ -135,7 +138,6 @@ pub fn set_clip_rect(ctx: &mut Context, rect: Option<Rect>) -> GameResult {
     Err(GameError::RenderError("Rendering backend hasn't been initialized yet.".to_string()))
 }
 
-
 pub fn imgui_context(ctx: &Context) -> GameResult<&mut imgui::Context> {
     if let Some(renderer) = ctx.renderer.as_ref() {
         return renderer.imgui();
@@ -195,4 +197,31 @@ pub fn draw_triangle_list(
     }
 
     Err(GameError::RenderError("Rendering backend hasn't been initialized yet.".to_string()))
+}
+
+/////new 3d methods:
+
+
+//updates the screen size in the three-d context (only works with an openGL renderer)
+pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32) -> GameResult {
+    if let Some(renderer) = &mut ctx.renderer {
+
+        let gl_renderer = renderer
+            .as_any_mut()
+            .downcast_mut::<OpenGLRenderer>();
+        if let Some(renderer) = gl_renderer {
+            if let Some(model) = &mut renderer.model {
+                model.set_viewport_size(width, height);
+
+                return Ok(());
+            }
+
+            return Err(GameError::RenderError(format!("Three-d not initialized!")));
+        }
+
+        return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
+    }
+
+    return Err(GameError::RenderError(format!("Renderer is not initialized!")));
+
 }

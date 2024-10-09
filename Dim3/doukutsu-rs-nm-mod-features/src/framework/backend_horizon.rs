@@ -1343,6 +1343,10 @@ impl BackendRenderer for Deko3DRenderer {
     fn as_any(&self) -> &dyn Any {
         self
     }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
 }
 
 pub fn web_open(url: &str) -> std::io::Result<()> {
