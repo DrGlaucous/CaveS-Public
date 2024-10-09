@@ -716,7 +716,7 @@ impl SharedGameState {
         self.textscript_vm.suspend = true;
     }
 
-    pub fn handle_resize(&mut self, ctx: &mut Context) -> GameResult {
+    pub fn handle_resize(&mut self, ctx: &mut Context, test_zoom: f32) -> GameResult {
         self.screen_size = graphics::screen_size(ctx);
         let scale_x = self.screen_size.1.div(self.preferred_viewport_size.1).floor().max(1.0);
         let scale_y = self.screen_size.0.div(self.preferred_viewport_size.0).floor().max(1.0);
@@ -730,7 +730,7 @@ impl SharedGameState {
         set_render_target(ctx, None)?;
         self.lightmap_canvas = Some(create_texture_mutable(ctx, width, height)?);
 
-        let _ = graphics::set_3d_viewport(ctx, width as u32, height as u32);
+        let _ = graphics::set_3d_viewport(ctx, width as u32, height as u32, self.scale, test_zoom);
 
         Ok(())
     }

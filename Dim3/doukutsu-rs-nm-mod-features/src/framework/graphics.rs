@@ -203,7 +203,7 @@ pub fn draw_triangle_list(
 
 
 //updates the screen size in the three-d context (only works with an openGL renderer)
-pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32) -> GameResult {
+pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32, test_zoom: f32) -> GameResult {
     if let Some(renderer) = &mut ctx.renderer {
 
         let gl_renderer = renderer
@@ -211,7 +211,7 @@ pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32) -> GameResult
             .downcast_mut::<OpenGLRenderer>();
         if let Some(renderer) = gl_renderer {
             if let Some(model) = &mut renderer.model {
-                model.set_viewport_size(width, height);
+                model.set_viewport_size(width, height, scale, test_zoom);
 
                 return Ok(());
             }

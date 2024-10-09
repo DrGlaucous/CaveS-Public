@@ -7,6 +7,7 @@ use std::mem;
 use std::mem::MaybeUninit;
 use std::ptr::null;
 use std::sync::Arc;
+use std::path;
 
 use context::NativeFramebuffer;
 use three_d::*;
@@ -17,6 +18,7 @@ use three_d::geometry::CpuMesh;
 
 
 use imgui::{DrawCmd, DrawCmdParams, DrawData, DrawIdx, DrawVert, TextureId, Ui};
+use three_d_asset::io::RawAssets;
 
 use crate::common::{Color, Rect};
 use crate::framework::backend::{BackendRenderer, BackendShader, BackendTexture, SpriteBatchCommand, VertexData};
@@ -30,7 +32,8 @@ use crate::framework::graphics::{BlendMode, VSyncMode};
 use crate::framework::util::{field_offset, return_param};
 use crate::game::{Game, GAME_SUSPENDED};
 
-use super::buffer_material::BufferMaterial;
+use crate::framework::buffer_material::BufferMaterial;
+use crate::framework::gltf_local::deserialize_gltf;
 
 pub struct GLContext {
     pub gles2_mode: bool,
@@ -601,8 +604,12 @@ pub struct ThreeDModelSetup {
     context: ThreeDContext, //three_d::core::context constructed from "glow" context: three_d::context::Context 
     camera: Camera, //observation location of the 3D meshes
     char_plane: Gm<Mesh, BufferMaterial>, //2d image that holds the user character and interractable elements
+    
+    //location of the upper-level game frame
+    frame_xy: (f32, f32),
+    
     map_models: Vec<Model<PhysicalMaterial>>, //Vec<Gm<Mesh, BufferMaterial>>, //a list of map meshes
-    lights: Vec<DirectionalLight>, //list of lights in the model
+    lights: Vec<Box<dyn Light>>, //list of lights in the model
 
     //test: spin user plane
     time: f32,
@@ -649,7 +656,6 @@ impl ThreeDModelSetup {
         }
         
 
-
         //initial viewport size, should change with screen resizes
         let vp = Viewport {
             x: 0,
@@ -661,16 +667,16 @@ impl ThreeDModelSetup {
         // Create a camera
         let mut camera = Camera::new_perspective(
             vp,
-            vec3(4.0, 1.5, 4.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
+            vec3(0.0, 0.0, 19.0), //(4.0, 1.5, 4.0)
+            vec3(0.0, 0.0, 0.0), //(0.0, 1.0, 0.0)
+            vec3(0.0, 1.0, 0.0), //(0.0, 1.0, 0.0)
             degrees(45.0),
             0.1,
             1000.0,
         );
 
         //holds the PC and other 2d elements
-        let mut plane = Self::new_rectangle(2.0, 1.0);//(vp.width as f32, vp.height as f32);
+        let mut plane = Self::new_rectangle(1.0, 1.0);
         let mut char_plane = Gm::new(
             Mesh::new(&context, &plane),
             BufferMaterial::new(true, 2), //default tex ID is 2 for now...
@@ -686,32 +692,46 @@ impl ThreeDModelSetup {
         //     loaded
         // }
 
+         
         let mut model_list: Vec<Model<PhysicalMaterial>> = Vec::new();
 
         let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]);
+        
+        let mut lights: Vec<Box<dyn Light>> = Vec::new();
         if let Ok(mut raw_assets) = assets {
 
-            let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
+            let mut pathh = path::PathBuf::new();
+            pathh.push("testOrigin.glb");
+            let (mm, mut light_list) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
+            let mut cpu_model: CpuModel = mm.into();
+
+            //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
             cpu_model
                 .geometries
                 .iter_mut()
                 .for_each(|part| part.compute_normals());
+
             let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+
+            lights = light_list;
+
             model_list.push(model);
         }
 
-        let mut lights: Vec<DirectionalLight> = Vec::new();
         // let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
         // let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
         // lights.push(light0);
         // lights.push(light1);
+        
+        log::info!("light count: {}", lights.len());
 
         ThreeDModelSetup {
             vp,
             context,
             camera,
             char_plane,
-            map_models: model_list, //Vec::new(),
+            frame_xy: (0.0,0.0),
+            map_models: model_list,
             lights,
             time: 0.0,
         }
@@ -721,12 +741,46 @@ impl ThreeDModelSetup {
     }
 
     /// Loads a GLTF into the three-d backend to be rendered onscreen, returns the index of the model if successful
-    pub fn load_gltf(path: &str) -> GameResult<u32> {
-        Ok(5)
+    pub fn load_gltf(&mut self, path: &str, data: &[u8], update_lights: bool) -> GameResult<usize> {
+
+        //push the file into the raw_assets object
+        let mut raw_assets = RawAssets::new();
+        raw_assets.insert(path, data.to_vec());
+
+
+        let mut lights: Vec<Box<dyn Light>> = Vec::new();
+
+
+        let mut path_buffer = path::PathBuf::new();
+        path_buffer.push(path);
+        let (parsed_scene, mut light_list) = deserialize_gltf(&self.context, &mut raw_assets, &path_buffer).unwrap();
+        let mut cpu_model: CpuModel = parsed_scene.into();
+
+        cpu_model
+            .geometries
+            .iter_mut()
+            .for_each(|part| part.compute_normals());
+
+        let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
+
+        self.map_models.push(model);
+
+        //delete old lights and add new ones
+        if update_lights {
+            self.lights = light_list;
+        }
+
+        Ok(self.map_models.len())
     }
 
     /// unloads the GLTF at the provided index, returns error if OOB
-    pub fn unload_gltf(index: usize) -> GameResult {
+    pub fn unload_gltf(&mut self, index: usize) -> GameResult {
+
+        if index >= self.map_models.len() {
+            return Err(GameError::InvalidValue(format!("index {} is out of range! Max index: {}", index, self.map_models.len())))
+        }
+        self.map_models.remove(index);
+
         Ok(())
     }
 
@@ -774,20 +828,12 @@ impl ThreeDModelSetup {
         //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
         // }
 
-        //slow test
-        let light0 = DirectionalLight::new(&self.context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
-        let light1 = DirectionalLight::new(&self.context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
-
-
-        // Ensure the viewport matches the current window viewport which changes if the window is resized
-        self.camera.set_viewport(self.vp);//(frame_input.viewport);
-
         render_target
             // Clear the color and depth of the screen render target
             //.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
             // Render the triangle with the color material which uses the per vertex colors defined at construction
             .render(&self.camera, &self.char_plane, &[])
-            .render(&self.camera, &self.map_models[0], &[&light0, &light1]);
+            .render(&self.camera, &self.map_models[0], &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>());
 
         Ok(())
 
@@ -862,12 +908,104 @@ impl ThreeDModelSetup {
         self.char_plane.update_positions(&positions);
     }
 
-    pub fn set_viewport_size(&mut self, width: u32, height: u32) {
+    pub fn set_viewport_size(&mut self, width: u32, height: u32, scale: f32, test_zoom: f32) {
         
-        self.resize_char_plane(width as f32 / 320.0, height as f32 / 240.0);
+        //todo: divide by 320 * scale... 320, 240
+        self.resize_char_plane((width as f32) / (16.0 * scale), (height as f32) / (16.0 * scale));
         
-        self.vp.width = width;
-        self.vp.height = height;
+        self.vp.width = width / (1 as u32);
+        self.vp.height = height / (1 as u32);
+
+        // Ensure the viewport matches the current window viewport which changes if the window is resized
+        self.camera.set_viewport(self.vp);
+
+        //hard-coded for now
+        let fov = (45.0 as f32).to_radians();
+
+        let screen_width = (width as f32) / scale;
+
+
+        let a = (screen_width) / 2.0;
+        let b = a / (fov / 2.0).tan();
+
+
+        //552 x 294: 22.2 (scale level: 1)
+        //657 x 480: 18 (scale level: 2)
+        //1920 x 1017: 19.2 (scale level: 3)
+
+        //different units
+        //676 x 480, Zoom: 90, scale: 2
+        //1512 x 408, Zoom: 153, scale: 1
+        //243 x 270, Zoom: 102, scale: 1
+
+
+        //243 x 464, Zoom: 175, scale: 1
+        //243 x 512, Zoom: 193, scale: 1
+        //243 x 368, Zoom: 139, scale: 1
+        //243 x 307, Zoom: 116, scale: 1
+        //line equation: zoom = 0.3755 * height + 1
+        
+        //different units
+        //640 x 480, Zoom: 181, scale: 2
+
+        //pay attention to Y only:
+        //710 x 224, Zoom: 169, scale: 1
+        //569 x 301, Zoom: 227, scale: 1
+        //623 x 341, Zoom: 257, scale: 1
+        //268 x 378, Zoom: 285, scale: 1
+        //573 x 125, Zoom: 94, scale: 1
+
+        //[224,301,341,378,125]
+        //[169,227,257,285,94]
+        //slope: 0.7555
+
+        //724 x 612, Zoom: 231, scale: 2
+        //670 x 578, Zoom: 218, scale: 2
+        //670 x 620, Zoom: 234, scale: 2
+        //724 x 652, Zoom: 246, scale: 2
+        //764 x 692, Zoom: 261, scale: 2
+
+        //[612, 578, 620, 652, 692]
+        //[231, 218, 234, 246, 261]
+        //slope: 0.37728
+
+        //1270 x 969, Zoom: 244, scale: 3
+        //964 x 911, Zoom: 229, scale: 3
+        //964 x 893, Zoom: 224, scale: 3
+        //1099 x 826, Zoom: 207, scale: 3
+        //1099 x 722, Zoom: 180, scale: 3
+
+        //[969, 911, 893, 826, 722]
+        //[244, 229, 224, 207, 180]
+        //slope: 0.25133
+
+        //2147 x 971, Zoom: 183, scale: 4
+        //2147 x 996, Zoom: 188, scale: 4
+        //2147 x 989, Zoom: 186, scale: 4
+        //2147 x 979, Zoom: 184, scale: 4
+        //2147 x 984, Zoom: 185, scale: 4
+
+        //[971, 996, 989, 979, 984]
+        //[183, 188, 186, 184, 185]
+        //slope: 0.18834
+
+        //all relationships between screen scale and height are linear,
+        //relation between scale and width doesn't matter
+        
+
+
+
+        let mut pos = self.camera.position().clone();
+        pos.z = 0.1 * test_zoom; //0.2 * (0.3755 * (height as f32) + 1.0); //0.2 * test_zoom;
+        pos.x = 0.0;
+        pos.y = 0.0;
+
+        log::info!("{} x {}, Zoom: {}, scale: {}", width, height, test_zoom, scale);
+
+        let tgt = self.camera.target().clone();
+        let up = self.camera.up().clone().clone();
+        self.camera.set_view(pos, tgt, up);
+
 
     }
 
