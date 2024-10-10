@@ -35,6 +35,14 @@ pub fn main() {
         Wrapping::ClampToEdge,
     );
 
+    let mut midstep_depth_surf = DepthTexture2D::new::<f32>(
+        &context,
+        vp.width,
+        vp.height,
+        Wrapping::ClampToEdge,
+        Wrapping::ClampToEdge
+    );
+
 
 
     let mut sphere = Gm::new(
@@ -116,32 +124,86 @@ pub fn main() {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
-            
-        midstep_surface.as_color_target(None)
-            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .render(
-                &camera,
-                sphere
-                    .into_iter()
-                    .chain(&cylinder)
-                    .chain(&cube)
-                    .chain(&axes)
-                    .chain(&bounding_box_sphere)
-                    .chain(&bounding_box_cube)
-                    .chain(&bounding_box_cylinder),
-                &[&light0, &light1],
-            );
+        //to rendertarget
+        {
+            RenderTarget::new(
+                midstep_surface.as_color_target(None), 
+                midstep_depth_surf.as_depth_target())
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                .render(
+                    &camera,
+                    sphere
+                        .into_iter()
+                        .chain(&cylinder)
+                        .chain(&cube)
+                        .chain(&axes)
+                        .chain(&bounding_box_sphere)
+                        .chain(&bounding_box_cube)
+                        .chain(&bounding_box_cylinder),
+                    &[&light0, &light1],
+                );
 
-        frame_input
-            .screen()
-            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .apply_screen_effect(
-                &ScreenEffect::default(),
-                &camera,
-                &[],
-                Some(ColorTexture::Single(&midstep_surface)),
-                None,
-            );
+            frame_input
+                .screen()
+                .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                .apply_screen_effect(
+                    &ScreenEffect::default(),
+                    &camera,
+                    &[],
+                    Some(ColorTexture::Single(&midstep_surface)),
+                    None,
+                );
+        }
+
+        //just color
+        {
+            // midstep_surface.as_color_target(None)
+            //     .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            //     .render(
+            //         &camera,
+            //         sphere
+            //             .into_iter()
+            //             .chain(&cylinder)
+            //             .chain(&cube)
+            //             .chain(&axes)
+            //             .chain(&bounding_box_sphere)
+            //             .chain(&bounding_box_cube)
+            //             .chain(&bounding_box_cylinder),
+            //         &[&light0, &light1],
+            //     );
+            
+            // frame_input
+            //     .screen()
+            //     .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            //     .apply_screen_effect(
+            //         &ScreenEffect::default(),
+            //         &camera,
+            //         &[],
+            //         Some(ColorTexture::Single(&midstep_surface)),
+            //         None,
+            //     );
+        }
+
+        //to screen (raw)
+        {
+            // frame_input
+            // .screen()
+            // .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            // .render(
+            //     &camera,
+            //     sphere
+            //         .into_iter()
+            //         .chain(&cylinder)
+            //         .chain(&cube)
+            //         .chain(&axes)
+            //         .chain(&bounding_box_sphere)
+            //         .chain(&bounding_box_cube)
+            //         .chain(&bounding_box_cylinder),
+            //     &[&light0, &light1],
+            // );
+        }
+
+
 
 
         FrameOutput::default()
