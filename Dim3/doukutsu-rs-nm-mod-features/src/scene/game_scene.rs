@@ -1676,7 +1676,6 @@ impl GameScene {
         graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
         graphics::clear(ctx, Color::from_rgba(255, 255, 0, 255));
 
-
         
         {
             //here
@@ -1753,15 +1752,27 @@ impl GameScene {
         graphics::set_3d_char_plane(ctx, state.char_plane_canvas.as_ref().unwrap())?;
 
         //draw the 3D layer
-        graphics::draw_3d(ctx, None)?; //(ctx, state.three_d_canvas.as_ref())?;
+        //graphics::draw_3d(ctx, None)?; //(ctx, state.three_d_canvas.as_ref())?;
 
         //graphics::clear(ctx, Color::from_rgba(255, 0, 0, 255));
-
         //return to screenbuffer render target (I think this already happens above, but we'll do it here just to be safe)
-        //graphics::set_render_target(ctx, None)?;
+        graphics::set_render_target(ctx, None)?;
 
-        //let canvas = state.char_plane_canvas.as_mut().unwrap();
-        //canvas.draw()?;
+
+
+        //draw yellow to char_plane_canvas, then draw it to screen
+        // graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
+        // graphics::set_blend_mode(ctx, BlendMode::None)?;
+        // graphics::clear(ctx, Color::from_rgba(255, 255, 0, 255));
+        // graphics::set_render_target(ctx, None)?;
+        // graphics::set_blend_mode(ctx, BlendMode::None)?;
+        // let canvas = state.char_plane_canvas.as_mut().unwrap();
+        // let rect = Rect { left: 0.0, top: 0.0, right: state.screen_size.0, bottom: state.screen_size.1 };
+        // canvas.clear();
+        // canvas.add(SpriteBatchCommand::DrawRect(rect, rect));
+        // canvas.draw()?;
+
+
 
         Ok(())
 
