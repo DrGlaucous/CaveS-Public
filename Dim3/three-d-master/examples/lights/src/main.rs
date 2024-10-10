@@ -133,6 +133,9 @@ pub fn run() {
             );
             light.update(0.00005 * size.magnitude() * frame_input.elapsed_time as f32);
         }
+
+        let old_vp = camera.viewport();
+
         let viewport = Viewport {
             x: (panel_width * frame_input.device_pixel_ratio) as i32,
             y: 0,
@@ -140,7 +143,11 @@ pub fn run() {
                 - (panel_width * frame_input.device_pixel_ratio) as u32,
             height: frame_input.viewport.height,
         };
-        camera.set_viewport(viewport);
+
+        if old_vp.height != viewport.height
+        || old_vp.width != viewport.width {
+            camera.set_viewport(viewport);
+        }
 
         control.handle_events(&mut camera, &mut frame_input.events);
 

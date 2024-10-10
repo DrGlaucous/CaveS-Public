@@ -922,13 +922,14 @@ impl ThreeDModelSetup {
         //hard-coded for now
         let fov = (45.0 as f32).to_radians();
 
-        let screen_width = (width as f32) / scale;
+        let screen_height = (height as f32) / scale;
 
 
-        let a = (screen_width) / 2.0;
+        let a = (screen_height) / 2.0;
         let b = a / (fov / 2.0).tan();
 
 
+        /*
         //552 x 294: 22.2 (scale level: 1)
         //657 x 480: 18 (scale level: 2)
         //1920 x 1017: 19.2 (scale level: 3)
@@ -991,12 +992,12 @@ impl ThreeDModelSetup {
 
         //all relationships between screen scale and height are linear,
         //relation between scale and width doesn't matter
-        
+        */
 
 
 
         let mut pos = self.camera.position().clone();
-        pos.z = 0.1 * test_zoom; //0.2 * (0.3755 * (height as f32) + 1.0); //0.2 * test_zoom;
+        pos.z = b / 16.0; //0.1 * test_zoom; //0.2 * (0.3755 * (height as f32) + 1.0); //0.2 * test_zoom;
         pos.x = 0.0;
         pos.y = 0.0;
 
