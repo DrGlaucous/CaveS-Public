@@ -38,7 +38,7 @@ impl BackendEventLoop for NullEventLoop {
         let state_ref = unsafe { &mut *game.state.get() };
 
         ctx.screen_size = (640.0, 480.0);
-        state_ref.handle_resize(ctx, 0.0).unwrap();
+        state_ref.handle_resize(ctx).unwrap();
 
         loop {
             game.update(ctx).unwrap();

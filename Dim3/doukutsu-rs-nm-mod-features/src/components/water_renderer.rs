@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use crate::common::{Color, Rect};
-use crate::framework::backend::{BackendShader, SpriteBatchCommand, VertexData};
+use crate::framework::backend::{BackendShader, SpriteBatchCommand, VertexData, BackendTexture};
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::graphics;
@@ -238,6 +238,7 @@ impl WaterRenderer {
         ctx: &mut Context,
         frame: &Frame,
         layer: WaterLayer,
+        dest_tex: Option<&Box<dyn BackendTexture>>,
     ) -> GameResult<()> {
         if !graphics::supports_vertex_draw(ctx)? {
             return Ok(());
@@ -343,7 +344,7 @@ impl WaterRenderer {
         }
 
         graphics::set_blend_mode(ctx, BlendMode::Alpha)?;
-        graphics::set_render_target(ctx, None)?;
+        graphics::set_render_target(ctx, dest_tex)?;
 
         {
             let canvas = state.lightmap_canvas.as_mut().unwrap();
@@ -353,6 +354,9 @@ impl WaterRenderer {
             canvas.add(SpriteBatchCommand::DrawRect(rect, rect));
             canvas.draw()?;
         }
+
+        //return to default
+        graphics::set_render_target(ctx, None)?;
 
         Ok(())
     }

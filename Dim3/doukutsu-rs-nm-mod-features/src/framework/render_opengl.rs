@@ -5,6 +5,7 @@ use std::ffi::{c_void, CStr};
 use std::hint::unreachable_unchecked;
 use std::mem;
 use std::mem::MaybeUninit;
+use std::mem::ManuallyDrop;
 use std::ptr::null;
 use std::sync::Arc;
 use std::path;
@@ -34,6 +35,26 @@ use crate::game::{Game, GAME_SUSPENDED};
 
 use crate::framework::buffer_material::BufferMaterial;
 use crate::framework::gltf_local::deserialize_gltf;
+
+
+pub fn handle_err(gl: &Gl, extra_info: u32) {
+    
+    //extra_info = 0: nothing
+    //1: pulled from load_gl (655)
+
+
+
+    unsafe{
+        let err = gl.gl.GetError();
+        //gl::INVALID_ENUM
+        if err != 0 && extra_info != 1 {
+        //if err != 0 {
+            log::error!("OpenGL error: {}", err);
+        }
+    }
+
+}
+
 
 pub struct GLContext {
     pub gles2_mode: bool,
@@ -233,6 +254,9 @@ impl BackendTexture for OpenGLTexture {
     fn draw(&mut self) -> GameResult {
         unsafe {
             if let Some(gl) = &GL_PROC {
+
+                handle_err(gl, 0);
+
                 if self.texture_id == 0 {
                     return Ok(());
                 }
@@ -260,6 +284,8 @@ impl BackendTexture for OpenGLTexture {
                 gl.gl.BindTexture(gl::TEXTURE_2D, 0);
                 gl.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
 
+                handle_err(gl, 0);
+
                 Ok(())
             } else {
                 Err(RenderError("No OpenGL context available!".to_string()))
@@ -283,6 +309,8 @@ impl Drop for OpenGLTexture {
                     }
 
                     if self.framebuffer_id != 0 {}
+
+                    handle_err(gl, 0);
                 }
             }
         }
@@ -611,13 +639,16 @@ pub struct ThreeDModelSetup {
     map_models: Vec<Model<PhysicalMaterial>>, //Vec<Gm<Mesh, BufferMaterial>>, //a list of map meshes
     lights: Vec<Box<dyn Light>>, //list of lights in the model
 
+    //clone of the one from RenderData, since we need to know where to put our drawn stuff if we're drawing to the default location
+    surf_framebuffer: GLuint,
+
     //test: spin user plane
     time: f32,
 }
 
 impl ThreeDModelSetup {
 
-    pub fn new(gl_context: &mut GLContext) -> ThreeDModelSetup {
+    pub fn new(gl_context: &mut GLContext, surf_framebuffer: GLuint) -> ThreeDModelSetup {
 
         let gl = unsafe{
             // F: FnMut(&'static str) -> *const __gl_imports::raw::c_void,
@@ -667,7 +698,7 @@ impl ThreeDModelSetup {
         // Create a camera
         let mut camera = Camera::new_perspective(
             vp,
-            vec3(0.0, 0.0, 19.0), //(4.0, 1.5, 4.0)
+            vec3(4.0, 4.0, 0.0), //(4.0, 1.5, 4.0)
             vec3(0.0, 0.0, 0.0), //(0.0, 1.0, 0.0)
             vec3(0.0, 1.0, 0.0), //(0.0, 1.0, 0.0)
             degrees(45.0),
@@ -733,6 +764,7 @@ impl ThreeDModelSetup {
             frame_xy: (0.0,0.0),
             map_models: model_list,
             lights,
+            surf_framebuffer,
             time: 0.0,
         }
 
@@ -742,6 +774,8 @@ impl ThreeDModelSetup {
 
     /// Loads a GLTF into the three-d backend to be rendered onscreen, returns the index of the model if successful
     pub fn load_gltf(&mut self, path: &str, data: &[u8], update_lights: bool) -> GameResult<usize> {
+
+        self.narc();
 
         //push the file into the raw_assets object
         let mut raw_assets = RawAssets::new();
@@ -776,16 +810,33 @@ impl ThreeDModelSetup {
     /// unloads the GLTF at the provided index, returns error if OOB
     pub fn unload_gltf(&mut self, index: usize) -> GameResult {
 
+        self.narc();
+
         if index >= self.map_models.len() {
             return Err(GameError::InvalidValue(format!("index {} is out of range! Max index: {}", index, self.map_models.len())))
         }
         self.map_models.remove(index);
 
+
+        self.narc();
         Ok(())
     }
 
-    /// use this surface to draw onto the char plane. Must be a non-zero unsigned integer
-    pub fn set_char_plane_target(&mut self, target: u32) -> GameResult {
+    /// Tells the 3D context to use use this surface to draw onto the char plane.
+    pub fn set_char_plane_target_surf(&mut self, texture: &Box<dyn BackendTexture>) -> GameResult {
+        let gl_texture = texture
+            .as_any()
+            .downcast_ref::<OpenGLTexture>()
+            .ok_or_else(|| RenderError("This texture was not created by OpenGL backend.".to_string()))?;
+
+        self.set_char_plane_target_no(gl_texture.texture_id)
+
+    }
+
+    /// same as `set_char_plane_target_surf` except it takes a raw openGL surface ID
+    pub fn set_char_plane_target_no(&mut self, target: u32) -> GameResult {
+
+        self.narc();
 
         if let Some(num) = NonZeroU32::new(target) {
             self.char_plane.material.tex_id = num;
@@ -801,12 +852,41 @@ impl ThreeDModelSetup {
         let num = self.char_plane.material.tex_id.get();
     }
 
+
+    pub fn narc(&mut self) {
+        let resultt = self.context.error_check();
+        if let Err(prob) = resultt {
+            log::info!("ERR: {}", prob);
+        }
+    }
+
+    /// draws to this texture. If null, it draws directly to the screenbuffer instead
+    pub fn draw(&mut self, texture: Option<&Box<dyn BackendTexture>>) -> GameResult {
+        if let Some(texture) = texture {
+            let gl_texture = texture
+                .as_any()
+                .downcast_ref::<OpenGLTexture>()
+                .ok_or_else(|| RenderError("This texture was not created by OpenGL backend.".to_string()))?;
+
+            //draw to opengl framebuffer
+            self.draw_no(gl_texture.framebuffer_id)?;
+
+        } else {
+            //draw to the shared screenbuffer
+            self.draw_no(self.surf_framebuffer)?;
+        }
+
+        Ok(())
+    }
+
     /// draws all meshes and the PC plane to the gl surface set by the passed-in argument
     /// Note that due to the framework, running this resets the binding back to 0 when finished
-    pub fn draw(&mut self, dest_id: u32) -> GameResult {
+    pub fn draw_no(&mut self, dest_id: u32) -> GameResult {
+
+        self.narc();
 
         //what texture we're targeting (if 0, target the screenbuffer. Otherwise, target the ID we've been given)
-        let render_target = if dest_id == 0 {
+        let render_target = ManuallyDrop::new(if dest_id == 0 {
             RenderTarget::screen(&self.context, self.vp.width, self.vp.height)
         } else {
             let destination = NonZeroU32::new(dest_id);
@@ -814,10 +894,14 @@ impl ThreeDModelSetup {
                 return Err(GameError::InvalidValue(format!("Number {} was not a valid non-zero u32", dest_id)));
             }
             let destination = destination.unwrap();
-            RenderTarget::from_framebuffer(&self.context,self.vp.width, self.vp.height, NativeFramebuffer(destination))
-        };
+            self.narc();
+            let fb = NativeFramebuffer(destination);
+            self.narc();
+            RenderTarget::from_framebuffer(&self.context,self.vp.width, self.vp.height, fb)
+        });
 
-
+        self.narc();
+        
         //no need to clear: the normal stuff already does this.
         //will need to clear if we're putting this on a 
         // unsafe {
@@ -834,6 +918,10 @@ impl ThreeDModelSetup {
             // Render the triangle with the color material which uses the per vertex colors defined at construction
             .render(&self.camera, &self.char_plane, &[])
             .render(&self.camera, &self.map_models[0], &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>());
+
+
+        
+        self.narc();
 
         Ok(())
 
@@ -876,12 +964,21 @@ impl ThreeDModelSetup {
             Vec4::new(1.0, 0.0, 0.0, 1.0),
             Vec4::new(1.0, 0.0, 0.0, 1.0),
         ];
+
+        //flip these since d-rs draws stuff upside down
+        // let uvs = vec![
+        //     Vec2::new(0.0, 1.0),
+        //     Vec2::new(1.0, 1.0),
+        //     Vec2::new(1.0, 0.0),
+        //     Vec2::new(0.0, 0.0),
+        // ];
         let uvs = vec![
-            Vec2::new(0.0, 1.0),
-            Vec2::new(1.0, 1.0),
-            Vec2::new(1.0, 0.0),
             Vec2::new(0.0, 0.0),
+            Vec2::new(1.0, 0.0),
+            Vec2::new(1.0, 1.0),
+            Vec2::new(0.0, 1.0),
         ];
+
         CpuMesh {
             indices: Indices::U8(indices),
             positions: Positions::F32(positions),
@@ -908,7 +1005,7 @@ impl ThreeDModelSetup {
         self.char_plane.update_positions(&positions);
     }
 
-    pub fn set_viewport_size(&mut self, width: u32, height: u32, scale: f32, test_zoom: f32) {
+    pub fn set_viewport_size(&mut self, width: u32, height: u32, scale: f32) {
         
         //todo: divide by 320 * scale... 320, 240
         self.resize_char_plane((width as f32) / (16.0 * scale), (height as f32) / (16.0 * scale));
@@ -929,79 +1026,12 @@ impl ThreeDModelSetup {
         let b = a / (fov / 2.0).tan();
 
 
-        /*
-        //552 x 294: 22.2 (scale level: 1)
-        //657 x 480: 18 (scale level: 2)
-        //1920 x 1017: 19.2 (scale level: 3)
-
-        //different units
-        //676 x 480, Zoom: 90, scale: 2
-        //1512 x 408, Zoom: 153, scale: 1
-        //243 x 270, Zoom: 102, scale: 1
-
-
-        //243 x 464, Zoom: 175, scale: 1
-        //243 x 512, Zoom: 193, scale: 1
-        //243 x 368, Zoom: 139, scale: 1
-        //243 x 307, Zoom: 116, scale: 1
-        //line equation: zoom = 0.3755 * height + 1
-        
-        //different units
-        //640 x 480, Zoom: 181, scale: 2
-
-        //pay attention to Y only:
-        //710 x 224, Zoom: 169, scale: 1
-        //569 x 301, Zoom: 227, scale: 1
-        //623 x 341, Zoom: 257, scale: 1
-        //268 x 378, Zoom: 285, scale: 1
-        //573 x 125, Zoom: 94, scale: 1
-
-        //[224,301,341,378,125]
-        //[169,227,257,285,94]
-        //slope: 0.7555
-
-        //724 x 612, Zoom: 231, scale: 2
-        //670 x 578, Zoom: 218, scale: 2
-        //670 x 620, Zoom: 234, scale: 2
-        //724 x 652, Zoom: 246, scale: 2
-        //764 x 692, Zoom: 261, scale: 2
-
-        //[612, 578, 620, 652, 692]
-        //[231, 218, 234, 246, 261]
-        //slope: 0.37728
-
-        //1270 x 969, Zoom: 244, scale: 3
-        //964 x 911, Zoom: 229, scale: 3
-        //964 x 893, Zoom: 224, scale: 3
-        //1099 x 826, Zoom: 207, scale: 3
-        //1099 x 722, Zoom: 180, scale: 3
-
-        //[969, 911, 893, 826, 722]
-        //[244, 229, 224, 207, 180]
-        //slope: 0.25133
-
-        //2147 x 971, Zoom: 183, scale: 4
-        //2147 x 996, Zoom: 188, scale: 4
-        //2147 x 989, Zoom: 186, scale: 4
-        //2147 x 979, Zoom: 184, scale: 4
-        //2147 x 984, Zoom: 185, scale: 4
-
-        //[971, 996, 989, 979, 984]
-        //[183, 188, 186, 184, 185]
-        //slope: 0.18834
-
-        //all relationships between screen scale and height are linear,
-        //relation between scale and width doesn't matter
-        */
-
-
-
         let mut pos = self.camera.position().clone();
         pos.z = b / 16.0; //0.1 * test_zoom; //0.2 * (0.3755 * (height as f32) + 1.0); //0.2 * test_zoom;
-        pos.x = 0.0;
-        pos.y = 0.0;
+        //pos.x = 0.0;
+        //pos.y = 0.0;
 
-        log::info!("{} x {}, Zoom: {}, scale: {}", width, height, test_zoom, scale);
+        log::info!("{} x {}, scale: {}", width, height, scale);
 
         let tgt = self.camera.target().clone();
         let up = self.camera.up().clone().clone();
@@ -1048,7 +1078,7 @@ impl OpenGLRenderer {
 
         //make new 3D context
         if(self.model.is_none()) {
-            self.model = Some(ThreeDModelSetup::new(&mut self.refs));
+            self.model = Some(ThreeDModelSetup::new(&mut self.refs, self.render_data.surf_framebuffer));
         }
 
         Some((&mut self.refs, gl))
@@ -1085,48 +1115,62 @@ impl BackendRenderer for OpenGLRenderer {
 
         unsafe {
 
+
+
             
             if let Some((_, gl)) = self.get_context() {
+
+                handle_err(gl, 0);
+
                 gl.gl.BindFramebuffer(gl::FRAMEBUFFER, 0);
                 gl.gl.ClearColor(0.0, 0.0, 0.0, 1.0);
                 gl.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-                // let matrix: [[f32; 4]; 4] =
-                //     [[2.0f32, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [-1.0, 1.0, 0.0, 1.0]];
+                let matrix: [[f32; 4]; 4] =
+                    [[2.0f32, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [-1.0, 1.0, 0.0, 1.0]];
 
-                // self.render_data.tex_shader.bind_attrib_pointer(gl, self.render_data.vbo);
-                // gl.gl.UniformMatrix4fv(self.render_data.tex_shader.proj_mtx, 1, gl::FALSE, matrix.as_ptr() as _);
+                self.render_data.tex_shader.bind_attrib_pointer(gl, self.render_data.vbo);
+                gl.gl.UniformMatrix4fv(self.render_data.tex_shader.proj_mtx, 1, gl::FALSE, matrix.as_ptr() as _);
 
-                // let color = (255, 255, 255, 255);
-                // let vertices = [
-                //     VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
-                //     VertexData { position: (0.0, 0.0), uv: (0.0, 1.0), color },
-                //     VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
-                //     VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
-                //     VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
-                //     VertexData { position: (1.0, 1.0), uv: (1.0, 0.0), color },
-                // ];
+                let color = (255, 255, 255, 255);
+                let vertices = [
+                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
+                    VertexData { position: (0.0, 0.0), uv: (0.0, 1.0), color },
+                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
+                    VertexData { position: (0.0, 1.0), uv: (0.0, 0.0), color },
+                    VertexData { position: (1.0, 0.0), uv: (1.0, 1.0), color },
+                    VertexData { position: (1.0, 1.0), uv: (1.0, 0.0), color },
+                ];
 
-                // self.draw_arrays_tex_id(
-                //     gl::TRIANGLES,
-                //     &vertices,
-                //     self.render_data.surf_texture,
-                //     BackendShader::Texture,
-                // )?;
+                self.draw_arrays_tex_id(
+                    gl::TRIANGLES,
+                    &vertices,
+                    self.render_data.surf_texture,
+                    BackendShader::Texture,
+                )?;
+
+                handle_err(gl, 0);
 
                 gl.gl.Finish();
+
+                handle_err(gl, 0);
             }
 
-            //splice in three-d for testing
-            if let Some(model) = &mut self.model {
-                model.set_char_plane_target(2);
-                model.draw(0);
-            }
 
+            // //splice in three-d for testing
+            // if let Some(model) = &mut self.model {
+            //     model.set_char_plane_target_no(4);
+            //     let result = model.draw_no(0);//(self.render_data.surf_framebuffer);
+
+            //     if(result.is_err()) {
+            //         log::info!("ERROR");
+            //     }
+            // }
 
             if let Some((context, _)) = self.get_context() {
                 (context.swap_buffers)(&mut context.user_data);
             }
+
         }
 
         Ok(())
@@ -1162,6 +1206,7 @@ impl BackendRenderer for OpenGLRenderer {
 
     fn prepare_draw(&mut self, width: f32, height: f32) -> GameResult {
         if let Some((_, gl)) = self.get_context() {
+            handle_err(gl, 0);
             unsafe {
                 let (width_u, height_u) = (width as u32, height as u32);
                 if self.render_data.last_size != (width_u, height_u) {
@@ -1184,15 +1229,26 @@ impl BackendRenderer for OpenGLRenderer {
                     gl.gl.BindTexture(gl::TEXTURE_2D, 0 as _);
                 }
 
+                handle_err(gl, 0);
+
+                gl.gl.BindFramebuffer(gl::FRAMEBUFFER, self.render_data.surf_framebuffer); //aye... this be the problem
+                handle_err(gl, 0);
+
                 gl.gl.BindFramebuffer(gl::FRAMEBUFFER, self.render_data.surf_framebuffer);
+                handle_err(gl, 0);
+
                 gl.gl.ClearColor(0.0, 0.0, 0.0, 0.0);
                 gl.gl.Clear(gl::COLOR_BUFFER_BIT);
 
+                handle_err(gl, 0);
+                
                 gl.gl.ActiveTexture(gl::TEXTURE0);
                 gl.gl.BlendEquation(gl::FUNC_ADD);
                 gl.gl.BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
                 gl.gl.Viewport(0, 0, width_u as _, height_u as _);
+
+                handle_err(gl, 0);
 
                 self.def_matrix = [
                     [2.0 / width, 0.0, 0.0, 0.0],
@@ -1201,6 +1257,8 @@ impl BackendRenderer for OpenGLRenderer {
                     [-1.0, 1.0, 0.0, 1.0],
                 ];
                 self.curr_matrix = self.def_matrix;
+
+                handle_err(gl, 0);
 
                 gl.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
                 gl.gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
@@ -1227,8 +1285,10 @@ impl BackendRenderer for OpenGLRenderer {
                     gl::FALSE,
                     self.curr_matrix.as_ptr() as _,
                 );
+                handle_err(gl, 0);
             }
 
+            handle_err(gl, 0);
             Ok(())
         } else {
             Err(RenderError("No OpenGL context available!".to_string()))
@@ -1237,6 +1297,7 @@ impl BackendRenderer for OpenGLRenderer {
 
     fn create_texture_mutable(&mut self, width: u16, height: u16) -> GameResult<Box<dyn BackendTexture>> {
         if let Some((_, gl)) = self.get_context() {
+            handle_err(gl, 0);
             unsafe {
                 let current_texture_id = return_param(|x| gl.gl.GetIntegerv(gl::TEXTURE_BINDING_2D, x)) as u32;
                 let texture_id = return_param(|x| gl.gl.GenTextures(1, x));
@@ -1272,6 +1333,7 @@ impl BackendRenderer for OpenGLRenderer {
                 gl.gl.BindFramebuffer(gl::FRAMEBUFFER, 0);
 
                 // todo error checking: glCheckFramebufferStatus()
+                handle_err(gl, 0);
 
                 Ok(Box::new(OpenGLTexture {
                     texture_id,
@@ -1291,6 +1353,7 @@ impl BackendRenderer for OpenGLRenderer {
 
     fn create_texture(&mut self, width: u16, height: u16, data: &[u8]) -> GameResult<Box<dyn BackendTexture>> {
         if let Some((_, gl)) = self.get_context() {
+            handle_err(gl, 0);
             unsafe {
                 let current_texture_id = return_param(|x| gl.gl.GetIntegerv(gl::TEXTURE_BINDING_2D, x)) as u32;
                 let texture_id = return_param(|x| gl.gl.GenTextures(1, x));
@@ -1312,6 +1375,7 @@ impl BackendRenderer for OpenGLRenderer {
 
                 gl.gl.BindTexture(gl::TEXTURE_2D, current_texture_id);
 
+                handle_err(gl, 0);
                 Ok(Box::new(OpenGLTexture {
                     texture_id,
                     framebuffer_id: 0,
@@ -1330,6 +1394,7 @@ impl BackendRenderer for OpenGLRenderer {
 
     fn set_blend_mode(&mut self, blend: BlendMode) -> GameResult {
         if let Some((_, gl)) = self.get_context() {
+            handle_err(gl, 0);
             match blend {
                 BlendMode::Add => unsafe {
                     gl.gl.Enable(gl::BLEND);
@@ -1350,7 +1415,7 @@ impl BackendRenderer for OpenGLRenderer {
                     gl.gl.Disable(gl::BLEND);
                 },
             }
-
+            handle_err(gl, 0);
             Ok(())
         } else {
             Err(RenderError("No OpenGL context available!".to_string()))
@@ -1359,6 +1424,7 @@ impl BackendRenderer for OpenGLRenderer {
 
     fn set_render_target(&mut self, texture: Option<&Box<dyn BackendTexture>>) -> GameResult {
         if let Some((_, gl)) = self.get_context() {
+            handle_err(gl, 0);
             unsafe {
                 if let Some(texture) = texture {
                     let gl_texture = texture
@@ -1427,7 +1493,7 @@ impl BackendRenderer for OpenGLRenderer {
                     gl.gl.Viewport(0, 0, self.render_data.last_size.0 as _, self.render_data.last_size.1 as _);
                 }
             }
-
+            handle_err(gl, 0);
             Ok(())
         } else {
             Err(RenderError("No OpenGL context available!".to_string()))
@@ -1437,6 +1503,7 @@ impl BackendRenderer for OpenGLRenderer {
     fn draw_rect(&mut self, rect: Rect<isize>, color: Color) -> GameResult {
         unsafe {
             if let Some(gl) = &GL_PROC {
+                handle_err(gl, 0);
                 let color = color.to_rgba();
                 let mut uv = self.render_data.font_tex_size;
                 uv.0 = 0.0 / uv.0;
@@ -1466,7 +1533,7 @@ impl BackendRenderer for OpenGLRenderer {
 
                 gl.gl.BindTexture(gl::TEXTURE_2D, 0);
                 gl.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-
+                handle_err(gl, 0);
                 Ok(())
             } else {
                 Err(RenderError("No OpenGL context available!".to_string()))
@@ -1480,6 +1547,7 @@ impl BackendRenderer for OpenGLRenderer {
 
     fn set_clip_rect(&mut self, rect: Option<Rect>) -> GameResult {
         if let Some((_, gl)) = self.get_context() {
+            handle_err(gl, 0);
             unsafe {
                 if let Some(rect) = &rect {
                     gl.gl.Enable(gl::SCISSOR_TEST);
@@ -1493,6 +1561,7 @@ impl BackendRenderer for OpenGLRenderer {
                     gl.gl.Disable(gl::SCISSOR_TEST);
                 }
             }
+            handle_err(gl, 0);
 
             Ok(())
         } else {

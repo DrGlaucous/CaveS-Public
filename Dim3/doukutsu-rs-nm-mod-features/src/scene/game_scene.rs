@@ -23,7 +23,7 @@ use crate::components::tilemap::{TileLayer, Tilemap};
 use crate::components::water_renderer::{WaterLayer, WaterRenderer};
 use crate::components::whimsical_star::WhimsicalStar;
 use crate::entity::GameEntity;
-use crate::framework::backend::SpriteBatchCommand;
+use crate::framework::backend::{BackendTexture, SpriteBatchCommand};
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::framework::graphics::{draw_rect, BlendMode, FilterMode};
@@ -512,7 +512,8 @@ impl GameScene {
         }
     }
 
-    fn draw_light_map(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+    fn draw_light_map(&self, state: &mut SharedGameState, ctx: &mut Context, dest_tex: Option<&Box<dyn BackendTexture>>) -> GameResult {
+        //lightmap_canvas
         {
             let maybe_canvas = state.lightmap_canvas.as_ref();
 
@@ -527,6 +528,7 @@ impl GameScene {
 
         graphics::clear(ctx, Color::from_rgb(100, 100, 110));
 
+        //unused
         for npc in self.npc_list.iter_alive() {
             if npc.x < (self.frame.x - 128 * 0x200 - npc.display_bounds.width() as i32 * 0x200)
                 || npc.x
@@ -544,6 +546,7 @@ impl GameScene {
 
             npc.draw_lightmap(state, ctx, &self.frame)?;
         }
+
 
         {
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "builtin/lightmap/spot")?;
@@ -1088,9 +1091,10 @@ impl GameScene {
         }
 
         graphics::set_blend_mode(ctx, BlendMode::Multiply)?;
-        graphics::set_render_target(ctx, None)?;
+        graphics::set_render_target(ctx, dest_tex)?;
 
         {
+            //lightmap_canvas
             let canvas = state.lightmap_canvas.as_mut().unwrap();
             let rect = Rect { left: 0.0, top: 0.0, right: state.screen_size.0, bottom: state.screen_size.1 };
 
@@ -1109,12 +1113,20 @@ impl GameScene {
                 },
                 Color { r: 0.15, g: 0.12, b: 0.12, a: 1.0 },
             )?;
-            graphics::set_render_target(ctx, None)?;
+
+            //test
+            //graphics::set_blend_mode(ctx, BlendMode::None)?;
+            //graphics::clear(ctx, Color::from_rgba(255, 0, 0, 255));
+            
+            graphics::set_render_target(ctx, dest_tex)?;
             graphics::set_blend_mode(ctx, BlendMode::Add)?;
             canvas.draw()?;
 
             graphics::set_blend_mode(ctx, BlendMode::Alpha)?;
         }
+
+        //return to default
+        graphics::set_render_target(ctx, None)?;
 
         Ok(())
     }
@@ -1654,6 +1666,108 @@ impl GameScene {
 
         Ok(())
     }
+
+
+    fn draw_three_d(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+
+        //set target to the 3d surface's 2D plane
+        //if this fails or the canvas does not exist, this will simply draw to the screen instead (original behavior)
+        //let dest_tex = state.char_plane_canvas.as_ref();
+        graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
+        graphics::clear(ctx, Color::from_rgba(255, 255, 0, 255));
+
+
+        
+        {
+            //here
+            let stage_textures_ref = &*self.stage_textures.deref().borrow();
+            self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, false)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Background, stage_textures_ref, &self.stage)?;
+            self.draw_npc_layer(state, ctx, NPCLayer::Background)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Middleground, stage_textures_ref, &self.stage)?;
+
+            if state.settings.shader_effects && self.lighting_mode == LightingMode::BackgroundOnly {
+                //self.draw_light_map(state, ctx, None)?;
+            }
+
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::ForegroundBack, stage_textures_ref, &self.stage)?;
+
+            self.boss.draw(state, ctx, &self.frame)?;
+            self.draw_npc_layer(state, ctx, NPCLayer::Middleground)?;
+            self.draw_bullets(state, ctx)?;
+            self.player2.draw(state, ctx, &self.frame)?;
+            self.player1.draw(state, ctx, &self.frame)?;
+
+            if !self.player1.cond.hidden() {
+                self.whimsical_star.draw(state, ctx, &self.frame)?;
+            }
+
+            //self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back, None)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
+            self.draw_npc_layer(state, ctx, NPCLayer::Foreground)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?;
+            //self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front, None)?;
+            self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, true)?;
+            self.draw_carets(state, ctx)?;
+            self.player1.exp_popup.draw(state, ctx, &self.frame)?;
+            self.player1.damage_popup.draw(state, ctx, &self.frame)?;
+            self.player2.exp_popup.draw(state, ctx, &self.frame)?;
+            self.player2.damage_popup.draw(state, ctx, &self.frame)?;
+            self.draw_npc_popup(state, ctx)?;
+            self.draw_boss_popup(state, ctx)?;
+
+            if !state.control_flags.credits_running()
+                && state.settings.shader_effects
+                && self.lighting_mode == LightingMode::Ambient
+            {
+                //todo: make input texture modular (or not, though that feels like cheating)
+                //self.draw_light_map(state, ctx, None)?;
+            }
+
+            //note: flash normally goes here!
+            self.draw_black_bars(state, ctx)?;
+
+
+
+            //to here
+        }
+        
+        
+
+
+        //graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
+        //graphics::set_blend_mode(ctx, BlendMode::None)?;
+        //graphics::clear(ctx, Color::from_rgba(0, 255, 0, 255));
+        //graphics::set_render_target(ctx, None)?;
+        
+        //let canvas = state.char_plane_canvas.as_mut().unwrap();
+        //let rect = Rect { left: 0.0, top: 0.0, right: state.screen_size.0, bottom: state.screen_size.1 };
+
+        //canvas.clear();
+        //canvas.add(SpriteBatchCommand::DrawRect(rect, rect));
+        //canvas.draw()?;
+
+
+
+        graphics::set_3d_char_plane(ctx, state.char_plane_canvas.as_ref().unwrap())?;
+
+        //draw the 3D layer
+        graphics::draw_3d(ctx, None)?; //(ctx, state.three_d_canvas.as_ref())?;
+
+        //graphics::clear(ctx, Color::from_rgba(255, 0, 0, 255));
+
+        //return to screenbuffer render target (I think this already happens above, but we'll do it here just to be safe)
+        //graphics::set_render_target(ctx, None)?;
+
+        //let canvas = state.char_plane_canvas.as_mut().unwrap();
+        //canvas.draw()?;
+
+        Ok(())
+
+
+    }
+
 }
 
 impl Scene for GameScene {
@@ -2003,52 +2117,13 @@ impl Scene for GameScene {
             self.set_ironhead_clip(state, ctx)?;
         }
 
-        let stage_textures_ref = &*self.stage_textures.deref().borrow();
-        self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, false)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Background, stage_textures_ref, &self.stage)?;
-        self.draw_npc_layer(state, ctx, NPCLayer::Background)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Middleground, stage_textures_ref, &self.stage)?;
 
-        if state.settings.shader_effects && self.lighting_mode == LightingMode::BackgroundOnly {
-            self.draw_light_map(state, ctx)?;
-        }
+        self.draw_three_d(state, ctx)?;
 
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::ForegroundBack, stage_textures_ref, &self.stage)?;
 
-        self.boss.draw(state, ctx, &self.frame)?;
-        self.draw_npc_layer(state, ctx, NPCLayer::Middleground)?;
-        self.draw_bullets(state, ctx)?;
-        self.player2.draw(state, ctx, &self.frame)?;
-        self.player1.draw(state, ctx, &self.frame)?;
 
-        if !self.player1.cond.hidden() {
-            self.whimsical_star.draw(state, ctx, &self.frame)?;
-        }
-
-        self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
-        self.draw_npc_layer(state, ctx, NPCLayer::Foreground)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?;
-        self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front)?;
-        self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, true)?;
-        self.draw_carets(state, ctx)?;
-        self.player1.exp_popup.draw(state, ctx, &self.frame)?;
-        self.player1.damage_popup.draw(state, ctx, &self.frame)?;
-        self.player2.exp_popup.draw(state, ctx, &self.frame)?;
-        self.player2.damage_popup.draw(state, ctx, &self.frame)?;
-        self.draw_npc_popup(state, ctx)?;
-        self.draw_boss_popup(state, ctx)?;
-
-        if !state.control_flags.credits_running()
-            && state.settings.shader_effects
-            && self.lighting_mode == LightingMode::Ambient
-        {
-            self.draw_light_map(state, ctx)?;
-        }
         self.flash.draw(state, ctx, &self.frame)?;
 
-        self.draw_black_bars(state, ctx)?;
 
         if self.player1.control_mode == ControlMode::IronHead {
             graphics::set_clip_rect(ctx, None)?;

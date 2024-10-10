@@ -221,13 +221,12 @@ impl BackendEventLoop for SDL2EventLoop {
         };
         let mut imgui_sdl2 = ImguiSdl2::new(imgui, self.refs.deref().borrow().window.window());
 
-        let mut test_zoom = 0.0;
         {
             let (width, height) = self.refs.deref().borrow().window.window().size();
             ctx.screen_size = (width.max(1) as f32, height.max(1) as f32);
 
             imgui.io_mut().display_size = [ctx.screen_size.0, ctx.screen_size.1];
-            let _ = state.handle_resize(ctx, test_zoom);
+            let _ = state.handle_resize(ctx);
         }
 
         loop {
@@ -290,7 +289,7 @@ impl BackendEventLoop for SDL2EventLoop {
                                     imgui.io_mut().display_size = [ctx.screen_size.0, ctx.screen_size.1];
                                 }
                             }
-                            state.handle_resize(ctx, test_zoom).unwrap();
+                            state.handle_resize(ctx).unwrap();
                         }
                         _ => {}
                     },
@@ -326,16 +325,6 @@ impl BackendEventLoop for SDL2EventLoop {
                                 }
                             }
                             ctx.keyboard_context.set_key(drs_scan, true);
-
-                            //test
-                            if(drs_scan == ScanCode::U) {
-                                test_zoom += 1.0;
-                                state.handle_resize(ctx, test_zoom).unwrap();
-                            }
-                            if(drs_scan == ScanCode::I) {
-                                test_zoom -= 1.0;
-                                state.handle_resize(ctx, test_zoom).unwrap();
-                            }
                         }
                     }
                     Event::KeyUp { scancode: Some(scancode), .. } => {

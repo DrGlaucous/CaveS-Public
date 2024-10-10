@@ -347,6 +347,13 @@ pub struct SharedGameState {
     #[cfg(feature = "discord-rpc")]
     pub discord_rpc: DiscordRPC,
     pub shutdown: bool,
+
+
+    //new canvases
+    pub char_plane_canvas: Option<Box<dyn BackendTexture>>, //layer that holds 2d items to be drawn on the canvas
+    pub three_d_canvas: Option<Box<dyn BackendTexture>>, //layer that holds the 3d elements + 2d layer
+
+
 }
 
 impl SharedGameState {
@@ -504,6 +511,9 @@ impl SharedGameState {
             #[cfg(feature = "discord-rpc")]
             discord_rpc: DiscordRPC::new(discord_rpc_app_id),
             shutdown: false,
+
+            char_plane_canvas: None,
+            three_d_canvas: None,
         })
     }
 
@@ -716,7 +726,7 @@ impl SharedGameState {
         self.textscript_vm.suspend = true;
     }
 
-    pub fn handle_resize(&mut self, ctx: &mut Context, test_zoom: f32) -> GameResult {
+    pub fn handle_resize(&mut self, ctx: &mut Context) -> GameResult {
         self.screen_size = graphics::screen_size(ctx);
         let scale_x = self.screen_size.1.div(self.preferred_viewport_size.1).floor().max(1.0);
         let scale_y = self.screen_size.0.div(self.preferred_viewport_size.0).floor().max(1.0);
@@ -730,7 +740,10 @@ impl SharedGameState {
         set_render_target(ctx, None)?;
         self.lightmap_canvas = Some(create_texture_mutable(ctx, width, height)?);
 
-        let _ = graphics::set_3d_viewport(ctx, width as u32, height as u32, self.scale, test_zoom);
+        self.char_plane_canvas = Some(create_texture_mutable(ctx, width, height)?);
+        self.three_d_canvas = Some(create_texture_mutable(ctx, width, height)?);
+
+        let _ = graphics::set_3d_viewport(ctx, width as u32, height as u32, self.scale);
 
         Ok(())
     }

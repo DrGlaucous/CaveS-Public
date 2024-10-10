@@ -201,9 +201,8 @@ pub fn draw_triangle_list(
 
 /////new 3d methods:
 
-
-//updates the screen size in the three-d context (only works with an openGL renderer)
-pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32, test_zoom: f32) -> GameResult {
+/// updates the screen size in the three-d context (only works with an openGL renderer)
+pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32) -> GameResult {
     if let Some(renderer) = &mut ctx.renderer {
 
         let gl_renderer = renderer
@@ -211,7 +210,7 @@ pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32, t
             .downcast_mut::<OpenGLRenderer>();
         if let Some(renderer) = gl_renderer {
             if let Some(model) = &mut renderer.model {
-                model.set_viewport_size(width, height, scale, test_zoom);
+                model.set_viewport_size(width, height, scale);
 
                 return Ok(());
             }
@@ -225,3 +224,66 @@ pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32, t
     return Err(GameError::RenderError(format!("Renderer is not initialized!")));
 
 }
+
+/// set the texture that will be used to draw on the 3d scene's char plane
+pub fn set_3d_char_plane(ctx: &mut Context, source_texture: &Box<dyn BackendTexture>) -> GameResult {
+
+    if let Some(renderer) = &mut ctx.renderer {
+
+        let gl_renderer = renderer
+            .as_any_mut()
+            .downcast_mut::<OpenGLRenderer>();
+        if let Some(renderer) = gl_renderer {
+            if let Some(model) = &mut renderer.model {
+                model.set_char_plane_target_surf(source_texture)?;
+
+                return Ok(());
+            }
+
+            return Err(GameError::RenderError(format!("Three-d not initialized!")));
+        }
+
+        return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
+    }
+
+    return Err(GameError::RenderError(format!("Renderer is not initialized!")));
+
+
+}
+
+/// draw the 3D scene to this texture
+pub fn draw_3d(ctx: &mut Context, dest_texture: Option<&Box<dyn BackendTexture>>) -> GameResult {
+
+    if let Some(renderer) = &mut ctx.renderer {
+
+        let gl_renderer = renderer
+            .as_any_mut()
+            .downcast_mut::<OpenGLRenderer>();
+        if let Some(renderer) = gl_renderer {
+            if let Some(model) = &mut renderer.model {
+                model.draw(dest_texture)?;
+
+                return Ok(());
+            }
+
+            return Err(GameError::RenderError(format!("Three-d not initialized!")));
+        }
+
+        return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
+    }
+
+    return Err(GameError::RenderError(format!("Renderer is not initialized!")));
+
+    Ok(())
+
+}
+
+
+
+
+
+
+
+
+
+
