@@ -1,13 +1,13 @@
 // Entry point for non-wasm
-#[cfg(not(target_arch = "wasm32"))]
-#[tokio::main]
-async fn main() {
-    run().await;
+// #[cfg(not(target_arch = "wasm32"))]
+// #[tokio::main]
+fn main() {
+    run();
 }
 
 use three_d::*;
 
-pub async fn run() {
+pub fn run() {
     let window = Window::new(WindowSettings {
         title: "Forest!".to_string(),
         max_size: Some((1280, 720)),
@@ -18,7 +18,7 @@ pub async fn run() {
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(2800.0, 240.0, 1700.0),
+        vec3(100.0, 250.0, 100.0),
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(60.0),
@@ -27,17 +27,20 @@ pub async fn run() {
     );
     let mut control = FlyControl::new(0.1);
 
-    let mut loaded = if let Ok(loaded) =
-        three_d_asset::io::load_async(&["../assets/Gledista_Triacanthos.obj"]).await
-    {
-        loaded
-    } else {
-        three_d_asset::io::load_async(&[
-            "https://asny.github.io/three-d/assets/Gledista_Triacanthos.obj",
-        ])
-        .await
-        .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
-    };
+    let mut loaded = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/cubeobj/cube.obj"]).unwrap();
+    // let mut loaded = if let Ok(loaded) =
+    //     three_d_asset::io::load_async(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/Gledista_Triacanthos.obj"]).await
+    // {
+    //     loaded
+    // } else {
+    //     three_d_asset::io::load_async(&[
+    //         "https://asny.github.io/three-d/assets/Gledista_Triacanthos.obj",
+    //     ])
+    //     .await
+    //     .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
+    // };
+
+
     // Tree
     let mut cpu_model: CpuModel = loaded.deserialize(".obj").unwrap();
     cpu_model
@@ -45,20 +48,23 @@ pub async fn run() {
         .iter_mut()
         .for_each(|g| g.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
-    model
-        .iter_mut()
-        .for_each(|m| m.material.render_states.cull = Cull::Back);
+    // model
+    //     .iter_mut()
+    //     .for_each(|m| m.material.render_states.cull = Cull::Back);
 
     // Lights
     let ambient = AmbientLight::new(&context, 0.3, Srgba::WHITE);
     let directional = DirectionalLight::new(&context, 4.0, Srgba::WHITE, &vec3(-1.0, -1.0, -1.0));
 
     // Imposters
+
+    //make a bounding box that fits the size of the model
     let mut aabb = AxisAlignedBoundingBox::EMPTY;
     model.iter().for_each(|m| {
         aabb.expand_with_aabb(&m.aabb());
     });
     let size = aabb.size();
+    //determine the positions of each 2d "imposter"
     let t = 100;
     let mut positions = Vec::new();
     for x in -t..t + 1 {
@@ -99,7 +105,7 @@ pub async fn run() {
             },
         ),
     );
-    plane.material.render_states.cull = Cull::Back;
+    //plane.material.render_states.cull = Cull::Back;
 
     // main loop
     window.render_loop(move |mut frame_input| {

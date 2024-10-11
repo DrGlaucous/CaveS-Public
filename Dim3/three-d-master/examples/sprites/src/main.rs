@@ -29,15 +29,16 @@ pub async fn run() {
 
     let axes = Axes::new(&context, 0.1, 1.0);
 
-    let mut img: CpuTexture = three_d_asset::io::load_async(&["examples/assets/test_texture.jpg"])
+    let mut img: CpuTexture = three_d_asset::io::load_async(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/Trash-Can.png"])
         .await
         .unwrap()
         .deserialize("")
         .unwrap();
     img.data.to_linear_srgb();
     let material = ColorMaterial {
-        color: Srgba::WHITE,
+        color: Srgba::new(255, 0, 0, 0),
         texture: Some(Texture2DRef::from_cpu_texture(&context, &img)),
+        is_transparent: true,
         ..Default::default()
     };
 

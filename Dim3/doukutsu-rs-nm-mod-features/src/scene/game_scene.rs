@@ -1672,15 +1672,14 @@ impl GameScene {
 
         //set target to the 3d surface's 2D plane
         //if this fails or the canvas does not exist, this will simply draw to the screen instead (original behavior)
-        //let dest_tex = state.char_plane_canvas.as_ref();
         graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
-        graphics::clear(ctx, Color::from_rgba(255, 255, 0, 255));
+        graphics::clear(ctx, Color::from_rgba(0, 0, 0, 0));
 
         
         {
             //here
             let stage_textures_ref = &*self.stage_textures.deref().borrow();
-            self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, false)?;
+            //self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, false)?;
             self.tilemap.draw(state, ctx, &self.frame, TileLayer::Background, stage_textures_ref, &self.stage)?;
             self.draw_npc_layer(state, ctx, NPCLayer::Background)?;
             self.tilemap.draw(state, ctx, &self.frame, TileLayer::Middleground, stage_textures_ref, &self.stage)?;
@@ -1738,7 +1737,7 @@ impl GameScene {
         //graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
         //graphics::set_blend_mode(ctx, BlendMode::None)?;
         //graphics::clear(ctx, Color::from_rgba(0, 255, 0, 255));
-        //graphics::set_render_target(ctx, None)?;
+        graphics::set_render_target(ctx, None)?;
         
         //let canvas = state.char_plane_canvas.as_mut().unwrap();
         //let rect = Rect { left: 0.0, top: 0.0, right: state.screen_size.0, bottom: state.screen_size.1 };
@@ -1752,7 +1751,7 @@ impl GameScene {
         graphics::set_3d_char_plane(ctx, state.char_plane_canvas.as_ref().unwrap())?;
 
         //draw the 3D layer
-        //graphics::draw_3d(ctx, None)?; //(ctx, state.three_d_canvas.as_ref())?;
+        graphics::draw_3d(ctx, None)?; //(ctx, state.three_d_canvas.as_ref())?;
 
         //graphics::clear(ctx, Color::from_rgba(255, 0, 0, 255));
         //return to screenbuffer render target (I think this already happens above, but we'll do it here just to be safe)
@@ -1762,7 +1761,7 @@ impl GameScene {
 
         //draw yellow to char_plane_canvas, then draw it to screen
         // graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
-        // graphics::set_blend_mode(ctx, BlendMode::None)?;
+        graphics::set_blend_mode(ctx, BlendMode::None)?;
         // graphics::clear(ctx, Color::from_rgba(255, 255, 0, 255));
         // graphics::set_render_target(ctx, None)?;
         // graphics::set_blend_mode(ctx, BlendMode::None)?;

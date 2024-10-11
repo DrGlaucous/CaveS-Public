@@ -26,6 +26,7 @@ pub mod vfs;
 
 //custom
 pub mod buffer_material;
+pub mod copy_material;
 pub mod gltf_local;
 
 

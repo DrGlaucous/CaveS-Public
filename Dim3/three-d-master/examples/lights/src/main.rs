@@ -159,7 +159,8 @@ pub fn run() {
             .render(
                 &camera,
                 lights.iter().map(|l| l.object()).chain(&model),
-                &lightts.iter().map(|l| l.as_ref()).collect::<Vec<_>>(), //&lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
+                //&lightts.iter().map(|l| l.as_ref()).collect::<Vec<_>>(),
+                &lights.iter().map(|l| l.light()).collect::<Vec<_>>(),
             )
             .write(|| gui.render())
             .unwrap();

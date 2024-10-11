@@ -631,15 +631,17 @@ pub struct ThreeDModelSetup {
     vp: Viewport, //screen size
     context: ThreeDContext, //three_d::core::context constructed from "glow" context: three_d::context::Context 
     camera: Camera, //observation location of the 3D meshes
-    char_plane: Gm<Mesh, ColorMaterial>, //BufferMaterial>, //2d image that holds the user character and interractable elements
+    char_plane: Gm<Mesh, BufferMaterial>, //2d image that holds the user character and interractable elements
     
     //location of the upper-level game frame
     frame_xy: (f32, f32),
     
-    map_models: Vec<Model<DeferredPhysicalMaterial>>, //Vec<Gm<Mesh, BufferMaterial>>, //a list of map meshes
+    map_models: Vec<Model<PhysicalMaterial>>, //Vec<Gm<Mesh, BufferMaterial>>, //a list of map meshes
     lights: Vec<Box<dyn Light>>, //list of lights in the model
 
     midstep_surface: Texture2D,
+    midstep_depth: DepthTexture2D,
+    midstep_program: Program,
 
     //clone of the one from RenderData, since we need to know where to put our drawn stuff if we're drawing to the default location
     surf_framebuffer: GLuint,
@@ -662,31 +664,6 @@ impl ThreeDModelSetup {
         
         // Get the graphics context from the window
         let context: ThreeDContext = ThreeDContext::from_gl_context(gl.into()).unwrap();
-
-        unsafe {
-            // let frag_shader = context.create_shader(crate::context::FRAGMENT_SHADER);
-            
-            // let header: &str = if context.version().is_embedded {
-            //     "#version 300 es
-            //         #ifdef GL_FRAGMENT_PRECISION_HIGH
-            //             precision highp float;
-            //             precision highp int;
-            //             precision highp sampler2DArray;
-            //             precision highp sampler3D;
-            //         #else
-            //             precision mediump float;
-            //             precision mediump int;
-            //             precision mediump sampler2DArray;
-            //             precision mediump sampler3D;
-            //         #endif\n"
-            // } else {
-            //     "#version 330 core\n"
-            // };
-
-            // let fragment_shader_source = format!("{}{}", header, fragment_shader_source);
-
-            // context.shader_source(frag_shader, &fragment_shader_source);
-        }
         
 
         //initial viewport size, should change with screen resizes
@@ -700,7 +677,7 @@ impl ThreeDModelSetup {
         // Create a camera
         let mut camera = Camera::new_perspective(
             vp,
-            vec3(-14.0, 18.0, 1.0), //(4.0, 1.5, 4.0)
+            vec3(-4.0, 8.0, 4.0), //(4.0, 1.5, 4.0)
             vec3(0.0, 0.0, 0.0), //(0.0, 1.0, 0.0)
             vec3(0.0, 1.0, 0.0), //(0.0, 1.0, 0.0)
             degrees(45.0),
@@ -709,6 +686,7 @@ impl ThreeDModelSetup {
         );
 
 
+        //for mid-copy operation
         let midstep_surface = Texture2D::new_empty::<[u8; 4]>(
             &context,
             vp.width,
@@ -720,17 +698,37 @@ impl ThreeDModelSetup {
             Wrapping::ClampToEdge,
         );
 
+        //for depth probing
+        let mut midstep_depth = DepthTexture2D::new::<f32>(
+            &context,
+            vp.width,
+            vp.height,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge
+        );
+        
+
+        let midstep_program = Program::from_source(
+            &context,
+            include_str!("shaders/threed/simple_c_shader.vert"),
+            include_str!("shaders/threed/simple_c_shader_2.frag"),
+        );
+        if let Err(errr) = &midstep_program {
+            log::info!("{}", errr);
+        }
+        let midstep_program = midstep_program.unwrap();
+
 
         //holds the PC and other 2d elements
         let mut plane = Self::new_rectangle(1.0, 1.0);
-        let mut char_plane: Gm<Mesh, ColorMaterial> = Gm::new(
+        let mut char_plane: Gm<Mesh, BufferMaterial> = Gm::new(
             Mesh::new(&context, &plane),
-            ColorMaterial{
-                color: Srgba::new(0, 0, 0, 0),
-                is_transparent: false,
-                ..Default::default()
-            }
-            //BufferMaterial::new(false, 2), //default tex ID is 2 for now...
+            // ColorMaterial{
+            //     color: Srgba::new(0, 0, 0, 0),
+            //     is_transparent: false,
+            //     ..Default::default()
+            // }
+            BufferMaterial::new(true, 2), //default tex ID is 2 for now...
         );
 
         // Add an animation to the mesh.
@@ -744,7 +742,7 @@ impl ThreeDModelSetup {
         // }
 
          
-        let mut model_list: Vec<Model<DeferredPhysicalMaterial>> = Vec::new();
+        let mut model_list: Vec<Model<PhysicalMaterial>> = Vec::new();
 
         let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]);
         
@@ -762,7 +760,7 @@ impl ThreeDModelSetup {
                 .iter_mut()
                 .for_each(|part| part.compute_normals());
 
-            let mut model = Model::<DeferredPhysicalMaterial>::new(&context, &cpu_model).unwrap();
+            let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
             lights = light_list;
 
@@ -786,6 +784,8 @@ impl ThreeDModelSetup {
             lights,
             surf_framebuffer,
             midstep_surface,
+            midstep_depth,
+            midstep_program,
             time: 0.0,
         }
 
@@ -816,7 +816,7 @@ impl ThreeDModelSetup {
             .iter_mut()
             .for_each(|part| part.compute_normals());
 
-        let mut model = Model::<DeferredPhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
+        let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
 
         self.map_models.push(model);
 
@@ -860,7 +860,7 @@ impl ThreeDModelSetup {
         self.narc();
 
         if let Some(num) = NonZeroU32::new(target) {
-            //self.char_plane.material.tex_id = num;
+            self.char_plane.material.tex_id = num;
             Ok(())
         } else {
             Err(GameError::InvalidValue(format!("Number {} was not a valid non-zero u32", target)))
@@ -869,8 +869,9 @@ impl ThreeDModelSetup {
     }
 
     /// returns the number currently being used as the texture target
-    pub fn get_char_plane_target(&self) {
-        //let num = self.char_plane.material.tex_id.get();
+    pub fn get_char_plane_target(&self) -> u32 {
+        let num = self.char_plane.material.tex_id.get();
+        num
     }
 
 
@@ -907,7 +908,8 @@ impl ThreeDModelSetup {
         self.narc();
 
         //what texture we're targeting (if 0, target the screenbuffer. Otherwise, target the ID we've been given)
-        let render_target = ManuallyDrop::new(if dest_id == 0 {
+        let mut render_target = //ManuallyDrop::new(
+        if dest_id == 0 {
             RenderTarget::screen(&self.context, self.vp.width, self.vp.height)
         } else {
             let destination = NonZeroU32::new(dest_id);
@@ -918,8 +920,9 @@ impl ThreeDModelSetup {
             self.narc();
             let fb = NativeFramebuffer(destination);
             self.narc();
-            RenderTarget::from_framebuffer(&self.context,self.vp.width, self.vp.height, fb)
-        });
+            RenderTarget::from_framebuffer(&self.context, self.vp.width, self.vp.height, fb)
+        };
+        //);
 
         self.narc();
         
@@ -933,29 +936,99 @@ impl ThreeDModelSetup {
         //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
         // }
 
-        self.midstep_surface.as_color_target(None)
-            // Clear the color and depth of the screen render target
-            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            // Render the triangle with the color material which uses the per vertex colors defined at construction
+        //render to mid-surface
+        RenderTarget::new(
+            self.midstep_surface.as_color_target(None),
+            self.midstep_depth.as_depth_target())
+            .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
             .render(&self.camera, &self.map_models[0], &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
             .render(&self.camera, &self.char_plane, &[]);
 
 
-        render_target
-            // Clear the color and depth of the screen render target
-            //.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            // Render the triangle with the color material which uses the per vertex colors defined at construction
-            //.render(&self.camera, &self.char_plane, &[])
-            //.render(&self.camera, &self.map_models[0], &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>());
-            //.apply_screen_material(self.midstep_surface, &self.camera, &[]);
-            .apply_screen_effect(
-                &ScreenEffect::default(),
-                &self.camera,
-                &[],
-                Some(ColorTexture::Single(&self.midstep_surface)),
-                None,
+        let fbb = render_target.into_framebuffer();
+        unsafe {
+            //self.context.clear_color(0.0, 0.0, 0.0, 1.0);
+            //self.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
+            //self.context.bind_buffer(target, buffer);
+
+            self.context.set_blend(Blend::TRANSPARENCY);
+            self.context.bind_framebuffer(context::FRAMEBUFFER, fbb);
+
+            let positions = VertexBuffer::new_with_data(
+                &self.context,
+                &[
+                    vec2(-1.0, -1.0), 
+                    vec2(-1.0, 1.0),
+                    vec2(1.0, 1.0),
+                    
+                    vec2(-1.0, -1.0), 
+                    vec2(1.0, 1.0),
+                    vec2(1.0, -1.0),
+                ],
             );
+            let uvs = VertexBuffer::new_with_data(
+                &self.context,
+                &[
+                    vec2(0.0, 0.0), 
+                    vec2(0.0, 1.0),
+                    vec2(1.0, 1.0),
+
+                    vec2(0.0, 0.0),
+                    vec2(1.0, 1.0),
+                    vec2(1.0, 0.0),
+                ],
+            );
+            let colors = VertexBuffer::new_with_data(
+                &self.context,
+                &[
+                    Srgba::WHITE.to_linear_srgb(),
+                    Srgba::WHITE.to_linear_srgb(),
+                    Srgba::WHITE.to_linear_srgb(),
+                    Srgba::WHITE.to_linear_srgb(),
+                    Srgba::WHITE.to_linear_srgb(),
+                    Srgba::WHITE.to_linear_srgb(),
+                ],
+            );
+
+            let transform = Mat3::identity();
+            self.midstep_program.use_uniform("textureTransformation", transform);
+            self.midstep_program.use_texture("tex", &self.midstep_surface);
+
+            self.midstep_program.use_vertex_attribute("position", &positions);
+            self.midstep_program.use_vertex_attribute("uv", &uvs);
+            self.midstep_program.use_vertex_attribute("color", &colors);
+            self.midstep_program.draw_arrays(
+                RenderStates::default(),
+                self.vp,
+                positions.vertex_count(),
+            );
+
+
+            
+
+
+
+            //self.midstep_program.draw_elements(render_states, viewport, element_buffer);
+
+        }
+
+
+        // render_target
+        //     // Clear the color and depth of the screen render target
+        //     //.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+        //     // Render the triangle with the color material which uses the per vertex colors defined at construction
+        //     //.render(&self.camera, &self.char_plane, &[])
+        //     //.render(&self.camera, &self.map_models[0], &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>());
+        //     //.apply_screen_material(self.midstep_surface, &self.camera, &[]);
+        //     .apply_screen_effect(
+        //         &ScreenEffect::default(),
+        //         &self.camera,
+        //         &[],
+        //         Some(ColorTexture::Single(&self.midstep_surface)),
+        //         None,
+        //     );
         
+
         self.narc();
 
         Ok(())
@@ -1049,7 +1122,7 @@ impl ThreeDModelSetup {
         self.vp.height = height / (1 as u32);
 
 
-        //recreate destination surface with new size
+        //recreate midstep surface with new size
         self.midstep_surface = Texture2D::new_empty::<[u8; 4]>(
             &self.context,
             self.vp.width,
@@ -1060,7 +1133,14 @@ impl ThreeDModelSetup {
             Wrapping::ClampToEdge,
             Wrapping::ClampToEdge,
         );
-
+        //ditto 
+        self.midstep_depth = DepthTexture2D::new::<f32>(
+            &self.context,
+            self.vp.width,
+            self.vp.height,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge
+        );
 
         // Ensure the viewport matches the current window viewport which changes if the window is resized
         self.camera.set_viewport(self.vp);
@@ -1206,15 +1286,14 @@ impl BackendRenderer for OpenGLRenderer {
             }
 
 
-            //splice in three-d for testing
-            if let Some(model) = &mut self.model {
-                //model.set_char_plane_target_no(4);
-                let result = model.draw_no(0);//(self.render_data.surf_framebuffer);
-
-                if(result.is_err()) {
-                    log::info!("ERROR");
-                }
-            }
+            // //splice in three-d for testing
+            // if let Some(model) = &mut self.model {
+            //     //model.set_char_plane_target_no(2);
+            //     let result = model.draw_no(0);//(self.render_data.surf_framebuffer);
+            //     if(result.is_err()) {
+            //         log::info!("ERROR");
+            //     }
+            // }
 
             if let Some((context, _)) = self.get_context() {
                 (context.swap_buffers)(&mut context.user_data);
