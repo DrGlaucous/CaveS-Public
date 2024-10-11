@@ -633,10 +633,10 @@ pub struct ThreeDModelSetup {
     camera: Camera, //observation location of the 3D meshes
     char_plane: Gm<Mesh, BufferMaterial>, //2d image that holds the user character and interractable elements
     
-    //location of the upper-level game frame
-    frame_xy: (f32, f32),
+    char_plane_wh: (f32, f32), //width and height of the char plane (used to resize it relaitve to the frame's XY location)
+    frame_xy: (f32, f32), //location of the upper-level game frame (1m = 16 px)
     
-    map_models: Vec<Model<PhysicalMaterial>>, //Vec<Gm<Mesh, BufferMaterial>>, //a list of map meshes
+    map_models: Vec<Model<PhysicalMaterial>>, //a list of map meshes //TODO: draw all of them
     lights: Vec<Box<dyn Light>>, //list of lights in the model
 
     midstep_surface: Texture2D,
@@ -677,7 +677,7 @@ impl ThreeDModelSetup {
         // Create a camera
         let mut camera = Camera::new_perspective(
             vp,
-            vec3(-4.0, 8.0, 4.0), //(4.0, 1.5, 4.0)
+            vec3(0.0, 4.0, 16.0), //(4.0, 1.5, 4.0)
             vec3(0.0, 0.0, 0.0), //(0.0, 1.0, 0.0)
             vec3(0.0, 1.0, 0.0), //(0.0, 1.0, 0.0)
             degrees(45.0),
@@ -711,7 +711,7 @@ impl ThreeDModelSetup {
         let midstep_program = Program::from_source(
             &context,
             include_str!("shaders/threed/simple_c_shader.vert"),
-            include_str!("shaders/threed/simple_c_shader_2.frag"),
+            include_str!("shaders/threed/simple_c_shader.frag"),
         );
         if let Err(errr) = &midstep_program {
             log::info!("{}", errr);
@@ -779,6 +779,7 @@ impl ThreeDModelSetup {
             context,
             camera,
             char_plane,
+            char_plane_wh: (0.0,0.0),
             frame_xy: (0.0,0.0),
             map_models: model_list,
             lights,
@@ -874,7 +875,7 @@ impl ThreeDModelSetup {
         num
     }
 
-
+    /// check for openGL backend errors
     pub fn narc(&mut self) {
         let resultt = self.context.error_check();
         if let Err(prob) = resultt {
@@ -1098,7 +1099,7 @@ impl ThreeDModelSetup {
     }
 
     /// Resize the internal "char_plane" rectangle to this width and height
-    pub fn resize_char_plane(&mut self, width: f32, height: f32) {
+    fn resize_char_plane(&mut self, width: f32, height: f32) {
 
         let half_width = width / 2.0;
         let half_height = height / 2.0;
@@ -1113,6 +1114,7 @@ impl ThreeDModelSetup {
         self.char_plane.update_positions(&positions);
     }
 
+    /// Set width and height of the viewport, char plane, and intermediate surfaces
     pub fn set_viewport_size(&mut self, width: u32, height: u32, scale: f32) {
         
         //todo: divide by 320 * scale... 320, 240
@@ -1150,13 +1152,12 @@ impl ThreeDModelSetup {
 
         let screen_height = (height as f32) / scale;
 
-
         let a = (screen_height) / 2.0;
         let b = a / (fov / 2.0).tan();
 
 
         let mut pos = self.camera.position().clone();
-        //pos.z = b / 16.0; //0.1 * test_zoom; //0.2 * (0.3755 * (height as f32) + 1.0); //0.2 * test_zoom;
+        pos.z = b / 16.0; //0.1 * test_zoom; //0.2 * (0.3755 * (height as f32) + 1.0); //0.2 * test_zoom;
         //pos.x = 0.0;
         //pos.y = 0.0;
 
@@ -1168,6 +1169,18 @@ impl ThreeDModelSetup {
 
 
     }
+
+    /// Given an XY coordinate set in meters, set the location of the camera and char plane (origin is the center of the view)
+    pub fn set_location(&mut self, x: f32, y: f32) {
+        //test:
+        let x = 2.0;
+        let y = 2.0;
+    
+        
+
+    
+    }
+
 
 }
 

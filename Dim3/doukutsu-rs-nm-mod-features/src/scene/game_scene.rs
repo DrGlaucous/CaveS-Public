@@ -1761,7 +1761,7 @@ impl GameScene {
 
         //draw yellow to char_plane_canvas, then draw it to screen
         // graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
-        graphics::set_blend_mode(ctx, BlendMode::None)?;
+        //graphics::set_blend_mode(ctx, BlendMode::None)?;
         // graphics::clear(ctx, Color::from_rgba(255, 255, 0, 255));
         // graphics::set_render_target(ctx, None)?;
         // graphics::set_blend_mode(ctx, BlendMode::None)?;
@@ -2121,7 +2121,6 @@ impl Scene for GameScene {
     }
 
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
-        //graphics::set_canvas(ctx, Some(&state.game_canvas));
 
         if self.player1.control_mode == ControlMode::IronHead {
             self.set_ironhead_clip(state, ctx)?;
@@ -2139,12 +2138,13 @@ impl Scene for GameScene {
             graphics::set_clip_rect(ctx, None)?;
         }
 
-        if self.inventory_dim > 0.0 {
-            let rect = Rect::new(0, 0, state.screen_size.0 as isize + 1, state.screen_size.1 as isize + 1);
-            let mut dim_color = state.constants.inventory_dim_color;
-            dim_color.a *= self.inventory_dim;
-            graphics::draw_rect(ctx, rect, dim_color)?;
-        }
+        //TODO: fix lighting effects
+        // if self.inventory_dim > 0.0 {
+        //     let rect = Rect::new(0, 0, state.screen_size.0 as isize + 1, state.screen_size.1 as isize + 1);
+        //     let mut dim_color = state.constants.inventory_dim_color;
+        //     dim_color.a *= self.inventory_dim;
+        //     graphics::draw_rect(ctx, rect, dim_color)?;
+        // }
 
         match state.textscript_vm.mode {
             ScriptMode::Map | ScriptMode::Debug if state.control_flags.control_enabled() => {
