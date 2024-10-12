@@ -1676,7 +1676,7 @@ impl GameScene {
         let (mut frame_x, mut frame_y) = self.frame.xy_interpolated(state.frame_time);
         //convert to meters
         frame_x /= 16.0;
-        frame_y /= 16.0;
+        frame_y /= -16.0; //invert y as well
         graphics::update_frame_location(ctx, frame_x, frame_y)?;
 
 

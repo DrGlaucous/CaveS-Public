@@ -731,7 +731,10 @@ impl ThreeDModelSetup {
 
 
         //holds the PC and other 2d elements
-        let mut plane = Self::new_rectangle(1.0, 1.0);
+        //note: big number needed to set the axis-aligned-bounding-box (aabb) will be within frame for the whole map
+        //because it is not updated after the mesh is constructed...
+        //todo: construct a mesh directly so we can define the aabb ourselves, since it supports an "infinite" size
+        let mut plane = Self::new_rectangle(100000.0, 100000.0);
         let mut char_plane: Gm<Mesh, BufferMaterial> = Gm::new(
             Mesh::new(&context, &plane),
             // ColorMaterial{
@@ -1115,7 +1118,7 @@ impl ThreeDModelSetup {
 
     /// Given an XY coordinate set in meters, set the location of the camera and char plane (origin is the center of the view)
     pub fn set_location(&mut self, x: f32, y: f32) {
-        self.frame_xy = (x, y)
+        self.frame_xy = (x, y);
     }
 
     /// make a rectangle CpuMesh
@@ -1176,11 +1179,12 @@ impl ThreeDModelSetup {
         let width = (self.vp.width as f32) / (16.0 * self.char_plane_scale);
         let height = (self.vp.height as f32) / (16.0 * self.char_plane_scale);
 
-        let offx = self.frame_xy.0;
-        let offy = self.frame_xy.1;
-
         let half_width = width / 2.0;
         let half_height = height / 2.0;
+
+        let offx = self.frame_xy.0 + half_width;
+        let offy = self.frame_xy.1 - half_height;
+
 
         let positions = vec![
             Vec3::new(-half_width + offx, -half_height + offy, 0.0),
@@ -1194,6 +1198,12 @@ impl ThreeDModelSetup {
 
     /// Move + resize the camera to match `self.vp`, `frame_xy`, and  `char_plane_wh`
     fn displace_camera(&mut self) {
+
+        let plwidth = (self.vp.width as f32) / (16.0 * self.char_plane_scale);
+        let plheight = (self.vp.height as f32) / (16.0 * self.char_plane_scale);
+        let half_width = plwidth / 2.0;
+        let half_height = plheight / 2.0;
+
 
         //log::info!("{} x {}, scale: {}", width, height, scale);
 
@@ -1216,13 +1226,20 @@ impl ThreeDModelSetup {
 
 
         let mut pos = self.camera.position().clone();
-        pos.z = b / 16.0; //0.1 * test_zoom; //0.2 * (0.3755 * (height as f32) + 1.0); //0.2 * test_zoom;
-        //pos.x = 0.0;
-        //pos.y = 0.0;
+        pos.z = b / 16.0;
+        pos.x = self.frame_xy.0 + half_width;
+        pos.y = self.frame_xy.1 - half_height;
+        // pos.x = 0.0;
+        // pos.y = 0.0;
 
-        let tgt = self.camera.target().clone();
+        let mut tgt = self.camera.target().clone();
+        tgt.x = self.frame_xy.0 + half_width;
+        tgt.y = self.frame_xy.1 - half_height;
+        tgt.z = 0.0;
+
         let up = self.camera.up().clone().clone();
         self.camera.set_view(pos, tgt, up);
+
 
     }
 
