@@ -3,6 +3,7 @@ use crate::framework::backend::{BackendShader, BackendTexture, VertexData};
 use crate::framework::context::Context;
 use crate::framework::error::{GameError, GameResult};
 use crate::game::Game;
+use crate::graphics;
 
 use super::render_opengl::OpenGLRenderer;
 
@@ -263,6 +264,9 @@ pub fn draw_3d(ctx: &mut Context, dest_texture: Option<&Box<dyn BackendTexture>>
             if let Some(model) = &mut renderer.model {
                 model.draw(dest_texture)?;
 
+                //reset texture back to whatever we've bound it to, since three-d resets it to buffer 0 when done
+                set_render_target(ctx, dest_texture)?;
+
                 return Ok(());
             }
 
@@ -278,7 +282,33 @@ pub fn draw_3d(ctx: &mut Context, dest_texture: Option<&Box<dyn BackendTexture>>
 
 }
 
+/// move the 3d scene to the location of the frame (units: meters)
+pub fn update_frame_location(ctx: &mut Context, x: f32, y: f32) -> GameResult {
 
+    if let Some(renderer) = &mut ctx.renderer {
+
+        let gl_renderer = renderer
+            .as_any_mut()
+            .downcast_mut::<OpenGLRenderer>();
+        if let Some(renderer) = gl_renderer {
+            if let Some(model) = &mut renderer.model {
+                
+                model.set_location(x, y);
+
+                return Ok(());
+            }
+
+            return Err(GameError::RenderError(format!("Three-d not initialized!")));
+        }
+
+        return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
+    }
+
+    return Err(GameError::RenderError(format!("Renderer is not initialized!")));
+
+    Ok(())
+
+}
 
 
 

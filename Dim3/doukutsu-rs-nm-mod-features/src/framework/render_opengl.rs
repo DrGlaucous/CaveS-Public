@@ -20,6 +20,7 @@ use three_d::geometry::CpuMesh;
 
 use imgui::{DrawCmd, DrawCmdParams, DrawData, DrawIdx, DrawVert, TextureId, Ui};
 use three_d_asset::io::RawAssets;
+use three_d_asset::ProjectionType;
 
 use crate::common::{Color, Rect};
 use crate::framework::backend::{BackendRenderer, BackendShader, BackendTexture, SpriteBatchCommand, VertexData};
@@ -35,6 +36,16 @@ use crate::game::{Game, GAME_SUSPENDED};
 
 use crate::framework::buffer_material::BufferMaterial;
 use crate::framework::gltf_local::deserialize_gltf;
+
+
+// fn chain_all<I>(items: &Vec<I>) -> impl Iterator<Item = I::Item>
+// where
+//     I: IntoIterator,
+// {
+//     items.into_iter()
+//         .map(|item| item.into_iter())
+//         .fold(std::iter::empty(), |acc, iter| acc.chain(iter))
+// }
 
 
 pub fn handle_err(gl: &Gl, extra_info: u32) {
@@ -633,7 +644,7 @@ pub struct ThreeDModelSetup {
     camera: Camera, //observation location of the 3D meshes
     char_plane: Gm<Mesh, BufferMaterial>, //2d image that holds the user character and interractable elements
     
-    char_plane_wh: (f32, f32), //width and height of the char plane (used to resize it relaitve to the frame's XY location)
+    char_plane_scale: f32, //scale of the char plane (dynamic scaling of the main d-rs engine)
     frame_xy: (f32, f32), //location of the upper-level game frame (1m = 16 px)
     
     map_models: Vec<Model<PhysicalMaterial>>, //a list of map meshes //TODO: draw all of them
@@ -743,28 +754,56 @@ impl ThreeDModelSetup {
 
          
         let mut model_list: Vec<Model<PhysicalMaterial>> = Vec::new();
-
-        let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]);
-        
         let mut lights: Vec<Box<dyn Light>> = Vec::new();
-        if let Ok(mut raw_assets) = assets {
 
-            let mut pathh = path::PathBuf::new();
-            pathh.push("testOrigin.glb");
-            let (mm, mut light_list) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
-            let mut cpu_model: CpuModel = mm.into();
+        //test: load object 1
+        {
+            let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]);
+        
+            
+            if let Ok(mut raw_assets) = assets {
+    
+                let mut pathh = path::PathBuf::new();
+                pathh.push("testOrigin.glb");
+                let (mm, mut light_list) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
+                let mut cpu_model: CpuModel = mm.into();
+    
+                //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
+                cpu_model
+                    .geometries
+                    .iter_mut()
+                    .for_each(|part| part.compute_normals());
+    
+                let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+    
+                lights = light_list;
+    
+                model_list.push(model);
+            }
+        }
 
-            //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
-            cpu_model
-                .geometries
-                .iter_mut()
-                .for_each(|part| part.compute_normals());
+        //test: load object 2
+        {
+            let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin_box.glb"]);
+        
+            if let Ok(mut raw_assets) = assets {
+    
+                let mut pathh = path::PathBuf::new();
+                pathh.push("testOrigin_box.glb");
+                let (mm, _) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
+                let mut cpu_model: CpuModel = mm.into();
+    
+                //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
+                cpu_model
+                    .geometries
+                    .iter_mut()
+                    .for_each(|part| part.compute_normals());
+    
+                let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
-            let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
-
-            lights = light_list;
-
-            model_list.push(model);
+    
+                model_list.push(model);
+            }
         }
 
         // let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
@@ -779,7 +818,7 @@ impl ThreeDModelSetup {
             context,
             camera,
             char_plane,
-            char_plane_wh: (0.0,0.0),
+            char_plane_scale: 1.0,
             frame_xy: (0.0,0.0),
             map_models: model_list,
             lights,
@@ -906,6 +945,10 @@ impl ThreeDModelSetup {
     /// Note that due to the framework, running this resets the binding back to 0 when finished
     pub fn draw_no(&mut self, dest_id: u32) -> GameResult {
 
+        //update char plane and camera
+        self.displace_char_plane();
+        self.displace_camera();
+
         self.narc();
 
         //what texture we're targeting (if 0, target the screenbuffer. Otherwise, target the ID we've been given)
@@ -937,17 +980,36 @@ impl ThreeDModelSetup {
         //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
         // }
 
+        //conglomerate all models into an iterator to be rendered by the render target
+        // let mut renderable_things: Box<dyn Iterator<Item = _>> = Box::new(std::iter::empty());
+        // for model in &self.map_models {
+        //     renderable_things = Box::new(renderable_things.chain(model.into_iter()));
+        // }
+
+        //alt method using fold
+        let renderable_things = self.map_models.iter().fold(
+            Box::new(std::iter::empty()) as Box<dyn Iterator<Item = _>>,
+            |acc, model| Box::new(acc.chain(model.into_iter()))
+        );
+        //note: I'm not sure if using boxes here is better than calling '.render' multiple times in quick succession, but it works, so I'll take it.
+
+
         //render to mid-surface
         RenderTarget::new(
             self.midstep_surface.as_color_target(None),
             self.midstep_depth.as_depth_target())
             .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
-            .render(&self.camera, &self.map_models[0], &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
+            .render(
+                &self.camera,
+                renderable_things, //self.map_models.into_iter(), //iter().map(|x| x as &dyn Object),
+                &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
             .render(&self.camera, &self.char_plane, &[]);
 
 
-        let fbb = render_target.into_framebuffer();
+
+        //copy mid-surface to target surface
         unsafe {
+            let fbb = render_target.into_framebuffer();
             //self.context.clear_color(0.0, 0.0, 0.0, 1.0);
             //self.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
             //self.context.bind_buffer(target, buffer);
@@ -1011,24 +1073,8 @@ impl ThreeDModelSetup {
 
             //self.midstep_program.draw_elements(render_states, viewport, element_buffer);
 
-        }
+        }      
 
-
-        // render_target
-        //     // Clear the color and depth of the screen render target
-        //     //.clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-        //     // Render the triangle with the color material which uses the per vertex colors defined at construction
-        //     //.render(&self.camera, &self.char_plane, &[])
-        //     //.render(&self.camera, &self.map_models[0], &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>());
-        //     //.apply_screen_material(self.midstep_surface, &self.camera, &[]);
-        //     .apply_screen_effect(
-        //         &ScreenEffect::default(),
-        //         &self.camera,
-        //         &[],
-        //         Some(ColorTexture::Single(&self.midstep_surface)),
-        //         None,
-        //     );
-        
 
         self.narc();
 
@@ -1037,14 +1083,39 @@ impl ThreeDModelSetup {
 
     }
 
-    /// Set the mesh camera's location and target
-    pub fn set_camera_loc(&mut self, camera_loc: (f32, f32, f32), camera_target: (f32, f32, f32)) {
-        let up = self.camera.up().clone();
-        self.camera.set_view(
-            vec3(camera_loc.0, camera_loc.1, camera_loc.2),
-            vec3(camera_target.0, camera_target.1, camera_target.2),
-            up,
+    /// Set width and height of the viewport, char plane, and intermediate surfaces
+    pub fn set_viewport_size(&mut self, width: u32, height: u32, scale: f32) {
+        
+        self.char_plane_scale = scale;
+        
+        self.vp.width = width;
+        self.vp.height = height;
+
+
+        //recreate midstep surface with new size
+        self.midstep_surface = Texture2D::new_empty::<[u8; 4]>(
+            &self.context,
+            self.vp.width,
+            self.vp.height,
+            Interpolation::Nearest,
+            Interpolation::Nearest,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
         );
+        //ditto with depth probe
+        self.midstep_depth = DepthTexture2D::new::<f32>(
+            &self.context,
+            self.vp.width,
+            self.vp.height,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge
+        );
+    }
+
+    /// Given an XY coordinate set in meters, set the location of the camera and char plane (origin is the center of the view)
+    pub fn set_location(&mut self, x: f32, y: f32) {
+        self.frame_xy = (x, y)
     }
 
     /// make a rectangle CpuMesh
@@ -1098,60 +1169,48 @@ impl ThreeDModelSetup {
         }
     }
 
-    /// Resize the internal "char_plane" rectangle to this width and height
-    fn resize_char_plane(&mut self, width: f32, height: f32) {
+    /// Move + Resize the internal `char_plane` rectangle to have the correct width and height, centered at `frame_xy` 
+    fn displace_char_plane(&mut self) {
+
+
+        let width = (self.vp.width as f32) / (16.0 * self.char_plane_scale);
+        let height = (self.vp.height as f32) / (16.0 * self.char_plane_scale);
+
+        let offx = self.frame_xy.0;
+        let offy = self.frame_xy.1;
 
         let half_width = width / 2.0;
         let half_height = height / 2.0;
 
         let positions = vec![
-            Vec3::new(-half_width, -half_height, 0.0),
-            Vec3::new(half_width, -half_height, 0.0),
-            Vec3::new(half_width, half_height, 0.0),
-            Vec3::new(-half_width, half_height, 0.0),
+            Vec3::new(-half_width + offx, -half_height + offy, 0.0),
+            Vec3::new(half_width + offx, -half_height + offy, 0.0),
+            Vec3::new(half_width + offx, half_height + offy, 0.0),
+            Vec3::new(-half_width + offx, half_height + offy, 0.0),
         ];
 
         self.char_plane.update_positions(&positions);
     }
 
-    /// Set width and height of the viewport, char plane, and intermediate surfaces
-    pub fn set_viewport_size(&mut self, width: u32, height: u32, scale: f32) {
-        
-        //todo: divide by 320 * scale... 320, 240
-        self.resize_char_plane((width as f32) / (16.0 * scale), (height as f32) / (16.0 * scale));
-        
-        self.vp.width = width / (1 as u32);
-        self.vp.height = height / (1 as u32);
+    /// Move + resize the camera to match `self.vp`, `frame_xy`, and  `char_plane_wh`
+    fn displace_camera(&mut self) {
 
-
-        //recreate midstep surface with new size
-        self.midstep_surface = Texture2D::new_empty::<[u8; 4]>(
-            &self.context,
-            self.vp.width,
-            self.vp.height,
-            Interpolation::Nearest,
-            Interpolation::Nearest,
-            None,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge,
-        );
-        //ditto 
-        self.midstep_depth = DepthTexture2D::new::<f32>(
-            &self.context,
-            self.vp.width,
-            self.vp.height,
-            Wrapping::ClampToEdge,
-            Wrapping::ClampToEdge
-        );
+        //log::info!("{} x {}, scale: {}", width, height, scale);
 
         // Ensure the viewport matches the current window viewport which changes if the window is resized
         self.camera.set_viewport(self.vp);
 
-        //hard-coded for now
-        let fov = (45.0 as f32).to_radians();
+        let fov = match self.camera.projection_type() {
+            ProjectionType::Perspective { field_of_view_y } => {
+                field_of_view_y.0
+            }
+            _ => {
+                (45.0 as f32).to_radians() //by default, assume 45 degrees (but this shouldn't be reachable...) (should I put an unreachable panic?)
+            }
+        };
 
-        let screen_height = (height as f32) / scale;
-
+        let screen_height = (self.vp.height as f32) / self.char_plane_scale;
+        //triangulate distance
         let a = (screen_height) / 2.0;
         let b = a / (fov / 2.0).tan();
 
@@ -1161,24 +1220,10 @@ impl ThreeDModelSetup {
         //pos.x = 0.0;
         //pos.y = 0.0;
 
-        log::info!("{} x {}, scale: {}", width, height, scale);
-
         let tgt = self.camera.target().clone();
         let up = self.camera.up().clone().clone();
         self.camera.set_view(pos, tgt, up);
 
-
-    }
-
-    /// Given an XY coordinate set in meters, set the location of the camera and char plane (origin is the center of the view)
-    pub fn set_location(&mut self, x: f32, y: f32) {
-        //test:
-        let x = 2.0;
-        let y = 2.0;
-    
-        
-
-    
     }
 
 

@@ -1670,12 +1670,23 @@ impl GameScene {
 
     fn draw_three_d(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
 
+
+        //update backend location
+        //this pre-divides sub-pixels by 0x200 for us, so these are raw pixel coordinates
+        let (mut frame_x, mut frame_y) = self.frame.xy_interpolated(state.frame_time);
+        //convert to meters
+        frame_x /= 16.0;
+        frame_y /= 16.0;
+        graphics::update_frame_location(ctx, frame_x, frame_y)?;
+
+
+
         //set target to the 3d surface's 2D plane
         //if this fails or the canvas does not exist, this will simply draw to the screen instead (original behavior)
         graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
         graphics::clear(ctx, Color::from_rgba(0, 0, 0, 0));
 
-        
+        //todo: fix shade
         {
             //here
             let stage_textures_ref = &*self.stage_textures.deref().borrow();
@@ -1733,30 +1744,13 @@ impl GameScene {
         
         
 
-
-        //graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
-        //graphics::set_blend_mode(ctx, BlendMode::None)?;
-        //graphics::clear(ctx, Color::from_rgba(0, 255, 0, 255));
         graphics::set_render_target(ctx, None)?;
-        
-        //let canvas = state.char_plane_canvas.as_mut().unwrap();
-        //let rect = Rect { left: 0.0, top: 0.0, right: state.screen_size.0, bottom: state.screen_size.1 };
 
-        //canvas.clear();
-        //canvas.add(SpriteBatchCommand::DrawRect(rect, rect));
-        //canvas.draw()?;
-
-
-
+        //bind char plane to the char plane canvas
         graphics::set_3d_char_plane(ctx, state.char_plane_canvas.as_ref().unwrap())?;
 
         //draw the 3D layer
         graphics::draw_3d(ctx, None)?; //(ctx, state.three_d_canvas.as_ref())?;
-
-        //graphics::clear(ctx, Color::from_rgba(255, 0, 0, 255));
-        //return to screenbuffer render target (I think this already happens above, but we'll do it here just to be safe)
-        graphics::set_render_target(ctx, None)?;
-
 
 
         //draw yellow to char_plane_canvas, then draw it to screen
