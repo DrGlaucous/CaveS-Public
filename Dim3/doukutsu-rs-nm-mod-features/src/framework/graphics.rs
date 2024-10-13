@@ -5,7 +5,7 @@ use crate::framework::error::{GameError, GameResult};
 use crate::game::Game;
 use crate::graphics;
 
-use super::render_opengl::OpenGLRenderer;
+use super::render_opengl::{OpenGLRenderer, ThreeDModelSetup};
 
 pub enum FilterMode {
     Nearest,
@@ -202,8 +202,7 @@ pub fn draw_triangle_list(
 
 /////new 3d methods:
 
-/// updates the screen size in the three-d context (only works with an openGL renderer)
-pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32) -> GameResult {
+fn check_for_renderer(ctx: &mut Context) -> GameResult<&mut ThreeDModelSetup>{
     if let Some(renderer) = &mut ctx.renderer {
 
         let gl_renderer = renderer
@@ -211,9 +210,8 @@ pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32) -
             .downcast_mut::<OpenGLRenderer>();
         if let Some(renderer) = gl_renderer {
             if let Some(model) = &mut renderer.model {
-                model.set_viewport_size(width, height, scale);
 
-                return Ok(());
+                return Ok(model);
             }
 
             return Err(GameError::RenderError(format!("Three-d not initialized!")));
@@ -223,97 +221,103 @@ pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32) -
     }
 
     return Err(GameError::RenderError(format!("Renderer is not initialized!")));
+}
+
+/// updates the screen size in the three-d context (only works with an openGL renderer)
+pub fn set_3d_viewport(ctx: &mut Context, width: u32, height: u32, scale: f32) -> GameResult {
+
+
+    let model = check_for_renderer(ctx).unwrap();
+    model.set_viewport_size(width, height, scale);
+    Ok(())
+
+    // if let Some(renderer) = &mut ctx.renderer {
+    //     let gl_renderer = renderer
+    //         .as_any_mut()
+    //         .downcast_mut::<OpenGLRenderer>();
+    //     if let Some(renderer) = gl_renderer {
+    //         if let Some(model) = &mut renderer.model {
+    //             model.set_viewport_size(width, height, scale);
+    //             return Ok(());
+    //         }
+    //         return Err(GameError::RenderError(format!("Three-d not initialized!")));
+    //     }
+    //     return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
+    // }
+    // return Err(GameError::RenderError(format!("Renderer is not initialized!")));
 
 }
 
 /// set the texture that will be used to draw on the 3d scene's char plane
 pub fn set_3d_char_plane(ctx: &mut Context, source_texture: &Box<dyn BackendTexture>) -> GameResult {
 
-    if let Some(renderer) = &mut ctx.renderer {
-
-        let gl_renderer = renderer
-            .as_any_mut()
-            .downcast_mut::<OpenGLRenderer>();
-        if let Some(renderer) = gl_renderer {
-            if let Some(model) = &mut renderer.model {
-                model.set_char_plane_target_surf(source_texture)?;
-
-                return Ok(());
-            }
-
-            return Err(GameError::RenderError(format!("Three-d not initialized!")));
-        }
-
-        return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
-    }
-
-    return Err(GameError::RenderError(format!("Renderer is not initialized!")));
-
+    let model = check_for_renderer(ctx).unwrap();
+    model.set_char_plane_target_surf(source_texture)?;
+    Ok(())
 
 }
 
 /// draw the 3D scene to this texture
 pub fn draw_3d(ctx: &mut Context, dest_texture: Option<&Box<dyn BackendTexture>>) -> GameResult {
 
-    if let Some(renderer) = &mut ctx.renderer {
 
-        let gl_renderer = renderer
-            .as_any_mut()
-            .downcast_mut::<OpenGLRenderer>();
-        if let Some(renderer) = gl_renderer {
-            if let Some(model) = &mut renderer.model {
-                model.draw(dest_texture)?;
+    let model = check_for_renderer(ctx).unwrap();
+    model.draw(dest_texture)?;
 
-                //reset texture back to whatever we've bound it to, since three-d resets it to buffer 0 when done
-                set_render_target(ctx, dest_texture)?;
-
-                return Ok(());
-            }
-
-            return Err(GameError::RenderError(format!("Three-d not initialized!")));
-        }
-
-        return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
-    }
-
-    return Err(GameError::RenderError(format!("Renderer is not initialized!")));
+    //reset texture back to whatever we've bound it to, since three-d resets it to buffer 0 when done
+    set_render_target(ctx, dest_texture)?;
 
     Ok(())
-
 }
 
 /// move the 3d scene to the location of the frame (units: meters)
 pub fn update_frame_location(ctx: &mut Context, x: f32, y: f32) -> GameResult {
 
-    if let Some(renderer) = &mut ctx.renderer {
-
-        let gl_renderer = renderer
-            .as_any_mut()
-            .downcast_mut::<OpenGLRenderer>();
-        if let Some(renderer) = gl_renderer {
-            if let Some(model) = &mut renderer.model {
-                
-                model.set_location(x, y);
-
-                return Ok(());
-            }
-
-            return Err(GameError::RenderError(format!("Three-d not initialized!")));
-        }
-
-        return Err(GameError::RenderError(format!("Renderer is not OpenGL!")));
-    }
-
-    return Err(GameError::RenderError(format!("Renderer is not initialized!")));
+    let model = check_for_renderer(ctx).unwrap();
+    model.set_location(x, y);
 
     Ok(())
 
 }
 
+pub fn load_gltf(ctx: &mut Context, data: &[u8], key: i32, update_lights: bool) -> GameResult<bool> {
+    let model = check_for_renderer(ctx).unwrap();
+    model.load_gltf(data, key, update_lights)
+}
 
+pub fn unload_gltf(ctx: &mut Context, key: i32) -> GameResult<bool> {
+    let model = check_for_renderer(ctx).unwrap();
+    model.unload_gltf(key)
+}
 
+pub fn load_skybox(ctx: &mut Context, data: &[u8], have_ambient: bool) -> GameResult {
 
+    let model = check_for_renderer(ctx).unwrap();
+    model.load_skybox(data, have_ambient)?;
 
+    Ok(())
+}
 
+pub fn unload_skybox(ctx: &mut Context) -> GameResult {
+
+    let model = check_for_renderer(ctx).unwrap();
+    model.unload_skybox();
+
+    Ok(())
+}
+
+pub fn set_ambient_attributes(ctx: &mut Context, data: Option<&[u8]>, color: Option<Color>, intensity: Option<f32>) -> GameResult {
+    let model = check_for_renderer(ctx).unwrap();
+    model.set_ambient_attributes(data, color, intensity)?;
+
+    Ok(())
+}
+
+pub fn unload_ambient_image(ctx: &mut Context) -> GameResult {
+    let model = check_for_renderer(ctx).unwrap();
+    model.unload_ambient_image();
+
+    Ok(())
+}
 
 

@@ -287,6 +287,16 @@ pub enum TSCOpCode {
     MS4,
 
 
+    /// <L3Dwwww:yyyy:path_to_file$, loads a GLTF file from a path in the "./data" directory to storage key wwww, if yyyy is 1, lights are imported from this model, invalid path unloads the model
+    L3D,
+    /// <LSBwwww:path_to_file$, loads an image from the "./data" directory to be used as a skybox (equirectangular), if wwww is one, then the game uses this texture for the ambient light, invalid path unloads the skybox
+    LSB,
+    /// <LAIpath_to_file$, loads a equirectangular texture to be used with the ambient light. if string is invalid, the current texture is unloaded
+    LAI,    
+    /// <SAIwwww, sets the intensity of the ambient light / 1000, so 0500 is 0.5.
+    SAI,
+    /// <SACwwww:xxxx:yyyy, sets color of the ambient light, RGB from 0-255. Values outside this are truncated
+    SAC,
 
 }
 

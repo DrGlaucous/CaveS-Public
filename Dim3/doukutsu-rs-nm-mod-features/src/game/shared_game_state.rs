@@ -1,8 +1,9 @@
 use std::{cmp, ops::Div};
+use std::io::{BufReader, Read, Seek, SeekFrom};
 
 use chrono::{Datelike, Local};
 
-use crate::common::{ControlFlags, Direction, FadeState};
+use crate::common::{ControlFlags, Direction, FadeState, Color};
 use crate::components::draw_common::{draw_number, Alignment};
 use crate::data::vanilla::VanillaExtractor;
 #[cfg(feature = "discord-rpc")]
@@ -351,7 +352,6 @@ pub struct SharedGameState {
 
     //new canvases
     pub char_plane_canvas: Option<Box<dyn BackendTexture>>, //layer that holds 2d items to be drawn on the canvas
-    pub three_d_canvas: Option<Box<dyn BackendTexture>>, //layer that holds the 3d elements + 2d layer
 
 
 }
@@ -513,7 +513,6 @@ impl SharedGameState {
             shutdown: false,
 
             char_plane_canvas: None,
-            three_d_canvas: None,
         })
     }
 
@@ -741,7 +740,6 @@ impl SharedGameState {
         self.lightmap_canvas = Some(create_texture_mutable(ctx, width, height)?);
 
         self.char_plane_canvas = Some(create_texture_mutable(ctx, width, height)?);
-        self.three_d_canvas = Some(create_texture_mutable(ctx, width, height)?);
 
         let _ = graphics::set_3d_viewport(ctx, width as u32, height as u32, self.scale);
 
@@ -935,4 +933,72 @@ impl SharedGameState {
     pub fn tt(&self, key: &str, args: &[(&str, &str)]) -> String {
         return self.loc.tt(key, args);
     }
+
+
+    //new, for handling 3d meshes
+
+    /// Loads/unloads a GLTF, depending on the validity of the path
+    pub fn load_gltf(&mut self, ctx: &mut Context, path: &String, update_lights: bool, key: i32) -> GameResult {
+
+        //file is valid
+        if let Ok(mut reader) = filesystem::open_find(ctx, &self.constants.base_paths, path) {
+
+            let mut data = Vec::new();
+            reader.read_to_end(&mut data)?;
+    
+            graphics::load_gltf(ctx, data.as_slice(), key, update_lights)?;
+        } else {
+            //unload gltf with invalid path
+            graphics::unload_gltf(ctx, key)?;
+        }
+
+        Ok(())
+    }
+
+    /// Loads/unloads a skybox texture, optionally with pbr ambience
+    pub fn load_skybox(&mut self, ctx: &mut Context, path: &String, have_ambient: bool) -> GameResult {
+
+        //file is valid
+        if let Ok(mut reader) = filesystem::open_find(ctx, &self.constants.base_paths, path) {
+
+            let mut data = Vec::new();
+            reader.read_to_end(&mut data)?;
+    
+            graphics::load_skybox(ctx, data.as_slice(), have_ambient)?;
+        } else {
+            //invalid: unload
+            graphics::unload_skybox(ctx)?;
+        }
+
+        Ok(())
+    }
+
+    /// Loads/unloads ambient light reflection file
+    pub fn load_ambient_reflections(&mut self, ctx: &mut Context, path: &String) -> GameResult {
+
+        //file is valid
+        if let Ok(mut reader) = filesystem::open_find(ctx, &self.constants.base_paths, path) {
+
+            let mut data = Vec::new();
+            reader.read_to_end(&mut data)?;
+    
+            graphics::set_ambient_attributes(ctx, Some(data.as_slice()), None, None)?;
+
+        } else {
+            //invalid file: unload
+            graphics::unload_ambient_image(ctx)?;
+        }
+
+        Ok(())
+
+    }
+
+    /// changes the other ambient light properties
+    pub fn set_ambient_attributes(&mut self, ctx: &mut Context, color: Option<Color>, intensity: Option<f32>) -> GameResult {
+        graphics::set_ambient_attributes(ctx, None, color, intensity)?;
+        Ok(())
+    }
+
+
+
 }

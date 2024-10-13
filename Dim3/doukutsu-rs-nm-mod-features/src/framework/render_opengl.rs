@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::num::NonZeroU32;
 use std::any::Any;
 use std::cell::{RefCell, UnsafeCell};
@@ -647,8 +648,12 @@ pub struct ThreeDModelSetup {
     char_plane_scale: f32, //scale of the char plane (dynamic scaling of the main d-rs engine)
     frame_xy: (f32, f32), //location of the upper-level game frame (1m = 16 px)
     
-    map_models: Vec<Model<PhysicalMaterial>>, //a list of map meshes //TODO: draw all of them
+    map_models: HashMap<i32, Model<PhysicalMaterial>>, //a list of map meshes //TODO: draw all of them
     lights: Vec<Box<dyn Light>>, //list of lights in the model
+
+    skybox: Option<Skybox>, //the skybox, black by default
+    ambient_light: AmbientLight, //only one is needed (holds the texture for the skybox)
+
 
     midstep_surface: Texture2D,
     midstep_depth: DepthTexture2D,
@@ -663,6 +668,7 @@ pub struct ThreeDModelSetup {
 
 impl ThreeDModelSetup {
 
+    /// Takes a refrence to the d-rs opengl context and the framebuffer ID of the "default" surface it should draw to if a BackendTexture is invalid
     pub fn new(gl_context: &mut GLContext, surf_framebuffer: GLuint) -> ThreeDModelSetup {
 
         let gl = unsafe{
@@ -755,10 +761,40 @@ impl ThreeDModelSetup {
         //     loaded
         // }
 
-         
-        let mut model_list: Vec<Model<PhysicalMaterial>> = Vec::new();
+        //empty skybox + ambient light
+
+        //don't make the skybox for now since we need a texture for that
+        let ambient_light = AmbientLight::new(&context, 0.5, Srgba::WHITE);
+
+        
+        let mut model_list: HashMap<i32, Model<PhysicalMaterial>> = HashMap::new();
         let mut lights: Vec<Box<dyn Light>> = Vec::new();
 
+        
+        log::info!("light count: {}", lights.len());
+
+        let mut mo = ThreeDModelSetup {
+            vp,
+            context,
+            camera,
+            char_plane,
+            char_plane_scale: 1.0,
+            frame_xy: (0.0,0.0),
+            map_models: model_list,
+            lights,
+            surf_framebuffer,
+
+            skybox: None,
+            ambient_light,
+
+            midstep_surface,
+            midstep_depth,
+            midstep_program,
+            time: 0.0,
+        };
+
+
+        /* 
         //test: load object 1
         {
             let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]);
@@ -768,20 +804,31 @@ impl ThreeDModelSetup {
     
                 let mut pathh = path::PathBuf::new();
                 pathh.push("testOrigin.glb");
-                let (mm, mut light_list) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
-                let mut cpu_model: CpuModel = mm.into();
+
+                let assets = raw_assets.get(pathh).unwrap();
+
+                let result = mo.load_gltf(assets, 0, true);
+
+                if result.is_err() {
+                    let mut pear = 5 + 2;
+                    let mut aa = pear + 2;
+
+                }
+
+                // let (mm, mut light_list) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
+                // let mut cpu_model: CpuModel = mm.into();
     
-                //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
-                cpu_model
-                    .geometries
-                    .iter_mut()
-                    .for_each(|part| part.compute_normals());
+                // //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
+                // cpu_model
+                //     .geometries
+                //     .iter_mut()
+                //     .for_each(|part| part.compute_normals());
     
-                let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+                // let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
     
-                lights = light_list;
+                // lights = light_list;
     
-                model_list.push(model);
+                // model_list.insert(0, model);
             }
         }
 
@@ -793,60 +840,46 @@ impl ThreeDModelSetup {
     
                 let mut pathh = path::PathBuf::new();
                 pathh.push("testOrigin_box.glb");
-                let (mm, _) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
-                let mut cpu_model: CpuModel = mm.into();
+
+                let assets = raw_assets.get(pathh).unwrap();
+
+                let _ = mo.load_gltf(assets, 1, false);
+
+                // let (mm, _) = deserialize_gltf(&context, &mut raw_assets, &pathh).unwrap();
+                // let mut cpu_model: CpuModel = mm.into();
     
-                //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
-                cpu_model
-                    .geometries
-                    .iter_mut()
-                    .for_each(|part| part.compute_normals());
+                // //let mut cpu_model: CpuModel = raw_assets.deserialize("testOrigin.glb").unwrap();
+                // cpu_model
+                //     .geometries
+                //     .iter_mut()
+                //     .for_each(|part| part.compute_normals());
     
-                let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
+                // let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
     
-                model_list.push(model);
+                // model_list.insert(1, model);
             }
         }
+        */
 
-        // let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
-        // let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
-        // lights.push(light0);
-        // lights.push(light1);
-        
-        log::info!("light count: {}", lights.len());
 
-        ThreeDModelSetup {
-            vp,
-            context,
-            camera,
-            char_plane,
-            char_plane_scale: 1.0,
-            frame_xy: (0.0,0.0),
-            map_models: model_list,
-            lights,
-            surf_framebuffer,
-            midstep_surface,
-            midstep_depth,
-            midstep_program,
-            time: 0.0,
-        }
+
+        mo
 
 
                 
     }
 
-    /// Loads a GLTF into the three-d backend to be rendered onscreen, returns the index of the model if successful
-    pub fn load_gltf(&mut self, path: &str, data: &[u8], update_lights: bool) -> GameResult<usize> {
+    /// Loads a GLTF into the three-d backend to be rendered onscreen, returns "true" if the value was inserted, "false" if updated
+    pub fn load_gltf(&mut self, data: &[u8], key: i32, update_lights: bool) -> GameResult<bool> {
 
-        self.narc();
+        //used to store and get the data from the RawAssets container, which the gltf infrastructure uses
+        //since raw_assets is no longer used after the deserialize operation, this pathname doesn't really matter
+        let path = "FILE";
 
         //push the file into the raw_assets object
         let mut raw_assets = RawAssets::new();
         raw_assets.insert(path, data.to_vec());
-
-
-        let mut lights: Vec<Box<dyn Light>> = Vec::new();
 
 
         let mut path_buffer = path::PathBuf::new();
@@ -854,6 +887,7 @@ impl ThreeDModelSetup {
         let (parsed_scene, mut light_list) = deserialize_gltf(&self.context, &mut raw_assets, &path_buffer).unwrap();
         let mut cpu_model: CpuModel = parsed_scene.into();
 
+        //we may or may not need to recompute normals...
         cpu_model
             .geometries
             .iter_mut()
@@ -861,29 +895,123 @@ impl ThreeDModelSetup {
 
         let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
 
-        self.map_models.push(model);
+        let result = self.map_models.insert(key, model);
 
         //delete old lights and add new ones
         if update_lights {
             self.lights = light_list;
         }
 
-        Ok(self.map_models.len())
+        Ok(result.is_none())
+
     }
 
     /// unloads the GLTF at the provided index, returns error if OOB
-    pub fn unload_gltf(&mut self, index: usize) -> GameResult {
+    pub fn unload_gltf(&mut self, key: i32) -> GameResult<bool> {
 
-        self.narc();
+        let old_item = self.map_models.remove(&key);        
+        Ok(old_item.is_some())
+    
+    }
 
-        if index >= self.map_models.len() {
-            return Err(GameError::InvalidValue(format!("index {} is out of range! Max index: {}", index, self.map_models.len())))
+    /// load the skybox and optionally apply its texture to the ambient light
+    pub fn load_skybox(&mut self, data: &[u8], have_ambient: bool) -> GameResult {
+
+        //used to store and get the data from the RawAssets container, which the gltf infrastructure uses
+        //since raw_assets is no longer used after the deserialize operation, this pathname doesn't really matter
+        let path = "FILE";
+
+        //push the file into the raw_assets object
+        let mut raw_assets = RawAssets::new();
+        raw_assets.insert(path, data.to_vec());
+
+
+        let mut path_buffer = path::PathBuf::new();
+        path_buffer.push(path);
+        let image = raw_assets.deserialize(path).unwrap();
+
+        self.skybox = Some(Skybox::new_from_equirectangular(
+            &self.context,
+            &image,
+        ));
+
+        //update ambient texture if required
+        if have_ambient {
+            if let Some(skybox) = &mut self.skybox {
+                self.ambient_light.environment = Some(Environment::new(&self.context, skybox.texture()));
+            }
         }
-        self.map_models.remove(index);
 
-
-        self.narc();
         Ok(())
+
+    }
+
+    /// Nullifies skybox
+    pub fn unload_skybox(&mut self) {
+        self.skybox = None;
+    }
+
+    /// Sets various attribues of the ambient light
+    pub fn set_ambient_attributes(&mut self, data: Option<&[u8]>, color: Option<Color>, intensity: Option<f32>) -> GameResult {
+
+        //load new reflection texture
+        if let Some(data) = data {
+            let path = "FILE";
+
+            //push the file into the raw_assets object
+            let mut raw_assets = RawAssets::new();
+            raw_assets.insert(path, data.to_vec());
+    
+    
+            let mut path_buffer = path::PathBuf::new();
+            path_buffer.push(path);
+            let mut image: CpuTexture = raw_assets.deserialize(path).unwrap();
+
+            let cm = match image.data {
+                TextureData::RgbaU8(_) | TextureData::RgbU8(_) => {
+                    let mut cpu_texture = image.clone();
+                    &image.data.to_linear_srgb();
+                    TextureCubeMap::new_from_equirectangular::<u8>(&self.context, &image)
+                }
+                TextureData::RgU8(_) | TextureData::RU8(_) => {
+                    TextureCubeMap::new_from_equirectangular::<u8>(&self.context, &image)
+                }
+                TextureData::RgbaF16(_)
+                | TextureData::RgbF16(_)
+                | TextureData::RgF16(_)
+                | TextureData::RF16(_) => {
+                    TextureCubeMap::new_from_equirectangular::<f16>(&self.context, &image)
+                }
+                TextureData::RgbaF32(_)
+                | TextureData::RgbF32(_)
+                | TextureData::RgF32(_)
+                | TextureData::RF32(_) => {
+                    TextureCubeMap::new_from_equirectangular::<f32>(&self.context, &image)
+                }
+            };
+
+            //let cm = TextureCubeMap::new_from_equirectangular(&self.context, &image);
+            self.ambient_light.environment = Some(Environment::new(&self.context, &cm));
+
+        }
+
+        if let Some(color) = color {
+            let uu = color.to_rgba();
+            let compat_color = Srgba::new(uu.0, uu.1, uu.2, uu.3);
+            self.ambient_light.color = compat_color;
+        }
+
+        if let Some(intensity) = intensity {
+            self.ambient_light.intensity = intensity;
+        }
+
+        Ok(())
+
+    }
+
+    /// Unloads the cubemap from the ambient light
+    pub fn unload_ambient_image(&mut self) {
+        self.ambient_light.environment = None;
     }
 
     /// Tells the 3D context to use use this surface to draw onto the char plane.
@@ -973,44 +1101,53 @@ impl ThreeDModelSetup {
 
         self.narc();
         
-        //no need to clear: the normal stuff already does this.
-        //will need to clear if we're putting this on a 
-        // unsafe {
-        //     model.context.clear_color(0.0, 0.0, 0.0, 1.0);
-        //     model.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
-        //     //context.bind_buffer(target, buffer);
-        //     //context.set_blend(blend);
-        //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
-        // }
 
-        //conglomerate all models into an iterator to be rendered by the render target
-        // let mut renderable_things: Box<dyn Iterator<Item = _>> = Box::new(std::iter::empty());
-        // for model in &self.map_models {
-        //     renderable_things = Box::new(renderable_things.chain(model.into_iter()));
-        // }
+        //draw to midsurface
+        {
+            //no need to clear: the normal stuff already does this.
+            //will need to clear if we're putting this on a seaprate surface...
+            // unsafe {
+            //     model.context.clear_color(0.0, 0.0, 0.0, 1.0);
+            //     model.context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
+            //     //context.bind_buffer(target, buffer);
+            //     //context.set_blend(blend);
+            //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
+            // }
 
-        //alt method using fold
-        let renderable_things = self.map_models.iter().fold(
-            Box::new(std::iter::empty()) as Box<dyn Iterator<Item = _>>,
-            |acc, model| Box::new(acc.chain(model.into_iter()))
-        );
-        //note: I'm not sure if using boxes here is better than calling '.render' multiple times in quick succession, but it works, so I'll take it.
+            //conglomerate all models into an iterator to be rendered by the render target
+            // let mut renderable_things: Box<dyn Iterator<Item = _>> = Box::new(std::iter::empty());
+            // for (key, model) in &self.map_models {
+            //     renderable_things = Box::new(renderable_things.chain(model.into_iter()));
+            // }
 
 
-        //render to mid-surface
-        RenderTarget::new(
-            self.midstep_surface.as_color_target(None),
-            self.midstep_depth.as_depth_target())
-            .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
-            .render(
-                &self.camera,
-                renderable_things, //self.map_models.into_iter(), //iter().map(|x| x as &dyn Object),
-                &self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
-            .render(&self.camera, &self.char_plane, &[]);
+            let renderable_things = self.map_models.iter().fold(
+                Box::new(std::iter::empty()) as Box<dyn Iterator<Item = _>>,
+                |acc, (key, model)| Box::new(acc.chain(model.into_iter()))
+            );
+            //note: I'm not sure if using boxes here is better than calling '.render' multiple times in quick succession, but it works, so I'll take it.
 
 
+            let one_iter: std::iter::Once<&dyn Light> = std::iter::once(&self.ambient_light);
+            let lightable_things  = self.lights.iter().map(|l| l.as_ref()).chain(one_iter).collect::<Vec<_>>(); //.into_iter().chain(self.ambient_light.into()).collect::<Vec<_>>();
 
-        //copy mid-surface to target surface
+            //render to mid-surface
+            RenderTarget::new(
+                self.midstep_surface.as_color_target(None),
+                self.midstep_depth.as_depth_target())
+                .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
+                .render(&self.camera, &self.skybox, &[]) //todo: add this to main "renderable things"
+                .render(
+                    &self.camera,
+                    renderable_things, //self.map_models.into_iter(), //iter().map(|x| x as &dyn Object),
+                    &lightable_things) //&self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
+                .render(&self.camera, &self.char_plane, &[]);
+                
+
+
+        }
+
+        //copy midsurface to output surface
         unsafe {
             let fbb = render_target.into_framebuffer();
             //self.context.clear_color(0.0, 0.0, 0.0, 1.0);
@@ -1077,7 +1214,6 @@ impl ThreeDModelSetup {
             //self.midstep_program.draw_elements(render_states, viewport, element_buffer);
 
         }      
-
 
         self.narc();
 

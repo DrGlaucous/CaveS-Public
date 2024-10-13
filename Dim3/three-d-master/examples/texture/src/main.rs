@@ -41,20 +41,25 @@ pub async fn run() {
         "./../../examples/assets/skybox_evening/back.jpg",
         "./../../examples/assets/Skybox_example.png",
         "./../../examples/assets/PenguinBaseMesh.obj",
+        "./../../examples/assets/marslike_big.jpg",
     ])
     .await
     .unwrap();
 
     // Skybox
-    let top_tex = loaded.deserialize("top").unwrap();
-    let skybox = Skybox::new(
+    // let top_tex = loaded.deserialize("top").unwrap();
+    // let skybox = Skybox::new(
+    //     &context,
+    //     &loaded.deserialize("right").unwrap(),
+    //     &loaded.deserialize("left").unwrap(),
+    //     &top_tex,
+    //     &top_tex,
+    //     &loaded.deserialize("front").unwrap(),
+    //     &loaded.deserialize("back").unwrap(),
+    // );
+    let skybox = Skybox::new_from_equirectangular(
         &context,
-        &loaded.deserialize("right").unwrap(),
-        &loaded.deserialize("left").unwrap(),
-        &top_tex,
-        &top_tex,
-        &loaded.deserialize("front").unwrap(),
-        &loaded.deserialize("back").unwrap(),
+        &loaded.deserialize("marslike_big").unwrap(),
     );
 
     // Box
@@ -106,8 +111,22 @@ pub async fn run() {
         m.material.render_states.cull = Cull::Back;
     });
 
+
+    let mut ball_model = Gm::new(
+        Mesh::new(&context, &CpuMesh::sphere(32)),
+        PhysicalMaterial::new_opaque(
+            &context,
+            &CpuMaterial {
+                roughness: 0.2,
+                metallic: 0.8,
+                ..Default::default()
+            },
+        ),
+    );
+
     // Lights
-    let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
+    let ambient = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
+    //let ambient = AmbientLight::new(&context, 0.4, Srgba::WHITE);
     let directional = DirectionalLight::new(&context, 2.0, Srgba::WHITE, &vec3(0.0, -1.0, -1.0));
 
     // main loop
@@ -120,7 +139,7 @@ pub async fn run() {
         if redraw {
             frame_input.screen().clear(ClearState::default()).render(
                 &camera,
-                penguin.into_iter().chain(&box_object).chain(&skybox),
+                skybox.into_iter().chain(&ball_model), //penguin.into_iter().chain(&box_object).chain(&skybox),
                 &[&ambient, &directional],
             );
         }

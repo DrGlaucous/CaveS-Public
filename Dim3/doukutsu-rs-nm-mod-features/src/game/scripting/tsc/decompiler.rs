@@ -108,6 +108,7 @@ impl TextScript {
                         | TSCOpCode::PSH
                         | TSCOpCode::BKD
                         | TSCOpCode::BKE
+                        | TSCOpCode::SAI
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
 
@@ -134,7 +135,15 @@ impl TextScript {
                             writeln!(&mut result, "{:?}({}, {})", op, par_a, par_b).unwrap();
                         }
                         // Three operand codes
-                        TSCOpCode::ANP | TSCOpCode::CNP | TSCOpCode::INP | TSCOpCode::TAM | TSCOpCode::CMP | TSCOpCode::INJ | TSCOpCode::SML => {
+                        TSCOpCode::ANP
+                        | TSCOpCode::CNP
+                        | TSCOpCode::INP
+                        | TSCOpCode::TAM
+                        | TSCOpCode::CMP
+                        | TSCOpCode::INJ
+                        | TSCOpCode::SML
+                        | TSCOpCode::SAC
+                        => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;
                             let par_c = read_cur_varint(&mut cursor)?;
@@ -157,6 +166,9 @@ impl TextScript {
                         }
                         // String code
                         TSCOpCode::BKG
+                        | TSCOpCode::L3D
+                        | TSCOpCode::LSB
+                        | TSCOpCode::LAI
                         => {
                             writeln!(&mut result, "{:?} (String-based code: Not trying to decompile...)", op).unwrap();
                         }

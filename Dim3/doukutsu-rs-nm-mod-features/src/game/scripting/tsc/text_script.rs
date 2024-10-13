@@ -12,7 +12,7 @@ use num_traits::{clamp, FromPrimitive};
 
 use crate::bitfield;
 use crate::common::Direction::{Left, Right};
-use crate::common::{Direction, FadeDirection, FadeState, Rect};
+use crate::common::{Direction, FadeDirection, FadeState, Rect, Color};
 use crate::engine_constants::EngineConstants;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
@@ -2066,6 +2066,70 @@ impl TextScriptVM {
                 game_scene.lighting_mode = game_scene.background.cache_background_lighting;
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
+
+            TSCOpCode::L3D => {
+
+                let key = read_cur_varint(&mut cursor)?;
+                let update_lights = read_cur_varint(&mut cursor)? != 0;
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string_tsc(&mut cursor, len).unwrap();
+
+                state.load_gltf(ctx, &filepath, update_lights, key)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
+
+            TSCOpCode::LSB => {
+
+                let have_ambient = read_cur_varint(&mut cursor)? != 0;
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string_tsc(&mut cursor, len).unwrap();
+
+                state.load_skybox(ctx, &filepath, have_ambient)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
+
+            TSCOpCode::LAI => {
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string_tsc(&mut cursor, len).unwrap();
+
+                state.load_ambient_reflections(ctx, &filepath)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+
+            TSCOpCode::SAI => {
+
+                let intensity = read_cur_varint(&mut cursor)? as f32 / 1000.0;
+
+                state.set_ambient_attributes(ctx, None, Some(intensity))?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
+
+            TSCOpCode::SAC => {
+
+                let r = (read_cur_varint(&mut cursor)?).clamp(0, 255) as u8;
+                let g = (read_cur_varint(&mut cursor)?).clamp(0, 255) as u8;
+                let b = (read_cur_varint(&mut cursor)?).clamp(0, 255) as u8;
+                let color = Color::from_rgb(r, g, b);
+
+                state.set_ambient_attributes(ctx, Some(color), None)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
+
 
 
         
