@@ -1,4 +1,4 @@
-By Wistil
+By Wistil - extended by dr.G for drs-stock
 
 Here's info for the TSC commands.  Basic setup is the command name, the number of arguments it takes,
 a short name for the command, and a description of what it does.  I have personally kept the short
@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	120
+[CE_TSC]	102
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -134,23 +134,3 @@ TSC List revised by Jackalope and Lace
 <POP	0	----	POP	Return to calling script (same as END, but for sub-functions)
 <KE2	0	----	KEy P2	KEY for player 2(?)
 <FR2	0	----	FRee P2	FRE for player 2(?)
-<CML	4	#xyt	Change Map Layer	Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
-<SML	3	#xy-	Sub Map Layer	Sets the tile at (xxxx,yyyy) to one less, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
-<BKG	0	----	BacKGround	Loads the BKG config with <BKGname_of_config$
-<BKD	1	#---	BacKground Disable	Disable background layer wwww (oob will be set to last layer)
-<BKE	1	#---	BacKground Enable	Enable background layer wwww (oob will be set to last layer)
-<BKP	3	###-	BacKground Parameter	Set BKG parameter xxxx for layer wwww to value yyyy (no negatives of FPs)
-<BKR	0	----	BacKground Reset	Resets BKG parameters back to defaults (same as TRA)
-<MS4	0	----	MeSsage 4	Open an invisible message box at the bottom of screen.
-<L3D    2	##--	Load 3D 	<L3D[key]:[use lights]:[path_to_file$], invalid path unloads the model
-<LSB    1   #---    Load SkyBox     <LSB[use as ambient reflect texture]:[path_to_file$], format is equirectangular, invalid path unloads the image
-<LAI    0   ----    Load Ambient    <LAI[path_to_file$], load a texture to be used for ambinet reflections, invalid path unloads
-<SAI    1   #---    Set Ambient Intensity   <SAI[intensity], value is divided by 1000, so 0500 is 0.5.
-<SAC    3   ###-    Set Ambient Color   <SAC[r]:[g]:[b], set the color of the ambient light, color values are clamped between 0-255
-<3AS    1   #---    3d Animation Select     <3AS[key]:[name_of_animation$], choose what animation this model should play back
-<3AT    2   ##--    3d Animation Time   <3AT[key]:[time milliseconds], set the time in milliseconds along the animation's timeline
-<3AG    1   #---    3d Animation Go     <3AG[key], start the animation playing, each tick increments it by 1/50 second.
-<3AP    1   #---    3d Animation Pause  <3AP[key], stop the animation playing
-<3AR    2   ##--    3d Animation Range  <3AR[key]:[stop time in milliseconds], animation plays until its timer is >= the stop time, then it is paused and snaps to this time.
-
-
