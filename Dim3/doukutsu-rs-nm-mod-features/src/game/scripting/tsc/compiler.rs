@@ -228,6 +228,8 @@ impl TextScript {
             | TSCOpCode::BKD
             | TSCOpCode::BKE
             | TSCOpCode::SAI
+            | TSCOpCode::S3AG
+            | TSCOpCode::S3AP
             => {
                 let operand = read_number(iter)?;
                 put_varint(instr as i32, out);
@@ -248,7 +250,10 @@ impl TextScript {
             | TSCOpCode::SMP
             | TSCOpCode::PSp
             | TSCOpCode::IpN
-            | TSCOpCode::FFm => {
+            | TSCOpCode::FFm
+            | TSCOpCode::S3AT
+            | TSCOpCode::S3AR
+            => {
                 let operand_a = read_number(iter)?;
                 if strict {
                     expect_char(b':', iter)?;
@@ -336,6 +341,7 @@ impl TextScript {
             }
             //parses 1 operand + 1 string delimited by $
             TSCOpCode::LSB
+            | TSCOpCode::S3AS
             => {
                 //get operand
                 let operand_a = read_number(iter)?;

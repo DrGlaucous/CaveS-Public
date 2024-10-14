@@ -280,16 +280,19 @@ pub fn update_frame_location(ctx: &mut Context, x: f32, y: f32) -> GameResult {
 
 }
 
+/// attempt to load a gltf into the 3d scene
 pub fn load_gltf(ctx: &mut Context, data: &[u8], key: i32, update_lights: bool) -> GameResult<bool> {
     let model = check_for_renderer(ctx).unwrap();
     model.load_gltf(data, key, update_lights)
 }
 
+/// delete the gltf loaded into this slot
 pub fn unload_gltf(ctx: &mut Context, key: i32) -> GameResult<bool> {
     let model = check_for_renderer(ctx).unwrap();
     model.unload_gltf(key)
 }
 
+/// load a skybox into the scene, optionally setting the ambient light texture to this
 pub fn load_skybox(ctx: &mut Context, data: &[u8], have_ambient: bool) -> GameResult {
 
     let model = check_for_renderer(ctx).unwrap();
@@ -298,6 +301,7 @@ pub fn load_skybox(ctx: &mut Context, data: &[u8], have_ambient: bool) -> GameRe
     Ok(())
 }
 
+/// unload the skybox from the scene
 pub fn unload_skybox(ctx: &mut Context) -> GameResult {
 
     let model = check_for_renderer(ctx).unwrap();
@@ -306,6 +310,7 @@ pub fn unload_skybox(ctx: &mut Context) -> GameResult {
     Ok(())
 }
 
+/// set optional light texture, color, or intensity of the ambient light
 pub fn set_ambient_attributes(ctx: &mut Context, data: Option<&[u8]>, color: Option<Color>, intensity: Option<f32>) -> GameResult {
     let model = check_for_renderer(ctx).unwrap();
     model.set_ambient_attributes(data, color, intensity)?;
@@ -313,6 +318,7 @@ pub fn set_ambient_attributes(ctx: &mut Context, data: Option<&[u8]>, color: Opt
     Ok(())
 }
 
+/// unload the ambient light's texture
 pub fn unload_ambient_image(ctx: &mut Context) -> GameResult {
     let model = check_for_renderer(ctx).unwrap();
     model.unload_ambient_image();
@@ -320,4 +326,35 @@ pub fn unload_ambient_image(ctx: &mut Context) -> GameResult {
     Ok(())
 }
 
+/// increment backend animation time (in seconds, where 1 game tick is 1/50 seconds)
+pub fn increment_animation_time(ctx: &mut Context, delta_time: f32, offset_time: f32) -> GameResult {
+    let model = check_for_renderer(ctx).unwrap();
+    model.increment_animation_time(delta_time, offset_time);
 
+    Ok(())
+}
+
+/// increment backend animation time (in seconds, where 1 game tick is 1/50 seconds)
+pub fn set_model_animation_attributes(ctx: &mut Context, key: i32, anim_name: Option<&str>, time: Option<f32>, play: Option<bool>, stop_time: Option<f32>) -> GameResult {
+    let model = check_for_renderer(ctx).unwrap();
+
+    if let Some(anim_name) = anim_name {
+        model.set_model_animation(key, anim_name);
+    }
+
+    if let Some(time) = time {
+        model.set_model_anim_time(key, time);
+
+    }
+
+    if let Some(play) = play {
+        model.set_model_anim_state(key, play);
+    }
+
+    if let Some(stop_time) = stop_time {
+        model.set_model_anim_stop_time(key, stop_time);
+    }
+
+
+    Ok(())
+}

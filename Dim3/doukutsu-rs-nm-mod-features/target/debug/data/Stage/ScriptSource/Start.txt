@@ -21,19 +21,22 @@
 From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 
 #0300
-<L3D0000:0001:testOrigin.glb$
+<L3D0000:0001:Elevator.glb$
 <END
 
 #0301
-<LSB0001:pano4s.png$
+<3AS0000:Elevate$
+<3AG0000
 <END
 
 #0302
-<LSB0001:$
+<3AS0000:CA1$
+<3AG0000
 <END
 
 #0303
-<SAI3000
+<3AP0000
+<3AT0000
 <END
 
 

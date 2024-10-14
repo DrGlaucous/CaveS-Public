@@ -298,6 +298,32 @@ pub enum TSCOpCode {
     /// <SACwwww:xxxx:yyyy, sets color of the ambient light, RGB from 0-255. Values outside this are truncated
     SAC,
 
+    ///Animation 3d Select, choose what animation this model should play back. Because of the backend, only one animation can be played at a time
+    /// <3AS[key]:[name_of_animation$]
+    #[strum(serialize = "3AS")]
+    S3AS,
+
+    /// 3d Animation Time, set the time in seconds along this animation's timeline (1000ms = 1s)
+    ///<3AT[key]:[time milliseconds]
+    #[strum(serialize = "3AT")]
+    S3AT,
+
+    /// 3d Animation Go, start the animation playing. Note: time increment is relative to ingame tick speed, by default, they happen by 1/50 seconds each frame.
+    /// this means they will play faster with 60 TPS than with 50 TPS
+    /// <3AG[key]
+    #[strum(serialize = "3AG")]
+    S3AG,
+
+    /// 3d Animation Pause, stop the animation playing
+    /// <3AP[key]
+    #[strum(serialize = "3AP")]
+    S3AP,
+    
+    /// 3d Animation Range, starts the animation and plays it until it is >= the stop time, then it pauses it and snaps it to this time
+    /// <3AR[key]:[stop time in millisconds]
+    #[strum(serialize = "3AR")]
+    S3AR,
+
 }
 
 #[derive(FromPrimitive, PartialEq, Copy, Clone)]

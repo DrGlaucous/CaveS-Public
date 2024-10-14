@@ -27,7 +27,7 @@ pub async fn run() {
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 1000.0);
 
-    let mut loaded = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]).unwrap();
+    let mut loaded = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testObj.glb"]).unwrap();
     // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     // let mut loaded = if let Ok(loaded) =
     //     three_d_asset::io::load_async(&["../assets/BoxAnimated.gltf"]).await
@@ -48,6 +48,10 @@ pub async fn run() {
         .for_each(|part| part.compute_normals());
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model).unwrap();
 
+    model.choose_animation(Some("AnimB"));
+
+    let mut model_frame_time = 0.0;
+
     let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
     let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
 
@@ -56,7 +60,42 @@ pub async fn run() {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
-        model.animate(0.001 * frame_input.accumulated_time as f32);
+        for event in &frame_input.events {
+            match event {
+                Event::KeyPress { kind, modifiers, handled } => {
+                    match kind {
+                        Key::Q => {
+                            model_frame_time += 0.1;
+                            println!("{model_frame_time}");
+                        }
+                        Key::W => {
+                            model_frame_time -= 0.1;
+                            println!("{model_frame_time}");
+                        }
+                        Key::A => {
+                            model_frame_time += 0.001;
+                            println!("{model_frame_time}");
+                        }
+                        Key::S => {
+                            model_frame_time -= 0.001;
+                            println!("{model_frame_time}");
+                        }
+                        Key::Z => {
+                            model.choose_animation(Some("AnimA"));
+                            println!("AnimA");
+                        }
+                        Key::X => {
+                            model.choose_animation(Some("AnimB"));
+                            println!("AnimB");
+                        }
+                        _ => {}
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        model.animate(model_frame_time); //(0.001 * frame_input.accumulated_time as f32);
 
         frame_input
             .screen()

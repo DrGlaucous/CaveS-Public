@@ -1679,7 +1679,9 @@ impl GameScene {
         frame_y /= -16.0; //invert y as well
         graphics::update_frame_location(ctx, frame_x, frame_y)?;
 
-
+        //state.frame_time is a number between 0.0 and 1.0, showing how far along a frame we are.
+        let offset_time = (state.frame_time * (1.0/50.0)) as f32;
+        graphics::increment_animation_time(ctx, 0.0, offset_time)?;
 
         //set target to the 3d surface's 2D plane
         //if this fails or the canvas does not exist, this will simply draw to the screen instead (original behavior)
@@ -1997,6 +1999,7 @@ impl Scene for GameScene {
                     _ => {
                         if state.control_flags.tick_world() {
                             self.tick_world(state)?;
+                            state.increment_animation_time(ctx, 1.0 / 50.0, 0.0)?; //run by-tick animation
                         }
                     }
                 }

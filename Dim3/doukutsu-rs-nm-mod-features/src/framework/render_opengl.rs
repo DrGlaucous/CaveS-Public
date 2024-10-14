@@ -638,6 +638,13 @@ pub fn load_gl(gl_context: &mut GLContext) -> &'static Gl {
     }
 }
 
+struct ImportedModel {
+    pub model: Model<PhysicalMaterial>,
+    pub time: f32, //incremented on a by-tick basis (+=)
+    pub offset_time: f32, //used for between-frame interpolation (=)
+    pub stop_time: f32,
+    pub play: bool, //true if time should automatically increment with the game's ticks
+}
 
 pub struct ThreeDModelSetup {
     vp: Viewport, //screen size
@@ -648,7 +655,7 @@ pub struct ThreeDModelSetup {
     char_plane_scale: f32, //scale of the char plane (dynamic scaling of the main d-rs engine)
     frame_xy: (f32, f32), //location of the upper-level game frame (1m = 16 px)
     
-    map_models: HashMap<i32, Model<PhysicalMaterial>>, //a list of map meshes //TODO: draw all of them
+    map_models: HashMap<i32, ImportedModel>, //a list of map meshes //TODO: draw all of them
     lights: Vec<Box<dyn Light>>, //list of lights in the model
 
     skybox: Option<Skybox>, //the skybox, black by default
@@ -662,8 +669,6 @@ pub struct ThreeDModelSetup {
     //clone of the one from RenderData, since we need to know where to put our drawn stuff if we're drawing to the default location
     surf_framebuffer: GLuint,
 
-    //test: spin user plane
-    time: f32,
 }
 
 impl ThreeDModelSetup {
@@ -767,7 +772,7 @@ impl ThreeDModelSetup {
         let ambient_light = AmbientLight::new(&context, 0.5, Srgba::WHITE);
 
         
-        let mut model_list: HashMap<i32, Model<PhysicalMaterial>> = HashMap::new();
+        let mut model_list: HashMap<i32, ImportedModel> = HashMap::new();
         let mut lights: Vec<Box<dyn Light>> = Vec::new();
 
         
@@ -790,7 +795,6 @@ impl ThreeDModelSetup {
             midstep_surface,
             midstep_depth,
             midstep_program,
-            time: 0.0,
         };
 
 
@@ -895,7 +899,15 @@ impl ThreeDModelSetup {
 
         let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
 
-        let result = self.map_models.insert(key, model);
+        let im_model = ImportedModel{
+            model,
+            time: 1.0,
+            offset_time: 0.0,
+            stop_time: -1.0, //<= 0 time means this setting is inactive
+            play: false,
+        };
+
+        let result = self.map_models.insert(key, im_model);
 
         //delete old lights and add new ones
         if update_lights {
@@ -1076,9 +1088,10 @@ impl ThreeDModelSetup {
     /// Note that due to the framework, running this resets the binding back to 0 when finished
     pub fn draw_no(&mut self, dest_id: u32) -> GameResult {
 
-        //update char plane and camera
+        //update char plane, camera, and animations
         self.displace_char_plane();
         self.displace_camera();
+        self.run_animations();
 
         self.narc();
 
@@ -1123,7 +1136,7 @@ impl ThreeDModelSetup {
 
             let renderable_things = self.map_models.iter().fold(
                 Box::new(std::iter::empty()) as Box<dyn Iterator<Item = _>>,
-                |acc, (key, model)| Box::new(acc.chain(model.into_iter()))
+                |acc, (key, model)| Box::new(acc.chain(model.model.into_iter()))
             );
             //note: I'm not sure if using boxes here is better than calling '.render' multiple times in quick succession, but it works, so I'll take it.
 
@@ -1257,6 +1270,74 @@ impl ThreeDModelSetup {
         self.frame_xy = (x, y);
     }
 
+    /// Increment the internal animation timers by this ammount (in "seconds", relative to the exported GLTF)
+    pub fn increment_animation_time(&mut self, delta_time: f32, offset_time: f32) {
+
+
+        for (key, model) in &mut self.map_models {
+            if(model.play) {
+
+                model.time += delta_time;
+                model.offset_time = offset_time;
+
+                //check for animation stopping
+                if model.stop_time > 0.0 && model.time >= model.stop_time {
+                    model.play = false;
+                    model.time = model.stop_time;
+                    model.stop_time = -1.0;
+                }
+            }
+        }
+
+    }
+
+    /// Set the animation timer of the model to this value, returns true if the model at `key` exists
+    pub fn set_model_anim_time(&mut self, key: i32, time: f32) -> GameResult<bool> {
+
+        if let Some(model) = self.map_models.get_mut(&key) {
+            model.time = time;
+            return Ok(true);
+        }
+
+        Ok(false)
+    }
+
+    /// Set the animation stop time for the model, so it will run to this time and pause (numbers < 0 disable stopping)
+    pub fn set_model_anim_stop_time(&mut self, key: i32, stop_time: f32) -> GameResult<bool> {
+
+        if let Some(model) = self.map_models.get_mut(&key) {
+            model.stop_time = stop_time;
+            return Ok(true);
+        }
+
+        Ok(false)
+    }
+
+    /// Set the animation state of the model to T/F. If true, the model will animate with the game speed
+    pub fn set_model_anim_state(&mut self, key: i32, play: bool) -> GameResult<bool> {
+
+        if let Some(model) = self.map_models.get_mut(&key) {
+            model.play = play;
+            return Ok(true);
+        }
+
+        Ok(false)
+    }
+
+    /// Set what animation the model should run (these are named ahead of time in Blender)
+    pub fn set_model_animation(&mut self, key: i32, anim_name: &str) -> GameResult<bool> {
+
+        if let Some(model) = self.map_models.get_mut(&key) {
+            model.model.choose_animation(Some(anim_name));
+
+            return Ok(true);
+        }
+
+        Ok(false)
+
+    }
+
+
     /// make a rectangle CpuMesh
     fn new_rectangle(width: f32, height: f32) -> CpuMesh {
         //how the points should be indexed
@@ -1378,6 +1459,15 @@ impl ThreeDModelSetup {
 
 
     }
+
+    /// Run animations for all loaded models, even if the model doesn't have an animation
+    fn run_animations(&mut self) {
+
+        for (key, model) in &mut self.map_models {
+            model.model.animate(model.time + model.offset_time);
+        }
+    }
+
 
 
 }

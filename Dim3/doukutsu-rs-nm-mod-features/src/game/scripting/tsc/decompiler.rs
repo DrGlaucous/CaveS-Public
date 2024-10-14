@@ -109,6 +109,8 @@ impl TextScript {
                         | TSCOpCode::BKD
                         | TSCOpCode::BKE
                         | TSCOpCode::SAI
+                        | TSCOpCode::S3AG
+                        | TSCOpCode::S3AP
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
 
@@ -128,7 +130,10 @@ impl TextScript {
                         | TSCOpCode::SMP
                         | TSCOpCode::PSp
                         | TSCOpCode::IpN
-                        | TSCOpCode::FFm => {
+                        | TSCOpCode::FFm
+                        | TSCOpCode::S3AT
+                        | TSCOpCode::S3AR
+                        => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;
 
@@ -169,6 +174,7 @@ impl TextScript {
                         | TSCOpCode::L3D
                         | TSCOpCode::LSB
                         | TSCOpCode::LAI
+                        | TSCOpCode::S3AS
                         => {
                             writeln!(&mut result, "{:?} (String-based code: Not trying to decompile...)", op).unwrap();
                         }

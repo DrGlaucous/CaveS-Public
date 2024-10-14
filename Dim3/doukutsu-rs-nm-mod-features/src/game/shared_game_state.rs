@@ -999,6 +999,18 @@ impl SharedGameState {
         Ok(())
     }
 
+    /// passthrough to the corresponding function in `graphics.rs`
+    pub fn increment_animation_time(&mut self, ctx: &mut Context, delta_time: f32, offset_time: f32) -> GameResult {
+        graphics::increment_animation_time(ctx, delta_time, offset_time)?;
+        Ok(())
+    }
+
+    /// passthrough to the corresponding function in `graphics.rs`
+    pub fn set_model_animation_attributes(&mut self, ctx: &mut Context, key: i32, anim_name: Option<&str>, time: Option<f32>, play: Option<bool>, stop_time: Option<f32>) -> GameResult {
+        graphics::set_model_animation_attributes(ctx, key, anim_name, time, play, stop_time)?;
+        Ok(())
+    }
+
 
 
 }

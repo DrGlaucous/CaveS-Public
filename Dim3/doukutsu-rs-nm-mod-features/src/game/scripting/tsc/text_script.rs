@@ -2130,6 +2130,97 @@ impl TextScriptVM {
 
             }
 
+            /*
+                Animation notes: Animations are not normalized:
+                The time it takes to complete a mesh animation is the `frame_count / frame_speed`, as set in Blender under the "output" section
+
+                TSC interface:
+                
+                //3d Animation Select, choose what animation this model should play back. Because of the backend, only one animation can be played at a time
+                <3AS[key]:[name_of_animation$]
+
+                //3d Animation Time, set the time in seconds along this animation's timeline (1000ms = 1s)
+                <3AT[key]:[time milliseconds]
+
+                //3d Animation Go, start the animation playing. Note: time increment is relative to ingame tick speed, by default, they happen by 1/50 seconds each frame.
+                //this means they will play faster with 60 TPS than with 50 TPS
+                <3AG[key]
+
+                //3d Animation Pause, stop the animation playing
+                <3AP[key]
+
+                //3d Animation Range, starts the animation and plays it until it is >= the stop time, then it pauses it and snaps it to this time
+                <3AR[key]:[stop time in millisconds]
+
+            */
+            TSCOpCode::S3AS => {
+
+                let key = read_cur_varint(&mut cursor)?;
+
+                //get name
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let anim_name = read_string_tsc(&mut cursor, len).unwrap();
+
+                state.set_model_animation_attributes(
+                    ctx, 
+                    key, 
+                    Some(anim_name.as_str()), 
+                    None, None, None)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
+            TSCOpCode::S3AT => {
+                let key = read_cur_varint(&mut cursor)?;
+                let time = read_cur_varint(&mut cursor)? as f32 / 1000.0;
+
+                state.set_model_animation_attributes(
+                    ctx, 
+                    key, 
+                    None, 
+                    Some(time),
+                    None, None)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+
+            }
+            TSCOpCode::S3AP |
+            TSCOpCode::S3AG => {
+
+                let key = read_cur_varint(&mut cursor)?;
+                
+                let play = op == TSCOpCode::S3AG;
+
+                state.set_model_animation_attributes(
+                    ctx, 
+                    key, 
+                    None, None,
+                    Some(play),
+                    None)?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+            }
+
+            TSCOpCode::S3AR => {
+
+                let key = read_cur_varint(&mut cursor)?;
+                let stop_time = read_cur_varint(&mut cursor)? as f32 / 1000.0;
+
+                state.set_model_animation_attributes(
+                    ctx, 
+                    key, 
+                    None, None, None,
+                    Some(stop_time))?;
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+
+            }
+
+
+
 
 
         
