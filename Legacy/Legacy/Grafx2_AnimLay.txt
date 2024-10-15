@@ -1,0 +1,28 @@
+with a tif image, grafx2 looks first for the "software ID" "Grafx2" at the bottom of the file
+if it find that, it then looks for it's "TIFFTAG" with value:
+short: 65500
+hex: 0xDCFF
+int: 0x0000DCFF
+
+the important value is 8 bytes from then end of this "TIFFTAG" (0 for layered, 1 for animation)
+
+if there are multiple hits of this tag, usually editing the first one is good enough to change the mode
+
+//layers mode
+0x00 00 00 00
+
+//anim mode
+0x00 00 01 00
+
+
+
+
+
+
+
+
+
+
+
+
+

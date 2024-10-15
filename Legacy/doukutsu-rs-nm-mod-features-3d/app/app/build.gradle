@@ -1,0 +1,125 @@
+plugins {
+    id 'com.android.application'
+    id 'com.github.willir.rust.cargo-ndk-android'
+}
+
+android {
+    namespace "io.github.doukutsu_rs"
+    compileSdkVersion 33
+    buildToolsVersion "33.0.0"
+    ndkVersion "25.2.9519653"
+
+    defaultConfig {
+        applicationId "io.github.doukutsu_rs"
+        minSdkVersion 24
+        targetSdkVersion 33
+        versionCode 2
+        versionName "0.101.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters 'arm64-v8a'
+            stl = "c++_shared"
+        }
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+
+        def documentsAuthorityValue = applicationId + ".documents"
+
+        manifestPlaceholders =
+                [documentsAuthority: documentsAuthorityValue]
+
+        buildConfigField "String",
+                "DOCUMENTS_AUTHORITY",
+                "\"${documentsAuthorityValue}\""
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            ndk {
+                abiFilters 'x86', 'arm64-v8a', 'armeabi-v7a'
+                stl = "c++_shared"
+            }
+        }
+        debug {
+            jniDebuggable true
+            renderscriptDebuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+    
+    packagingOptions {
+        jniLibs {
+            excludes += "**/dummy.so"
+        }
+
+    }
+}
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.5.0'
+    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
+    implementation 'androidx.core:core:1.9.0'
+    implementation 'com.google.android.material:material:1.8.0'
+}
+
+println("cargo target: ${project.buildDir.getAbsolutePath()}/rust-target")
+println("ndk dir: ${android.ndkDirectory}")
+
+cargoNdk {
+    librariesNames = ["libdrsandroid.so"]
+    module = "../drsandroid/"
+    extraCargoEnv = ["ANDROID_NDK_HOME": android.ndkDirectory]
+    extraCargoBuildArguments = []
+    verbose = true
+
+    buildTypes {
+        release {
+            buildType = "release"
+            targets = [
+                "x86",
+                "arm",
+                "arm64"
+            ]
+        }
+        debug {
+            buildType = "debug"
+            targets = [
+                "arm64"
+            ]
+        }
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'javaPreCompileDebug') {
+        task.dependsOn 'buildCargoNdkDebug'
+    }
+
+    if (task.name == 'javaPreCompileRelease') {
+        task.dependsOn 'buildCargoNdkRelease'
+    }
+}
