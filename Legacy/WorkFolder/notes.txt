@@ -1,1 +1,51 @@
 notes go here
+
+
+
+animation states:
+
+walk L + R (8 frames)
+run L + R (10 frames)
+turn (2 mid-frames)
+
+jump in-place (x frames)
+jump-lunge (x frames)
+smack wall mid-jump (x frames) (optional for now)
+get up from floor, from back, (x frames)
+lay down for sleep, (x frames)
+
+inventory is empty, save for a list of "questions" that give a hint about objective.
+"Where's all the people?"
+"Where's Dad? He promised he'd be here when I got out."
+"Where's Custodian? He'd never accept his city like this..."
+"Is this why they made me?"
+"Maybe it's all a dream.
+Maybe if I go back to my room...
+Got back to bed... I'll...
+...wake up... for real..."
+
+
+
+level list:
+
+start point (small room with stasis tube, controller, patient dossier, and door)
+
+science district, hallways + broken offices
+
+broken area, with exposed floors and jumps + holes in the walls
+
+hangar area, with several wrecked ships in the back
+
+residential area, with abandoned park-like zone
+
+home, with a bed (bed offset, but moved into place with keyframes)
+
+
+
+
+
+
+
+
+
+
