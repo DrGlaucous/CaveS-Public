@@ -74,6 +74,18 @@ impl DogStack {
     }
 }
 
+
+#[derive(Clone)]
+enum ActState {
+    Walking(i32),
+    Running(i32),
+    Standing(i32),
+    Turning(i32),
+    JumpStanding(i32),
+    JumpLunging(i32)
+}
+
+
 #[derive(Clone)]
 pub struct Player {
     pub x: i32,
@@ -106,7 +118,7 @@ pub struct Player {
     pub damage: u16,
     pub air_counter: u16,
     pub air: u16,
-    pub skin: Box<dyn PlayerSkin>,
+    //pub skin: Box<dyn PlayerSkin>,
     pub controller: Box<dyn PlayerController>,
     pub damage_popup: NumberPopup,
     pub exp_popup: NumberPopup,
@@ -122,6 +134,8 @@ pub struct Player {
     dog_stack: Vec<DogStack>,
     pub has_dog: bool,
     pub teleport_counter: u16,
+
+    action_state: ActState,
 }
 
 impl Player {
@@ -146,8 +160,8 @@ impl Player {
             flags: Flag(0),
             equip: Equipment(0),
             direction: Direction::Right,
-            display_bounds: skin.get_display_bounds(),
-            hit_bounds: skin.get_hit_bounds(),
+            display_bounds: state.constants.player.display_rect, //skin.get_display_bounds(),
+            hit_bounds: state.constants.player.hit_rect, //skin.get_hit_bounds(),
             control_mode: constants.player.control_mode,
             question: false,
             booster_fuel: 0,
@@ -164,36 +178,33 @@ impl Player {
             damage: 0,
             air_counter: 0,
             air: 0,
-            skin,
+            //skin,
             controller: Box::new(DummyPlayerController::new()),
             damage_popup: NumberPopup::new(),
             exp_popup: NumberPopup::new(),
             strafe_up: false,
             anim_num: 0,
             anim_counter: 0,
-            anim_rect: constants.player.frames_right[0],
+            anim_rect: constants.player.frames_walk_left[0],
             weapon_rect: Rect::new(0, 0, 0, 0),
             dog_stack: Vec::new(),
             has_dog: false,
             teleport_counter: 0,
+
+            action_state: ActState::Standing(0),
         }
     }
 
     pub fn get_texture_offset(&self) -> u16 {
-        if self.equip.has_mimiga_mask() {
-            32
-        } else {
-            0
-        }
+        0
     }
 
     pub fn load_skin(&mut self, texture_name: String, state: &mut SharedGameState, ctx: &mut Context) {
-        self.skin = Box::new(BasicPlayerSkin::new(texture_name, state, ctx));
-        self.display_bounds = self.skin.get_display_bounds();
-        self.hit_bounds = self.skin.get_hit_bounds();
     }
 
     fn tick_normal(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
+
+        //handle air effects
         if !state.control_flags.interactions_disabled() && state.control_flags.control_enabled() {
             if self.equip.has_air_tank() {
                 self.air = 1000;
@@ -221,38 +232,47 @@ impl Player {
             }
         }
 
+        //do not act if hidden
         if self.cond.hidden() {
             return Ok(());
         }
 
+        //get physics constants for water vs air
         let physics = if self.flags.in_water() {
             state.constants.player.water_physics
         } else {
             state.constants.player.air_physics
         };
 
+        //only one question per tick, reset state
         self.question = false;
 
+        //disabled, turn off booster
         if !state.control_flags.control_enabled() {
             self.booster_switch = BoosterSwitch::None;
         }
 
-        if state.control_flags.control_enabled() && state.settings.allow_strafe {
-            if self.controller.trigger_strafe() {
-                if self.controller.move_up() {
-                    self.strafe_up = true;
-                }
-            } else if !self.controller.strafe() {
-                self.strafe_up = false;
-            }
-        } else {
-            self.strafe_up = false;
-        }
+        //get correct strafe state
+        // if state.control_flags.control_enabled() && state.settings.allow_strafe {
+        //     if self.controller.trigger_strafe() {
+        //         if self.controller.move_up() {
+        //             self.strafe_up = true;
+        //         }
+        //     } else if !self.controller.strafe() {
+        //         self.strafe_up = false;
+        //     }
+        // } else {
+        //     self.strafe_up = false;
+        // }
+
 
         // ground movement
         if self.flags.hit_bottom_wall() || self.flags.hit_right_slope() || self.flags.hit_left_slope() {
+
+            //disable booster
             self.booster_switch = BoosterSwitch::None;
 
+            //refuel booster
             if state.settings.infinite_booster {
                 self.booster_fuel = u32::MAX;
             } else if self.equip.has_booster_0_8() || self.equip.has_booster_2_0() {
@@ -261,7 +281,10 @@ impl Player {
                 self.booster_fuel = 0;
             }
 
+            //if player control allowed, 
             if state.control_flags.control_enabled() {
+
+                //for interracting (cannot be moving to interract)
                 let only_down = self.controller.move_down()
                     && !self.controller.move_up()
                     && !self.controller.move_left()
@@ -275,6 +298,7 @@ impl Player {
                     && !self.controller.strafe();
                 // Leaving the skip button unchecked as a "feature" :)
 
+                //interract, otherwise apply movement
                 if self.controller.trigger_down()
                     && only_down
                     && !self.cond.interacted()
@@ -283,26 +307,37 @@ impl Player {
                     self.cond.set_interacted(true);
                     self.question = true;
                 } else {
-                    if self.controller.move_left() && self.vel_x > -physics.max_dash {
-                        self.vel_x -= physics.dash_ground;
+                    if self.controller.move_left() {
+                        self.direction = Direction::Left; //moved from strafe condition
+
+                        //add acceleration
+                        if self.vel_x > -physics.max_dash {
+                            self.vel_x -= physics.dash_ground;
+                        } 
                     }
 
-                    if self.controller.move_right() && self.vel_x < physics.max_dash {
-                        self.vel_x += physics.dash_ground;
-                    }
+                    if self.controller.move_right() {
+                        self.direction = Direction::Right;
 
-                    if !self.controller.strafe() || !state.settings.allow_strafe {
-                        if self.controller.move_left() {
-                            self.direction = Direction::Left;
+                        //add acceleration
+                        if self.vel_x < physics.max_dash {
+                            self.vel_x += physics.dash_ground;
                         }
-
-                        if self.controller.move_right() {
-                            self.direction = Direction::Right;
-                        }
                     }
+
+                    //if not strafing or is disabled, change direction with current movement
+                    // if !self.controller.strafe() || !state.settings.allow_strafe {
+                    //     if self.controller.move_left() {
+                    //         self.direction = Direction::Left;
+                    //     }
+                    //     if self.controller.move_right() {
+                    //         self.direction = Direction::Right;
+                    //     }
+                    // }
                 }
             }
 
+            //acceleration from outside stuff(?)
             if !self.cond.increase_acceleration() {
                 if self.vel_x < 0 {
                     if self.vel_x > -physics.resist {
@@ -319,17 +354,29 @@ impl Player {
                     }
                 }
             }
+
         } else {
+
             // air movement
+
+            //if control is enabled
             if state.control_flags.control_enabled() {
+
+
+                //do booster movement
                 if self.controller.trigger_jump() && self.booster_fuel != 0 {
+
+
                     if self.equip.has_booster_0_8() {
                         self.booster_switch = BoosterSwitch::Up;
 
+                        //booster "sputter"
                         if self.vel_y > 0x100 {
                             self.vel_y /= 2;
                         }
                     }
+
+                    //sharp booster directions
                     if state.settings.infinite_booster || self.equip.has_booster_2_0() {
                         if self.controller.move_up() {
                             self.booster_switch = BoosterSwitch::Up;
@@ -355,29 +402,38 @@ impl Player {
                     }
                 }
 
-                if self.controller.move_left() && self.vel_x > -physics.max_dash {
-                    self.vel_x -= physics.dash_air;
-                }
+                //horizontal movement while in air
 
-                if self.controller.move_right() && self.vel_x < physics.max_dash {
-                    self.vel_x += physics.dash_air;
-                }
 
-                if !self.controller.strafe() || !state.settings.allow_strafe {
-                    if self.controller.look_left() {
-                        self.direction = Direction::Left;
-                    }
+                //we do not allow direction changing when in air anymore
 
-                    if self.controller.look_right() {
-                        self.direction = Direction::Right;
-                    }
-                }
+
+                // if self.controller.move_left() && self.vel_x > -physics.max_dash {
+                //     self.vel_x -= physics.dash_air;
+                // }
+
+                // if self.controller.move_right() && self.vel_x < physics.max_dash {
+                //     self.vel_x += physics.dash_air;
+                // }
+
+
+                // if !self.controller.strafe() || !state.settings.allow_strafe {
+                //     if self.controller.look_left() {
+                //         self.direction = Direction::Left;
+                //     }
+                //     if self.controller.look_right() {
+                //         self.direction = Direction::Right;
+                //     }
+                // }
+
             }
 
+            //if we have the booster 2 and we're flying with it
             if (state.settings.infinite_booster || self.equip.has_booster_2_0())
                 && self.booster_switch != BoosterSwitch::None
                 && (!self.controller.jump() || self.booster_fuel == 0)
             {
+                //halve velocity? (why?)
                 match self.booster_switch {
                     BoosterSwitch::Left | BoosterSwitch::Right => self.vel_x /= 2,
                     BoosterSwitch::Up => self.vel_y /= 2,
@@ -385,6 +441,7 @@ impl Player {
                 }
             }
 
+            //releasing the "gas", reset the booster state
             if self.booster_fuel == 0 || !self.controller.jump() {
                 self.booster_switch = BoosterSwitch::None;
             }
@@ -435,17 +492,21 @@ impl Player {
             self.vel_y += 0x55;
         }
 
+        //booster 2 or booster 1 or jump velocity
+        //(apply incremental velocities)
         if (state.settings.infinite_booster || self.equip.has_booster_2_0())
             && self.booster_switch != BoosterSwitch::None
         {
             match self.booster_switch {
                 BoosterSwitch::Left | BoosterSwitch::Right => {
+                    //if we hit a wall, inch up
                     if self.flags.hit_left_wall() || self.flags.hit_right_wall() {
                         self.vel_y = -0x100;
                     }
 
                     let mut booster_dir = self.direction;
 
+                    //strafing with the booster
                     if self.controller.strafe() && state.settings.allow_strafe {
                         if self.controller.move_left() {
                             self.booster_switch = BoosterSwitch::Left;
@@ -460,12 +521,14 @@ impl Player {
                         }
                     }
 
+                    //continued applied velocity
                     self.vel_x += match booster_dir {
                         Direction::Left => -0x20,
                         Direction::Right => 0x20,
                         _ => 0,
                     };
 
+                    //make booster noise + make smoke
                     if self.controller.trigger_jump() || self.booster_fuel % 3 == 1 {
                         if self.direction == Direction::Left || self.direction == Direction::Right {
                             state.create_caret(
@@ -517,6 +580,7 @@ impl Player {
             self.vel_y += physics.gravity_ground;
         }
 
+        //suck down on slopes
         if !state.control_flags.control_enabled() || !self.controller.trigger_jump() {
             if self.flags.hit_right_slope() && self.vel_x < 0 {
                 self.vel_y = -self.vel_x;
@@ -536,6 +600,7 @@ impl Player {
             }
         }
 
+        //get speed limits
         let max_move = if self.flags.in_water()
             && !(self.flags.force_left()
                 || self.flags.force_up()
@@ -547,9 +612,15 @@ impl Player {
             state.constants.player.air_physics.max_move
         };
 
+
+
+        //movement applications
+
+        //clamp to speed limit
         self.vel_x = self.vel_x.clamp(-max_move, max_move);
         self.vel_y = self.vel_y.clamp(-max_move, max_move);
 
+        //make water splashes (if states do not agree)
         if !self.splash && self.flags.in_water() {
             let vertical_splash = !self.flags.hit_bottom_wall() && self.vel_y > 0x200;
             let horizontal_splash = self.vel_x > 0x200 || self.vel_x < -0x200;
@@ -580,6 +651,7 @@ impl Player {
             self.splash = true;
         }
 
+        //reset water state if needed
         if !self.flags.in_water() {
             self.splash = false;
         }
@@ -617,6 +689,7 @@ impl Player {
         self.target_x = self.x + self.camera_target_x;
         self.target_y = self.y + self.camera_target_y;
 
+        //apply displacement
         if self.vel_x > physics.resist || self.vel_x < -physics.resist {
             self.x += self.vel_x;
         }
@@ -737,6 +810,7 @@ impl Player {
         Ok(())
     }
 
+    /*
     fn tick_animation(&mut self, state: &mut SharedGameState) {
         if self.cond.hidden() {
             return;
@@ -862,11 +936,11 @@ impl Player {
             self.skin.set_state(PlayerAnimationState::Drowned, self.anim_counter);
         }
 
-        self.anim_rect = self.skin.animation_frame();
+        self.anim_rect = state.constants.//self.skin.animation_frame();
 
         self.tick = self.tick.wrapping_add(1);
     }
-
+    */
     pub fn damage(&mut self, hp: i32, state: &mut SharedGameState, npc_list: &NPCList) {
         if self.life == 0 || hp <= 0 || state.settings.god_mode || self.shock_counter > 0 {
             return;
@@ -897,7 +971,7 @@ impl Player {
         self.damage_popup.update_displayed_value();
 
         if self.life == 0 {
-            state.sound_manager.play_sfx(17);
+            state.sound_manager.play_sfx(0);
             self.cond.0 = 0;
             state.control_flags.set_tick_world(true);
             state.control_flags.set_interactions_disabled(true);
@@ -925,6 +999,8 @@ impl Player {
             self.teleport_counter = 0;
         }
     }
+
+
 }
 
 impl GameEntity<&NPCList> for Player {
@@ -967,7 +1043,8 @@ impl GameEntity<&NPCList> for Player {
         self.exp_popup.tick(state, ())?;
 
         self.cond.set_increase_acceleration(false);
-        self.tick_animation(state);
+        //self.tick_animation(state);
+        self.anim_rect = state.constants.player.frames_stand_left[0];
 
         let dog_amount = (3000..=3005).filter(|id| state.get_flag(*id as usize)).count();
         self.dog_stack.resize(dog_amount, DogStack::new());
@@ -1038,7 +1115,9 @@ impl GameEntity<&NPCList> for Player {
 
         if self.current_weapon != 0 {
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Arms")?;
-            let (gun_off_x, gun_off_y) = self.skin.get_gun_offset();
+
+            //this modified PC doesn't hold items anymore
+            let (gun_off_x, gun_off_y) = (0.0,0.0); //self.skin.get_gun_offset();
 
             batch.add_rect(
                 interpolate_fix9_scale(
@@ -1062,7 +1141,7 @@ impl GameEntity<&NPCList> for Player {
 
         {
             let batch =
-                state.texture_set.get_or_load_batch(ctx, &state.constants, self.skin.get_skin_texture_name())?;
+                state.texture_set.get_or_load_batch(ctx, &state.constants, "MyChar")?; //self.skin.get_skin_texture_name())?;
             batch.add_rect(
                 interpolate_fix9_scale(
                     self.prev_x - self.display_bounds.left as i32,
@@ -1079,16 +1158,18 @@ impl GameEntity<&NPCList> for Player {
             batch.draw(ctx)?;
         }
 
-        if (self.equip.has_air_tank() && self.flags.in_water()) || self.control_mode == ControlMode::IronHead {
-            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Caret")?;
-            batch.add_rect(
-                interpolate_fix9_scale(self.prev_x - 12 * 0x200, self.x - 12 * 0x200, state.frame_time) - frame_x,
-                interpolate_fix9_scale(self.prev_y - 12 * 0x200, self.y - 12 * 0x200, state.frame_time) - frame_y,
-                &state.constants.player.frames_bubble[(self.tick / 2 % 2) as usize],
-            );
-            batch.draw(ctx)?;
-        }
+        //draw air bubble
+        // if (self.equip.has_air_tank() && self.flags.in_water()) || self.control_mode == ControlMode::IronHead {
+        //     let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Caret")?;
+        //     batch.add_rect(
+        //         interpolate_fix9_scale(self.prev_x - 12 * 0x200, self.x - 12 * 0x200, state.frame_time) - frame_x,
+        //         interpolate_fix9_scale(self.prev_y - 12 * 0x200, self.y - 12 * 0x200, state.frame_time) - frame_y,
+        //         &state.constants.player.frames_bubble[(self.tick / 2 % 2) as usize],
+        //     );
+        //     batch.draw(ctx)?;
+        // }
 
         Ok(())
     }
+
 }

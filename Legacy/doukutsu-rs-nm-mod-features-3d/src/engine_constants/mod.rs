@@ -51,9 +51,15 @@ pub struct PlayerConsts {
     pub control_mode: ControlMode,
     pub air_physics: PhysicsConsts,
     pub water_physics: PhysicsConsts,
-    pub frames_left: [Rect<u16>; 12],
-    pub frames_right: [Rect<u16>; 12],
-    pub frames_bubble: [Rect<u16>; 2],
+
+    pub frames_run_left: [Rect<u16>; 10],
+    pub frames_walk_left: [Rect<u16>; 8],
+    pub frames_stand_left: [Rect<u16>; 6],
+    pub frames_jump_left: [Rect<u16>; 4],
+
+    //512-based
+    pub hit_rect: Rect<u32>,
+    pub display_rect: Rect<u32>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -304,14 +310,14 @@ impl EngineConstants {
                 max_life: 3,
                 control_mode: ControlMode::Normal,
                 air_physics: PhysicsConsts {
-                    max_dash: 0x32c,
-                    max_move: 0x5ff,
-                    gravity_air: 0x20,
-                    gravity_ground: 0x50,
-                    dash_air: 0x20,
-                    dash_ground: 0x55,
-                    resist: 0x33,
-                    jump: 0x500,
+                    max_dash: 0x32c, //max speed the player can run
+                    max_move: 0x5ff, //max speed the player can move (typically with booster)
+                    gravity_air: 0x20, //gravity with holding the jump button
+                    gravity_ground: 0x50, //gravity without holding the jump button
+                    dash_air: 0x20, //speed of acceleration while in the air
+                    dash_ground: 0x55, //speed of acceleration while walking
+                    resist: 0x33, //not sure
+                    jump: 0x500, //height of jump
                 },
                 water_physics: PhysicsConsts {
                     max_dash: 0x196,
@@ -323,38 +329,51 @@ impl EngineConstants {
                     resist: 0x19,
                     jump: 0x280,
                 },
-                frames_left: [
-                    Rect { left: 0, top: 0, right: 16, bottom: 16 },
-                    Rect { left: 16, top: 0, right: 32, bottom: 16 },
-                    Rect { left: 0, top: 0, right: 16, bottom: 16 },
-                    Rect { left: 32, top: 0, right: 48, bottom: 16 },
-                    Rect { left: 0, top: 0, right: 16, bottom: 16 },
-                    Rect { left: 48, top: 0, right: 64, bottom: 16 },
-                    Rect { left: 64, top: 0, right: 80, bottom: 16 },
-                    Rect { left: 48, top: 0, right: 64, bottom: 16 },
-                    Rect { left: 80, top: 0, right: 96, bottom: 16 },
-                    Rect { left: 48, top: 0, right: 64, bottom: 16 },
-                    Rect { left: 96, top: 0, right: 112, bottom: 16 },
-                    Rect { left: 112, top: 0, right: 128, bottom: 16 },
+
+                frames_run_left: [
+                    Rect { left: 0, top: 0, right: 32, bottom: 48 },
+                    Rect { left: 32, top: 0, right: 64, bottom: 48 },
+                    Rect { left: 64, top: 0, right: 96, bottom: 48 },
+                    Rect { left: 96, top: 0, right: 128, bottom: 48 },
+                    Rect { left: 128, top: 0, right: 160, bottom: 48 },
+                    Rect { left: 160, top: 0, right: 192, bottom: 48 },
+                    Rect { left: 192, top: 0, right: 224, bottom: 48 },
+                    Rect { left: 224, top: 0, right: 256, bottom: 48 },
+                    Rect { left: 256, top: 0, right: 288, bottom: 48 },
+                    Rect { left: 288, top: 0, right: 320, bottom: 48 },
                 ],
-                frames_right: [
-                    Rect { left: 0, top: 16, right: 16, bottom: 32 },
-                    Rect { left: 16, top: 16, right: 32, bottom: 32 },
-                    Rect { left: 0, top: 16, right: 16, bottom: 32 },
-                    Rect { left: 32, top: 16, right: 48, bottom: 32 },
-                    Rect { left: 0, top: 16, right: 16, bottom: 32 },
-                    Rect { left: 48, top: 16, right: 64, bottom: 32 },
-                    Rect { left: 64, top: 16, right: 80, bottom: 32 },
-                    Rect { left: 48, top: 16, right: 64, bottom: 32 },
-                    Rect { left: 80, top: 16, right: 96, bottom: 32 },
-                    Rect { left: 48, top: 16, right: 64, bottom: 32 },
-                    Rect { left: 96, top: 16, right: 112, bottom: 32 },
-                    Rect { left: 112, top: 16, right: 128, bottom: 32 },
+                frames_walk_left: [
+                    Rect { left: 0, top: 48, right: 32, bottom: 96 },
+                    Rect { left: 32, top: 48, right: 64, bottom: 96 },
+                    Rect { left: 64, top: 48, right: 96, bottom: 96 },
+                    Rect { left: 96, top: 48, right: 128, bottom: 96 },
+                    Rect { left: 128, top: 48, right: 160, bottom: 96 },
+                    Rect { left: 160, top: 48, right: 192, bottom: 96 },
+                    Rect { left: 192, top: 48, right: 224, bottom: 96 },
+                    Rect { left: 224, top: 48, right: 256, bottom: 96 },
                 ],
-                frames_bubble: [
-                    Rect { left: 56, top: 96, right: 80, bottom: 120 },
-                    Rect { left: 80, top: 96, right: 104, bottom: 120 },
+                frames_stand_left: [
+                    Rect { left: 0, top: 96, right: 32, bottom: 144 },
+                    Rect { left: 32, top: 96, right: 64, bottom: 144 },
+                    Rect { left: 64, top: 96, right: 96, bottom: 144 },
+                    Rect { left: 96, top: 96, right: 128, bottom: 144 },
+                    Rect { left: 128, top: 96, right: 160, bottom: 144 },
+                    Rect { left: 160, top: 96, right: 192, bottom: 144 },
                 ],
+                frames_jump_left: [
+                    Rect { left: 192, top: 96, right: 224, bottom: 144 },
+                    Rect { left: 224, top: 96, right: 256, bottom: 144 },
+                    Rect { left: 256, top: 96, right: 288, bottom: 144 },
+                    Rect { left: 288, top: 96, right: 320, bottom: 144 },
+                ],
+
+                hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 48 * 0x200 },
+                display_rect: Rect { left: 16 * 0x200, top: 48 * 0x200, right: 16 * 0x200, bottom: 48 * 0x200 },
+
+
+
+
+
             },
             booster: BoosterConsts {
                 fuel: 50,

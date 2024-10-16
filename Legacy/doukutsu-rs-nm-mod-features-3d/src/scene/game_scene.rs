@@ -211,7 +211,7 @@ impl GameScene {
         let skinsheet_name =
             state.constants.player_skin_paths[state.player2_skin_location.texture_index as usize].as_str();
         self.player2.load_skin(skinsheet_name.to_owned(), state, ctx);
-        self.player2.skin.set_skinsheet_offset(state.player2_skin_location.offset);
+        //self.player2.skin.set_skinsheet_offset(state.player2_skin_location.offset);
 
         self.player2.x = self.player1.x;
         self.player2.y = self.player1.y;
@@ -572,7 +572,7 @@ impl GameScene {
                             _ => ((150u8, 150u8, 150u8), 0.92),
                         };
 
-                        let (_, gun_off_y) = player.skin.get_gun_offset();
+                        let (_, gun_off_y) = (0, 0); //player.skin.get_gun_offset();
 
                         self.draw_light_raycast(
                             state.tile_size,

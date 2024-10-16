@@ -153,8 +153,8 @@ impl GameProfile {
 
         state.difficulty = GameDifficulty::from_primitive(self.difficulty);
 
-        game_scene.player1.skin.apply_gamestate(state);
-        game_scene.player2.skin.apply_gamestate(state);
+        //game_scene.player1.skin.apply_gamestate(state);
+        //game_scene.player2.skin.apply_gamestate(state);
     }
 
     pub fn dump(state: &mut SharedGameState, game_scene: &mut GameScene, target_player: Option<TargetPlayer>) -> GameProfile {

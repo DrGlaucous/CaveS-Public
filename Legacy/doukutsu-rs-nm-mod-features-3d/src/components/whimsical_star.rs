@@ -42,10 +42,10 @@ impl WhimsicalStar {
         }
     }
 
-    pub fn init(&mut self, player: &Player) {
-        self.tex = player.skin.get_skin_texture_name().to_string();
-        for (iter, star) in &mut self.star.iter_mut().enumerate() {
-            star.rect = player.skin.get_whimsical_star_rect(iter);
+    pub fn init(&mut self, _player: &Player) {
+        //self.tex = player.skin.get_skin_texture_name().to_string();
+        for (_iter, star) in &mut self.star.iter_mut().enumerate() {
+            star.rect = Rect::new(0, 0, 8, 8); //player.skin.get_whimsical_star_rect(iter);
         }
     }
 
