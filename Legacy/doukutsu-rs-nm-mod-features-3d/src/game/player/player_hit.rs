@@ -248,10 +248,10 @@ impl Player {
         let hit_right =
             if npc.direction == Direction::Left { npc.hit_bounds.right } else { npc.hit_bounds.left } as i32;
 
-        if self.x + 0x400 > npc.x - hit_left
-            && self.x - 0x400 < npc.x + hit_right
-            && self.y + 0x400 > npc.y - npc.hit_bounds.top as i32
-            && self.y - 0x400 < npc.y + npc.hit_bounds.bottom as i32
+        if self.x + (self.npc_hit_bounds.right as i32) > npc.x - hit_left
+            && self.x - (self.npc_hit_bounds.left as i32) < npc.x + hit_right
+            && self.y + (self.npc_hit_bounds.bottom as i32) > npc.y - npc.hit_bounds.top as i32
+            && self.y - (self.npc_hit_bounds.top as i32) < npc.y + npc.hit_bounds.bottom as i32
         {
             flags.set_hit_left_wall(true);
         }
@@ -384,7 +384,7 @@ impl Player {
         }
 
         if self.question {
-            state.create_caret(self.x, self.y, CaretType::QuestionMark, Direction::Left);
+            state.create_caret(self.x, self.y - (self.hit_bounds.top as i32) + (8 * 0x200), CaretType::QuestionMark, Direction::Left);
         }
     }
 }

@@ -24,6 +24,7 @@ mod npcs;
 
 #[derive(Debug, Copy, Clone)]
 pub struct PhysicsConsts {
+    pub max_walk: i32,
     pub max_dash: i32,
     pub max_move: i32,
     pub gravity_ground: i32,
@@ -59,6 +60,7 @@ pub struct PlayerConsts {
 
     //512-based
     pub hit_rect: Rect<u32>,
+    pub npc_hit_rect: Rect<u32>,
     pub display_rect: Rect<u32>,
 }
 
@@ -310,6 +312,7 @@ impl EngineConstants {
                 max_life: 3,
                 control_mode: ControlMode::Normal,
                 air_physics: PhysicsConsts {
+                    max_walk: 0x200, //max speed the player can walk
                     max_dash: 0x32c, //max speed the player can run
                     max_move: 0x5ff, //max speed the player can move (typically with booster)
                     gravity_air: 0x20, //gravity with holding the jump button
@@ -320,6 +323,7 @@ impl EngineConstants {
                     jump: 0x500, //height of jump
                 },
                 water_physics: PhysicsConsts {
+                    max_walk: 0x140,
                     max_dash: 0x196,
                     max_move: 0x2ff,
                     gravity_air: 0x10,
@@ -367,8 +371,9 @@ impl EngineConstants {
                     Rect { left: 288, top: 96, right: 320, bottom: 144 },
                 ],
 
-                hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 48 * 0x200 },
-                display_rect: Rect { left: 16 * 0x200, top: 48 * 0x200, right: 16 * 0x200, bottom: 48 * 0x200 },
+                hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 24 * 0x200 },
+                npc_hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 24 * 0x200 },
+                display_rect: Rect { left: 16 * 0x200, top: 24 * 0x200, right: 16 * 0x200, bottom: 24 * 0x200 },
 
 
 

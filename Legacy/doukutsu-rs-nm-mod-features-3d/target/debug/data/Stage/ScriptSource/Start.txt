@@ -40,8 +40,15 @@ From somewhere, a transmission...<NOD<CLO<FL+0430<TRA0018:0500:0002:0000
 
 #0303
 <3AP0000
-<3AT0000
+<3AT0000:0000
 <END
+
+
+#0400
+<KEY<MSGLower<NOD<END
+#0401
+<KEY<MSGUpper<NOD<END
+
 
 
 #1000

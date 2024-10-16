@@ -51,7 +51,7 @@ enum BoosterSwitch {
     Down,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 struct DogStack {
     pub offset_x: f32,
     pub speed: f32,
@@ -80,7 +80,9 @@ enum ActState {
     Walking(i32),
     Running(i32),
     Standing(i32),
-    Turning(i32),
+    Questioning(i32),
+    TurningToRight(i32),
+    TurningToLeft(i32),
     JumpStanding(i32),
     JumpLunging(i32)
 }
@@ -106,6 +108,8 @@ pub struct Player {
     pub direction: Direction,
     pub display_bounds: Rect<u32>,
     pub hit_bounds: Rect<u32>,
+    pub npc_hit_bounds: Rect<u32>, //for damage + events, "test_hit_npc_non_solid"
+
     pub control_mode: ControlMode,
     pub question: bool,
     pub booster_fuel: u32,
@@ -135,7 +139,9 @@ pub struct Player {
     pub has_dog: bool,
     pub teleport_counter: u16,
 
+    last_direction: Direction,
     action_state: ActState,
+    last_action_state: ActState,
 }
 
 impl Player {
@@ -162,6 +168,7 @@ impl Player {
             direction: Direction::Right,
             display_bounds: state.constants.player.display_rect, //skin.get_display_bounds(),
             hit_bounds: state.constants.player.hit_rect, //skin.get_hit_bounds(),
+            npc_hit_bounds: state.constants.player.npc_hit_rect,
             control_mode: constants.player.control_mode,
             question: false,
             booster_fuel: 0,
@@ -191,7 +198,9 @@ impl Player {
             has_dog: false,
             teleport_counter: 0,
 
+            last_direction: Direction::Right,
             action_state: ActState::Standing(0),
+            last_action_state: ActState::Standing(0),
         }
     }
 
@@ -199,7 +208,8 @@ impl Player {
         0
     }
 
-    pub fn load_skin(&mut self, texture_name: String, state: &mut SharedGameState, ctx: &mut Context) {
+    //todo: rip this out of upstream
+    pub fn load_skin(&mut self, _texture_name: String, _state: &mut SharedGameState, _ctx: &mut Context) {
     }
 
     fn tick_normal(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
@@ -247,6 +257,9 @@ impl Player {
         //only one question per tick, reset state
         self.question = false;
 
+        //reset animation state (will be re-applied if state is the same)
+        self.action_state = ActState::Standing(0);
+
         //disabled, turn off booster
         if !state.control_flags.control_enabled() {
             self.booster_switch = BoosterSwitch::None;
@@ -264,6 +277,14 @@ impl Player {
         // } else {
         //     self.strafe_up = false;
         // }
+
+        //walk/run cap
+        let (max_dash, move_act) = if self.controller.strafe() {
+            (physics.max_dash, ActState::Running(0))
+            
+        } else {
+            (physics.max_walk, ActState::Walking(0))
+        };
 
 
         // ground movement
@@ -304,23 +325,26 @@ impl Player {
                     && !self.cond.interacted()
                     && !state.control_flags.interactions_disabled()
                 {
+                    self.action_state = ActState::Questioning(0);
                     self.cond.set_interacted(true);
                     self.question = true;
                 } else {
                     if self.controller.move_left() {
-                        self.direction = Direction::Left; //moved from strafe condition
+                        self.direction = Direction::Left; //moved to here from strafe condition
+                        self.action_state = move_act; //what type of movement do we have
 
                         //add acceleration
-                        if self.vel_x > -physics.max_dash {
+                        if self.vel_x > -max_dash {
                             self.vel_x -= physics.dash_ground;
                         } 
                     }
 
                     if self.controller.move_right() {
                         self.direction = Direction::Right;
+                        self.action_state = move_act;
 
                         //add acceleration
-                        if self.vel_x < physics.max_dash {
+                        if self.vel_x < max_dash {
                             self.vel_x += physics.dash_ground;
                         }
                     }
@@ -408,22 +432,22 @@ impl Player {
                 //we do not allow direction changing when in air anymore
 
 
-                // if self.controller.move_left() && self.vel_x > -physics.max_dash {
-                //     self.vel_x -= physics.dash_air;
-                // }
+                if self.controller.move_left() && self.vel_x > -max_dash {
+                    self.vel_x -= physics.dash_air;
+                }
 
-                // if self.controller.move_right() && self.vel_x < physics.max_dash {
-                //     self.vel_x += physics.dash_air;
-                // }
+                if self.controller.move_right() && self.vel_x < max_dash {
+                    self.vel_x += physics.dash_air;
+                }
 
 
                 // if !self.controller.strafe() || !state.settings.allow_strafe {
-                //     if self.controller.look_left() {
-                //         self.direction = Direction::Left;
-                //     }
-                //     if self.controller.look_right() {
-                //         self.direction = Direction::Right;
-                //     }
+                    if self.controller.look_left() {
+                        self.direction = Direction::Left;
+                    }
+                    if self.controller.look_right() {
+                        self.direction = Direction::Right;
+                    }
                 // }
 
             }
@@ -941,6 +965,37 @@ impl Player {
         self.tick = self.tick.wrapping_add(1);
     }
     */
+
+    fn tick_animation(&mut self, state: &mut SharedGameState) {
+        
+        //changed from LtoR or from RtoL
+        if self.direction != self.last_direction {
+            //turn 4 frames, LLRR
+            self.last_action_state = if self.direction == Direction::Left {
+                ActState::TurningToLeft(0)
+            } else {
+                ActState::TurningToRight(0)
+            };
+        }
+
+        //pre-defined animation lists
+        
+
+
+        match self.last_action_state {
+            ActState::TurningToLeft(anim_no) {
+
+            }
+            _ => {}
+        }
+        
+
+        //self.last_direction = self.direction;
+        //self.last_action_state = self.action_state;
+
+    }
+
+
     pub fn damage(&mut self, hp: i32, state: &mut SharedGameState, npc_list: &NPCList) {
         if self.life == 0 || hp <= 0 || state.settings.god_mode || self.shock_counter > 0 {
             return;
