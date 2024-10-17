@@ -58,6 +58,11 @@ pub struct PlayerConsts {
     pub frames_stand_left: [Rect<u16>; 6],
     pub frames_jump_left: [Rect<u16>; 4],
 
+    pub frames_run_right: [Rect<u16>; 10],
+    pub frames_walk_right: [Rect<u16>; 8],
+    pub frames_stand_right: [Rect<u16>; 6],
+    pub frames_jump_right: [Rect<u16>; 4],
+
     //512-based
     pub hit_rect: Rect<u32>,
     pub npc_hit_rect: Rect<u32>,
@@ -307,34 +312,12 @@ impl EngineConstants {
                 new_game_player_pos: (10, 8),
                 tile_offset_x: 0,
             },
-            player: PlayerConsts {
-                life: 3,
-                max_life: 3,
-                control_mode: ControlMode::Normal,
-                air_physics: PhysicsConsts {
-                    max_walk: 0x200, //max speed the player can walk
-                    max_dash: 0x32c, //max speed the player can run
-                    max_move: 0x5ff, //max speed the player can move (typically with booster)
-                    gravity_air: 0x20, //gravity with holding the jump button
-                    gravity_ground: 0x50, //gravity without holding the jump button
-                    dash_air: 0x20, //speed of acceleration while in the air
-                    dash_ground: 0x55, //speed of acceleration while walking
-                    resist: 0x33, //not sure
-                    jump: 0x500, //height of jump
-                },
-                water_physics: PhysicsConsts {
-                    max_walk: 0x140,
-                    max_dash: 0x196,
-                    max_move: 0x2ff,
-                    gravity_air: 0x10,
-                    gravity_ground: 0x28,
-                    dash_air: 0x10,
-                    dash_ground: 0x2a,
-                    resist: 0x19,
-                    jump: 0x280,
-                },
+            player: {
 
-                frames_run_left: [
+                //offset between left and right rects
+                let vertical_offset = 48 * 3;
+
+                let frames_run_left = [
                     Rect { left: 0, top: 0, right: 32, bottom: 48 },
                     Rect { left: 32, top: 0, right: 64, bottom: 48 },
                     Rect { left: 64, top: 0, right: 96, bottom: 48 },
@@ -345,8 +328,8 @@ impl EngineConstants {
                     Rect { left: 224, top: 0, right: 256, bottom: 48 },
                     Rect { left: 256, top: 0, right: 288, bottom: 48 },
                     Rect { left: 288, top: 0, right: 320, bottom: 48 },
-                ],
-                frames_walk_left: [
+                ];
+                let frames_walk_left = [
                     Rect { left: 0, top: 48, right: 32, bottom: 96 },
                     Rect { left: 32, top: 48, right: 64, bottom: 96 },
                     Rect { left: 64, top: 48, right: 96, bottom: 96 },
@@ -355,30 +338,79 @@ impl EngineConstants {
                     Rect { left: 160, top: 48, right: 192, bottom: 96 },
                     Rect { left: 192, top: 48, right: 224, bottom: 96 },
                     Rect { left: 224, top: 48, right: 256, bottom: 96 },
-                ],
-                frames_stand_left: [
-                    Rect { left: 0, top: 96, right: 32, bottom: 144 },
-                    Rect { left: 32, top: 96, right: 64, bottom: 144 },
-                    Rect { left: 64, top: 96, right: 96, bottom: 144 },
-                    Rect { left: 96, top: 96, right: 128, bottom: 144 },
-                    Rect { left: 128, top: 96, right: 160, bottom: 144 },
-                    Rect { left: 160, top: 96, right: 192, bottom: 144 },
-                ],
-                frames_jump_left: [
-                    Rect { left: 192, top: 96, right: 224, bottom: 144 },
-                    Rect { left: 224, top: 96, right: 256, bottom: 144 },
-                    Rect { left: 256, top: 96, right: 288, bottom: 144 },
-                    Rect { left: 288, top: 96, right: 320, bottom: 144 },
-                ],
+                ];
+                let frames_stand_left = [
+                    Rect { left: 0, top: 96, right: 32, bottom: 144 }, //stand
+                    Rect { left: 32, top: 96, right: 64, bottom: 144 }, //blink
+                    Rect { left: 64, top: 96, right: 96, bottom: 144 }, //face_back_1
+                    Rect { left: 96, top: 96, right: 128, bottom: 144 }, //face_back_2
+                    Rect { left: 128, top: 96, right: 160, bottom: 144 }, //face_back_3
+                    Rect { left: 160, top: 96, right: 192, bottom: 144 }, //turnaround1
+                ];
+                let frames_jump_left = [
+                    Rect { left: 192, top: 96, right: 224, bottom: 144 }, //up 0 
+                    Rect { left: 224, top: 96, right: 256, bottom: 144 }, //up 1
+                    Rect { left: 256, top: 96, right: 288, bottom: 144 }, //up lunge
+                    Rect { left: 288, top: 96, right: 320, bottom: 144 }, //down lunge
+                ];
 
-                hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 24 * 0x200 },
-                npc_hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 24 * 0x200 },
-                display_rect: Rect { left: 16 * 0x200, top: 24 * 0x200, right: 16 * 0x200, bottom: 24 * 0x200 },
+                //set up right rect to be a downshifted clone of the left stuff
+                //note: this could probably be done with a macro and/or at compile time, but I just need this to work for now.
+                let mut frames_run_right = frames_run_left;
+                let mut frames_walk_right = frames_walk_left;
+                let mut frames_stand_right = frames_stand_left;
+                let mut frames_jump_right = frames_jump_left;
+
+                let iterr = frames_run_right.iter_mut()
+                .chain(frames_walk_right.iter_mut())
+                .chain(frames_stand_right.iter_mut())
+                .chain(frames_jump_right.iter_mut());
+                for i in iterr {
+                    i.top += vertical_offset;
+                    i.bottom += vertical_offset;
+                }
 
 
+                PlayerConsts {
+                    life: 3,
+                    max_life: 3,
+                    control_mode: ControlMode::Normal,
+                    air_physics: PhysicsConsts {
+                        max_walk: 0x160, //max speed the player can walk
+                        max_dash: 0x32c, //max speed the player can run
+                        max_move: 0x5ff, //max speed the player can move (typically with booster)
+                        gravity_air: 0x20, //gravity with holding the jump button
+                        gravity_ground: 0x50, //gravity without holding the jump button
+                        dash_air: 0x20, //speed of acceleration while in the air
+                        dash_ground: 0x55, //speed of acceleration while walking
+                        resist: 0x33, //not sure
+                        jump: 0x500, //height of jump
+                    },
+                    water_physics: PhysicsConsts {
+                        max_walk: 0x140,
+                        max_dash: 0x196,
+                        max_move: 0x2ff,
+                        gravity_air: 0x10,
+                        gravity_ground: 0x28,
+                        dash_air: 0x10,
+                        dash_ground: 0x2a,
+                        resist: 0x19,
+                        jump: 0x280,
+                    },    
+                    hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 24 * 0x200 },
+                    npc_hit_rect: Rect { left: 6 * 0x200, top: 19 * 0x200, right: 5 * 0x200, bottom: 24 * 0x200 },
+                    display_rect: Rect { left: 16 * 0x200, top: 24 * 0x200, right: 16 * 0x200, bottom: 24 * 0x200 },
+    
+                    frames_run_left,
+                    frames_walk_left,
+                    frames_stand_left,
+                    frames_jump_left,
+                    frames_run_right,
+                    frames_walk_right,
+                    frames_stand_right,
+                    frames_jump_right,
 
-
-
+                }   
             },
             booster: BoosterConsts {
                 fuel: 50,

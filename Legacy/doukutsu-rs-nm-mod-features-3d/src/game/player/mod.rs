@@ -77,14 +77,14 @@ impl DogStack {
 
 #[derive(Clone)]
 enum ActState {
-    Walking(i32),
-    Running(i32),
-    Standing(i32),
-    Questioning(i32),
-    TurningToRight(i32),
-    TurningToLeft(i32),
-    JumpStanding(i32),
-    JumpLunging(i32)
+    Walking(usize),
+    Running(usize),
+    Standing(usize),
+    Questioning(usize),
+    TurningToRight(usize),
+    TurningToLeft(usize),
+    JumpStanding(usize),
+    JumpLunging(usize)
 }
 
 
@@ -257,8 +257,6 @@ impl Player {
         //only one question per tick, reset state
         self.question = false;
 
-        //reset animation state (will be re-applied if state is the same)
-        self.action_state = ActState::Standing(0);
 
         //disabled, turn off booster
         if !state.control_flags.control_enabled() {
@@ -325,13 +323,11 @@ impl Player {
                     && !self.cond.interacted()
                     && !state.control_flags.interactions_disabled()
                 {
-                    self.action_state = ActState::Questioning(0);
                     self.cond.set_interacted(true);
                     self.question = true;
                 } else {
                     if self.controller.move_left() {
                         self.direction = Direction::Left; //moved to here from strafe condition
-                        self.action_state = move_act; //what type of movement do we have
 
                         //add acceleration
                         if self.vel_x > -max_dash {
@@ -341,7 +337,6 @@ impl Player {
 
                     if self.controller.move_right() {
                         self.direction = Direction::Right;
-                        self.action_state = move_act;
 
                         //add acceleration
                         if self.vel_x < max_dash {
@@ -970,27 +965,178 @@ impl Player {
         
         //changed from LtoR or from RtoL
         if self.direction != self.last_direction {
+
+            //if we were already part-way in a turn, make this the starting index
+            let start_idx = match self.action_state {
+                ActState::TurningToRight(a) | 
+                ActState::TurningToLeft(a) => 3 - a,
+                _ => 0,
+            };
+
+
             //turn 4 frames, LLRR
-            self.last_action_state = if self.direction == Direction::Left {
-                ActState::TurningToLeft(0)
+            self.action_state = if self.direction == Direction::Left {
+                ActState::TurningToLeft(start_idx)
             } else {
-                ActState::TurningToRight(0)
+                ActState::TurningToRight(start_idx)
             };
         }
 
         //pre-defined animation lists
+        let pc = &state.constants.player;
+        let turn_to_left = [
+            pc.frames_stand_right[0], //stand
+            pc.frames_stand_right[5], //to camera
+            pc.frames_stand_left[5],
+            pc.frames_stand_left[0],
+        ];
+        let turn_to_right = [
+            pc.frames_stand_left[0], //stand
+            pc.frames_stand_left[5], //to camera
+            pc.frames_stand_right[5],
+            pc.frames_stand_right[0],
+        ];
+
+        let question_left = [
+            pc.frames_stand_left[0],
+            pc.frames_stand_left[2],
+            pc.frames_stand_left[3],
+            pc.frames_stand_left[4],
+        ];
+        let question_right = [
+            pc.frames_stand_left[0],
+            pc.frames_stand_right[2],
+            pc.frames_stand_right[3],
+            pc.frames_stand_right[4],
+        ];
         
 
 
-        match self.last_action_state {
-            ActState::TurningToLeft(anim_no) {
+        match self.action_state {
+            ActState::TurningToLeft(anim_no) => {
+                self.anim_rect = turn_to_left[anim_no];
+                self.anim_counter += 1;
+                if self.anim_counter > 1 {
+                    self.anim_counter = 0;
+
+                    self.action_state = ActState::TurningToLeft(anim_no + 1);
+
+                    if anim_no + 1 >= turn_to_left.len() {
+                        //switch to walking (running is branched from walking)
+                        self.action_state = ActState::Walking(1);
+                    }
+                }
+            }
+            ActState::TurningToRight(anim_no) => {
+                self.anim_rect = turn_to_right[anim_no];
+                self.anim_counter += 1;
+                if self.anim_counter > 1 {
+                    self.anim_counter = 0;
+
+                    self.action_state = ActState::TurningToRight(anim_no + 1);
+
+                    if anim_no + 1 >= turn_to_right.len() {
+                        //switch to walking (running is branched from walking)
+                        self.action_state = ActState::Walking(1);
+                    }
+                }
 
             }
-            _ => {}
+
+            ActState::Walking(mut anim_no) => {
+
+                //"match" doesn't support breaking early unless we wrap it in something
+
+                //standing mode if not moving
+                if self.controller.move_left()
+                != self.controller.move_right() {
+                    if self.direction == Direction::Left {
+                        self.anim_rect = pc.frames_walk_left[anim_no];
+                    } else {
+                        self.anim_rect = pc.frames_walk_right[anim_no];
+                    }
+    
+                    self.anim_counter += 1;
+                    if self.anim_counter > 4 {
+                        self.anim_counter = 0;
+    
+                        anim_no += 1;
+                        if anim_no >= pc.frames_walk_left.len() {
+                            anim_no = 0;
+                        }
+    
+                        self.action_state = ActState::Walking(anim_no);
+    
+                    }  
+                    
+                } else {
+                    self.action_state = ActState::Standing(0);
+                }
+
+            }
+
+            ActState::Standing(_) => {
+                //todo: blink
+
+                //break out of standing
+                if self.question {
+                    self.action_state = ActState::Questioning(0);
+                } else if self.controller.move_left()
+                != self.controller.move_right() {
+                    self.action_state = ActState::Walking(1);
+                }
+
+                if self.direction == Direction::Left {
+                    self.anim_rect = turn_to_left[3];
+                } else {
+                    self.anim_rect = turn_to_right[3];
+                }
+                
+            }
+
+            ActState::Questioning(mut anim_no) => {
+
+                if self.controller.move_left()
+                != self.controller.move_right() {
+                    self.action_state = ActState::Walking(1); //to get out of questioning, we must walk
+                } else if self.direction == Direction::Left {
+                    
+                    if anim_no < question_left.len() - 1 {
+                        anim_no += 1;
+                    } else {
+                        anim_no = question_left.len() - 1;
+                    }
+                    self.anim_rect = question_left[anim_no];
+
+                    self.action_state = ActState::Questioning(anim_no);
+
+                } else {
+
+                    if anim_no < question_right.len() - 1 {
+                        anim_no += 1;
+                    } else {
+                        anim_no = question_right.len() - 1;
+                    }
+                    self.anim_rect = question_right[anim_no];
+
+                    self.action_state = ActState::Questioning(anim_no);
+
+                }
+            }
+
+
+
+            _ => {
+                if self.direction == Direction::Left {
+                    self.anim_rect = turn_to_left[3];
+                } else {
+                    self.anim_rect = turn_to_right[3];
+                }
+            }
         }
         
 
-        //self.last_direction = self.direction;
+        self.last_direction = self.direction;
         //self.last_action_state = self.action_state;
 
     }
@@ -1098,8 +1244,7 @@ impl GameEntity<&NPCList> for Player {
         self.exp_popup.tick(state, ())?;
 
         self.cond.set_increase_acceleration(false);
-        //self.tick_animation(state);
-        self.anim_rect = state.constants.player.frames_stand_left[0];
+        self.tick_animation(state);
 
         let dog_amount = (3000..=3005).filter(|id| state.get_flag(*id as usize)).count();
         self.dog_stack.resize(dog_amount, DogStack::new());
