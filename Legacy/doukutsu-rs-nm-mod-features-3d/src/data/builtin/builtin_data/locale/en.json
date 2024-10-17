@@ -134,7 +134,7 @@
           "auto": "Auto"
         },
         "discord_rpc": "Discord Rich Presence:",
-        "allow_strafe": "Allow strafe:"
+        "allow_strafe": "Allow run:"
       },
       "links": "Links...",
       "advanced": "Advanced...",
@@ -173,7 +173,7 @@
         "inventory": "Inventory",
         "map": "Map system",
         "skip": "Skip",
-        "strafe": "Strafe",
+        "strafe": "Run",
         "menu_ok": "Menu select/confirm",
         "menu_back": "Menu back/cancel"
       },

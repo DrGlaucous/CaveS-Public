@@ -73,8 +73,8 @@ impl PlayerController for CombinedPlayerController {
         self.controllers.iter().any(|cont| cont.skip())
     }
 
-    fn strafe(&self) -> bool {
-        self.controllers.iter().any(|cont| cont.strafe())
+    fn run(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.run())
     }
 
     fn trigger_up(&self) -> bool {
@@ -121,8 +121,8 @@ impl PlayerController for CombinedPlayerController {
         self.controllers.iter().any(|cont| cont.trigger_skip())
     }
 
-    fn trigger_strafe(&self) -> bool {
-        self.controllers.iter().any(|cont| cont.trigger_strafe())
+    fn trigger_run(&self) -> bool {
+        self.controllers.iter().any(|cont| cont.trigger_run())
     }
 
     fn trigger_menu_ok(&self) -> bool {

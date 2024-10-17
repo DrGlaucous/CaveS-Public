@@ -294,7 +294,7 @@ impl PlayerController for TouchPlayerController {
         self.state.inventory()
     }
 
-    fn strafe(&self) -> bool {
+    fn run(&self) -> bool {
         // TODO
         false
     }
@@ -343,7 +343,7 @@ impl PlayerController for TouchPlayerController {
         self.trigger.inventory()
     }
 
-    fn trigger_strafe(&self) -> bool {
+    fn trigger_run(&self) -> bool {
         // TODO
         false
     }

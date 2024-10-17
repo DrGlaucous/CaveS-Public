@@ -75,16 +75,25 @@ impl DogStack {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 enum ActState {
-    Walking(usize),
-    Running(usize),
-    Standing(usize),
-    Questioning(usize),
-    TurningToRight(usize),
-    TurningToLeft(usize),
-    JumpStanding(usize),
-    JumpLunging(usize)
+    // Walking(usize),
+    // Running(usize),
+    // Standing(usize),
+    // Questioning(usize),
+    // TurningToRight(usize),
+    // TurningToLeft(usize),
+    // JumpStanding(usize),
+    // JumpLunging(usize)
+
+    Walking,
+    Running,
+    Standing,
+    Questioning,
+    TurningToRight,
+    TurningToLeft,
+    JumpStanding,
+    JumpLunging
 }
 
 
@@ -131,7 +140,7 @@ pub struct Player {
     splash: bool,
     tick: u8,
     booster_switch: BoosterSwitch,
-    pub anim_num: u16,
+    pub anim_num: usize, //u16,
     anim_counter: u16,
     anim_rect: Rect<u16>,
     weapon_rect: Rect<u16>,
@@ -199,8 +208,8 @@ impl Player {
             teleport_counter: 0,
 
             last_direction: Direction::Right,
-            action_state: ActState::Standing(0),
-            last_action_state: ActState::Standing(0),
+            action_state: ActState::Standing,
+            last_action_state: ActState::Standing,
         }
     }
 
@@ -277,11 +286,11 @@ impl Player {
         // }
 
         //walk/run cap
-        let (max_dash, move_act) = if self.controller.strafe() {
-            (physics.max_dash, ActState::Running(0))
+        let max_dash = if self.controller.run() {
+            physics.max_dash
             
         } else {
-            (physics.max_walk, ActState::Walking(0))
+            physics.max_walk
         };
 
 
@@ -314,7 +323,7 @@ impl Player {
                     && !self.controller.next_weapon()
                     && !self.controller.map()
                     && !self.controller.inventory()
-                    && !self.controller.strafe();
+                    && !self.controller.run();
                 // Leaving the skip button unchecked as a "feature" :)
 
                 //interract, otherwise apply movement
@@ -526,7 +535,7 @@ impl Player {
                     let mut booster_dir = self.direction;
 
                     //strafing with the booster
-                    if self.controller.strafe() && state.settings.allow_strafe {
+                    if self.controller.run() && state.settings.allow_strafe {
                         if self.controller.move_left() {
                             self.booster_switch = BoosterSwitch::Left;
                         } else if self.controller.move_right() {
@@ -963,23 +972,40 @@ impl Player {
 
     fn tick_animation(&mut self, state: &mut SharedGameState) {
         
-        //changed from LtoR or from RtoL
+
+        self.anim_num;
+
+
+        //player in keyed state
+        if !state.control_flags.control_enabled() {
+            self.action_state = ActState::Standing;
+        }
+
+        //changed directions from LtoR or from RtoL
         if self.direction != self.last_direction {
 
             //if we were already part-way in a turn, make this the starting index
-            let start_idx = match self.action_state {
-                ActState::TurningToRight(a) | 
-                ActState::TurningToLeft(a) => 3 - a,
+            self.anim_num = match self.action_state {
+                ActState::TurningToRight | 
+                ActState::TurningToLeft => 3 - self.anim_num,
                 _ => 0,
             };
 
-
             //turn 4 frames, LLRR
             self.action_state = if self.direction == Direction::Left {
-                ActState::TurningToLeft(start_idx)
+                ActState::TurningToLeft
             } else {
-                ActState::TurningToRight(start_idx)
+                ActState::TurningToRight
             };
+        }
+
+        //is in the air, put into jumping mode if not already
+        if !(self.flags.hit_bottom_wall() || self.flags.hit_right_slope() || self.flags.hit_left_slope()) 
+        && (self.action_state != ActState::JumpLunging
+        && self.action_state != ActState::JumpStanding) {
+            self.action_state = ActState::JumpStanding;
+            self.anim_counter = 0;
+            self.anim_num = 0;
         }
 
         //pre-defined animation lists
@@ -1009,130 +1035,309 @@ impl Player {
             pc.frames_stand_right[3],
             pc.frames_stand_right[4],
         ];
+
+        let jump_lunge_left = [
+            pc.frames_run_left[8], //leave from ground
+            pc.frames_jump_left[3], //in air
+            pc.frames_jump_left[4], //return to ground (next goto: run - frame 3)
+        ];
+        let jump_lunge_right = [
+            pc.frames_run_right[8], 
+            pc.frames_jump_right[3],
+            pc.frames_jump_right[4],
+        ];
         
 
 
         match self.action_state {
-            ActState::TurningToLeft(anim_no) => {
-                self.anim_rect = turn_to_left[anim_no];
+            ActState::TurningToLeft => {
+                self.anim_rect = turn_to_left[self.anim_num];
                 self.anim_counter += 1;
                 if self.anim_counter > 1 {
                     self.anim_counter = 0;
 
-                    self.action_state = ActState::TurningToLeft(anim_no + 1);
+                    self.anim_num += 1;
+                    self.action_state = ActState::TurningToLeft;
 
-                    if anim_no + 1 >= turn_to_left.len() {
+                    if self.anim_num >= turn_to_left.len() {
                         //switch to walking (running is branched from walking)
-                        self.action_state = ActState::Walking(1);
+                        self.action_state = ActState::Walking;
+                        self.anim_num = 1;
                     }
                 }
             }
-            ActState::TurningToRight(anim_no) => {
-                self.anim_rect = turn_to_right[anim_no];
+            
+            ActState::TurningToRight => {
+                self.anim_rect = turn_to_right[self.anim_num];
                 self.anim_counter += 1;
                 if self.anim_counter > 1 {
                     self.anim_counter = 0;
 
-                    self.action_state = ActState::TurningToRight(anim_no + 1);
+                    self.anim_num += 1;
+                    self.action_state = ActState::TurningToRight;
 
-                    if anim_no + 1 >= turn_to_right.len() {
+                    if self.anim_num >= turn_to_right.len() {
                         //switch to walking (running is branched from walking)
-                        self.action_state = ActState::Walking(1);
+                        self.action_state = ActState::Walking;
+                        self.anim_num = 1;
                     }
                 }
 
             }
-
-            ActState::Walking(mut anim_no) => {
-
+            
+            ActState::Running
+            | ActState::Walking => {
                 //"match" doesn't support breaking early unless we wrap it in something
 
-                //standing mode if not moving
-                if self.controller.move_left()
-                != self.controller.move_right() {
+                let mut anim_speed = 4; //default for walking
+
+                //check for running and use the proper refrence to cycle frames
+                let rect_ref = if self.controller.run() {
+                    self.action_state = ActState::Running;
+                    anim_speed = 3;
+
                     if self.direction == Direction::Left {
-                        self.anim_rect = pc.frames_walk_left[anim_no];
+                        &pc.frames_run_left.as_slice()
                     } else {
-                        self.anim_rect = pc.frames_walk_right[anim_no];
+                        &pc.frames_run_right.as_slice()
                     }
+
+                } else {
+                    self.action_state = ActState::Walking;
+
+                    if self.direction == Direction::Left {
+                        &pc.frames_walk_left.as_slice()
+                    } else {
+                        &pc.frames_walk_right.as_slice()
+                    }
+
+                };
+                
+                //if only one of the movement buttons is pressed AND we're not touching a wall
+                if (self.controller.move_left()
+                != self.controller.move_right())
+                && !(self.flags.hit_left_wall()
+                || self.flags.hit_right_wall()) {
+                    
     
                     self.anim_counter += 1;
-                    if self.anim_counter > 4 {
+                    if self.anim_counter > anim_speed {
                         self.anim_counter = 0;
     
-                        anim_no += 1;
-                        if anim_no >= pc.frames_walk_left.len() {
-                            anim_no = 0;
-                        }
-    
-                        self.action_state = ActState::Walking(anim_no);
-    
+                        self.anim_num += 1;   
                     }  
+
+                    if self.anim_num >= rect_ref.len() {
+                        self.anim_num = 0;
+                    }
+
+                    self.anim_rect = rect_ref[self.anim_num];
+                    self.action_state = ActState::Walking;
+
                     
                 } else {
-                    self.action_state = ActState::Standing(0);
+                    //standing mode if not moving
+                    self.action_state = ActState::Standing;
+                    self.anim_num = 0;
                 }
 
-            }
 
-            ActState::Standing(_) => {
+
+            }
+            
+            ActState::Standing => {
                 //todo: blink
 
                 //break out of standing
                 if self.question {
-                    self.action_state = ActState::Questioning(0);
+                    self.action_state = ActState::Questioning;
+                    self.anim_num = 0;
                 } else if self.controller.move_left()
                 != self.controller.move_right() {
-                    self.action_state = ActState::Walking(1);
+                    self.action_state = ActState::Walking;
+                    self.anim_num = 0;
                 }
 
-                if self.direction == Direction::Left {
-                    self.anim_rect = turn_to_left[3];
+
+                let rc_no = if self.anim_counter == 0 {
+                    if state.game_rng.range(0..120) == 10 {
+                        self.anim_counter = 8;
+                    }
+                    0
                 } else {
-                    self.anim_rect = turn_to_right[3];
+                    self.anim_counter -= 1;
+                    1
+                };
+
+                if self.direction == Direction::Left {
+                    self.anim_rect = pc.frames_stand_left[rc_no];
+                } else {
+                    self.anim_rect = pc.frames_stand_right[rc_no];
                 }
                 
             }
 
-            ActState::Questioning(mut anim_no) => {
+            ActState::Questioning => {
 
                 if self.controller.move_left()
                 != self.controller.move_right() {
-                    self.action_state = ActState::Walking(1); //to get out of questioning, we must walk
-                } else if self.direction == Direction::Left {
+                    self.action_state = ActState::Walking; //to get out of questioning, we must walk
+                    self.anim_num = 1;
+                } else {
+
+                    self.anim_counter += 1;
+                    if self.anim_counter > 4 {
+                        self.anim_counter = 0;
+    
+                        if self.direction == Direction::Left {
                     
-                    if anim_no < question_left.len() - 1 {
-                        anim_no += 1;
-                    } else {
-                        anim_no = question_left.len() - 1;
+                            if self.anim_num < question_left.len() - 1 {
+                                self.anim_num += 1;
+                            } else {
+                                self.anim_num = question_left.len() - 1;
+                            }
+                            self.anim_rect = question_left[self.anim_num];
+        
+                            self.action_state = ActState::Questioning;
+        
+                        } else {
+        
+                            if self.anim_num < question_right.len() - 1 {
+                                self.anim_num += 1;
+                            } else {
+                                self.anim_num = question_right.len() - 1;
+                            }
+                            self.anim_rect = question_right[self.anim_num];
+        
+                            self.action_state = ActState::Questioning;
+        
+                        }
+
+
                     }
-                    self.anim_rect = question_left[anim_no];
 
-                    self.action_state = ActState::Questioning(anim_no);
-
-                } else {
-
-                    if anim_no < question_right.len() - 1 {
-                        anim_no += 1;
-                    } else {
-                        anim_no = question_right.len() - 1;
-                    }
-                    self.anim_rect = question_right[anim_no];
-
-                    self.action_state = ActState::Questioning(anim_no);
-
+                
                 }
             }
 
-
-
-            _ => {
-                if self.direction == Direction::Left {
-                    self.anim_rect = turn_to_left[3];
+            ActState::JumpStanding => {
+                
+                //todo: modularize constant "420"
+                //if we're moving quickly (via strafe), use lunge
+                //if self.vel_x.abs() > pc.air_physics.max_walk {
+                if self.controller.run() && (self.vel_x.abs() > 420) {
+                    self.action_state = ActState::JumpLunging;
+                    self.anim_counter = 0;
+                    self.anim_num = 0;
                 } else {
-                    self.anim_rect = turn_to_right[3];
-                }
+                    let frame_set = if self.direction == Direction::Left {
+                        &pc.frames_jump_left.as_slice()
+                    } else {
+                        &pc.frames_jump_right.as_slice()
+                    };
+
+                    if self.vel_y < 0 {
+
+                        //go through frames 0, and 1, pausing at 1
+                        if self.anim_num < 1 {
+    
+                            self.anim_counter += 1;
+                            if self.anim_counter > 4 {
+                                self.anim_counter = 0;
+            
+                                self.anim_num += 1;   
+                            } 
+                        } 
+
+    
+                    } else {
+                        //down
+    
+                        //check for touching floor, de-cycle the anim_num
+                        if self.flags.hit_bottom_wall() || self.flags.hit_right_slope() || self.flags.hit_left_slope() {
+                            if self.anim_num > 0 {
+                                self.anim_num -= 1;
+                            } else {
+                                //anim num is back to 0, return to standing
+                                self.action_state = ActState::Standing;
+                            }
+                        } else {
+                            self.anim_num = 2;
+                        }
+
+                    }
+
+                    self.anim_rect = frame_set[self.anim_num];
+    
+                };
+
+
             }
+
+            ActState::JumpLunging => {
+
+                //for debugging
+                //log::info!("{}", self.vel_x);
+
+                //moving slowly, go back to stand-jumping
+                //if self.vel_x.abs() <= pc.air_physics.max_walk {
+                if !self.controller.run() || (self.vel_x.abs() <= 420) {
+                    self.anim_counter = 0;
+                    self.anim_num = 1; //skip takeoff frame
+                    self.action_state = ActState::JumpStanding;
+                } else {
+
+                    let frame_set = if self.direction == Direction::Left {
+                        &jump_lunge_left.as_slice()
+                    } else {
+                        &jump_lunge_right.as_slice()
+                    };
+
+                    if self.vel_y < 0 {
+
+                        //go through frames 0, and 1, pausing at 1
+                        if self.anim_num < 1 {
+
+                            self.anim_counter += 1;
+                            if self.anim_counter > 4 {
+                                self.anim_counter = 0;
+            
+                                self.anim_num += 1;   
+                            } 
+                        }
+
+                        self.anim_rect = frame_set[self.anim_num];
+
+
+                    } else {
+                        
+                        //check for touching floor, de-cycle the anim_num
+                        if self.flags.hit_bottom_wall() || self.flags.hit_right_slope() || self.flags.hit_left_slope() {
+                            if self.anim_num != 2 || self.anim_counter < 4 {
+                                self.anim_num = 2;
+                                self.anim_counter +=  1;
+
+                                self.anim_rect = frame_set[self.anim_num];
+                            } else {
+                                //has landed, goto running
+                                self.action_state = ActState::Running;
+                                self.anim_counter = 0;
+                                self.anim_num = 3; //start with anim number 3
+                            }
+                        } else {
+                            self.anim_counter = 0;
+                            self.anim_num = 1;
+                            self.anim_rect = frame_set[self.anim_num];
+                        }
+
+
+
+                    }
+
+                }
+
+            }
+
         }
         
 

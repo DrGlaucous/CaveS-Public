@@ -134,7 +134,7 @@ impl GameEntity<(&mut Context, &mut Player)> for Replay {
                     + ((player.controller.prev_weapon() as u16) << 9)
                     + ((player.controller.trigger_menu_ok() as u16) << 11)
                     + ((player.controller.skip() as u16) << 12)
-                    + ((player.controller.strafe() as u16) << 13);
+                    + ((player.controller.run() as u16) << 13);
 
                 self.keylist.push(inputs);
             }

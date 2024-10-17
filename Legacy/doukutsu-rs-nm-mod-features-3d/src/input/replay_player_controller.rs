@@ -103,7 +103,7 @@ impl PlayerController for ReplayController {
         self.state.skip()
     }
 
-    fn strafe(&self) -> bool {
+    fn run(&self) -> bool {
         self.state.strafe()
     }
 
@@ -151,7 +151,7 @@ impl PlayerController for ReplayController {
         self.trigger.skip()
     }
 
-    fn trigger_strafe(&self) -> bool {
+    fn trigger_run(&self) -> bool {
         self.trigger.strafe()
     }
 

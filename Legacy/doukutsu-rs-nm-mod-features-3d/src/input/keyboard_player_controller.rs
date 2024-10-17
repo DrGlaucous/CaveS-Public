@@ -122,7 +122,7 @@ impl PlayerController for KeyboardController {
         self.state.skip()
     }
 
-    fn strafe(&self) -> bool {
+    fn run(&self) -> bool {
         self.state.strafe()
     }
 
@@ -170,7 +170,7 @@ impl PlayerController for KeyboardController {
         self.trigger.skip()
     }
 
-    fn trigger_strafe(&self) -> bool {
+    fn trigger_run(&self) -> bool {
         self.trigger.strafe()
     }
 

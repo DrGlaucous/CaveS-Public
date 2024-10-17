@@ -64,7 +64,7 @@ impl PlayerController for DummyPlayerController {
         false
     }
 
-    fn strafe(&self) -> bool {
+    fn run(&self) -> bool {
         false
     }
 
@@ -112,7 +112,7 @@ impl PlayerController for DummyPlayerController {
         false
     }
 
-    fn trigger_strafe(&self) -> bool {
+    fn trigger_run(&self) -> bool {
         false
     }
 

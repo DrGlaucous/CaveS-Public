@@ -56,12 +56,12 @@ pub struct PlayerConsts {
     pub frames_run_left: [Rect<u16>; 10],
     pub frames_walk_left: [Rect<u16>; 8],
     pub frames_stand_left: [Rect<u16>; 6],
-    pub frames_jump_left: [Rect<u16>; 4],
+    pub frames_jump_left: [Rect<u16>; 5],
 
     pub frames_run_right: [Rect<u16>; 10],
     pub frames_walk_right: [Rect<u16>; 8],
     pub frames_stand_right: [Rect<u16>; 6],
-    pub frames_jump_right: [Rect<u16>; 4],
+    pub frames_jump_right: [Rect<u16>; 5],
 
     //512-based
     pub hit_rect: Rect<u32>,
@@ -350,8 +350,9 @@ impl EngineConstants {
                 let frames_jump_left = [
                     Rect { left: 192, top: 96, right: 224, bottom: 144 }, //up 0 
                     Rect { left: 224, top: 96, right: 256, bottom: 144 }, //up 1
-                    Rect { left: 256, top: 96, right: 288, bottom: 144 }, //up lunge
-                    Rect { left: 288, top: 96, right: 320, bottom: 144 }, //down lunge
+                    Rect { left: 256, top: 96, right: 288, bottom: 144 }, //up 2 (down)
+                    Rect { left: 288, top: 96, right: 320, bottom: 144 }, //up lunge
+                    Rect { left: 320, top: 96, right: 352, bottom: 144 }, //down lunge
                 ];
 
                 //set up right rect to be a downshifted clone of the left stuff
@@ -377,7 +378,7 @@ impl EngineConstants {
                     control_mode: ControlMode::Normal,
                     air_physics: PhysicsConsts {
                         max_walk: 0x160, //max speed the player can walk
-                        max_dash: 0x32c, //max speed the player can run
+                        max_dash: 0x42c, //max speed the player can run
                         max_move: 0x5ff, //max speed the player can move (typically with booster)
                         gravity_air: 0x20, //gravity with holding the jump button
                         gravity_ground: 0x50, //gravity without holding the jump button
@@ -388,7 +389,7 @@ impl EngineConstants {
                     },
                     water_physics: PhysicsConsts {
                         max_walk: 0x140,
-                        max_dash: 0x196,
+                        max_dash: 0x246,
                         max_move: 0x2ff,
                         gravity_air: 0x10,
                         gravity_ground: 0x28,
