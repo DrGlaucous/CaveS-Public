@@ -235,7 +235,7 @@ fn get_logs_dir() -> GameResult<PathBuf> {
 
     #[cfg(not(any(target_os = "android", target_os = "horizon")))]
     {
-        let project_dirs = match directories::ProjectDirs::from("", "", "doukutsu-rs") {
+        let project_dirs = match directories::ProjectDirs::from("", "", "doukutsu-rs-legacy") {
             Some(dirs) => dirs,
             None => {
                 use crate::framework::error::GameError;

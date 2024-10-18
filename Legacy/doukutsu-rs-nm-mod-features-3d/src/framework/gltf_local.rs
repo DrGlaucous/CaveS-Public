@@ -472,7 +472,7 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform)
     let intensity = doc_light.intensity();
 
     //intensity is unitless with three-d, so we'll try to eyeball it compared to blender's intensity so we get close to the same results between softwares
-    let point_multiplier = 1.0 / 1000.0;
+    let point_multiplier = 1.0 / 30000.0;
     let sun_multiplier = 1.0 / 100.0;
     let spot_multiplier = 1.0 / 1000.0;
 

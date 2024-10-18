@@ -1,0 +1,15 @@
+
+
+
+#0100
+//<TRA0001:0100:0017:0006//debug tra
+<PSH0050//clear old meshes
+<L3D0000:0001:Mesh/Science/Science.glb$
+<SAI0000
+<MOV0009:0011<FAI0004
+<END
+
+
+
+
+

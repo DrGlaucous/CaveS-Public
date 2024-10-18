@@ -1,0 +1,25 @@
+
+
+#0100
+//<TRA0001:0100:0017:0006//debug tra
+<PSH0050//clear old meshes
+<L3D0000:0001:Mesh/StasisRoom/StasisRoom.glb$
+<SAI0000
+<MOV0009:0011<FAI0004
+<END
+
+
+
+//note: these are shifted over because of perspective things
+#0120
+<KEY<MSGHi.<NOD
+<TRA0003:0100:0010:0010
+<END
+
+
+
+#0200
+
+
+
+
