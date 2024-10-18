@@ -472,7 +472,7 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform)
     let intensity = doc_light.intensity();
 
     //intensity is unitless with three-d, so we'll try to eyeball it compared to blender's intensity so we get close to the same results between softwares
-    let point_multiplier = 1.0 / 30000.0;
+    let point_multiplier = 1.0 / 1000.0;
     let sun_multiplier = 1.0 / 100.0;
     let spot_multiplier = 1.0 / 1000.0;
 
@@ -489,9 +489,16 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform)
     //
     //let direction = Vector3::new(90.0,0.0,0.0);
 
+    let atten = Attenuation{
+        quadratic: 1.0,
+        linear: 0.0,
+        constant: 0.0,
+        ..Default::default()
+    };
+
     let light: Box<dyn ThreeLight> = match doc_light.kind() {
         Kind::Point => {
-            Box::new(PointLight::new(context, intensity * point_multiplier, color, &position, Attenuation::default()))
+            Box::new(PointLight::new(context, intensity * point_multiplier, color, &position, atten))
         }
         Kind::Directional => {
             Box::new(DirectionalLight::new(context, intensity * sun_multiplier, color, &direction))
@@ -499,7 +506,7 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform)
         Kind::Spot { inner_cone_angle, outer_cone_angle: _ } => {
             let cutoff = Rad(inner_cone_angle);
             //todo: use outer_cone_angle to find attenuation            
-            Box::new(SpotLight::new(context, intensity * spot_multiplier, color, &position, &direction, cutoff, Attenuation::default()))
+            Box::new(SpotLight::new(context, intensity * spot_multiplier, color, &position, &direction, cutoff, atten))
         }
     };
 

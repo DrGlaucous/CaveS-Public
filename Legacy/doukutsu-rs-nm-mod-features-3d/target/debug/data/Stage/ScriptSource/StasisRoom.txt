@@ -1,5 +1,5 @@
 
-
+//load event
 #0100
 //<TRA0001:0100:0017:0006//debug tra
 <PSH0050//clear old meshes
@@ -12,13 +12,12 @@
 
 //note: these are shifted over because of perspective things
 #0120
-<KEY<MSGHi.<NOD
-<TRA0003:0100:0010:0010
+<KEY<FAO0004
+<TRA0004:0100:0030:0058//to elevator
+<TRA0003:0100:0151:0134//to science
 <END
 
 
-
-#0200
 
 
 

@@ -1,15 +1,20 @@
 
-
-
+//load event
 #0100
-//<TRA0001:0100:0017:0006//debug tra
 <PSH0050//clear old meshes
 <L3D0000:0001:Mesh/Science/Science.glb$
-<SAI0000
-<MOV0009:0011<FAI0004
+<SAI0010
+<SAC0255:0100:0030
+<FAI0004
 <END
 
 
+//to stasis
+#0200
+<KEY<FAO0004
+<TRA0003:0100:0151:0134//to stasis
 
-
-
+//to elevator shaft
+#0200
+<KEY<FAO0004
+<TRA0004:0100:0030:0058//to elevator

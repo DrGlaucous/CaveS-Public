@@ -1,0 +1,24 @@
+
+//load event
+#0100
+//<TRA0001:0100:0017:0006//debug tra
+<PSH0050//clear old meshes
+<L3D0000:0001:Mesh/ElevatorShaft/ElevatorShaft.glb$
+<SAI0010
+<SAC0255:0100:0030
+<FAI0004
+<END
+
+
+//to science
+#0200
+<KEY<FAO0004
+<TRA0003:0100:0350:0115
+
+
+
+
+
+
+
+

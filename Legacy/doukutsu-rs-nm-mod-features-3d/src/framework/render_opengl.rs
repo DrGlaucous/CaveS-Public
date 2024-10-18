@@ -892,10 +892,10 @@ impl ThreeDModelSetup {
         let mut cpu_model: CpuModel = parsed_scene.into();
 
         //we may or may not need to recompute normals...
-        cpu_model
-            .geometries
-            .iter_mut()
-            .for_each(|part| part.compute_normals());
+        // cpu_model
+        //     .geometries
+        //     .iter_mut()
+        //     .for_each(|part| part.compute_normals());
 
         let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
 
