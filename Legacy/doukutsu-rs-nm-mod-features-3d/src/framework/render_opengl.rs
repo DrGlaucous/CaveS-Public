@@ -926,6 +926,11 @@ impl ThreeDModelSetup {
     
     }
 
+    /// unloads all GLTF objects currently in the hash map
+    pub fn clear_gltf(&mut self) {
+        self.map_models.clear();
+    }
+
     /// load the skybox and optionally apply its texture to the ambient light
     pub fn load_skybox(&mut self, data: &[u8], have_ambient: bool) -> GameResult {
 

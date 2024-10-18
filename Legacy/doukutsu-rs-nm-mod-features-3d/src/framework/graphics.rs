@@ -292,6 +292,13 @@ pub fn unload_gltf(ctx: &mut Context, key: i32) -> GameResult<bool> {
     model.unload_gltf(key)
 }
 
+/// clear all currently loaded gltfs
+pub fn clear_gltf(ctx: &mut Context) -> GameResult {
+    let model = check_for_renderer(ctx).unwrap();
+    model.clear_gltf();
+    Ok(())
+}
+
 /// load a skybox into the scene, optionally setting the ambient light texture to this
 pub fn load_skybox(ctx: &mut Context, data: &[u8], have_ambient: bool) -> GameResult {
 

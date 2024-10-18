@@ -3,6 +3,7 @@ use crate::components::background::Background;
 use crate::components::compact_jukebox::CompactJukebox;
 use crate::components::nikumaru::NikumaruCounter;
 use crate::entity::GameEntity;
+use crate::framework::graphics;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
 use crate::game::frame::Frame;
@@ -148,6 +149,42 @@ impl TitleScene {
         Ok(())
     }
 
+    fn draw_three_d(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+        
+        
+        //update backend stuff
+        //this pre-divides sub-pixels by 0x200 for us, so these are raw pixel coordinates
+        let (mut frame_x, mut frame_y) = self.frame.xy_interpolated(state.frame_time);
+        //convert to meters
+        frame_x /= 16.0;
+        frame_y /= -16.0; //invert y as well
+        graphics::update_frame_location(ctx, frame_x, frame_y)?;
+
+        //state.frame_time is a number between 0.0 and 1.0, showing how far along a frame we are.
+        let offset_time = (state.frame_time * (1.0/50.0)) as f32;
+        graphics::increment_animation_time(ctx, 0.0, offset_time)?;
+
+        //set target to the 3d surface's 2D plane
+        //we're not drawing anything here right now, so just clear it
+        graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
+        graphics::clear(ctx, Color::from_rgba(0, 0, 0, 0));
+
+        self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
+
+
+
+        //draw the 3d stuff
+
+        graphics::set_render_target(ctx, None)?;
+        //bind char plane to the char plane canvas
+        graphics::set_3d_char_plane(ctx, state.char_plane_canvas.as_ref().unwrap())?;
+        //draw the 3D layer
+        graphics::draw_3d(ctx, None)?; //(ctx, state.three_d_canvas.as_ref())?;
+
+        
+        Ok(())
+    }
+
     pub fn update_menu_cursor(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         let minutes = self.nikumaru_rec.tick / (60 * state.settings.timing_mode.get_tps());
         let mut song_id: usize;
@@ -195,9 +232,9 @@ impl TitleScene {
     }
 }
 
-static COPYRIGHT_PIXEL: &str = "2004.12  Studio Pixel";
+static CREATOR_CREDIT: &str = "2024.10  Dr. G";
 // Freeware
-static COPYRIGHT_NICALIS: &str = "@2022 NICALIS INC."; // Nicalis font uses @ for copyright
+//static COPYRIGHT_NICALIS: &str = "@2022 NICALIS INC."; // Nicalis font uses @ for copyright
 
 impl Scene for TitleScene {
     fn init(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
@@ -293,6 +330,14 @@ impl Scene for TitleScene {
 
         #[cfg(feature = "discord-rpc")]
         state.discord_rpc.set_idling()?;
+
+
+        //clear all loaded meshes
+        graphics::clear_gltf(ctx)?;
+
+
+        //try to load in the space station mesh
+        state.load_gltf(ctx, &format!("Mesh/Science/Science.glb"), true, 0)?;
 
         Ok(())
     }
@@ -486,7 +531,8 @@ impl Scene for TitleScene {
     }
 
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
-        self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
+
+        self.draw_three_d(state, ctx)?;
 
         if self.current_menu == CurrentMenu::MainMenu {
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
@@ -524,11 +570,7 @@ impl Scene for TitleScene {
         if self.current_menu == CurrentMenu::MainMenu {
             self.draw_text_centered(&VERSION_BANNER, state.canvas_size.1 - 15.0, state, ctx)?;
 
-            if state.constants.is_cs_plus {
-                self.draw_text_centered(COPYRIGHT_NICALIS, state.canvas_size.1 - 30.0, state, ctx)?;
-            } else {
-                self.draw_text_centered(COPYRIGHT_PIXEL, state.canvas_size.1 - 30.0, state, ctx)?;
-            }
+            self.draw_text_centered(CREATOR_CREDIT, state.canvas_size.1 - 30.0, state, ctx)?;
 
             self.compact_jukebox.draw(state, ctx, &self.frame)?;
         }

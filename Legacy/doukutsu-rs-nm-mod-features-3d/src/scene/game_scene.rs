@@ -1874,6 +1874,11 @@ impl Scene for GameScene {
         self.pause_menu.init(state, ctx)?;
         self.whimsical_star.init(&self.player1);
 
+
+        //clear all loaded meshes
+        graphics::clear_gltf(ctx)?;
+
+
         #[cfg(feature = "discord-rpc")]
         {
             if self.stage.data.map == state.stages[state.constants.game.intro_stage as usize].map {
