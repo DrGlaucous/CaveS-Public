@@ -1,0 +1,21 @@
+
+
+//load event
+#0100
+<PSH0050//clear old meshes
+<L3D0000:0001:Mesh/Tram/Tram.glb$
+<SAI0010
+<SAC0255:0100:0030
+<FAI0004
+<END
+
+
+//to sci
+#0200
+<KEY<FAO0004
+<TRA0003:0100:0349:0115//to science door 2
+
+//to elev
+#0300
+<KEY<FAO0004
+<TRA0004:0100:0027:0058//to elevator door 1

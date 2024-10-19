@@ -50,7 +50,7 @@ pub struct GameProfile {
 
 impl GameProfile {
     pub fn apply(&self, state: &mut SharedGameState, game_scene: &mut GameScene, ctx: &mut Context) {
-        state.fade_state = FadeState::Visible;
+        state.fade_state = FadeState::Hidden; //FadeState::Visible;
         state.control_flags.set_tick_world(true);
         state.control_flags.set_control_enabled(true);
 
@@ -131,6 +131,9 @@ impl GameProfile {
                 state.set_flag(idx * 8 + 7, true);
             }
         }
+
+        //run EVENT 0 on load/reset, set flag 6359 when this happens so we can "run event on start"
+        state.set_flag(6359, true);
 
         state.textscript_vm.start_script(0);
 

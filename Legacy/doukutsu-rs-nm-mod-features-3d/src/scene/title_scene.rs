@@ -154,7 +154,7 @@ impl TitleScene {
         
         //update backend stuff
         //this pre-divides sub-pixels by 0x200 for us, so these are raw pixel coordinates
-        let (mut frame_x, mut frame_y) = self.frame.xy_interpolated(state.frame_time);
+        let (mut frame_x, mut frame_y) = (self.frame.x as f32, self.frame.y as f32); //self.frame.xy_interpolated(state.frame_time);
         //convert to meters
         frame_x /= 16.0;
         frame_y /= -16.0; //invert y as well
@@ -169,7 +169,9 @@ impl TitleScene {
         graphics::set_render_target(ctx, state.char_plane_canvas.as_ref())?;
         graphics::clear(ctx, Color::from_rgba(0, 0, 0, 0));
 
-        self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
+
+        //put 2d plane stuff here
+        //self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
 
 
 
@@ -208,12 +210,15 @@ impl TitleScene {
             song_id = 36;
         } else {
             state.menu_character = MenuCharacter::Quote;
-            song_id = 24;
+            song_id = 1;
         }
 
-        if state.settings.soundtrack == "New" && Season::current() == Season::PixelBirthday {
-            song_id = 43;
-        }
+        song_id = 0;
+
+
+        // if state.settings.soundtrack == "New" && Season::current() == Season::PixelBirthday {
+        //     song_id = 43;
+        // }
 
         if self.compact_jukebox.is_shown() {
             self.compact_jukebox.change_song(song_id, state, ctx)?;
@@ -336,14 +341,26 @@ impl Scene for TitleScene {
         graphics::clear_gltf(ctx)?;
 
 
+        //load skybox note: debug mode lags with this, so we'll use it later
+        //state.load_skybox(ctx, &format!("Mesh/marslike_big_ds.jpg"), false)?;
+
         //try to load in the space station mesh
-        state.load_gltf(ctx, &format!("Mesh/Science/Science.glb"), true, 0)?;
+        state.load_gltf(ctx, &format!("Mesh/City9/City9.glb"), true, 0)?;
+        state.set_ambient_attributes(ctx, Some(Color::from_rgb(0, 0, 0)), Some(0.0))?;
+        state.set_model_animation_attributes(ctx, 0, Some("Action"), Some(0.0), Some(true), Some(-1.0))?;
+
+
 
         Ok(())
     }
 
     fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         state.touch_controls.control_type = TouchControlType::None;
+
+
+        self.frame.x = -(ctx.screen_size.0 / (2.0 * state.scale)) as i32;
+        self.frame.y = -(ctx.screen_size.1 / (2.0 * state.scale)) as i32;
+        state.increment_animation_time(ctx, 1.0 / 50.0, 0.0)?; //run by-tick animation
 
         self.background.tick(state, &self.stage, &self.frame)?;
 
@@ -534,23 +551,24 @@ impl Scene for TitleScene {
 
         self.draw_three_d(state, ctx)?;
 
-        if self.current_menu == CurrentMenu::MainMenu {
-            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
-            let logo_x_offset =
-                if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
+        // if self.current_menu == CurrentMenu::MainMenu {
+        //     let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
+        //     let logo_x_offset =
+        //         if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
+        //     batch.add_rect(
+        //         ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor() + logo_x_offset,
+        //         40.0,
+        //         &state.constants.title.logo_rect,
+        //     );
+        //     batch.add_rect(
+        //         ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
+        //         88.0,
+        //         &state.constants.title.logo_splash_rect,
+        //     );
+        //     batch.draw(ctx)?;
+        // } else
 
-            batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor() + logo_x_offset,
-                40.0,
-                &state.constants.title.logo_rect,
-            );
-            batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
-                88.0,
-                &state.constants.title.logo_splash_rect,
-            );
-            batch.draw(ctx)?;
-        } else {
+        if self.current_menu != CurrentMenu::MainMenu {
             let window_title = match self.current_menu {
                 CurrentMenu::ChallengesMenu => state.loc.t("menus.main_menu.challenges"),
                 CurrentMenu::ChallengeConfirmMenu | CurrentMenu::SaveSelectMenu => state.loc.t("menus.main_menu.start"),

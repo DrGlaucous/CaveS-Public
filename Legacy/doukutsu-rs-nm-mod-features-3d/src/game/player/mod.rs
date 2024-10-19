@@ -705,11 +705,11 @@ impl Player {
                 self.camera_target_y = 0x8000;
             }
         } else {
-            if self.camera_target_y > 0x200 {
+            if self.camera_target_y > 0x200 - (20 * 0x200) {
                 self.camera_target_y -= 0x200;
             }
 
-            if self.camera_target_y < -0x200 {
+            if self.camera_target_y < -0x200 - (20 * 0x200) {
                 self.camera_target_y += 0x200;
             }
         }
@@ -976,8 +976,9 @@ impl Player {
         self.anim_num;
 
 
-        //player in keyed state
-        if !state.control_flags.control_enabled() {
+        //player in keyed state and is not interracting with something
+        if !state.control_flags.control_enabled()
+        && self.action_state != ActState::Questioning {
             self.action_state = ActState::Standing;
         }
 
@@ -1005,6 +1006,10 @@ impl Player {
         && self.action_state != ActState::JumpStanding) {
             self.action_state = ActState::JumpStanding;
             self.anim_counter = 0;
+            self.anim_num = 0;
+        } else if self.cond.interacted()
+        && self.action_state != ActState::Questioning {
+            self.action_state = ActState::Questioning;
             self.anim_num = 0;
         }
 
@@ -1125,6 +1130,18 @@ impl Player {
                         self.anim_counter = 0;
     
                         self.anim_num += 1;   
+
+                        //make walking sound
+                        if self.action_state == ActState::Walking
+                        && (self.anim_num == 3
+                        || self.anim_num == 7 ){
+                            state.sound_manager.play_sfx(66);
+                        } else if self.action_state == ActState::Running
+                        && (self.anim_num == 1
+                        || self.anim_num == 6 ){
+                            state.sound_manager.play_sfx(24);
+                        }
+
                     }  
 
                     if self.anim_num >= rect_ref.len() {
@@ -1186,7 +1203,7 @@ impl Player {
                 } else {
 
                     self.anim_counter += 1;
-                    if self.anim_counter > 4 {
+                    if self.anim_counter > 2 {
                         self.anim_counter = 0;
     
                         if self.direction == Direction::Left {

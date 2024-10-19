@@ -253,6 +253,7 @@ impl TextScript {
             | TSCOpCode::FFm
             | TSCOpCode::S3AT
             | TSCOpCode::S3AR
+            | TSCOpCode::MEJ
             => {
                 let operand_a = read_number(iter)?;
                 if strict {

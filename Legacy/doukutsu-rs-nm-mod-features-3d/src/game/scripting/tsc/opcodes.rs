@@ -324,6 +324,10 @@ pub enum TSCOpCode {
     #[strum(serialize = "3AR")]
     S3AR,
 
+    /// <MEJwwww:xxxx, Jumps to event X if map is W
+    MEJ,
+
+
 }
 
 #[derive(FromPrimitive, PartialEq, Copy, Clone)]

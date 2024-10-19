@@ -133,6 +133,7 @@ impl TextScript {
                         | TSCOpCode::FFm
                         | TSCOpCode::S3AT
                         | TSCOpCode::S3AR
+                        | TSCOpCode::MEJ
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;

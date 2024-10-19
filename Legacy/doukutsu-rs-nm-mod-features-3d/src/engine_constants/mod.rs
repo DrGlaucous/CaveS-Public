@@ -302,14 +302,14 @@ impl EngineConstants {
             is_demo: false,
             supports_og_textures: false,
             has_difficulty_menu: true,
-            supports_two_player: cfg!(not(target_os = "android")),
+            supports_two_player: false, //cfg!(not(target_os = "android")),
             game: GameConsts {
                 intro_stage: 0,
                 intro_event: 100,
                 intro_player_pos: (3, 3),
                 new_game_stage: 2,
-                new_game_event: 100,
-                new_game_player_pos: (10, 8),
+                new_game_event: 500,
+                new_game_player_pos: (9, 11),
                 tile_offset_x: 0,
             },
             player: {

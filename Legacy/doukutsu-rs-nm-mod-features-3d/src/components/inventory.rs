@@ -138,7 +138,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
 
         match self.focus {
             InventoryFocus::None => {
-                self.focus = InventoryFocus::Weapons;
+                self.focus = InventoryFocus::Items; //weapons
                 state.control_flags.set_ok_button_disabled(false);
                 // check weapon count (0 count means we run item script)
                 let event = if self.weapon_count > 0 {
@@ -209,11 +209,14 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
 
                 if player.controller.trigger_up() {
                     if self.selected_item < count_x {
-                        self.focus = InventoryFocus::Weapons;
+                        self.selected_item = count_x;
 
-                        state.sound_manager.play_sfx(4);
-                        state.control_flags.set_ok_button_disabled(false);
-                        state.textscript_vm.start_script(self.get_weapon_event_number(inventory));
+                        //we're removing the weapon display
+                        // self.focus = InventoryFocus::Weapons;
+
+                        // state.sound_manager.play_sfx(4);
+                        // state.control_flags.set_ok_button_disabled(false);
+                        // state.textscript_vm.start_script(self.get_weapon_event_number(inventory));
                     } else {
                         self.selected_item -= count_x;
 
@@ -225,11 +228,18 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
 
                 if player.controller.trigger_down() {
                     if self.selected_item / 6 == self.item_count.saturating_sub(1) / 6 {
-                        self.focus = InventoryFocus::Weapons;
 
-                        state.sound_manager.play_sfx(4);
+
+                        self.selected_item = 0; //back to first one
+                        state.sound_manager.play_sfx(1);
                         state.control_flags.set_ok_button_disabled(false);
                         moved_cursor = true;
+
+                        // self.focus = InventoryFocus::Weapons;
+
+                        // state.sound_manager.play_sfx(4);
+                        // state.control_flags.set_ok_button_disabled(false);
+                        // moved_cursor = true;
                     } else {
                         self.selected_item += count_x;
 
@@ -273,7 +283,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
 
             for i in 0..self.item_count {
                 slot_rect =
-                    Rect::new_size(x + 12 + (i % count_x) as isize * 32, y + 68 + (i / count_x) as isize * 16, 32, 16);
+                    Rect::new_size(x + 12 + (i % count_x) as isize * 32, y + 24 + (i / count_x) as isize * 16, 32, 16); //68
 
                 if state.touch_controls.consume_click_in(slot_rect) {
                     state.sound_manager.play_sfx(1);
@@ -316,9 +326,9 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
             batch.add_rect(x, y + i as f32 * 8.0, rect);
         }
 
-        batch.add_rect(x + 12.0, y + self.text_y_pos as f32, &state.constants.textscript.inventory_text_arms);
+        //batch.add_rect(x + 12.0, y + self.text_y_pos as f32, &state.constants.textscript.inventory_text_arms);
 
-        batch.add_rect(x + 12.0, y + 52.0 + self.text_y_pos as f32, &state.constants.textscript.inventory_text_item);
+        batch.add_rect(x + 12.0, y + self.text_y_pos as f32, &state.constants.textscript.inventory_text_item); //52
 
         let (item_cursor_frame, weapon_cursor_frame) = match self.focus {
             InventoryFocus::None => (1, 1),
@@ -326,19 +336,22 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
             InventoryFocus::Items => ((self.tick / 2) % 2, 1),
         };
 
-        batch.add_rect(
-            x + 12.0 + self.selected_weapon as f32 * 40.0,
-            y + 16.0,
-            &state.constants.textscript.cursor_inventory_weapon[weapon_cursor_frame],
-        );
+        // batch.add_rect(
+        //     x + 12.0 + self.selected_weapon as f32 * 40.0,
+        //     y + 16.0,
+        //     &state.constants.textscript.cursor_inventory_weapon[weapon_cursor_frame],
+        // );
 
         let count_x = state.constants.textscript.inventory_item_count_x as usize;
         batch.add_rect(
             x + 12.0 + (self.selected_item as usize % count_x) as f32 * 32.0,
-            y + 68.0 + (self.selected_item as usize / count_x) as f32 * 16.0,
+            y + 24.0 + (self.selected_item as usize / count_x) as f32 * 16.0, //68
             &state.constants.textscript.cursor_inventory_item[item_cursor_frame],
         );
 
+        batch.draw(ctx)?;
+
+        /* 
         for (idx, weapon) in self.weapon_data.iter().enumerate() {
             if weapon.wtype == WeaponType::None {
                 break;
@@ -372,6 +385,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
         }
 
         batch.draw(ctx)?;
+        */
 
         let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "ItemImage")?;
 
@@ -387,7 +401,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
 
             batch.add_rect(
                 x + 12.0 + (idx % count_x) as f32 * 32.0,
-                y + 68.0 + (idx / count_x) as f32 * 16.0,
+                y + 24.0 + (idx / count_x) as f32 * 16.0, //68
                 &tmp_rect,
             );
         }
@@ -402,7 +416,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
             if *amount > 1 {
                 draw_number(
                     x + 12.0 + (idx % count_x) as f32 * 32.0 + 32.0,
-                    y + 68.0 + (idx / count_x) as f32 * 16.0,
+                    y + 24.0 + (idx / count_x) as f32 * 16.0, //68
                     *amount as usize,
                     Alignment::Right,
                     state,
@@ -411,6 +425,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
             }
         }
 
+        /* 
         for (idx, weapon) in self.weapon_data.iter().enumerate() {
             if weapon.wtype == WeaponType::None {
                 break;
@@ -437,6 +452,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
                 )?;
             }
         }
+        */
 
         if state.settings.touch_controls {
             let close_rect = Rect { left: 110, top: 110, right: 128, bottom: 128 };
@@ -445,6 +461,7 @@ impl GameEntity<(&mut Context, &mut Player, &mut Inventory, &mut HUD)> for Inven
             batch.add_rect(state.canvas_size.0 - off_right - 30.0, 12.0 + off_top, &close_rect);
             batch.draw(ctx)?;
         }
+
 
         Ok(())
     }

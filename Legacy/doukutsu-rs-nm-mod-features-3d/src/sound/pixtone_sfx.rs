@@ -3270,7 +3270,47 @@ pub static DEFAULT_PIXTONE_TABLE: [PixToneParameters; 160] = [
             Channel::disabled(),
         ],
     },
-    PixToneParameters::empty(), // fx66
+    PixToneParameters { // fx66
+        channels: [
+            Channel {
+                enabled: true,
+                length: 500,
+                carrier: Waveform {
+                    waveform_type: 0,
+                    pitch: 2.4,
+                    level: 47,
+                    offset: 0,
+                },
+                frequency: Waveform {
+                    waveform_type: 0,
+                    pitch: 0.1,
+                    level: 49,
+                    offset: 0,
+                },
+                amplitude: Waveform {
+                    waveform_type: 4,
+                    pitch: 0.4,
+                    level: 35,
+                    offset: 140,
+                },
+                envelope: Envelope {
+                    initial: 0,
+                    time_a: 106,
+                    value_a: 63,
+                    time_b: 130,
+                    value_b: 27,
+                    time_c: 255,
+                    value_c: 0,
+                },
+            },
+            Channel::disabled(),
+            Channel::disabled(),
+            Channel::disabled(),
+        ],
+    },
+    
+    
+    
     PixToneParameters::empty(), // fx67
     PixToneParameters::empty(), // fx68
     PixToneParameters::empty(), // fx69

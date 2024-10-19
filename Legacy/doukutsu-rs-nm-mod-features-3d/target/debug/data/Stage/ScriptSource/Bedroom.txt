@@ -1,0 +1,26 @@
+
+//load event
+#0100
+<PSH0050//clear old meshes
+<L3D0000:0001:Mesh/Bedroom/Bedroom.glb$
+<SAI0010
+<SAC0255:0100:0030
+<FAI0004
+<END
+
+
+
+//to hangar
+#0200
+<KEY<FAO0004
+<TRA0005:0100:0393:0138//to hangar door 2
+
+//to sleep
+#0300
+<KEY<MOV0023:0018
+<CNP0300:0371:0000<HMC
+<ANP0300:0020:0000<WAI0100
+<MS2End of demo.<WAI9999<END
+
+
+
