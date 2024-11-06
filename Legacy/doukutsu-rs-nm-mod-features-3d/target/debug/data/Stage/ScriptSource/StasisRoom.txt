@@ -53,6 +53,7 @@ You put it in your pocket.<NOD<CLO<IT+0006<END
 
 //start game event
 #0500
+<TRA0008:0100:0005:0222//debug tra
 <IT+0001<IT+0002<IT+0003<IT+0004<IT+0005
 <KEY<PSH0050//clear old meshes
 <L3D0000:0001:Mesh/StasisRoom/StasisRoom.glb$
@@ -61,9 +62,8 @@ You put it in your pocket.<NOD<CLO<IT+0006<END
 <MNP0300:0012:0012:0000
 <CNP0300:0371:0000
 <MOV0012:0011<HMC
-<MS2<TURWarning: Emergency power depleted.<NOD
-Performing emergency wakeup
-procedure<NOD<CLO<WAI0050<SOU0012<WAI0010<SOU0024<WAI0050
+<MS2<TURAnnouncer: Emergency power depleted.<NOD
+Reviving organics from stasis...<NOD<CLO<WAI0050<SOU0012<WAI0010<SOU0024<WAI0050
 <FAI0004<WAI0030
 //wake up fake PC
 <ANP0300:0010:0000<WAI0100<CMU0001

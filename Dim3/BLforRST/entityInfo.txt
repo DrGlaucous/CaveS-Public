@@ -365,13 +365,3 @@
 #358	Msry	wind	Misery (wind) 	416:20:444:64	Misery (wind) 	CE:Misery ;
 #359	Genrt	WDrop	Generator - Water drop 	144:32:148:36	Generator - Water drop 	CE:Misc ;
 #360	Thank	you!	'Thank you!' 	0:352:96:366	'Thank you!' 	CE:Misc ;
-#361	flying	gaudi	flying gaudi 	0:352:96:366	flying gaudi 	CE:Misc ;
-#362	curly	clone	curly clone 	0:352:96:366	curly clone 	CE:Misc ;
-#363	dead	curly	dead curly 	0:352:96:366	dead curly 	CE:Misc ;
-#364	fast	bullet	fast bullet 	0:352:96:366	fast bullet 	CE:Misc ;
-#365	still	curly	still curly 	0:352:96:366	still curly 	CE:Misc ;
-#366	zombie	curly	zombie curly 	0:352:96:366	zombie curly 	CE:Misc ;
-#367	curly	incubator	curly incubator 	0:352:96:366	incubator 	CE:Misc ;
-#368	g	clone	gclone 	0:352:96:366	gclone 	CE:Misc ;
-#369	gclone	curly	gclone curly 	0:352:96:366	gclone curly 	CE:Misc ;
-#370	quote	2	quote 2	48:48:64:64	quote 2 (for rust)	;

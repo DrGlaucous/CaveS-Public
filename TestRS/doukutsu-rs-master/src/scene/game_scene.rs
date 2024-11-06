@@ -1422,6 +1422,10 @@ impl GameScene {
 
         for npc in self.npc_list.iter_alive() {
             if !npc.npc_flags.ignore_solidity() {
+                if(npc.npc_type == 123) {
+                    let mut apple = npc.npc_type;
+                    apple += npc.npc_type;
+                }
                 npc.tick_map_collisions(state, &self.npc_list, &mut self.stage);
             }
         }

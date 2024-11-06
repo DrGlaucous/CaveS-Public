@@ -95,7 +95,7 @@ impl LiveDebugger {
                             self.command_line_focused = true;
                         }
 
-                        ui.input_text("", &mut self.command_line_parser.buffer).build();
+                        ui.input_text("##CommandInput", &mut self.command_line_parser.buffer).build();
                     }
 
                     if ui.is_item_active() {
@@ -254,7 +254,7 @@ impl LiveDebugger {
                     let stages: Vec<&ImStr> = self.stages.iter().map(|e| e.as_ref()).collect();
 
                     ui.push_item_width(-1.0);
-                    ui.list_box("MapListBox", &mut self.selected_stage, &stages, 10);
+                    ui.list_box("##MapListBox", &mut self.selected_stage, &stages, 10);
 
                     if ui.button("Load") {
                         match GameScene::new(state, ctx, self.selected_stage as usize) {
