@@ -6,11 +6,15 @@ use crate::framework::error::GameResult;
 use crate::sound::wav::WavFormat;
 
 use oxdz::Oxdz;
+use libxmp_lite::LibXmpPlayer;
 
 
 pub(crate) struct TrackerPlaybackEngine<'a> {
 
     player: Option<Arc<RwLock<Box<Oxdz<'a>>>>>, //Option<Box<Oxdz <- original
+
+    player2: Option<Arc<RwLock<Box<LibXmpPlayer>>>>,
+
     output_format: WavFormat,
 
     position: u32,
@@ -30,6 +34,7 @@ impl<'a> TrackerPlaybackEngine<'a> {
     pub fn new() -> TrackerPlaybackEngine<'a> {
         TrackerPlaybackEngine {
             player: None,
+            player2: None,
             //curr_music: None,
             output_format: WavFormat { channels: 2, sample_rate: 44100, bit_depth: 16 },
             position: 0,

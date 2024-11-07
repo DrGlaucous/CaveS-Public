@@ -492,10 +492,12 @@ impl TextScriptVM {
                 TextScriptExecutionState::Running(event, ip) => {
                     state.control_flags.set_interactions_disabled(true);
 
-                    if event == 1000 {
-                        let apple = 0;
-                        let mut beans = apple * event;
-                    }
+                    //this performs better than a conditional breakpoint
+                    // if event == 1000 {
+                    //     let apple = 0;
+                    //     let mut beans = apple * event;
+                    // }
+
                     // The `!event` case gets optimized out on None match
                     match (cached_event, !event) {
                         (None, bevent) | (Some((bevent, _)), _) if bevent != event => {

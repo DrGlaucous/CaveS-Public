@@ -233,7 +233,7 @@ sword head swiftly that way.<NOD<CLO//PART 2 MESSAGE
 <MYD0000//SET DIRECTION
 //<IT+0016//add ITEMS
 //<EQ+0000//add EQUIPS
-<AM+0018:0000//add ARMS
+<AM+0018:0001//add ARMS
 <AML0018:0001:0000//set arms LEVEL
 <MIM0000:Jack$
 <FON0330:0016//FOCUS ON DOOR
@@ -244,7 +244,6 @@ sword head swiftly that way.<NOD<CLO//PART 2 MESSAGE
 <KEY<MSGJack has heard that a particular
 number one has been abusing his
 sword privilege.<NOD<CLO//PART 1 MESSAGE
-Dwight.<NOD<CLO//PART 1 MESSAGE
 <FON0350:0020<WAI0020//FOCUS ON e-DOOR
 <CNP0400:0376:0003//config arrow
 <CFG0400:0001:0054:0027//LOCATION

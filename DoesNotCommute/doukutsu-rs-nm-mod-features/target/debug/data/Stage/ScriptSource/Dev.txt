@@ -125,7 +125,7 @@
 <WAI9999
 <END
 
-//slected save menu
+//selected save menu
 #1001
 <SLT0001:haha.rec$
 <FAO0004

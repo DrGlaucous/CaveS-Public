@@ -184,7 +184,7 @@ floor.<NOD<CLO//PART 2 MESSAGE (odd case where the TSC box auto-wraps)
 <ANP0320:0000:0000<SOU0011<WAI0020//DOOR
 <KEY<MSGBooster's boosting of his booster
 has been such a success that he's
-decided to raise the steaks.<NOD<CLO//PART 1 MESSAGE
+decided to raise the stakes.<NOD<CLO//PART 1 MESSAGE
 <FON0370:0020<WAI0020//FOCUS ON e-DOOR
 <CNP0400:0376:0003//config arrow
 <CFG0400:0001:0061:0025//LOCATION
@@ -228,7 +228,7 @@ minced meat.<NOD<CLO//PART 1 MESSAGE
 <MNP0401:0010:0023:0000//LOCATION
 <MSGGero can't complain though.
 That mad stabber is
-good for buisness.<NOD<CLO//PART 2 MESSAGE
+good for business.<NOD<CLO//PART 2 MESSAGE
 <FOM0016<WAI0040
 <PSH0500//START NPCs
 <PSH0510
