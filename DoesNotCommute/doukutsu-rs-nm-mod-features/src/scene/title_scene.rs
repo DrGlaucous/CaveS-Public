@@ -46,6 +46,17 @@ pub enum MainMenuEntry {
     Editor,
     Jukebox,
     Quit,
+    // Item0,
+    // Item1,
+    // Item2,
+    // Item3,
+    // Item4,
+    // Item5,
+    // Item6,
+    // Item7,
+    // Item8,
+    // Item9,
+    // Item10,
 }
 
 impl Default for MainMenuEntry {
@@ -403,6 +414,21 @@ impl Scene for TitleScene {
 
         self.main_menu
             .push_entry(MainMenuEntry::Quit, MenuEntry::Active(state.loc.t("menus.main_menu.quit").to_owned()));
+
+
+        // //test: fill menu with dummy entries
+        // self.main_menu.push_entry(MainMenuEntry::Item0, MenuEntry::Active(format!("Item 0")));
+        // self.main_menu.push_entry(MainMenuEntry::Item1, MenuEntry::Active(format!("Item 1")));
+        // self.main_menu.push_entry(MainMenuEntry::Item2, MenuEntry::Active(format!("Item 2")));
+        // self.main_menu.push_entry(MainMenuEntry::Item3, MenuEntry::Active(format!("Item 3")));
+        // self.main_menu.push_entry(MainMenuEntry::Item4, MenuEntry::Active(format!("Item 4")));
+        // self.main_menu.push_entry(MainMenuEntry::Item5, MenuEntry::Active(format!("Item 5")));
+        // self.main_menu.push_entry(MainMenuEntry::Item6, MenuEntry::Active(format!("Item 6")));
+        // self.main_menu.push_entry(MainMenuEntry::Item7, MenuEntry::Active(format!("Item 7")));
+        // self.main_menu.push_entry(MainMenuEntry::Item8, MenuEntry::Active(format!("Item 8")));
+        // self.main_menu.push_entry(MainMenuEntry::Item9, MenuEntry::Active(format!("Item 9")));
+        // self.main_menu.push_entry(MainMenuEntry::Item10, MenuEntry::Active(format!("Item 10")));
+
 
         self.settings_menu.init(state, ctx)?;
 

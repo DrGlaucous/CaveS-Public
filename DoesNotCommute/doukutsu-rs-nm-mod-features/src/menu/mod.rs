@@ -17,7 +17,7 @@ pub mod save_select_menu;
 pub mod settings_menu;
 pub mod stage_select_menu;
 
-const MENU_MIN_PADDING: f32 = 30.0;
+const MENU_MIN_PADDING: f32 = 30.0; //0.0; //30.0;
 
 #[derive(Clone, Debug)]
 pub enum ControlMenuData {
@@ -263,12 +263,16 @@ impl<T: std::cmp::PartialEq + std::default::Default + Clone> Menu<T> {
             (state.canvas_size.0, state.canvas_size.1, 0.0)
         };
 
+        //sum heights of all menu items up to where the cursor is, typically 16 pixels per row, cursor on first entry is 0
         let selected_y = self.get_selected_entry_y() as f32;
 
-        let mut computed_y = (self.y as f32).max(canvas_size.2 + MENU_MIN_PADDING);
+        //either the top of the canvas or self location
+        let mut computed_y = self.y as f32; //(self.y as f32).max(canvas_size.2 + MENU_MIN_PADDING);
 
-        if (selected_y + canvas_size.2 + MENU_MIN_PADDING) > canvas_size.1 - MENU_MIN_PADDING {
-            computed_y -= (selected_y + canvas_size.2 + MENU_MIN_PADDING) - (canvas_size.1 - MENU_MIN_PADDING) + 4.0;
+        //if selected location + y offset is lower than the bottom of the screen (and additional 32 to offset to the bottom of the cursor and arrow)
+        if (selected_y + 16.0 * 2.0 + computed_y) > canvas_size.1 {
+            //sub the difference
+            computed_y -= (selected_y + computed_y) - (canvas_size.1)+ 16.0 * 2.0;
         }
 
         let mut x = self.x as f32;
@@ -753,7 +757,7 @@ impl<T: std::cmp::PartialEq + std::default::Default + Clone> Menu<T> {
             y += entry.height() as f32;
         }
 
-        if self.height as f32 > canvas_size.1 && self.selected != self.entries.last().unwrap().0 {
+        if computed_y + self.height as f32 > canvas_size.1 && self.selected != self.entries.last().unwrap().0 {
             // draw down triangle
             let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "triangles")?;
             batch.add_rect(self.x as f32 + 6.0, canvas_size.1 - 10.0, &Rect::new_size(0, 0, 5, 5));

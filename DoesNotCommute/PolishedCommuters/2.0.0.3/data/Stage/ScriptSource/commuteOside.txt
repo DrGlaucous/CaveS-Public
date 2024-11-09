@@ -1,0 +1,895 @@
+//Flag List
+//
+//These flags do not persist because we do not save and the title game and main game do not share flags
+//Flag 0100: on when in preview mode
+//Flag 0101: on when in replay mode
+//
+//
+//
+//Flag 0500: on ONLY when sue is active
+//Flag 0510: on ONLY when booster is active
+//Flag 0520: on ONLY when gero is active
+//Flag 0530: on ONLY when quote is active
+//Flag 0540: on ONLY when stanley is active
+//Flag 0550: on ONLY when curly is active
+//
+//
+//
+
+
+
+
+//time file list
+//Cave = first cave complete
+//Village = village complete
+//Corridor = corridor complete
+//Egg8 = eggx boss complete
+//Oside = oside complete
+//Sci = science complete
+//Sciboss = securitron complete
+
+
+
+//event range:
+//$0100 = intro events, bound to the title screen
+//$0200 = intro doors, each character gets 10 (210, 220, etc)
+//$0300 = exit doors, each door gets 10, starting at 300, 399 is common wrong door script
+//$0400 = 400 for arrow + any other ingame elements
+//$0500 = fakechars, each gets 1, starting at 500, includes their initialization events
+//$0600 = environmental functions like CML, CMP and service NPC ANPs
+
+
+
+//stage entry event (titlescreen preview)
+#0100
+<PSH0052//try to reload title screen music
+//initialize timer with time from Cave
+<SLT0001:Egg8.rec$
+<FRE<REP0000
+<EVE0730//start "preview" event
+
+//selected "start game" in title menu
+//or "esc" in stage select menu
+#0101
+<KEY<TRA0002:0100:0000:0000
+<END
+
+//left arrow (disabled: no older maps)
+#0102
+<KEY<FAO0004
+<TRA0008:0100:0000:0000
+//<END
+
+//right arrow
+#0103
+<KEY<FAO0004
+<TRA0010:0100:0000:0000
+<END
+
+//play current stage
+#0104
+//<TRA0001:0100:0015:0007//debug TRA
+//<TRA0004:0600:0000:0000//watch preview
+<FL+0500//equip PC flag
+//send to start point
+//<FAI0004<TRA0005:0240:0001:0011//test debug
+<REP0000//replay OFF
+<TRA0009:0200:0000:0000//0002:0044
+<END
+
+//watch current stage
+#0105
+<TRA0009:0720:0000:0000
+<END
+
+
+//kick out (reserved for missing files)
+#0110
+<RET0009:0100:0000:0000<END
+
+
+
+//...199 is reserved
+
+
+/////////////////INTROS/////////////////
+
+//TEMPLATE
+<KEY<HMC<LIS0011:0011//SET LIFE
+<MOV0003:0004//MOVE TO START
+<MYD0002//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+//<AM+0004:0100//add ARMS
+//<AML0004:0001:0030//set arms LEVEL
+<MIM0000:SKIN$
+<FON0300:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0300:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0300:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSG<MSGMESSAGE<NOD<CLO//PART 1 MESSAGE
+<FON0340:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0055:0010//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0055:0010:0000//LOCATION
+<MSGMESSAGE<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+//sue intro
+#0200
+<KEY<HMC
+<PSH0058//start MUSIC (jmdisco)
+<TCL0050:0000:0043//set run event (load time next)
+<SLT0001:Egg8.rec$
+<EQ+0512//show timer
+<LIS0007:0007//SET LIFE
+<MOV0002:0044//MOVE TO START
+<MYD0002//SET DIRECTION
+<IT+0020//add ITEMS
+<EQ+0008//add EQUIPS
+<AM+0014:0080//add ARMS
+<AML0014:0003:0020//set LEVEL
+<MIM0000:Sue$
+<FON0330:0016//FOCUS ON DOOR
+<FAI0004<MNA//FADE IN
+<WAI0060
+<ANP0330:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0330:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGAh, yes. There are
+enemies-a-plenty here, but also
+drops-a-plenty, too.<NOD<CLRSue begins to realize that
+no amount of big guns will stop
+the thing they call gravity.<NOD<CLO//PART 1 MESSAGE
+<FON0340:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0065:0013//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0065:0013:0000//LOCATION
+<MSGShe has a sudden desire to get
+somewhere with a little bit more...<WAI0040
+floor.<NOD<CLO//PART 2 MESSAGE (odd case where the TSC box auto-wraps)
+<FOM0016<WAI0040
+//<PSH0500//START NPCs
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END01:$
+<END
+
+
+
+//booster intro
+#0210
+<KEY<HMC<LIS0009:0009//SET LIFE
+<MOV0002:0034//MOVE TO START
+<MYD0002//SET DIRECTION
+<IT+0023//add ITEMS
+<EQ+0032//add EQUIPS
+<FL+0743//booster2 eq flag
+//<AM+0012:0000//add ARMS
+//<AML0004:0001:0030//set arms LEVEL
+<MIM0000:Booster$
+<FON0320:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0320:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0320:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGBooster's boosting of his booster
+has been such a success that he's
+decided to raise the stakes.<NOD<CLO//PART 1 MESSAGE
+<FON0370:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0061:0025//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0061:0025:0000//LOCATION
+<MSGAfter all, what fun is a jetpack
+if you aren't in immediate danger
+of falling to your death?<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+//gero intro
+#0220
+<KEY<HMC<LIS0015:0015//SET LIFE
+<MOV0058:0020//MOVE TO START
+<MYD0000//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0010:0050//add ARMS
+<AML0010:0003:0010//set arms LEVEL
+<MIM0000:Gero$
+<FON0350:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0350:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0350:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGDr. Gero is happy to have the
+SuperMissile(TM) back in his hands.<NOD<CLRHe almost wants something
+to attack him so he has an excuse
+to show off its =Power(TM)=.<NOD<CLRLike whoever keeps slicing
+the island's inhabitants into
+minced meat.<NOD<CLO//PART 1 MESSAGE
+<FON0310:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0010:0023//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0010:0023:0000//LOCATION
+<MSGGero can't complain though.
+That mad stabber is
+good for business.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+//quote intro
+#0230
+<KEY<HMC<LIS0013:0013//SET LIFE
+<MOV0057:0025//MOVE TO START
+<MYD0000//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0002:0000//add ARMS
+<AML0002:0003:0010//set arms LEVEL
+<MIM0000:Quote$
+<FON0360:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0360:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0360:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGSomething seems to have
+caught quote's eye.<NOD<CLO//PART 1 MESSAGE
+<FON0310:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0010:0023//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0010:0023:0000//LOCATION
+<MSGWhatever it is, it's through
+this door here.<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<PSH0520
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+//stanley
+#0240
+<KEY<HMC<LIS0013:0013//SET LIFE
+<MOV0010:0023//MOVE TO START
+<MYD0002//SET DIRECTION
+//<IT+0016//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0016:0000//add ARMS
+<AML0016:0002:0000//set arms LEVEL
+<MIM0000:Stanley$
+<FON0310:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0310:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0310:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGThis is NOT the story of a man
+named Stanley,<NOD who worked in a big
+building where he was employee
+number 427.<NOD<CLRDespite this, Stanley somehow
+managed to worm his way into this
+story, too.<NOD What an attention hog.<NOD<CLO//PART 1 MESSAGE
+<FON0360:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0057:0025//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0057:0025:0000//LOCATION
+<MSGFortunately, he didn't stay
+long, for Stanley, eager to find
+his missing co-workers,<NOD
+entered the third door on his right.<NOD<CLO//PART 2 MESSAGE (another case of auto-wrapping)
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<PSH0520
+<PSH0530
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+//curly
+#0250
+<KEY<HMC<LIS0015:0015//SET LIFE
+<MOV0061:0025//MOVE TO START
+<MYD0002//SET DIRECTION
+//<IT+0035//add ITEMS
+//<EQ+0000//add EQUIPS
+<AM+0004:0100//GIVE THE PC THE CORRECT GUN
+<AML0004:0003:0010//SET WEAPON LEVEL
+<MIM0000:Curly$
+<FON0370:0016//FOCUS ON DOOR
+<WAI0060
+<ANP0370:0000:0002//DOOR
+<SOU0011<WAI0010<SMC<WAI0010
+<ANP0370:0000:0000<SOU0011<WAI0020//DOOR
+<KEY<MSGHere comes Curly, with a big gun
+that can stop the thing they
+call gravity. (don't tell Sue)<NOD<CLRI presume
+she's still looking for the
+perpetrator of the panty-raid.<NOD<CLO//PART 1 MESSAGE
+<FON0300:0020<WAI0020//FOCUS ON e-DOOR
+<CNP0400:0376:0003//config arrow
+<CFG0400:0001:0011:0006//LOCATION
+<CNP0401:0377:0000//config outline
+<MNP0401:0011:0006:0000//LOCATION
+<MSGCurly never really struck
+me as the type to hold a grudge.<NOD
+Maybe she's just out of laundry?<NOD<CLO//PART 2 MESSAGE
+<FOM0016<WAI0040
+<PSH0500//START NPCs
+<PSH0510
+<PSH0520
+<PSH0530
+<PSH0540
+<EQ+0256//start timer + logging
+<ALC0001:$
+<END
+
+
+
+
+/////////////////DOORS/////////////////
+
+//template
+<FNJ0520:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:Cave3$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0340:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+//<AM-0002//de-equip WEAPONS
+<FL-0520//PLAYER'S FLAG
+<FL+0530//NEXT PLAYER FLAG
+<TRA0004:0230:0055:0010//TO NEXT DOOR (USE CURR COORDS)
+
+
+//leftTop [curly] 
+#0300
+<FLJ0540:0380
+<FNJ0550:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:5$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0300:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0035//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0004//de-equip WEAPONS
+<FL-0550//PLAYER'S FLAG
+<PSH0620//SAVE TIME
+<FAO0004
+<TRA0009:0710:0011:0006//TO REPLAY
+
+
+
+//leftMid [gero]/[quote]
+#0310
+<FLJ0540:0381
+<FNJ0520:0311//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:2$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0310:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0010//de-equip WEAPONS
+<FL-0520//PLAYER'S FLAG
+<FL+0530//NEXT PLAYER FLAG
+<TRA0009:0230:0010:0023//TO NEXT DOOR (USE CURR COORDS)
+
+//quote
+#0311
+<FNJ0530:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:3$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0310:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0016//de-equip ITEMS
+//<EQ-0000//de-equip equips
+<AM-0002//de-equip WEAPONS
+<FL-0530//PLAYER'S FLAG
+<FL+0540//NEXT PLAYER FLAG
+<TRA0009:0240:0010:0023//TO NEXT DOOR (USE CURR COORDS)
+
+//leftLoMid
+#0320
+<FLJ0540:0382
+<EVE0399
+<END
+
+
+
+
+//leftBottom
+#0330
+<FLJ0540:0383
+<EVE0399
+<END
+
+
+//caveTop [sue]
+#0340
+<FLJ0540:0384
+<FNJ0500:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:0$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0340:0000:0000<SOU0011<WAI0060//close DOOR
+<IT-0020//de-equip ITEMS
+<EQ-0008//de-equip equips
+<AM-0014//de-equip WEAPONS
+<FL-0500//PLAYER'S FLAG
+<FL+0510//NEXT PLAYER FLAG
+<TRA0009:0210:0065:0013//TO NEXT DOOR (USE CURR COORDS)
+
+
+//caveBottom
+#0350
+<FLJ0540:0385
+<EVE0399
+<END
+
+
+//nookLeft [stanley]
+#0360
+<FNJ0540:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:4$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0360:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0360:0000:0000<SOU0011<WAI0060//close DOOR
+//<IT-0020//de-equip ITEMS
+//<EQ-0008//de-equip equips
+<AM-0016//de-equip WEAPONS
+<FL-0540//PLAYER'S FLAG
+<FL+0550//NEXT PLAYER FLAG
+<TRA0009:0250:0057:0025//TO NEXT DOOR (USE CURR COORDS)
+
+
+//nookRight [booster]
+#0370
+<FLJ0540:0387
+<FNJ0510:0399//PLAYER'S FLAG
+<EQ-0256//stop timer
+<ALC0000:1$
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0370:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0370:0000:0000<SOU0011<WAI0060//close DOOR
+<IT-0023//de-equip ITEMS
+<EQ-0032//de-equip equips
+<FL-0743//booster2 eq flag
+//<AM-0014//de-equip WEAPONS
+<FL-0510//PLAYER'S FLAG
+<FL+0520//NEXT PLAYER FLAG
+<TRA0009:0220:0061:0025//TO NEXT DOOR (USE CURR COORDS)
+
+
+//stanley's wrong doors///////////////////////
+
+//leftTop [curly] 
+#0380
+<EQ-0256//stop timer
+<KEY<ANP0300:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0300:0000:0000<SOU0011<WAI0060//close DOOR
+<PSH0389
+<TRA0009:0250:0011:0006//TO NEXT DOOR (USE CURR COORDS)
+
+//leftMid [gero]/[quote]
+#0381
+<EQ-0256//stop timer
+<KEY<ANP0310:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0310:0000:0000<SOU0011<WAI0060//close DOOR
+<PSH0389
+<TRA0009:0250:0010:0023//TO NEXT DOOR (USE CURR COORDS)
+
+//leftLoMid
+#0382
+<EQ-0256//stop timer
+<KEY<ANP0320:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0320:0000:0000<SOU0011<WAI0060//close DOOR
+<PSH0389
+<TRA0009:0250:0002:0034//TO NEXT DOOR (USE CURR COORDS)
+
+//leftBottom
+#0383
+<EQ-0256//stop timer
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<KEY<ANP0330:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0330:0000:0000<SOU0011<WAI0060//close DOOR
+<PSH0389
+<TRA0009:0250:0002:0044//TO NEXT DOOR (USE CURR COORDS)
+
+//caveTop [sue]
+#0384
+<EQ-0256//stop timer
+<KEY<ANP0340:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0340:0000:0000<SOU0011<WAI0060//close DOOR
+<PSH0389
+<TRA0009:0250:0065:0013//TO NEXT DOOR (USE CURR COORDS)
+
+//caveBottom
+#0385
+<EQ-0256//stop timer
+<KEY<ANP0350:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0350:0000:0000<SOU0011<WAI0060//close DOOR
+<PSH0389
+<TRA0009:0250:0058:0020//TO NEXT DOOR (USE CURR COORDS)
+
+//nookRight [booster]
+#0387
+<EQ-0256//stop timer
+<KEY<ANP0370:0000:0002<SOU0011<WAI0020//open DOOR
+<HMC
+<ANP0370:0000:0000<SOU0011<WAI0060//close DOOR
+<PSH0389
+<TRA0009:0250:0061:0025//TO NEXT DOOR (USE CURR COORDS)
+
+//common conclusion
+#0389
+<ALC0000:4$
+<PSH0612//halt other players
+<CNP0400:0000:0000<CNP0401:0000:0000//hide indicators
+<MSGThis was not the correct way
+to the...<WAI0050
+You know what? I don't care.<NOD<CLR
+He's someone else's problem, now.<NOD<CLO
+<AM-0016//de-equip WEAPONS
+<FL-0540//PLAYER'S FLAG
+<FL+0550//NEXT PLAYER FLAG
+<POP
+
+
+
+//normal Wrong door
+#0399
+<PRI<MSGThis is not your door!<NOD<END
+
+
+/////////////////ITEMS/////////////////
+
+//arrow
+#0400
+<END
+
+//door outline
+#0401
+<END
+
+
+#0415
+<KEY<MSG<FAC0008Marcus<NOD<END
+
+/////////////////FAKECHARS/////////////////
+
+//Flag 0500: on ONLY when sue is active
+//Flag 0510: on ONLY when booster is active
+//Flag 0520: on ONLY when gero is active
+//Flag 0530: on ONLY when quote is active
+//Flag 0540: on ONLY when stanley is active
+//Flag 0550: on ONLY when curly is active
+
+
+//sue NPC (+fresh load)
+#0500
+<NIM0500:Sue$
+<ARL0500:0$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0501
+<NIM0500:Sue$
+<ARL0500:Oside0$
+<ANP0500:0001:0000//start playback
+<POP<END
+#0502
+<CFG0500:0003:0000:0000//rewind
+<ANP0500:0001:0000//start playback
+<POP<END
+#0503
+<ANP0500:0000:0000//pause
+<POP<END
+
+//booster NPC
+#0510
+<NIM0510:Booster$
+<ARL0510:1$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0511
+<NIM0510:Booster$
+<ARL0510:Oside1$
+<ANP0510:0001:0000//start playback
+<POP<END
+#0512
+<CFG0510:0003:0000:0000//rewind
+<ANP0510:0001:0000//start playback
+<POP<END
+#0513
+<ANP0510:0000:0000//pause
+<POP<END
+
+//gero NPC
+#0520
+<NIM0520:Gero$
+<ARL0520:2$
+<ANP0520:0001:0000//start playback
+<POP<END
+#0521
+<NIM0520:Gero$
+<ARL0520:Oside2$
+<ANP0520:0001:0000//start playback
+<POP<END
+#0522
+<CFG0520:0003:0000:0000//rewind
+<ANP0520:0001:0000//start playback
+<POP<END
+#0523
+<ANP0520:0000:0000//pause
+<POP<END
+
+//quote NPC
+#0530
+<NIM0530:Quote$
+<ARL0530:3$
+<ANP0530:0001:0000//start playback
+<POP<END
+#0531
+<NIM0530:Quote$
+<ARL0530:Oside3$
+<ANP0530:0001:0000//start playback
+<POP<END
+#0532
+<CFG0530:0003:0000:0000//rewind
+<ANP0530:0001:0000//start playback
+<POP<END
+#0533
+<ANP0530:0000:0000//pause
+<POP<END
+
+//stanley NPC
+#0540
+<NIM0540:Stanley$
+<ARL0540:4$
+<ANP0540:0001:0000//start playback
+<POP<END
+#0541
+<NIM0540:Stanley$
+<ARL0540:Oside4$
+<ANP0540:0001:0000//start playback
+<POP<END
+#0542
+<CFG0540:0003:0000:0000//rewind
+<ANP0540:0001:0000//start playback
+<POP<END
+#0543
+<ANP0540:0000:0000//pause
+<POP<END
+
+//curly NPC
+#0550
+<NIM0550:Curly$
+<ARL0550:5$
+<ANP0550:0001:0000//start playback
+<POP<END
+//load best times
+#0551
+<NIM0550:Curly$
+<ARL0550:Oside5$
+<ANP0550:0001:0000//start playback
+<POP<END
+#0552
+<CFG0550:0003:0000:0000//rewind
+<ANP0550:0001:0000//start playback
+<POP<END
+#0553
+<ANP0550:0000:0000//pause
+<POP<END
+
+/////////////////ENVIRONMENT/////////////////
+
+
+//load all NPC actions (best)
+#0610
+<PSH0501
+<PSH0511
+<PSH0521
+<PSH0531
+<PSH0541
+<PSH0551
+<POP<END
+
+//same but only if all exist
+#0611
+<UFJ0699:Oside0$
+<UFJ0699:Oside1$
+<UFJ0699:Oside2$
+<UFJ0699:Oside3$
+<UFJ0699:Oside4$
+<UFJ0699:Oside5$
+<PSH0610
+<POP<END
+
+
+//pause all NPCs
+#0612
+<PSH0503
+<PSH0513
+<PSH0523
+<PSH0533
+<PSH0543
+<PSH0553
+<POP<END
+
+
+//save time if better
+#0620
+<TIJ0621:Oside.rec$
+<POP
+
+//less time, save
+#0621
+<SLT0000:Oside.rec$
+//copy best character replays to long-term
+<UFC0$:Oside0$
+<UFC1$:Oside1$
+<UFC2$:Oside2$
+<UFC3$:Oside3$
+<UFC4$:Oside4$
+<UFC5$:Oside5$
+<POP
+
+
+//return to stage select screen
+#0698
+//return to title
+<RET0009:0100:0000:0000
+<END
+
+//skip out
+#0699
+//<MS3SKIP<WAI0050<CLO
+<POP
+
+
+/////////////////PLAYBACK/////////////////
+
+//focuser
+#0700
+<CNP0700:0000:0000//remove so we don't get repeated triggers
+<FLJ0100:0731//preview mode
+<FLJ0101:0721//replay mode
+<EVE0711//in-game event
+
+//load focuser event (checked)
+#0701
+<UFJ0699:Oside0$
+<UFJ0699:Oside1$
+<UFJ0699:Oside2$
+<UFJ0699:Oside3$
+<UFJ0699:Oside4$
+<UFJ0699:Oside5$
+<CNP0700:0374:0000
+<POP
+
+
+//playback in-game~~~~~~~~~~~~~~~~
+#0710
+<HMC
+<FON0700:0016//look at focuser
+<KEY//no player movement
+<MNP0700:0028:0019:0000//move to CENTER
+<FAI0004
+<MS2<TURHere is what everyone did:<NOD<CLO
+<PSH0611//start NPCs (checked)
+<PSH0701//start focuser (checked)
+<REP0001//replay mode ON
+<MS2<TURUse weapon- and weapon+ to change focus.
+ 
+   Press jump key to skip replay.<WAI0080<CLO<WAI9999
+<END
+
+
+//end/skip event
+#0711
+<KEY<CLR
+<WAI0050
+<FAO0004
+<FOM0016
+<REP0000//replay OFF
+//to next level
+<TRA0010:0104:0000:0000
+<END
+
+//playback in-replay~~~~~~~~~~~~~~~~
+#0720
+<FL+0101//set replay mode
+<EVE0710//normal opening
+
+//end/skip event
+#0721
+<KEY<CLR
+<WAI0050
+<FAO0004
+<FOM0016
+<REP0000//replay OFF
+<RET0009:0100:0000:0000
+<END
+
+
+
+//playback in-preview~~~~~~~~~~~~~~~~
+#0730
+<FL+0100//set preview mode
+<FRE<HMC<EQ+0512
+<MNP0700:0028:0019:0000//move switcher to CENTER
+<FON0700:0001<WAI0001//snap to switcher
+<FON0700:0016//focus on switcher
+<FAI0004
+<PSH0611//start NPCs
+<PSH0701//start focuser (checked)
+<ANP0700:0000:0001//disable skip option (non-left direction)
+<PSH0732//set replay mode
+<WAI9999<END
+
+
+
+//end/skip event 
+#0731
+<WAI0050
+<FAO0004
+<TRA0009:0730:0000:0000//restart replay
+<END
+
+
+//set replay mode (checked)
+#0732
+<UFJ0699:Oside0$
+<UFJ0699:Oside1$
+<UFJ0699:Oside2$
+<UFJ0699:Oside3$
+<UFJ0699:Oside4$
+<UFJ0699:Oside5$
+<REP0001//replay mode ON
+<POP
+
+
+
+
