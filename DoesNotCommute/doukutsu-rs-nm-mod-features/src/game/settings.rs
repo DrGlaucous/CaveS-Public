@@ -87,6 +87,9 @@ pub struct Settings {
     pub discord_rpc: bool,
     #[serde(default = "default_true")]
     pub allow_strafe: bool,
+
+    #[serde(skip)]
+    pub blowout: bool,
 }
 
 fn default_true() -> bool {
@@ -467,6 +470,7 @@ impl Default for Settings {
             cutscene_skip_mode: CutsceneSkipMode::Hold,
             discord_rpc: true,
             allow_strafe: true,
+            blowout: false,
         }
     }
 }

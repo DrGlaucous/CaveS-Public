@@ -103,5 +103,5 @@ fn main() {
         .define("LIBXMP_NO_DEPACKERS", Some("1"))
         .flag_if_supported("-flto=thin")
         .warnings(false)
-        .compile("libxmp-lite");
+        .compile("libxmp");
 }

@@ -3,7 +3,7 @@ use std::io;
 use std::io::ErrorKind;
 use std::mem::{MaybeUninit, size_of};
 use std::os::raw::{c_char, c_int, c_long, c_uchar};
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use std::marker::{Sync, Send};
 
 //this was in Alula's template code. What is it?
@@ -164,7 +164,13 @@ impl LibXmpPlayer {
             let mut mod_info = MaybeUninit::<XmpModuleInfo>::zeroed().assume_init();
             xmp_get_module_info(self.context, &mut mod_info as *mut XmpModuleInfo);
 
-            let module = &*mod_info.r#mod;
+            let module = if let Some(mm) = mod_info.r#mod.as_ref() {
+                mm
+            } else {
+                return None;
+            };
+            //let module = &*mod_info.r#mod;
+
 
             // we trust libxmp to null terminate the string.
             let name = CStr::from_ptr(module.name.as_ptr() as _);

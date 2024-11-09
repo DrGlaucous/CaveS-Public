@@ -296,6 +296,7 @@ to return home to the village.<NOD<CLO//PART 2 MESSAGE
 
 //lower left (nobody)
 #0320
+<EVE0399
 
 //top right (quote)
 #0330

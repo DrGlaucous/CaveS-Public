@@ -33,6 +33,10 @@ Just go already.<NOD<END
 
 
 #1000
+<PSH0051<NOD
+<PSH0052<NOD
+<RMU<END
+
 <KEY<MSGWhat?<NOD Umm...<NOD
 You weren't supposed to look down
 here...<NOD<CLRNow what am I supposed to say?<NOD<END

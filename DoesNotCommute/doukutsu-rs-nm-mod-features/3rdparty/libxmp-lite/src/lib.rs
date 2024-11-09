@@ -1,4 +1,4 @@
-use std::ffi::{c_void, CStr};
+use std::ffi::{c_short, c_uint, c_void, CStr};
 use std::io;
 use std::io::ErrorKind;
 use std::mem::{MaybeUninit, size_of};
@@ -52,18 +52,71 @@ struct XmpModuleInfo {
     seq_data: *mut *mut c_void,
 }
 
+#[repr(C)]
+struct XmpEvent {
+    note: c_uchar,   /* Note number (0 means no note) */
+    ins: c_uchar,    /* Patch number */
+    vol: c_uchar,    /* Volume (0 to basevol) */
+    fxt: c_uchar,    /* Effect type */
+    fxp: c_uchar,    /* Effect parameter */
+    f2t: c_uchar,    /* Secondary effect type */
+    f2p: c_uchar,    /* Secondary effect parameter */
+    _flag: c_uchar,  /* Internal (reserved) flags */
+}
+
+#[repr(C)]
+struct XmpChannelInfo {
+    period: c_uint,      /* Sample period */
+    position: c_uint,    /* Sample position */
+    pitchbend: c_short,  /* Linear bend from base note*/
+    note: c_uchar,       /* Current base note number */
+    instrument: c_uchar, /* Current instrument number */
+    sample: c_uchar,     /* Current sample number */
+    volume: c_uchar,     /* Current volume */
+    pan: c_uchar,        /* Current stereo pan */
+    reserved: c_uchar,   /* Reserved */
+    event: XmpEvent,     /* Current track event */
+}
+
+#[repr(C)]
+struct XmpFrameInfo {
+    pos: c_int,            /* Current position */
+    pattern: c_int,        /* Current pattern */
+    row: c_int,            /* Current row in pattern */
+    num_rows: c_int,       /* Number of rows in current pattern */
+    frame: c_int,          /* Current frame */
+    speed: c_int,          /* Current replay speed */
+    bpm: c_int,            /* Current bpm */
+    time: c_int,           /* Current module time in ms */
+    total_time: c_int,     /* Estimated replay time in ms*/
+    frame_time: c_int,     /* Frame replay time in us */
+    buffer: *mut c_void,   /* Pointer to sound buffer */
+    buffer_size: c_int,    /* Used buffer size */
+    total_size: c_int,     /* Total buffer size */
+    volume: c_int,         /* Current master volume */
+    loop_count: c_int,     /* Loop counter */
+    virt_channels: c_int,  /* Number of virtual channels */
+    virt_used: c_int,      /* Used virtual channels */
+    sequence: c_int,       /* Current sequence */
+    channel_info: [XmpChannelInfo; XMP_MAX_CHANNELS], /* Current channel information */
+}
+
 type XmpContext = *mut c_char;
 
 // external library refrences
 extern "C" {
     fn xmp_create_context() -> XmpContext;
     fn xmp_free_context(ctx: XmpContext);
-    fn xmp_load_module_from_memory(ctx: XmpContext, data: *const c_void, length: c_long) -> c_int; //note: automatically calls `xmp_release_module` if a previous module is already loaded
-    //fn xmp_release_module(ctx: XmpContext); //unloads a loaded module
+    fn xmp_load_module_from_memory(ctx: XmpContext, data: *const c_void, length: c_long) -> c_int;
+    fn xmp_release_module(ctx: XmpContext);
     fn xmp_test_module_from_memory(buffer: *mut c_void, length: c_long, info: *mut c_void) -> c_int;
     fn xmp_start_player(ctx: XmpContext, sample_rate: c_int, flags: c_int) -> c_int;
     fn xmp_play_buffer(ctx: XmpContext, buffer: *mut c_void, size: c_int, r#loop: c_int) -> c_int;
     fn xmp_get_module_info(ctx: XmpContext, mod_info: *mut XmpModuleInfo);
+    fn xmp_get_frame_info(ctx: XmpContext, frame_info: *mut XmpFrameInfo);
+    fn xmp_set_position(ctx: XmpContext, position: c_int) -> c_int;
+    fn xmp_set_row(ctx: XmpContext, row: c_int) -> c_int;
+    fn xmp_restart_module(ctx: XmpContext);
 }
 
 pub struct LibXmpPlayer {
@@ -138,9 +191,9 @@ impl LibXmpPlayer {
 
     /// close the current module and free internal resources
     pub fn unload(&mut self) {
-        // unsafe {
-        //     xmp_release_module(self.context);
-        // }
+        unsafe {
+            xmp_release_module(self.context);
+        }
     }
 
     /// begin playback of the loaded module (must call "load" on a module first), assumes audio output is stereo
@@ -164,7 +217,13 @@ impl LibXmpPlayer {
             let mut mod_info = MaybeUninit::<XmpModuleInfo>::zeroed().assume_init();
             xmp_get_module_info(self.context, &mut mod_info as *mut XmpModuleInfo);
 
-            let module = &*mod_info.r#mod;
+            let module = if let Some(mm) = mod_info.r#mod.as_ref() {
+                mm
+            } else {
+                return None;
+            };
+            //let module = &*mod_info.r#mod;
+
 
             // we trust libxmp to null terminate the string.
             let name = CStr::from_ptr(module.name.as_ptr() as _);
@@ -183,8 +242,14 @@ impl LibXmpPlayer {
 
     /// report current position in playback (todo: implement)
     pub fn get_position(&self) -> i64 {
-        0
+        unsafe {
+            let mut frame_info = MaybeUninit::<XmpFrameInfo>::zeroed().assume_init();
+            xmp_get_frame_info(self.context, &mut frame_info as *mut XmpFrameInfo);
+
+            frame_info.pos as i64
+        }
     }
+
 
     /// get "looping" attribute
     pub fn is_looping(&self) -> bool {
@@ -197,7 +262,24 @@ impl LibXmpPlayer {
     }
 
     /// go to position (todo: implement)
-    pub fn seek(&mut self, _pos: i64) {
+    pub fn seek_position(&mut self, pos: i64) -> io::Result<()> {
+        unsafe {
+            xmp_assert(xmp_set_position(self.context, pos as i32))?;
+        }
+        Ok(())
+    }
+
+    pub fn seek_row(&mut self, pos: i64) -> io::Result<()> {
+        unsafe {
+            xmp_assert(xmp_set_row(self.context, pos as i32))?;
+        }
+        Ok(())
+    }
+
+    pub fn rewind(&mut self) {
+        unsafe {
+            xmp_restart_module(self.context);
+        }
     }
 
     /// returns `false` if we hit the end, `true` if operation was successful, fills `samples` with audio

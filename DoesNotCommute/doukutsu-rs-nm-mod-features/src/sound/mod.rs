@@ -314,9 +314,9 @@ impl SoundManager {
     ) {
 
         if song_id.loaded_from_path {
-            self.play_song_filepath(&song_id.path, song_id.song_format, constants, settings, ctx, fadeout);
+            let _ = self.play_song_filepath(&song_id.path, song_id.song_format, constants, settings, ctx, fadeout);
         } else {
-            self.play_song(song_id.id, constants, settings, ctx, fadeout);
+            let _ = self.play_song(song_id.id, constants, settings, ctx, fadeout);
         }
 
     }
@@ -680,7 +680,7 @@ impl SoundManager {
                         }
                     }
                 }
-                _ =>{}
+                //_ =>{}
             }
         }
 
@@ -832,6 +832,17 @@ impl SoundManager {
         }
         Ok(())
     }
+
+    pub fn set_blowout_mode(&mut self, mode: bool) -> GameResult {
+        if self.no_audio {
+            return Ok(());
+        }
+
+        self.send(PlaybackMessage::SetBlowoutMode(mode)).unwrap();
+
+        Ok(())
+    }
+
 }
 
 pub(in crate::sound) enum PlaybackMessage {
@@ -856,6 +867,7 @@ pub(in crate::sound) enum PlaybackMessage {
     SetSampleParams(u8, PixToneParameters),
     SetOrgInterpolation(InterpolationMode),
     SetSampleData(u8, Vec<i16>),
+    SetBlowoutMode(bool), //joke mode, does direct signed->unsigned conversions
 }
 
 #[derive(PartialEq, Eq)]
@@ -868,16 +880,16 @@ enum PlaybackState {
     PlayingTracker,
 }
 
-enum PlaybackStateType<'a> {
+enum PlaybackStateType { //<'a> {
     None,
     Organya(SavedOrganyaPlaybackState),
     #[cfg(feature = "ogg-playback")]
     Ogg(SavedOggPlaybackState),
     #[cfg(feature = "tracker-playback")]
-    Tracker(SavedTrackerPlaybackState<'a>),
+    Tracker(SavedTrackerPlaybackState), //<'a>),
 }
 
-impl<'a> Default for PlaybackStateType<'a> {
+impl<'a> Default for PlaybackStateType { //<'a> {
     fn default() -> Self {
         Self::None
     }
@@ -1164,6 +1176,12 @@ where
                     }
                     Ok(PlaybackMessage::SetSampleData(id, data)) => {
                         pixtone.set_sample_data(id, data);
+                    }
+                    Ok(PlaybackMessage::SetBlowoutMode(mode)) => {
+                        #[cfg(feature = "tracker-playback")]
+                        tracker_engine.set_blowout_mode(mode);
+
+                        //todo: blowout mode for the other playback engines
                     }
                     Err(_) => {
                         break;

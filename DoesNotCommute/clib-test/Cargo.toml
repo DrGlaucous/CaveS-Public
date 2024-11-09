@@ -3,8 +3,12 @@ name = "clib-test"
 version = "0.1.0"
 edition = "2021"
 
+
+[features]
+default = ["libxmp"]
+
 [dependencies]
-#slibxmp-lite = {path = "./3rdparty/libxmp-lite"}
+libxmp = {path = "./3rdparty/libxmp", optional = true}
 
 
 [build-dependencies]

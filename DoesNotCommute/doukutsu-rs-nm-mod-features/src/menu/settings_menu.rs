@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use itertools::Itertools;
 use crate::common::Rect;
 use crate::framework::context::Context;
@@ -76,6 +78,7 @@ enum SoundMenuEntry {
     EffectsVolume,
     BGMInterpolation,
     Soundtrack,
+    Blowout,
     Back,
 }
 
@@ -506,6 +509,16 @@ impl SettingsMenu {
                 &[("soundtrack", state.get_localized_soundtrack_name(&state.settings.soundtrack).as_str())],
             )),
         );
+
+        
+        self.sound.push_entry(
+            SoundMenuEntry::Blowout,
+            MenuEntry::Toggle(
+                format!("Strultz Mode:"),
+                state.settings.blowout,
+            ),
+        );
+
         self.sound.push_entry(SoundMenuEntry::Back, MenuEntry::Active(state.loc.t("common.back").to_owned()));
 
         let mut soundtrack_entries = state
@@ -900,6 +913,17 @@ impl SettingsMenu {
                 }
                 MenuSelectionResult::Selected(SoundMenuEntry::Back, _) | MenuSelectionResult::Canceled => {
                     self.current = CurrentMenu::MainMenu
+                }
+                MenuSelectionResult::Selected(SoundMenuEntry::Blowout, toggle) => {
+                    if let MenuEntry::Toggle(_, value) = toggle {
+                        state.settings.blowout = !state.settings.blowout;
+                        //let _ = state.settings.save(ctx);
+
+                        state.sound_manager.set_blowout_mode(state.settings.blowout)?;
+
+                        *value = state.settings.blowout;
+                    }
+
                 }
                 _ => (),
             },
