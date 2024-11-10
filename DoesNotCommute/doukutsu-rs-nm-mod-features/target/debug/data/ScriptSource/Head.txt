@@ -75,48 +75,69 @@ Out of Time!<NOD<CLRWant to retry?<YNJ0049<CLO
 
 //song list
 
+//CMF example:
+//<CMF0003:/Resource/Other/wirehead.mod$
+//using <CMU again so we can have more than one soundtrack
+
+//wirehead
 #0050
-<CMF0003:/Resource/Other/wirehead.mod$
+<CMU0001
 <POP
 
+//business_class
 #0051
-<CMF0003:/Resource/Other/business_class_loop.xm$
+<CMU0002
 <POP
 
+//electric heating
 #0052
-//<CMF0003:/Resource/Other/Import/spcdebrsremix5.s3m$
-<CMF0003:/Resource/Other/electric_heating_loop.xm$
+<CMU0003
 <POP
 
+//npls
 #0053
-<CMF0003:/Resource/Other/npls.xm$
+<CMU0004
 <POP
 
+//space-chase
 #0054
-<CMF0003:/Resource/Other/space-chase_loop.mod$
+<CMU0005
 <POP
 
+//jk_timetodosomething
 #0055
-<CMF0003:/Resource/Other/jk_timetodosomething_loop.xm$
+<CMU0006
 <POP
 
+//funkadelic
 #0056
-<CMF0003:/Resource/Other/funkadelic_loop.xm$
+<CMU0007
 <POP
 
+//rung
 #0057
-<CMF0003:/Resource/Other/rung.xm$
+<CMU0008
 <POP
 
+//jmdisco
 #0058
-<CMF0003:/Resource/Other/jm_disco_loop.xm$
+<CMU0009
 <POP
 
+//space debris
 #0059
-<CMF0003:/Resource/Other/space_debris_loop.mod$
+<CMU0010
 <POP
 
+//wampaku
+#0060
+<CMU0011
+<POP
 
+//trousers
+#0061
+<CMU0012
+<POP
 
 
 

@@ -1,6 +1,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0120//load custom BKG
 <PSH0052//try to reload title screen music
 <SLT0001:Science.rec$
 <HMC<FRE<REP0000
@@ -39,6 +40,11 @@
 #0105
 <END
 
+//load custom BKG as-needed
+#0120
+<BKGbk_moon$
+<POP
+
 //...199 is reserved
 
 
@@ -46,6 +52,7 @@
 
 //intro event
 #0200
+<PSH0120//load custom BKG
 <PSH0057//start MUSIC (rung)
 <SKJ0011:0201//goto fast intro
 <PSH0210

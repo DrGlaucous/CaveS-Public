@@ -1,0 +1,34 @@
+Music IDs for both soundtracks
+
+0 - silence/silence
+
+1 - wirehead/Gameover
+
+2 - business_class/TinyVivi
+
+3 - electric_heating/pipedream2
+
+4 - npls/mk_battlemode
+
+5 - space-chase/grabbag
+
+6- jk_timetodosomething/tinyweed
+
+7 - funkadelic/pictionary
+
+8 - rung/monolith burger
+
+9 - jm_disco/ callmejack
+
+10 - space_debris/ starship groove
+
+11 - vivi/vivi
+
+12 - trousers/trousers
+
+
+
+
+
+
+

@@ -43,6 +43,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0120//load custom BKG
 <PSH0052//try to reload title screen music
 //initialize timer to 0 and then add 30 seconds to start
 <SLT0001:Village.rec$
@@ -85,7 +86,10 @@
 #0110
 <RET0007:0100:0000:0000<END
 
-
+//load custom BKG as-needed
+#0120
+//<BKGbk_title$
+<POP
 
 //...199 is reserved
 
@@ -137,6 +141,7 @@
 <TRA0007:0201:0000:0000
 
 #0201
+<PSH0120//load custom BKG
 <PSH0056//start MUSIC (timetodo)
 //timer already initialized
 //IT+0000//add ITEMS

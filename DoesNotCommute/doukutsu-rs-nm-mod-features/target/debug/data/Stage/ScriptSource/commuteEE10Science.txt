@@ -43,6 +43,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0120//load custom BKG
 <PSH0052//try to reload title screen music
 //initialize timer with time from Cave
 <SLT0001:Oside.rec$
@@ -84,6 +85,10 @@
 #0110
 <RET0010:0100:0000:0000<END
 
+//load custom BKG as-needed
+#0120
+<BKGbk_moon$
+<POP
 
 
 //...199 is reserved
@@ -124,6 +129,7 @@
 
 //second entry door
 #0200
+<PSH0120//load custom BKG
 <PSH0059//start MUSIC (digsox)
 <SKJ0010:0201//goto quick intro
 //pre-door intro (will be skipflagged)

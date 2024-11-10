@@ -7,6 +7,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0120//load custom BKG
 <PSH0052//try to reload title screen music
 <SLT0001:Corridor.rec$
 <HMC<FRE<REP0000
@@ -43,6 +44,11 @@
 #0105
 <END
 
+//load custom BKG as-needed
+#0120
+//<BKGbk_title$
+<POP
+
 //...199 is reserved
 
 
@@ -50,6 +56,7 @@
 
 //entry event
 #0200
+<PSH0120//load custom BKG
 <PSH0057//start MUSIC (rung)
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Corridor.rec$

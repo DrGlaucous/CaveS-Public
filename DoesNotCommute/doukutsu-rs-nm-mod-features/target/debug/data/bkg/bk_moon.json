@@ -1,0 +1,250 @@
+{
+    "version": 2,
+    "bmp_filename": "bkg/bk_moon",
+    "lighting_mode": 2,
+    "layers": [
+
+        {
+            "layer_enabled": true,
+            "bmp_x_offset": 0,
+            "bmp_y_offset": 0,
+            "bmp_width": 200,
+            "bmp_height": 88,
+            "draw_repeat_x": 0,
+            "draw_repeat_y": 0,
+            "draw_repeat_gap_x": 0,
+            "draw_repeat_gap_y": 0,
+            "draw_corner_offset_x": 0.0,
+            "draw_corner_offset_y": 0.0,
+            "animation_style": {
+                "frame_count": 0,
+                "frame_start": 0,
+                "animation_speed": 0,
+                "follow_speed_x": 1.0,
+                "follow_speed_y": 1.0,
+                "autoscroll_speed_x": 1.0,
+                "autoscroll_speed_y": 1.0,
+                "scroll_flags": {
+                "follow_pc_x": false,
+                "follow_pc_y": false,
+                "autoscroll_x": false,
+                "autoscroll_y": false,
+                "align_with_water_lvl": false,
+                "draw_above_foreground": false,
+                "random_offset_x": false,
+                "random_offset_y": false,
+                "lock_to_x_axis": false,
+                "lock_to_y_axis": false,
+                "randomize_all_parameters": false,
+                "add_screen_width": false,
+                "add_screen_height": false,
+                "relative_to_pillarbox": false,
+                "relative_to_letterbox": false
+                }
+            }
+        }, 
+
+        {
+            "layer_enabled": true,
+            "bmp_x_offset": 200,
+            "bmp_y_offset": 0,
+            "bmp_width": 120,
+            "bmp_height": 88,
+            "draw_repeat_x": 1,
+            "draw_repeat_y": 1,
+            "draw_repeat_gap_x": 0,
+            "draw_repeat_gap_y": 0,
+            "draw_corner_offset_x": -120.0,
+            "draw_corner_offset_y": 0.0,
+            "animation_style": {
+                "frame_count": 0,
+                "frame_start": 0,
+                "animation_speed": 0,
+                "follow_speed_x": 1.0,
+                "follow_speed_y": 1.0,
+                "autoscroll_speed_x": 1.0,
+                "autoscroll_speed_y": 1.0,
+                "scroll_flags": {
+                "follow_pc_x": false,
+                "follow_pc_y": false,
+                "autoscroll_x": false,
+                "autoscroll_y": false,
+                "align_with_water_lvl": false,
+                "draw_above_foreground": false,
+                "random_offset_x": false,
+                "random_offset_y": false,
+                "lock_to_x_axis": false,
+                "lock_to_y_axis": false,
+                "randomize_all_parameters": false,
+                "add_screen_width": true,
+                "add_screen_height": false,
+                "relative_to_pillarbox": false,
+                "relative_to_letterbox": false
+                }
+            }
+        }, 
+
+
+        {
+            "layer_enabled": true,
+            "bmp_x_offset": 0,
+            "bmp_y_offset": 88,
+            "bmp_width": 320,
+            "bmp_height": 35,
+            "draw_repeat_x": 0,
+            "draw_repeat_y": 1,
+            "draw_repeat_gap_x": 0,
+            "draw_repeat_gap_y": 0,
+            "draw_corner_offset_x": 0.0,
+            "draw_corner_offset_y": -152.0,
+            "animation_style": {
+                "frame_count": 0,
+                "frame_start": 0,
+                "animation_speed": 0,
+                "follow_speed_x": 1.0,
+                "follow_speed_y": 1.0,
+                "autoscroll_speed_x": 0.5,
+                "autoscroll_speed_y": 1.0,
+                "scroll_flags": {
+                "follow_pc_x": false,
+                "follow_pc_y": false,
+                "autoscroll_x": true,
+                "autoscroll_y": false,
+                "align_with_water_lvl": false,
+                "draw_above_foreground": false,
+                "random_offset_x": false,
+                "random_offset_y": false,
+                "lock_to_x_axis": false,
+                "lock_to_y_axis": false,
+                "randomize_all_parameters": false,
+                "add_screen_width": false,
+                "add_screen_height": true,
+                "relative_to_pillarbox": false,
+                "relative_to_letterbox": false
+                }
+            }
+        },      
+
+        {
+            "layer_enabled": true,
+            "bmp_x_offset": 0,
+            "bmp_y_offset": 123,
+            "bmp_width": 320,
+            "bmp_height": 23,
+            "draw_repeat_x": 0,
+            "draw_repeat_y": 1,
+            "draw_repeat_gap_x": 0,
+            "draw_repeat_gap_y": 0,
+            "draw_corner_offset_x": 0.0,
+            "draw_corner_offset_y": -117.0,
+            "animation_style": {
+                "frame_count": 0,
+                "frame_start": 0,
+                "animation_speed": 0,
+                "follow_speed_x": 1.0,
+                "follow_speed_y": 1.0,
+                "autoscroll_speed_x": 1.0,
+                "autoscroll_speed_y": 1.0,
+                "scroll_flags": {
+                "follow_pc_x": false,
+                "follow_pc_y": false,
+                "autoscroll_x": true,
+                "autoscroll_y": false,
+                "align_with_water_lvl": false,
+                "draw_above_foreground": false,
+                "random_offset_x": false,
+                "random_offset_y": false,
+                "lock_to_x_axis": false,
+                "lock_to_y_axis": false,
+                "randomize_all_parameters": false,
+                "add_screen_width": false,
+                "add_screen_height": true,
+                "relative_to_pillarbox": false,
+                "relative_to_letterbox": false
+                }
+            }
+        },
+
+        {
+            "layer_enabled": true,
+            "bmp_x_offset": 0,
+            "bmp_y_offset": 146,
+            "bmp_width": 320,
+            "bmp_height": 30,
+            "draw_repeat_x": 0,
+            "draw_repeat_y": 1,
+            "draw_repeat_gap_x": 0,
+            "draw_repeat_gap_y": 0,
+            "draw_corner_offset_x": 0.0,
+            "draw_corner_offset_y": -94.0,
+            "animation_style": {
+                "frame_count": 0,
+                "frame_start": 0,
+                "animation_speed": 0,
+                "follow_speed_x": 1.0,
+                "follow_speed_y": 1.0,
+                "autoscroll_speed_x": 2.0,
+                "autoscroll_speed_y": 1.0,
+                "scroll_flags": {
+                "follow_pc_x": false,
+                "follow_pc_y": false,
+                "autoscroll_x": true,
+                "autoscroll_y": false,
+                "align_with_water_lvl": false,
+                "draw_above_foreground": false,
+                "random_offset_x": false,
+                "random_offset_y": false,
+                "lock_to_x_axis": false,
+                "lock_to_y_axis": false,
+                "randomize_all_parameters": false,
+                "add_screen_width": false,
+                "add_screen_height": true,
+                "relative_to_pillarbox": false,
+                "relative_to_letterbox": false
+                }
+            }
+        },
+
+        {
+            "layer_enabled": true,
+            "bmp_x_offset": 0,
+            "bmp_y_offset": 176,
+            "bmp_width": 320,
+            "bmp_height": 64,
+            "draw_repeat_x": 0,
+            "draw_repeat_y": 1,
+            "draw_repeat_gap_x": 0,
+            "draw_repeat_gap_y": 0,
+            "draw_corner_offset_x": 0.0,
+            "draw_corner_offset_y": -64.0,
+            "animation_style": {
+                "frame_count": 0,
+                "frame_start": 0,
+                "animation_speed": 0,
+                "follow_speed_x": 1.0,
+                "follow_speed_y": 1.0,
+                "autoscroll_speed_x": 4.0,
+                "autoscroll_speed_y": 1.0,
+                "scroll_flags": {
+                "follow_pc_x": false,
+                "follow_pc_y": false,
+                "autoscroll_x": true,
+                "autoscroll_y": false,
+                "align_with_water_lvl": false,
+                "draw_above_foreground": false,
+                "random_offset_x": false,
+                "random_offset_y": false,
+                "lock_to_x_axis": false,
+                "lock_to_y_axis": false,
+                "randomize_all_parameters": false,
+                "add_screen_width": false,
+                "add_screen_height": true,
+                "relative_to_pillarbox": false,
+                "relative_to_letterbox": false
+                }
+            }
+        }
+
+
+    ]
+}

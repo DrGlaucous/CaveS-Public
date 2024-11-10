@@ -394,3 +394,4 @@
 #387	Tesla	R	Tesla Shooter (R)	512:64:544:96	Right facing shooty thingy	ALL:ALL ;
 #388	Tesla	D	Tesla Shooter (D)	512:96:544:128	Down facing shooty thingy	ALL:ALL ;
 #389	Tesla	Shot	Tesla Orb Projectile	416:128:448:160	Shot by the Tesla Shooter	ALL:ALL ;
+#390	Ceiling	Light	Ceiling Light	0:0:32:32	Cone light-making NPC that points down. Flag ID controls width of cone light (in degrees)	ALL:ALL ;

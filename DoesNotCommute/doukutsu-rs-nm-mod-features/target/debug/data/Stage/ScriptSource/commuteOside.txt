@@ -42,6 +42,7 @@
 
 //stage entry event (titlescreen preview)
 #0100
+<PSH0120//load custom BKG
 <PSH0052//try to reload title screen music
 //initialize timer with time from Cave
 <SLT0001:Egg8.rec$
@@ -87,7 +88,10 @@
 #0110
 <RET0009:0100:0000:0000<END
 
-
+//load custom BKG as-needed
+#0120
+//<BKGbk_title$
+<POP
 
 //...199 is reserved
 
@@ -126,6 +130,7 @@
 //sue intro
 #0200
 <KEY<HMC
+<PSH0120//load custom BKG
 <PSH0058//start MUSIC (jmdisco)
 <TCL0050:0000:0043//set run event (load time next)
 <SLT0001:Egg8.rec$

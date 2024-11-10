@@ -48,6 +48,8 @@ pub(crate) struct OrgPlaybackEngine {
     frames_per_tick: usize,
     pub loops: usize,
     pub interpolation: InterpolationMode,
+
+    blowout_mode: bool
 }
 
 #[derive(Clone)]
@@ -77,6 +79,7 @@ impl OrgPlaybackEngine {
             frames_per_tick,
             loops: 1,
             interpolation: InterpolationMode::Linear,
+            blowout_mode: false,
         }
     }
 
@@ -118,14 +121,21 @@ impl OrgPlaybackEngine {
 
         // Initialize drums
         for (idx, (track, buf)) in song.tracks[8..].iter().zip(self.track_buffers[128..].iter_mut()).enumerate() {
-            if song.version == Version::Extended {
-                // Check for OOB track count, instruments outside of the sample range will be set to the last valid sample
-                let index = if track.inst.inst as usize >= samples.samples.len() {samples.samples.len() - 1} else {track.inst.inst as usize} ;
-                *buf = RenderBuffer::new(samples.samples[index].clone());
-            } else {
-                let index = if idx >= samples.samples.len() {samples.samples.len() - 1} else {idx};
-                *buf = RenderBuffer::new(samples.samples[index].clone());
-            }
+            // if song.version == Version::Extended {
+            //     // Check for OOB track count, instruments outside of the sample range will be set to the last valid sample
+            //     let index = if track.inst.inst as usize >= samples.samples.len() {samples.samples.len() - 1} else {track.inst.inst as usize} ;
+            //     *buf = RenderBuffer::new(samples.samples[index].clone());
+            // } else {
+            //     let index = if idx >= samples.samples.len() {samples.samples.len() - 1} else {idx};
+            //     *buf = RenderBuffer::new(samples.samples[index].clone());
+            // }
+
+
+            //for this mod, we assume all orgs use the extended org table
+            // Check for OOB track count, instruments outside of the sample range will be set to the last valid sample
+            let index = if track.inst.inst as usize >= samples.samples.len() {samples.samples.len() - 1} else {track.inst.inst as usize} ;
+            *buf = RenderBuffer::new(samples.samples[index].clone());
+        
         }
 
         self.song = song;
@@ -553,8 +563,14 @@ impl OrgPlaybackEngine {
                         let xl = (*frame_l ^ 0x8000) as i16;
                         let xr = (*frame_r ^ 0x8000) as i16;
 
-                        *frame_l = xl.saturating_add(sl as i16) as u16 ^ 0x8000;
-                        *frame_r = xr.saturating_add(sr as i16) as u16 ^ 0x8000;
+                        if self.blowout_mode {
+                            *frame_l = xl.wrapping_add(sl as i16) as u16;
+                            *frame_r = xr.wrapping_add(sr as i16) as u16;
+                        } else {
+                            *frame_l = xl.saturating_add(sl as i16) as u16 ^ 0x8000;
+                            *frame_r = xr.saturating_add(sr as i16) as u16 ^ 0x8000;
+                        }
+
                     }
                 }
             }
@@ -582,6 +598,11 @@ impl OrgPlaybackEngine {
 
         buf.len()
     }
+
+    pub fn set_blowout_mode(&mut self, mode: bool) {
+        self.blowout_mode = mode;
+    }
+
 }
 
 #[inline(always)]

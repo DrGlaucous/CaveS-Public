@@ -351,7 +351,12 @@ impl SoundManager {
             } else {
                 self.send(PlaybackMessage::Stop).unwrap();
             }
-        } else if let Some(song_name) = constants.music_table.get(song_id) {
+        //} else if let Some(song_name) = constants.music_table.get(song_id) {
+        } else {
+
+            //we no longer go off the internal name table: we now address the song directly by its id number in the files
+            let sid = format!("{}", song_id);
+            let song_name = &sid;
             let mut paths = constants.organya_paths.clone();
 
             paths.insert(0, "/Soundtracks/".to_owned() + &settings.soundtrack + "/");
@@ -371,14 +376,20 @@ impl SoundManager {
                     #[cfg(feature = "ogg-playback")]
                     (SongFormat::OggSinglePart, vec![format!("{}{}.ogg", prefix, song_name)]),
                     #[cfg(feature = "tracker-playback")]
-                    (SongFormat::Tracker, vec![format!("{}{}", prefix, song_name)]), //todo: load these from TSC argument with any extension
+                    (SongFormat::Tracker, vec![format!("{}{}", prefix, song_name)]),
                     (SongFormat::Organya, vec![format!("{}{}.org", prefix, song_name)]),
                 ]
             });
 
             for songs in songs_paths {
+
+                for (format, paths) in songs.iter() {
+                    log::info!("{}", paths[0]);
+                }
+
+
                 for (format, paths) in
-                    songs.iter().filter(|(_, paths)| paths.iter().all(|path| filesystem::exists(ctx, path)))
+                    songs.iter().filter(|(sformat, paths)| paths.iter().all(|path| filesystem::exists(ctx, path) || *sformat == SongFormat::Tracker))
                 {
                     match format {
                         SongFormat::Organya => {
@@ -485,29 +496,38 @@ impl SoundManager {
                         }
                         #[cfg(feature = "tracker-playback")]
                         SongFormat::Tracker => {
-                            // we're sure that there's one element
-                            let path = unsafe { paths.get_unchecked(0) };
 
-                            match filesystem::open(ctx, path).map(TrackerPlaybackEngine::load_from) {
-                                Ok(Ok(module_s)) => {
-                                    log::info!("Playing Tracker: {} {}", song_id, path);
+                            //try all the different potential extensions
+                            for tracker_extension in constants.tracker_extensions.iter() {
+                            //{
+                                // we're sure that there's one element
+                                //let path = unsafe { paths.get_unchecked(0) };
+                                let path = format!("{}{}", unsafe { paths.get_unchecked(0) }, tracker_extension);
 
-                                    self.p_song_id = self.c_song_id.clone();
-                                    self.c_song_id = SongId{
-                                        loaded_from_path: false,
-                                        song_format: *format,
-                                        path: path.clone(),
-                                        id: song_id,
-                                    };
-                                    self.send(PlaybackMessage::SaveState).unwrap();
-                                    self.send(PlaybackMessage::PlayTrackerSong(Box::new(module_s))).unwrap();
+                                match filesystem::open(ctx, &path).map(TrackerPlaybackEngine::load_from) {
+                                    Ok(Ok(module_s)) => {
+                                        log::info!("Playing Tracker: {} {}", song_id, &path);
 
-                                    return Ok(());
+                                        self.p_song_id = self.c_song_id.clone();
+                                        self.c_song_id = SongId{
+                                            loaded_from_path: false,
+                                            song_format: *format,
+                                            path: path.clone(),
+                                            id: song_id,
+                                        };
+                                        self.send(PlaybackMessage::SaveState).unwrap();
+                                        self.send(PlaybackMessage::PlayTrackerSong(Box::new(module_s))).unwrap();
+
+                                        return Ok(());
+                                    }
+                                    Ok(Err(_err)) | Err(_err) => {
+                                        //log::warn!("Failed to load Tracker BGM {}: {}", song_id, err);
+                                    }
                                 }
-                                Ok(Err(err)) | Err(err) => {
-                                    log::warn!("Failed to load Tracker BGM {}: {}", song_id, err);
-                                }
+
                             }
+                            log::warn!("Failed to load Tracker BGM {}", song_id);
+
                         }
                     }
                 }
@@ -1180,6 +1200,7 @@ where
                     Ok(PlaybackMessage::SetBlowoutMode(mode)) => {
                         #[cfg(feature = "tracker-playback")]
                         tracker_engine.set_blowout_mode(mode);
+                        org_engine.set_blowout_mode(mode);
 
                         //todo: blowout mode for the other playback engines
                     }

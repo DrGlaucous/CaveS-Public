@@ -1339,6 +1339,40 @@ impl NPC {
     }
 
 
+    //lights
+    pub(crate) fn tick_n390_raycast_light(&mut self) -> GameResult {
+
+        //experience drops use flag_num:
+        //use flag num to specify light width (in degrees, direction controls cardinal direction)
+        
+        //point down for now
+        if self.action_num == 0 {
+            self.direction = Direction::Bottom;
+            self.action_num += 1;
+        }
+
+
+        let light_width = self.flag_num as i32 / 2;
+        let direction = match self.direction {
+            Direction::Bottom => 270,
+            Direction::Left => 180,
+            Direction::Up => 90,
+            _ => 0,
+        };
+
+        self.light_options.light_type = NPCLightType::Cone;
+        self.light_options.x = self.x;
+        self.light_options.y = self.y;
+        self.light_options.light_color = Color::from_rgb(255, 255, 180);
+        self.light_options.light_power = 1.0;
+
+        self.light_options.light_angle = (direction - light_width)..(direction + light_width);
+
+
+        Ok(())
+    }
+
+
 
 }
 

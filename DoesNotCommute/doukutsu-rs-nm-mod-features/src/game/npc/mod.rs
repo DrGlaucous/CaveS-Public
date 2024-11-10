@@ -130,9 +130,13 @@ pub enum NPCLightType {
 #[derive(Debug, Clone)]
 pub struct NPCLightOptions {
     pub light_type: NPCLightType,
-    pub light_angle: Range<i32>, //angle of light cone in degrees (0-359)
-    pub light_color: Color, //color of emitted light
-    pub light_power: f32, //power of the emitted light (either type) (decimal)
+
+    /// angle of light cone in degrees (0-359)
+    pub light_angle: Range<i32>,
+    /// color of emitted light
+    pub light_color: Color,
+    /// power of the emitted light (either type) (decimal)
+    pub light_power: f32,
 
     pub x: i32,
     pub y: i32,
@@ -768,6 +772,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             387 => self.tick_n385_8_tesla_shooter_ai(state, players, npc_list, frame, Direction::Right),
             388 => self.tick_n385_8_tesla_shooter_ai(state, players, npc_list, frame, Direction::Bottom),
             389 => self.tick_n389_tesla_bullet(state),
+            390 => self.tick_n390_raycast_light(),
 
             _ => Ok(()),
         }?;
