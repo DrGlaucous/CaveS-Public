@@ -9,3 +9,4 @@
 8 - Heavy Press
 9 - Ballos Ball
 10 - Security
+11 - Rice

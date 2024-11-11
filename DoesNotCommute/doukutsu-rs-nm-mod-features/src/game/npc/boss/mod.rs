@@ -24,6 +24,7 @@ pub mod omega;
 pub mod sisters;
 pub mod undead_core;
 pub mod security;
+pub mod rice;
 
 pub struct BossNPC {
     pub boss_type: u16,
@@ -98,6 +99,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &BulletManager, &mut Fl
             8 => self.tick_b08_heavy_press(state, npc_list, stage),
             9 => self.tick_b09_ballos(state, players, npc_list, flash),
             10 => self.tick_b10_security(state, players, npc_list, stage),
+            11 => self.tick_b11_rice(state, players, npc_list, bullet_manager, flash),
             _ => {}
         }
 
