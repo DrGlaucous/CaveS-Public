@@ -388,8 +388,19 @@ impl SoundManager {
                 }
 
 
-                for (format, paths) in
-                    songs.iter().filter(|(sformat, paths)| paths.iter().all(|path| filesystem::exists(ctx, path) || *sformat == SongFormat::Tracker))
+
+                for (format, paths) in {
+
+                    #[cfg(feature = "tracker-playback")]
+                    {
+                        songs.iter().filter(|(sformat, paths)| paths.iter().all(|path| filesystem::exists(ctx, path) || *sformat == SongFormat::Tracker))
+                    }
+                    
+                    #[cfg(not(feature = "tracker-playback"))]
+                    {
+                        songs.iter().filter(|(_, paths)| paths.iter().all(|path| filesystem::exists(ctx, path)))
+                    }
+                }
                 {
                     match format {
                         SongFormat::Organya => {

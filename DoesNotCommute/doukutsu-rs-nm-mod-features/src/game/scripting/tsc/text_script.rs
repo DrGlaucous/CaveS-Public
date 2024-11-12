@@ -2474,6 +2474,7 @@ impl TextScriptVM {
                 //get mode
                 let typecode = read_cur_varint(&mut cursor)? as usize;
                 let song_type = match typecode {
+                    #[cfg(feature = "tracker-playback")]
                     3 => SongFormat::Tracker,
                     2 => SongFormat::OggMultiPart,
                     1 => SongFormat::OggSinglePart,
