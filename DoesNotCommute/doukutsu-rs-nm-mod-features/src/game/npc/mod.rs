@@ -774,6 +774,8 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             389 => self.tick_n389_tesla_bullet(state),
             390 => self.tick_n390_raycast_light(),
 
+            391 => self.tick_n391_gravity(players, npc_list, boss),
+
             _ => Ok(()),
         }?;
 

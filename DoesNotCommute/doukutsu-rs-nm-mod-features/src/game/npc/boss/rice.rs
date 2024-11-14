@@ -66,6 +66,155 @@ lowering the shield and allowing the boss to be shot
 
 impl NPC {
 
+
+    //forms part of a "ray" shot from the gravity gun, pulls the player in a certain direction (and towards the center of the NPC) >|<
+    pub(crate) fn tick_n391_gravity(
+        &mut self,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+        boss: &mut BossNPC,
+    ) -> GameResult {
+
+
+        let rc_grav_particles_down = [
+            Rect::new(192,64,208,80),
+            Rect::new(192,80,208,96),
+            Rect::new(192,96,208,112),
+            Rect::new(192,112,208,128),
+        ];
+
+        let rc_grav_particles_up = [
+            Rect::new(192,128,208,144),
+            Rect::new(192,144,208,160),
+            Rect::new(192,160,208,176),
+            Rect::new(192,176,208,192),
+        ];
+
+        self.animate(5, 0, 3);
+
+
+        if self.direction == Direction::Bottom {
+            self.anim_rect = rc_grav_particles_down[self.anim_num as usize];
+        } else {
+            self.anim_rect = rc_grav_particles_up[self.anim_num as usize];
+        }
+
+        //from player mod.rs: 
+        /*
+        // wind / current forces
+        if self.flags.force_left() {
+            self.vel_x -= 0x88;
+        }
+        if self.flags.force_up() {
+            self.vel_y -= 0x88;
+        }
+        if self.flags.force_right() {
+            self.vel_x += 0x88;
+        }
+        if self.flags.force_down() {
+            self.vel_y += 0x55;
+        }
+        */
+
+        //check for NPCs/PCs inside NPC's hitbox
+        for p in players {
+            let result = Self::test_hit_phys_entity_non_solid(self, p);
+
+            if result.any_flag() {
+                //pull/push player
+
+                if self.direction == Direction::Bottom {
+                    p.vel_y += 0x55;
+                } else {
+                    p.vel_y -= 0x88;
+                }
+
+                //try to center player in the gravity
+                if p.x > self.x {
+                    p.vel_x -= 0x10;
+                } else {
+                    p.vel_x += 0x10;
+                }
+            }
+        }
+        for n in npc_list.iter_alive() {
+            //ignore collision with ourselves
+            if n.id == self.id {
+                continue;
+            }
+
+            let result = Self::test_hit_phys_entity_non_solid(self, n);
+
+            if result.any_flag() {
+                //pull/push NPC
+
+                if self.direction == Direction::Bottom {
+                    n.vel_y += 0x55;
+                } else {
+                    n.vel_y -= 0x88;
+                }
+
+                //try to center player in the gravity
+                if n.x > self.x {
+                    n.vel_x -= 0x10;
+                } else {
+                    n.vel_x += 0x10;
+                }
+
+            }
+        }
+
+
+        //keep in line with boss parent, initial y is set on NPC creation
+        self.x = boss.parts[self.parent_id as usize].x;
+
+        Ok(())
+    }
+
+
+    // shot by the monitor at the player, behaves simmilarly to those things jelly-things in the labyrinth
+    pub(crate) fn tick_n392_homing_bead(
+        &mut self,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+        boss: &mut BossNPC,
+    ) -> GameResult {
+
+        
+        let rc_homing_bead = [
+            Rect::new(192,192,208,208),
+            Rect::new(192,208,208,224),
+        ];
+
+
+        Ok(())
+    }
+
+
+    //better, more generic version of the player-on-npc non-solid code
+    pub(crate) fn test_hit_phys_entity_non_solid(npc_1: &dyn PhysicalEntity, npc_2: &dyn PhysicalEntity) -> Flag {
+
+        let mut flags = Flag(0);
+        
+        let npc_1_coords = (npc_1.x(), npc_1.y());
+        let npc_2_coords = (npc_2.x(), npc_2.y());
+        let npc_1_hit_bounds = npc_1.hit_bounds();
+        let npc_2_hit_bounds = npc_2.hit_bounds();
+
+
+        if npc_1_coords.0 + (npc_1_hit_bounds.right as i32) > npc_2_coords.0 - (npc_2_hit_bounds.left as i32)
+            && npc_1_coords.0 - (npc_1_hit_bounds.left as i32) < npc_2_coords.0 + (npc_2_hit_bounds.right as i32)
+            && npc_1_coords.1 + (npc_1_hit_bounds.bottom as i32) > npc_2_coords.1 - (npc_2_hit_bounds.top as i32)
+            && npc_1_coords.1 - (npc_1_hit_bounds.top as i32) < npc_2_coords.1 + (npc_2_hit_bounds.bottom as i32)
+        {
+            //just set some flag
+            flags.set_hit_left_wall(true);
+        }
+
+        flags
+    }
+
+
 }
 
 impl BossNPC {
@@ -121,23 +270,23 @@ impl BossNPC {
     fn tick_b11_rice_tv_screen(&mut self, i: usize) {
 
         let rc_tv_face = [
-            Rect::new(272,0,264,64),
-            Rect::new(360,0,352,64),
+            Rect::new(272,0,360,64), //0
+            Rect::new(360,0,448,64),
             Rect::new(448,0,536,64),
 
-            Rect::new(272,64,264,128),
-            Rect::new(360,64,352,128),
+            Rect::new(272,64,360,128), //3
+            Rect::new(360,64,448,128),
             Rect::new(448,64,536,128),
 
-            Rect::new(272,128,264,192),
-            Rect::new(360,128,352,192),
+            Rect::new(272,128,360,192), //6
+            Rect::new(360,128,448,192),
             Rect::new(448,128,536,192),
 
-            Rect::new(272,192,264,256),
-            Rect::new(360,192,352,256),
+            Rect::new(272,192,360,256), //9
+            Rect::new(360,192,448,256),
             Rect::new(448,192,536,256),
 
-            Rect::new(272,256,264,320), //shock
+            Rect::new(272,256,264,320), //shock (12)
         ];
 
         //have to do this here to appease the borrow checker
@@ -149,10 +298,51 @@ impl BossNPC {
 
         //offset relative to parent
         npc.x = parent_npc_coords.0;
-        npc.y = parent_npc_coords.1 + 0x200 * 8 * 8; //offset down
+        npc.y = parent_npc_coords.1 + 0x200 * (8 * 7); //offset down
 
         //todo: face animations
 
+        let mut anim_offset = 0;
+
+        //determine face offset
+        match npc.action_num {
+            0 => {
+
+            }
+            10 => {
+                anim_offset = 2;
+            }
+            20 => {
+                anim_offset = 4;
+            }
+            30 => {
+                anim_offset = 6;
+            }
+            40 => {
+                anim_offset = 8;
+            }
+            50 => {
+                anim_offset = 10;
+            }
+
+            
+            _ => {}
+        }
+
+        //animate
+        npc.anim_counter += 1;
+        if npc.anim_counter > 12 {
+            npc.anim_counter = 0;
+
+            npc.anim_num += 1;
+            if npc.anim_num > anim_offset + 1 
+            || npc.anim_num < anim_offset{
+                npc.anim_num = anim_offset;
+            }
+        }
+        if npc.shock % 2 == 1 {
+            npc.anim_num = 12;
+        }
         npc.anim_rect = rc_tv_face[npc.anim_num as usize];
 
     }
@@ -174,7 +364,7 @@ impl BossNPC {
 
         //offset relative to parent
         npc.x = parent_npc_coords.0;
-        npc.y = parent_npc_coords.1;
+        npc.y = parent_npc_coords.1 + 0x200 * (8 * 7);
 
         //change static
         if npc.rng.range(0..10) == 5 {
@@ -190,18 +380,100 @@ impl BossNPC {
 
     }
 
-    fn tick_b11_rice_tv(&mut self, i: usize) {
+    //ticks the tv shuttle, tv screen, and tv noise
+    fn tick_b11_rice_tv_shuttle(&mut self, shuttle: usize, t_static: usize, screen: usize) {
 
-        let rc_tv_mount = [
+        let rc_tv_shuttle = [
             Rect::new(208,160,272,200), //unlit
             Rect::new(208,200,272,240), //lit
             Rect::new(208,240,272,280), //shock
         ];
 
-        let npc = &mut self.parts[i];
+        let npc = &mut self.parts[shuttle];
+
+        //location to the left offscreen
+        let x_min = -(0x200 * 64);
+
+        //location to the right offscreen
+        let x_max = (0x200 * (16 * 32 + 64));
+
+        match npc.action_num {
+
+            //idle offscreen
+            0 => {
+                npc.x = x_min;
+                npc.target_x = x_min;
+            }
+
+            //idle
+            1 => {}
+
+
+            //slide in
+            10 | 11 => {
+
+                if npc.action_num == 10 {
+                    //start offscreen
+                    npc.x = x_min;
+                    npc.target_x = 0x200 * 16 * 16; //roughly halfway
+
+                    //start moving at a decent speed
+                    npc.vel_x = 0x400;
+                    npc.action_num = 11;
+                }
+
+            }
+
+            _ => {}
+        }
+
+
+        //move the shuttle back and forth around the target
+        if npc.action_num == 10
+        || npc.action_num == 11 {
+
+            if npc.target_x < npc.x {
+                npc.vel_x -= 0x05;
+            }
+            if npc.target_x > npc.x {
+                npc.vel_x += 0x05;
+            }
+
+            let clamp_speed = (abs(npc.target_x - npc.x) / 0x50).clamp(0x100, 0x800);
+            npc.vel_x = npc.vel_x.clamp(-clamp_speed, clamp_speed);
+            npc.vel_y = npc.vel_y.clamp(-clamp_speed, clamp_speed);
+
+        } else {
+            //don't slide around
+            npc.vel_x = 0;
+        }
+
+        npc.x += npc.vel_x;
 
         //move in,
-        //leer at player, 
+        //leer at player,
+
+
+        //animate parts
+        npc.anim_counter += 1;
+        if npc.anim_counter > 4 {
+            npc.anim_counter = 0;
+
+            npc.anim_num += 1;
+            if npc.anim_num > 1 {
+                npc.anim_num = 0;
+            }
+        }
+        if npc.shock % 2 == 1 {
+            npc.anim_num = 2;
+        }
+        npc.anim_rect = rc_tv_shuttle[npc.anim_num as usize];
+
+
+        //tick sub-parts
+        self.tick_b11_rice_tv_noise(t_static);
+        self.tick_b11_rice_tv_screen(screen);
+
 
     }
 
@@ -221,6 +493,11 @@ impl BossNPC {
         //repeat,
         //if life == 0, move forward and expose boss
 
+        match npc.action_num {
+
+            _ => {}
+        }
+
     }
 
     fn tick_b11_rice_platform(&mut self, i: usize) {
@@ -234,9 +511,9 @@ impl BossNPC {
 
         let display_width = (npc.display_bounds.left + npc.display_bounds.right) as i32;
 
-        let retracted_x = npc.target_x - display_width;
+        let retracted_x = npc.target_x - display_width * 2; //move extra far back
         let expanded_x = npc.target_x;
-        let partway_x = (expanded_x - retracted_x) / 2;
+        let partway_x =  expanded_x - display_width / 2;
 
         match npc.action_num {
 
@@ -506,17 +783,6 @@ impl BossNPC {
     ) {
 
 
-        let rc_grav_particles_down = [
-            Rect::new(192,64,208,80),
-            Rect::new(192,80,208,96),
-            Rect::new(192,96,208,112),
-        ];
-
-        let rc_grav_particles_up = [
-            Rect::new(192,112,208,128),
-            Rect::new(192,128,208,144),
-            Rect::new(192,144,208,160),
-        ];
 
 
         let rc_shield = [
@@ -628,12 +894,13 @@ impl BossNPC {
 
                     //test: start with platform out
                     self.parts[1].vel_x2 = 0x200 * 400;
+                    self.parts[1].action_num = 30;
                     self.tick_b11_rice_platform(1);
 
 
                     //speed of platform movement is determined with vel_x2 (using vel_x directly results in the "conveyor effect")
                     self.parts[1].vel_x2 = 0x200 / 2;
-                    self.parts[1].action_num = 10; //goto full in
+                    self.parts[1].action_num = 20; //goto part in
 
                 
 
@@ -653,6 +920,77 @@ impl BossNPC {
 
                 //tv parts (8,9,10)
                 {
+                    //static
+                    let npc = &mut self.parts[8];
+
+                    //static overlay can't be shot
+                    npc.hit_bounds = Rect::new(
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                    );
+                    npc.display_bounds = Rect::new(
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                    );
+
+                    npc.cond.set_alive(true);
+                    npc.parent_id = 10; //shuttle
+
+                    //screen
+                    let npc = &mut self.parts[9];
+                    
+                    npc.hit_bounds = Rect::new(
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                    );
+
+                    npc.display_bounds = Rect::new(
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                        0x200 * (5 * 8 + 4),
+                        0x200 * 8 * 4,
+                    );
+
+                    npc.cond.set_alive(true);
+                    npc.parent_id = 10; //shuttle
+
+                    //shuttle
+
+                    let npc = &mut self.parts[10];
+
+                    //just the shuttle body
+                    npc.hit_bounds = Rect::new(
+                        0x200 * 3 * 8,
+                        0x200 * 8,
+                        0x200 * 3 * 8,
+                        0x200 * 8,
+                    );
+
+                    npc.display_bounds = Rect::new(
+                        0x200 * 4 * 8,
+                        0x200 * 16,
+                        0x200 * 4 * 8,
+                        0x200 * 24,
+                    );
+
+                    npc.npc_flags.set_solid_hard(true);
+                    npc.cond.set_alive(true);
+
+                    npc.y = y + (3 * 16) * 0x200;
+                    npc.x = x; //this is offset back immediately anyway: starting point doesn't matter here
+
+                    self.parts[10].action_num = 0;
+                    self.tick_b11_rice_tv_shuttle(10, 8, 9);
+
+                    //slide in
+                    self.parts[10].action_num = 10;
+
 
                 }
 
@@ -717,7 +1055,7 @@ impl BossNPC {
                         
                         npc.anim_num = 1;
 
-                        npc.y = y + (12 * 16 + 32) * 0x200;
+                        npc.y = y + (14 * 16 + 32) * 0x200;
                         npc.x = x + x_loc;// + (0x200 * 8 * 17);
 
                     }
@@ -746,6 +1084,9 @@ impl BossNPC {
             for i in 1..=2 {
                 self.tick_b11_rice_platform(i);
             }
+
+            //run tv
+            self.tick_b11_rice_tv_shuttle(10, 8, 9);
 
             
             //run moving rails
