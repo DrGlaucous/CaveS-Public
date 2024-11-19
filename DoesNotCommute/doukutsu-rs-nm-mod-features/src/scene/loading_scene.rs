@@ -5,12 +5,21 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::scene::no_data_scene::NoDataScene;
 use crate::scene::Scene;
 
+
+use mr_connectome::Connectome; //test
+
 pub struct LoadingScene {
     tick: usize,
 }
 
 impl LoadingScene {
     pub fn new() -> Self {
+
+        
+        //test this here:
+        let connectome = Connectome::new(None);
+
+
         Self { tick: 0 }
     }
 

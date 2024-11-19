@@ -38,7 +38,7 @@ category = "Game"
 osx_minimum_system_version = "10.12"
 
 [features]
-default = ["default-base", "backend-sdl", "render-opengl", "exe", "webbrowser", "discord-rpc", "tracker-playback"]
+default = ["default-base", "backend-sdl", "render-opengl", "exe", "webbrowser", "discord-rpc", "tracker-playback", "mr-connectome"]
 default-base = ["ogg-playback"]
 ogg-playback = ["lewton"]
 tracker-playback = ["libxmp-lite"] #["oxdz"] #["oxdz", "libxmp-lite"]
@@ -75,6 +75,7 @@ lazy_static = "1.4"
 lewton = { version = "0.10", optional = true }
 #oxdz = {path = "./3rdparty/oxdz", optional = true}
 libxmp-lite = {path = "./3rdparty/libxmp-lite", optional = true}
+mr-connectome = {path = "./3rdparty/mr-connectome", optional = true}
 
 log = "0.4"
 num-derive = "0.3"
