@@ -20,10 +20,23 @@ struct KeyWeight {
 }
 
 struct NeuronInfo {
+    //how large the weight must be before firing
     threshold: i32,
+
+    //list of outputs to fire to
     outputs: Vec<KeyWeight>,
 }
 
+struct NeuronWeight {
+    //current weight of the neuron
+    weight: [i32; 2],
+
+    //how long we wait until zeroing the weight variable
+    persistence: i32,
+
+    //current time before we zero the weight variable, incremented each frame, or reset to 0
+    time: i32,
+}
 
 pub struct Connectome {
 
@@ -32,7 +45,7 @@ pub struct Connectome {
 
     //the current accumulated weight of a neuron, used to determine if it should fire or not.
     //to appease the borrow checker, this needs to be seperate from the NeuronInfo
-    neuron_weight: HashMap<String, [i32; 2]>,
+    neuron_weight: HashMap<String, NeuronWeight>,
 
     //which index of the neuron_weight will be used for refrence vs accumulating new weight
     //we these use two indicies so that all the neurons have the chance to update from the same static state.
@@ -54,12 +67,50 @@ impl Connectome {
             include_bytes!("data/CElegansConnectome.csv")
         };
 
+        let mut neuron_info: HashMap<String, NeuronInfo> =  HashMap::new();
+        let mut neuron_weight: HashMap<String, NeuronWeight> =  HashMap::new();
 
         //read CSV data
         let mut reader = Reader::from_reader(data);
         for result in reader.records() {
             let record = result.unwrap();
-            println!("{:?}", record);
+            
+            if record.len() < 3 {
+                continue;
+            }
+
+            let neuron = format!("{}", &record[0]);
+            let output = format!("{}", &record[1]);
+            let weight = record[2].parse::<i32>().unwrap();
+
+            //if neuron already exists, add this connection to its list
+            if let Some(neu) = neuron_info.get_mut(&neuron) {
+                neu.outputs.push(KeyWeight{
+                    key: output,
+                    weight,
+                });
+            } else {
+                //make new neuron and weight entry
+
+                let outputs: Vec<KeyWeight> =  vec![KeyWeight{
+                    key: output,
+                    weight: weight,
+                }];
+
+                neuron_info.insert(neuron.clone(), NeuronInfo{
+                    threshold: 30, //default threshhold size
+                    outputs,
+                });
+
+                neuron_weight.insert(neuron, NeuronWeight{
+                    weight: [0,0],
+                    persistence: 10, //default for now
+                    time: 0,
+                });
+
+            }
+
+
         }
 
 
@@ -78,15 +129,35 @@ impl Connectome {
         for (nkey, neuron) in self.neuron_info.iter() {
 
             //check if current neuron weight surpasses its threshhold. If it does, "fire" the neuron and update child weights
-            if self.neuron_weight.get(nkey).unwrap()[self.weight_index] > neuron.threshold {
+            let n_weight = self.neuron_weight.get_mut(nkey).unwrap();
+            if n_weight.weight[self.weight_index] > neuron.threshold {
+
+                //reset weight because we fired
+                n_weight.weight[self.weight_index] = 0;
+
                 //for each child
                 for connection in &neuron.outputs {
                     //update weight
                     if let Some(child_weight) = self.neuron_weight.get_mut(&connection.key) {
-                        child_weight[self.next_weight_index] = child_weight[self.weight_index] + connection.weight;
+                        child_weight.weight[self.next_weight_index] += connection.weight; //at this point, this variable represents the delta weight from last tick
+                        child_weight.time = 0; //reset fire timeout
                     }
                 }
             }
+        }
+
+        //update persistence timeout weight as needed, and make the next weight absolute
+        for (_, weight) in self.neuron_weight.iter_mut() {
+
+            if weight.time > weight.persistence && weight.persistence >= 0 {
+                weight.weight[self.weight_index] = 0; //reset weight
+                weight.time = 0; //reset fire timeout
+            } else {
+                //make the next weight index absolute
+                weight.weight[self.next_weight_index] += weight.weight[self.weight_index];
+            }
+            weight.time += 1;
+
         }
 
         //flip index
@@ -94,13 +165,14 @@ impl Connectome {
         self.weight_index = self.next_weight_index;
         self.next_weight_index = intermediate;
 
+
     }
 
     //returns True if the neuron was found and weight adjusted
     pub fn add_weight_to_neuron(&mut self, key: &String, weight: i32) -> bool {
 
         if let Some(child_weight) = self.neuron_weight.get_mut(key) {
-            child_weight[self.next_weight_index] = child_weight[self.weight_index] + weight;
+            child_weight.weight[self.next_weight_index] = child_weight.weight[self.weight_index] + weight;
             return true;
         }
 
@@ -116,7 +188,7 @@ impl Connectome {
             for connection in &neuron.outputs {
                 //update weight
                 if let Some(child_weight) = self.neuron_weight.get_mut(&connection.key) {
-                    child_weight[self.next_weight_index] = child_weight[self.weight_index] + connection.weight;
+                    child_weight.weight[self.next_weight_index] = child_weight.weight[self.weight_index] + connection.weight;
                 }
             }
             return true;
