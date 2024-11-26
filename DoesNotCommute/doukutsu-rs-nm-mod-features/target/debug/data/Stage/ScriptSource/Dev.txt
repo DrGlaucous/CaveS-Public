@@ -124,6 +124,11 @@
 #0401
 <END
 
+//lock player
+#0450
+<KEY<NOD<END
+
+
 //title event
 #1000
 <HMC<MOV0001:0001

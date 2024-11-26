@@ -1,6 +1,11 @@
-use crate::common::Direction;
+use std::f32::consts::PI;
+
+use mr_connectome::Connectome;
+use winapi::um::winnt::CFG_CALL_TARGET_CONVERT_EXPORT_SUPPRESSED_TO_VALID;
+
+use crate::common::{Direction, Rect};
 use crate::framework::error::GameResult;
-//use crate::game::npc::list::NPCList; //add this if you want to refrence other NPCs
+use crate::game::npc::list::NPCList;
 use crate::game::npc::NPC;
 use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
@@ -316,6 +321,291 @@ impl NPC {
     // {
     //     self.tick_n000_null();
     // }
+
+    //test connectome NPC
+    pub(crate) fn tick_n378_connectome(
+        &mut self, 
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+
+        //NPC with tank controls
+
+        /*
+            unit circle:
+              3pi/2
+                |
+            pi-------0
+                |
+               pi/2
+        */
+
+        self.anim_rect = Rect::new(96, 64, 128, 96);
+
+        //update child NPC rects
+        {
+            for a in self.child_ids.iter() {
+                let npc = npc_list.get_npc(*a as usize).unwrap();
+
+                if npc.flags.hit_anything() {
+                    npc.anim_num = 1;
+                } else {
+                    npc.anim_num = 0;
+                }
+            }
+            
+        }
+
+        match self.action_num {
+            //connectome init
+            0 => {
+                //set up connectome
+                self.action_num += 1;
+                self.connectome = Some(Connectome::new(None));
+
+                //set up rotation offset
+                self.anchor_x = (self.anim_rect.right - self.anim_rect.left) as f32 / 2.0;
+                self.anchor_y = (self.anim_rect.bottom - self.anim_rect.top) as f32 / 2.0;
+
+                //make child NPCs (order: L B R T, like the unit circle)
+                for a in 0..4 {
+                    let mut npc = NPC::create(379, &state.npc_table);
+                    npc.cond.set_alive(true);
+                    let id = npc_list.spawn(0x100, npc).unwrap();
+                    self.child_ids.push(id);
+                }
+
+
+            }
+            //idle
+            1 => {
+                self.vel_y2 = 0;
+                self.vel_x2 = 0;
+                self.vel_x = 0;
+                self.angle = 0.0;
+            }
+            //drive manual
+            2 => {
+
+                //distance of each track from the center of the NPC
+                let track_distance = 0x200 * 16;
+        
+                //set movement
+                {
+                    //right up
+                    if players[0].controller.move_up() {
+                        self.vel_y2 += 10;
+                    }
+            
+                    //right down
+                    if players[0].controller.move_down() {
+                        self.vel_y2 -= 10;
+                    }
+
+                    //left up
+                    if players[0].controller.map() {
+                        self.vel_x2 += 10;
+                    }
+
+                    //left down
+                    if players[0].controller.next_weapon() {
+                        self.vel_x2 -= 10;
+                    }
+                }
+
+                let center_speed = (self.vel_x2 + self.vel_y2) / 2;
+
+                
+                let rotation_speed = ((self.vel_x2 - self.vel_y2) as f32).atan2(track_distance as f32 * 2.0);
+
+                self.angle += rotation_speed;
+                self.vel_x = center_speed;
+
+
+        
+            }
+
+            //connectome
+            10 => {
+                if let Some(connectome) = &mut self.connectome {
+
+                    //bump detection
+                    {
+                        //front
+                        let npc = npc_list.get_npc(self.child_ids[0] as usize).unwrap();
+                        if npc.flags.hit_anything() {
+                            connectome.stimulate_front_bump();
+                        }
+
+                        //right
+                        let npc = npc_list.get_npc(self.child_ids[1] as usize).unwrap();
+                        if npc.flags.hit_anything() {
+
+                            //worm seems to turn away from this side when touched here (which is what we want)
+                            connectome.stimulate_anterior_harsh_touch(); //not sure if this is the correct side, but...
+                        
+                            //connectome.stimulate_posterior_harsh_touch();
+                        }
+
+                        //left
+                        let npc = npc_list.get_npc(self.child_ids[3] as usize).unwrap();
+                        if npc.flags.hit_anything() {
+                            connectome.stimulate_posterior_harsh_touch();
+
+                            //connectome.stimulate_anterior_harsh_touch();
+                        }
+
+                        //stim food
+                        if players[0].controller.move_up() {
+                            connectome.stimulate_food();
+                        }
+                    }
+
+                    connectome.tick();
+
+
+                    //set track speed
+                    let mdl = connectome.get_mdl();
+                    let mvl = connectome.get_mvl();
+                    let mdr = connectome.get_mdr();
+                    let mvr = connectome.get_mvr();
+
+                    //these tend to always be positive, the key is by how much
+                    let left_speed = mdl + mvl;
+                    let right_speed = mdr + mvr;
+
+                    //turns out we don't really need to clamp the speed here
+                    let total_speed = left_speed + right_speed;//.clamp(70, 150);
+
+                    let turn_ratio = if left_speed == 0 {1.0} else {right_speed as f32 / left_speed as f32};
+
+                    self.angle += (turn_ratio - 1.0) * 0.5; //ratio of difference + some random constant to slow it down
+
+                    //todo: better this
+                    self.vel_x = total_speed * 3 * if total_speed <= 0 {-1} else {1};
+
+
+
+                    self.action_counter2 += 1;
+                    if self.action_counter2 > 10 {
+
+                        self.action_counter2 = 0;
+                        log::info!("Turn ratio: {:.2},  Speed:{}", turn_ratio, total_speed);
+                    }
+
+                    //translate tank controls
+                    // {
+                    //     //distance of each track from the center of the NPC
+                    //     let track_distance = 0x200 * 16;    
+                    //     let center_speed = (self.vel_x2 + self.vel_y2) / 2;
+                    //     let rotation_speed = ((self.vel_x2 - self.vel_y2) as f32).atan2(track_distance as f32 * 2.0);
+                    //     self.angle += rotation_speed;
+                    //     self.vel_x = center_speed;
+                    // }
+                    
+
+                }
+            }
+
+
+            //nothing
+            _ => {},
+        }
+
+        
+        //position child NPCs
+        {
+            //individual positioning since each one means something different
+
+            let offset_len = 512.0 * 20.0;
+
+            //left (front)
+            {
+                let npc = npc_list.get_npc(self.child_ids[0] as usize).unwrap();
+
+                let angle = self.angle;
+
+                npc.x = self.x + (offset_len * (angle).cos()) as i32;
+                npc.y = self.y + (offset_len * (angle).sin()) as i32;
+            }
+
+            //bottom (R rel. to front)
+            {
+                let npc = npc_list.get_npc(self.child_ids[1] as usize).unwrap();
+
+                let angle = self.angle + PI / 2.0;
+
+                npc.x = self.x + (offset_len * (angle).cos()) as i32;
+                npc.y = self.y + (offset_len * (angle).sin()) as i32;
+            }
+
+            //right
+            {
+                let npc = npc_list.get_npc(self.child_ids[2] as usize).unwrap();
+
+                let angle = self.angle + PI;
+
+                npc.x = self.x + (offset_len * (angle).cos()) as i32;
+                npc.y = self.y + (offset_len * (angle).sin()) as i32;
+            }
+
+            //top (L rel. to front)
+            {
+                let npc = npc_list.get_npc(self.child_ids[3] as usize).unwrap();
+
+                let angle = self.angle + 3.0 * PI / 2.0;
+
+                npc.x = self.x + (offset_len * (angle).cos()) as i32;
+                npc.y = self.y + (offset_len * (angle).sin()) as i32;
+            }
+        }
+
+
+
+        //calculate movement direction
+        {
+            let angle = self.angle;
+
+            let vx = (angle.cos() * self.vel_x as f32) as i32;
+            let vy = (angle.sin() * self.vel_x as f32) as i32;
+
+            self.x += vx;
+            self.y += vy;
+
+        }
+
+
+        Ok(())
+    }
+
+
+    //location determined by connectome, reports a bump on the side (all work done by parent)
+    pub(crate) fn tick_n379_connectome_bumper(
+        &mut self,
+    ) -> GameResult {
+
+        /*
+            unit circle:
+              3pi/2
+                |
+            pi-------0
+                |
+               pi/2
+        */
+
+        let rc_list = [
+            Rect::new(128, 64, 144, 80), //yel
+            Rect::new(128, 80, 144, 96), //pnk
+        ];
+
+        self.anim_rect = rc_list[self.anim_num as usize];
+
+
+
+        Ok(())
+    }
+
 
 
 }

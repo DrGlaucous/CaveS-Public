@@ -1,0 +1,41 @@
+
+//start event
+#0090
+<WAI0001
+<WAI9999
+<END
+
+
+#0100
+<MOV0009:0003
+<EQ+0032
+<FAI0004<END
+
+#0200
+<MOV0009:0003
+<EQ+0032
+<FAI0004<END
+
+//run connectome
+#1300
+<KEY<MSGStarting Connectome...<NOD
+Press "UP" to simulate "Food".<NOD<CLO
+<HMC
+<FON1301:0000
+//<ANP1301:0002:0000//start driving
+<ANP1301:0010:0000//start connectome
+<NOD
+<ANP1301:0001:0000//halt
+<SMC<FOM0016<END
+
+//connectome tank
+#1301
+<END
+
+
+
+
+
+
+
+
