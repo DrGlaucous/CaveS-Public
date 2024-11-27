@@ -193,7 +193,7 @@ static DOCS_LINK: &str = "https://doukutsu-rs.gitbook.io/docs/";
 static TRIBUTE_LINK: &str = "https://www.cavestory.org/";
 static GENERAL_LINK: &str = "https://discord.gg/cavestory";
 static MODDING_LINK: &str = "https://discord.gg/xRsWpz6";
-static GETPLUS_LINK: &str = "https://www.nicalis.com/games/cavestory+";
+static SOURCE_LINK: &str = "https://github.com/DrGlaucous/CaveS-Public/tree/main/Connectome";
 
 impl SettingsMenu {
     pub fn new() -> SettingsMenu {
@@ -390,7 +390,7 @@ impl SettingsMenu {
             LinksMenuEntry::Link(MODDING_LINK),
             MenuEntry::Active("Cave Story Modding Community".to_owned()),
         );
-        self.links.push_entry(LinksMenuEntry::Link(GETPLUS_LINK), MenuEntry::Active("Get Cave Story+".to_owned()));
+        self.links.push_entry(LinksMenuEntry::Link(SOURCE_LINK), MenuEntry::Active("Mod Source Code".to_owned()));
 
         #[cfg(not(any(target_os = "android", target_os = "horizon")))]
         self.main.push_entry(

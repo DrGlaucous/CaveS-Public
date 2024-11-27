@@ -1,0 +1,191 @@
+{
+  "version": 24,
+  "seasonal_textures": true,
+  "original_textures": false,
+  "shader_effects": false,
+  "light_cone": true,
+  "subpixel_coords": true,
+  "motion_interpolation": true,
+  "touch_controls": false,
+  "display_touch_controls": true,
+  "soundtrack": "Organya",
+  "bgm_volume": 0.0,
+  "sfx_volume": 1.0,
+  "timing_mode": "_50Hz",
+  "pause_on_focus_loss": false,
+  "organya_interpolation": "Linear",
+  "player1_controller_type": "Keyboard",
+  "player2_controller_type": "Keyboard",
+  "player1_key_map": {
+    "left": "Left",
+    "up": "Up",
+    "right": "Right",
+    "down": "Down",
+    "prev_weapon": "A",
+    "next_weapon": "S",
+    "jump": "Z",
+    "shoot": "X",
+    "skip": "Q",
+    "inventory": "Q",
+    "map": "W",
+    "strafe": "LShift",
+    "menu_ok": "Z",
+    "menu_back": "X"
+  },
+  "player2_key_map": {
+    "left": "Comma",
+    "up": "L",
+    "right": "Slash",
+    "down": "Period",
+    "prev_weapon": "G",
+    "next_weapon": "H",
+    "jump": "B",
+    "shoot": "N",
+    "skip": "T",
+    "inventory": "T",
+    "map": "Y",
+    "strafe": "RShift",
+    "menu_ok": "B",
+    "menu_back": "N"
+  },
+  "player1_controller_button_map": {
+    "left": {
+      "Either": [
+        "DPadLeft",
+        "LeftX",
+        "Left"
+      ]
+    },
+    "up": {
+      "Either": [
+        "DPadUp",
+        "LeftY",
+        "Up"
+      ]
+    },
+    "right": {
+      "Either": [
+        "DPadRight",
+        "LeftX",
+        "Right"
+      ]
+    },
+    "down": {
+      "Either": [
+        "DPadDown",
+        "LeftY",
+        "Down"
+      ]
+    },
+    "prev_weapon": {
+      "ButtonInput": "LeftShoulder"
+    },
+    "next_weapon": {
+      "ButtonInput": "RightShoulder"
+    },
+    "jump": {
+      "ButtonInput": "East"
+    },
+    "shoot": {
+      "ButtonInput": "South"
+    },
+    "skip": {
+      "ButtonInput": "West"
+    },
+    "inventory": {
+      "ButtonInput": "West"
+    },
+    "map": {
+      "ButtonInput": "North"
+    },
+    "strafe": {
+      "AxisInput": [
+        "TriggerRight",
+        "Either"
+      ]
+    },
+    "menu_ok": {
+      "ButtonInput": "South"
+    },
+    "menu_back": {
+      "ButtonInput": "East"
+    }
+  },
+  "player2_controller_button_map": {
+    "left": {
+      "Either": [
+        "DPadLeft",
+        "LeftX",
+        "Left"
+      ]
+    },
+    "up": {
+      "Either": [
+        "DPadUp",
+        "LeftY",
+        "Up"
+      ]
+    },
+    "right": {
+      "Either": [
+        "DPadRight",
+        "LeftX",
+        "Right"
+      ]
+    },
+    "down": {
+      "Either": [
+        "DPadDown",
+        "LeftY",
+        "Down"
+      ]
+    },
+    "prev_weapon": {
+      "ButtonInput": "LeftShoulder"
+    },
+    "next_weapon": {
+      "ButtonInput": "RightShoulder"
+    },
+    "jump": {
+      "ButtonInput": "East"
+    },
+    "shoot": {
+      "ButtonInput": "South"
+    },
+    "skip": {
+      "ButtonInput": "West"
+    },
+    "inventory": {
+      "ButtonInput": "West"
+    },
+    "map": {
+      "ButtonInput": "North"
+    },
+    "strafe": {
+      "AxisInput": [
+        "TriggerRight",
+        "Either"
+      ]
+    },
+    "menu_ok": {
+      "ButtonInput": "South"
+    },
+    "menu_back": {
+      "ButtonInput": "East"
+    }
+  },
+  "player1_controller_axis_sensitivity": 0.3,
+  "player2_controller_axis_sensitivity": 0.3,
+  "player1_rumble": false,
+  "player2_rumble": false,
+  "fps_counter": false,
+  "locale": "en",
+  "window_mode": "Windowed",
+  "vsync_mode": "VSync",
+  "screen_shake_intensity": "Full",
+  "debug_mode": true,
+  "more_rust": false,
+  "cutscene_skip_mode": "Hold",
+  "discord_rpc": true,
+  "allow_strafe": true
+}
