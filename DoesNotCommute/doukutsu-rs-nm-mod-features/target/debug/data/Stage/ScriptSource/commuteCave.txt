@@ -66,8 +66,8 @@
 
 //play current stage
 #0104
-<TRA0001:0100:0000:0000//debug TRA
-<TRA0013:0100:0000:0000//debug TRA
+//<TRA0001:0100:0000:0000//debug TRA
+<TRA0013:0100:0000:0000//debug TRA RICE
 //<TRA0009:0200:0000:0000<TRA0004:0600:0000:0000//watch preview (more debug)
 
 <REP0000//ensure replay mode is OFF

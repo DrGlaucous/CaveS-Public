@@ -1,5 +1,6 @@
 use std::iter::{zip, IntoIterator};
 use std::ops::{Range, RangeInclusive, RangeBounds};
+use cpal::platform;
 use num_traits::abs;
 
 use crate::common::{Direction, Rect};
@@ -421,7 +422,7 @@ impl BossNPC {
                 if npc.action_num == 10 {
                     //start offscreen
                     npc.x = x_min;
-                    npc.target_x = 0x200 * 16 * 16; //roughly halfway
+                    npc.target_x = 0x200 * 16 * 19; //roughly halfway
 
                     //start moving at a decent speed
                     npc.vel_x = 0x400;
@@ -506,62 +507,43 @@ impl BossNPC {
 
     }
 
-    fn tick_b11_rice_platform(&mut self, i: usize) {
+    fn tick_b11_rice_platform(&mut self, i: usize, rc_no: usize) {
 
-        let rc_platform = [
-            Rect::new(0,256,144,272), //off
-            Rect::new(0,272,144,288), //lit
+        let rc_platform_top = [
+            Rect::new(0,208,72,304), //off
+            Rect::new(72,208,144,304), //lit
+        ];
+        let rc_platform_bottom = [
+            Rect::new(96,304,184,352), //off
+            Rect::new(96,352,184,400), //lit
         ];
 
         let npc = &mut self.parts[i];
 
-        let display_width = (npc.display_bounds.left + npc.display_bounds.right) as i32;
-
-        //requires the platform to be spawned at "full-out" position
-        let retracted_x = npc.target_x - display_width * 2; //move extra far back
-        let expanded_x = npc.target_x;
-        let partway_x =  expanded_x - display_width / 2;
+        //let display_width = (npc.display_bounds.left + npc.display_bounds.right) as i32;
 
         match npc.action_num {
 
-            //initialize, save starting position as refrence and retract, assume starting point is "full-out"
+            //initialize 
             0 => {
-                npc.target_x = npc.x;
-                npc.target_y = npc.y;
-
-                npc.x = retracted_x; //are in full-retract position\
-
-                npc.action_num = 1; //idle
+                npc.target_x = npc.x; //set target position to current position
+                npc.action_num = 1; //freeze in place, idle
             }
 
-            //move to position
-            10 | 20 | 30 => {
+            //move to position (same as TV shuttle)
+            10 => {
 
-                //select the correct location to go to
-                let pos = match npc.action_num {
-                    10 => retracted_x,
-                    20 => partway_x,
-                    _ => expanded_x,
-                };
-
-                //guard against negative velocities
-                let absvel = abs(npc.vel_x2);
-
-                if pos > npc.x {
-                    npc.x += absvel;
-                    npc.vel_x = absvel; //used to move the PC on top of the NPC
-                } else {
-                    npc.x -= absvel;
-                    npc.vel_x = -absvel;
+                if npc.target_x < npc.x {
+                    npc.vel_x -= 0x02;
                 }
-
-                //close enough, snap to location
-                if abs(npc.x - pos) < absvel {
-                    npc.x = pos;
-                    npc.vel_x = 0;
-                    npc.action_num = 1; //idle
+                if npc.target_x > npc.x {
+                    npc.vel_x += 0x02;
                 }
+    
+                let clamp_speed = (abs(npc.target_x - npc.x) / 0x50).clamp(0x50, 0x800);
+                npc.vel_x = npc.vel_x.clamp(-clamp_speed, clamp_speed);
 
+                npc.x += npc.vel_x;
             }
 
             //idle
@@ -579,10 +561,11 @@ impl BossNPC {
                 npc.anim_num = 0;
             }
         }
-        npc.anim_rect = rc_platform[npc.anim_num as usize];
+        let rc = if rc_no == 0 {&rc_platform_top} else {&rc_platform_bottom};
+        npc.anim_rect = rc[npc.anim_num as usize];
+
 
     }
-
 
     //animates the entire shield generator + puppet
     fn tick_b11_rice_shield_tube(&mut self,
@@ -617,7 +600,7 @@ impl BossNPC {
                 self.parts[top].action_num = 10; //move down
                 self.parts[bottom].action_num = 10; //move in
                 self.parts[shield].action_num = 20; //shield on
-                self.parts[puppet].action_num = 10; //tension lines
+                self.parts[puppet].action_num = 20; //puppet
 
                 self.parts[puppet].vel_y = 0x80; //set movement speed
                 self.parts[puppet].target_y = 0x200 * 8 * 8;
@@ -641,8 +624,8 @@ impl BossNPC {
     fn tick_b11_rice_generator_top(&mut self, i: usize) {
 
         let rc_generator_top = [
-            Rect::new(0,208,80,232), //off
-            Rect::new(80,208,160,232), //lit
+            Rect::new(0,304,96,328), //off
+            Rect::new(0,352,96,376), //lit
         ];
 
         let npc = &mut self.parts[i];
@@ -701,8 +684,8 @@ impl BossNPC {
     fn tick_b11_rice_generator_bottom(&mut self, i: usize) {
 
         let rc_generator_bottom = [
-            Rect::new(0,232,80,256), //off
-            Rect::new(80,232,160,256), //lit
+            Rect::new(0,328,96,352), //off
+            Rect::new(0,376,96,400), //lit
         ];
 
         let parent_id = self.parts[i].parent_id;
@@ -896,6 +879,7 @@ impl BossNPC {
             //bob
             20 | 21 => {
                 if npc.action_num == 20 {
+                    npc.anim_num = 2; //ensure correct rect
                     npc.vel_y = 0x20; //give some starting velocity
                     npc.action_num += 1;
                 }
@@ -906,7 +890,7 @@ impl BossNPC {
                 if parent_y + npc.target_y > npc.y {
                     npc.vel_y += 0x05;
                 }
-                npc.vel_y = npc.vel_y.clamp(-0x200, 0x200);
+                npc.vel_y = npc.vel_y.clamp(-0x80, 0x80);
 
             }
 
@@ -932,6 +916,7 @@ impl BossNPC {
         let mut needed_rc = rc_puppet[npc.anim_num as usize];
 
         //how much we need to crop off the top of the rect
+        
         let top_displ = needed_rc.height() as i32 - (dist_diff + npc.display_bounds.bottom as i32) / 0x200;
         needed_rc.top += top_displ as u16;
 
@@ -1207,7 +1192,7 @@ impl BossNPC {
     ) {
 
 
-        state.settings.noclip = true; //force this for now
+        //state.settings.noclip = true; //force this for now
 
 
         let rc_lightning = [
@@ -1225,21 +1210,32 @@ impl BossNPC {
         //     0 * 0x200,
         // );
 
+        //NPC id list for easy draw order switching
+        let main_id = 0;
+        let platform_top_id = 1;
+        let platform_bottom_id = 17;
+        let puppet_parts_id = (3,4,5,6);
+        let grav_gun_id = 7;
+        let tv_parts_id = (8,9,10);
+        let rails_id = (11,12,13);
+        let floor_id = (14,15,16);
+
+
 
         //manage actions
-        match self.parts[0].action_num {
+        match self.parts[main_id].action_num {
             //init sub-parts
             0 => {
 
                 //parts are interated backwards: 0 is drawn on top
 
                 //"global" hurt sounds
-                self.hurt_sound[0] = 52;
+                self.hurt_sound[main_id] = 52;
 
 
-                //event controller 0
+                //event controller
                 {
-                    let npc = &mut self.parts[0];
+                    let npc = &mut self.parts[main_id];
                     npc.action_counter = 0;
                     npc.action_num = 1; //idle mode
                     npc.npc_flags.set_event_when_killed(true);
@@ -1258,65 +1254,84 @@ impl BossNPC {
                     //state.sound_manager.play_sfx(self.boss.hurt_sound[idx]);
                 }
 
-                //user platforms (1,2)
+                //user platforms
                 {
-                    for npc in &mut self.parts[1..=2] {
-                        
-                        npc.cond.set_alive(true);
-                        npc.npc_flags.set_invulnerable(true);
-                        npc.npc_flags.set_solid_hard(true);
-                        npc.npc_flags.set_ignore_solidity(true);
-                        
-                        //origin in center of solid part of the platform
-                        npc.display_bounds = Rect::new(
-                            0x200 * 8 * 13,
-                            0x200 * 8 * 1,
-                            0x200 * 8 * 4,
-                            0x200 * 8 * 1,
-                        );
 
-                        //hit bounds is bugged: it doesn't use rect.left, only rect.right, and assumes the origin is in the center.
-                        //this is not a problem with the boss, but we have to work around it if we don't want to mess with the other collision code.
-                        npc.hit_bounds = Rect::new(
-                            0x200 * 8 * 4,
-                            0x200 * 8 * 1,
-                            0x200 * 8 * 4,
-                            0x200 * 8 * 1,
-                        );
+                    let npc = &mut self.parts[platform_top_id];
 
-                    }
+                    npc.cond.set_alive(true);
+                    npc.npc_flags.set_invulnerable(true);
+                    npc.npc_flags.set_solid_hard(true);
+                    npc.npc_flags.set_ignore_solidity(true);
+                    
+                    //origin in center of solid part of the platform
+                    npc.display_bounds = Rect::new(
+                        0x200 * 36,
+                        0x200 * 8 * 11,
+                        0x200 * 36,
+                        0x200 * 8 * 1,
+                    );
+
+                    //hit bounds is bugged: it doesn't use rect.left, only rect.right, and assumes the origin is in the center.
+                    //this is not a problem with the boss, but we have to work around it if we don't want to mess with the other collision code.
+                    npc.hit_bounds = Rect::new(
+                        0x200 * 8 * 4,
+                        0x200 * 8 * 1,
+                        0x200 * 8 * 4,
+                        0x200 * 8 * 1,
+                    );
+
+                    //bottom
+
+                    let npc = &mut self.parts[platform_bottom_id];
+
+                    npc.cond.set_alive(true);
+                    npc.npc_flags.set_invulnerable(true);
+                    npc.npc_flags.set_solid_hard(true);
+                    npc.npc_flags.set_ignore_solidity(true);
+                    
+                    //origin in center of solid part of the platform
+                    npc.display_bounds = Rect::new(
+                        0x200 * 44,
+                        0x200 * 8 * 1,
+                        0x200 * 44,
+                        0x200 * 8 * 5,
+                    );
+
+                    npc.hit_bounds = Rect::new(
+                        0x200 * 8 * 4,
+                        0x200 * 8 * 1,
+                        0x200 * 8 * 4,
+                        0x200 * 8 * 1,
+                    );
+
+
 
                     //starting locations of the platforms
-                    self.parts[1].x = 0x200 * 8 * 12 + X;
-                    self.parts[1].y = 0x200 * 8 * 20 + Y;
+                    self.parts[platform_top_id].x = 0x200 * 8 * -4 + X;
+                    self.parts[platform_top_id].y = 0x200 * 8 * 15 + Y;
 
-                    self.parts[2].x = 0x200 * 8 * 12 + X;
-                    self.parts[2].y = 0x200 * 8 * 10 + Y;
+                    self.parts[platform_bottom_id].x = 0x200 * 8 * -4 + X;
+                    self.parts[platform_bottom_id].y = 0x200 * 8 * 22 + Y;
+
+
+
 
                     //have the platforms initialize themselves immediately
-                    for i in 1..=2 {
-                        self.tick_b11_rice_platform(i);
-                    }
-
-
-                    //speed of platform movement is determined with vel_x2 (using vel_x directly results in the "conveyor effect")
-                    self.parts[1].vel_x2 = 0x200 / 2;
-                    self.parts[2].vel_x2 = 0x200 / 2;
-
-                    self.parts[1].action_num = 30; //goto out
-                    self.parts[2].action_num = 20; //goto part
-                
-
-
+                    self.tick_b11_rice_platform(platform_top_id, 0);
+                    self.tick_b11_rice_platform(platform_bottom_id, 1);
+                    // for i in 1..=2 {
+                    //     self.tick_b11_rice_platform(i);
+                    // }
 
                 }
 
-                //puppet parts (3,4,5,6)
+                //puppet parts
                 {
                     //platforms, shield, and puppet
 
                     //platform top
-                    let npc = &mut self.parts[3];
+                    let npc = &mut self.parts[puppet_parts_id.0];
                     npc.action_counter = 0;
                     npc.cond.set_alive(true);
 
@@ -1335,12 +1350,12 @@ impl BossNPC {
                     );
 
                     //on right side of screen
-                    npc.x = X + WIDTH - 0x200 * (16 * 3);
+                    npc.x = X + WIDTH - 0x200 * (16 * 4);
 
                     //platform bottom
-                    let npc = &mut self.parts[4];
+                    let npc = &mut self.parts[puppet_parts_id.1];
                     npc.action_counter = 0;
-                    npc.parent_id = 3; //parent is top
+                    npc.parent_id = puppet_parts_id.0 as u16; //parent is top
                     npc.cond.set_alive(true);
 
                     npc.hit_bounds = Rect::new(
@@ -1359,8 +1374,8 @@ impl BossNPC {
 
 
                     //shield
-                    let npc = &mut self.parts[5];
-                    npc.parent_id = 3; //parent is top
+                    let npc = &mut self.parts[puppet_parts_id.2];
+                    npc.parent_id = puppet_parts_id.0 as u16; //parent is top
                     npc.cond.set_alive(true);
 
                     npc.display_bounds = Rect::new(
@@ -1379,8 +1394,8 @@ impl BossNPC {
 
 
                     //puppet
-                    let npc = &mut self.parts[6];
-                    npc.parent_id = 3; //parent is top
+                    let npc = &mut self.parts[puppet_parts_id.3];
+                    npc.parent_id = puppet_parts_id.0 as u16; //parent is top
                     npc.cond.set_alive(true);
 
 
@@ -1388,15 +1403,15 @@ impl BossNPC {
 
                 }
 
-                //gravity gun (7)
+                //gravity gun
                 {
 
                 }
 
-                //tv parts (8,9,10)
+                //tv parts
                 {
                     //static
-                    let npc = &mut self.parts[8];
+                    let npc = &mut self.parts[tv_parts_id.0];
 
                     //static overlay can't be shot
                     npc.hit_bounds = Rect::new(
@@ -1413,10 +1428,10 @@ impl BossNPC {
                     );
 
                     npc.cond.set_alive(true);
-                    npc.parent_id = 10; //shuttle
+                    npc.parent_id = tv_parts_id.2 as u16; //shuttle
 
                     //screen
-                    let npc = &mut self.parts[9];
+                    let npc = &mut self.parts[tv_parts_id.1];
                     
                     npc.hit_bounds = Rect::new(
                         0x200 * (5 * 8 + 4),
@@ -1433,11 +1448,11 @@ impl BossNPC {
                     );
 
                     npc.cond.set_alive(true);
-                    npc.parent_id = 10; //shuttle
+                    npc.parent_id = tv_parts_id.2 as u16; //shuttle
 
                     //shuttle
 
-                    let npc = &mut self.parts[10];
+                    let npc = &mut self.parts[tv_parts_id.2];
 
                     //just the shuttle body
                     npc.hit_bounds = Rect::new(
@@ -1461,7 +1476,7 @@ impl BossNPC {
                     npc.x = X; //this is offset back immediately anyway: starting point doesn't matter here
 
                     self.parts[10].action_num = 0;
-                    self.tick_b11_rice_tv_shuttle(10, 8, 9);
+                    self.tick_b11_rice_tv_shuttle(tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
 
                     //slide in
                     self.parts[10].action_num = 10;
@@ -1469,7 +1484,7 @@ impl BossNPC {
 
                 }
 
-                //rails + floor (11,12,13,  14,15,16)
+                //rails + floor
                 {
 
                     let rail_loc_list = [
@@ -1479,7 +1494,9 @@ impl BossNPC {
                     ];
 
                     //start with top rail
-                    for (npc, x_loc) in zip( &mut self.parts[11..=13], rail_loc_list) {
+                    for (id, x_loc) in zip( [rails_id.0, rails_id.1, rails_id.2], rail_loc_list) {
+                        let npc = &mut self.parts[id];
+                        
                         npc.cond.set_alive(true);
                         npc.npc_flags.set_invulnerable(true);
                         npc.npc_flags.set_ignore_solidity(true);
@@ -1506,7 +1523,9 @@ impl BossNPC {
                     }
 
                     //do floor
-                    for (npc, x_loc) in zip( &mut self.parts[14..=16], rail_loc_list) {
+                    for (id, x_loc) in zip( [floor_id.0, floor_id.1, floor_id.2], rail_loc_list) {
+                        let npc = &mut self.parts[id];
+
                         npc.cond.set_alive(true);
                         npc.npc_flags.set_invulnerable(true);
                         npc.npc_flags.set_solid_hard(true);
@@ -1536,21 +1555,30 @@ impl BossNPC {
                     }
 
 
-
-
-
                 }
 
-                self.set_rail_speed(-0x200 * 4);
 
+
+                //test starting ANPs
+
+                //slide in (tv positions pre-baked)
+                self.parts[tv_parts_id.2].action_num = 10;
+
+                self.parts[platform_top_id].action_num = 10; //begin moving
+                self.parts[platform_top_id].target_x = 0x200 * 16 * 13; //move to here
+
+                self.parts[platform_bottom_id].action_num = 10; //begin moving
+                self.parts[platform_bottom_id].target_x = 0x200 * 16 * 16; //move to here
+
+                self.set_rail_speed(-0x200 * 4);
 
             }
 
 
             //debug: ANP tube to move in
             200 => {
-                self.parts[3].target_x = 10; //begin move-in
-                self.parts[0].action_num = 201; //idle
+                self.parts[puppet_parts_id.0].target_x = 10; //begin move-in (use 3's target_x to govern the states of the entire tube)
+                self.parts[main_id].action_num = 201; //idle
             }
 
 
@@ -1565,26 +1593,28 @@ impl BossNPC {
             let [p1, p2] = players;
 
             //run platforms
-            for i in 1..=2 {
-                self.tick_b11_rice_platform(i);
-            }
+            // for i in [platform_top_id, platform_bottom_id] {
+            //     self.tick_b11_rice_platform(i);
+            // }
+            self.tick_b11_rice_platform(platform_top_id, 0);
+            self.tick_b11_rice_platform(platform_bottom_id, 1);
 
             //run tv
-            self.tick_b11_rice_tv_shuttle(10, 8, 9);
+            self.tick_b11_rice_tv_shuttle(tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
 
             
             //run moving rails
-            for i in 11..=13 {
+            for i in [rails_id.0, rails_id.1, rails_id.2] {
                 self.tick_b11_rice_rail(i);
             }
             //run floor (+ collisions)
-            for i in 14..=16 {
+            for i in [floor_id.0, floor_id.1, floor_id.2] {
                 self.tick_b11_rice_rail(i);
                 self.run_all_collisions_on_npc([p1, p2], npc_list, i);
             }
 
             //run tube
-            self.tick_b11_rice_shield_tube(3, 4, 5, 6);
+            self.tick_b11_rice_shield_tube(puppet_parts_id.0, puppet_parts_id.1, puppet_parts_id.2, puppet_parts_id.3);
 
 
         }

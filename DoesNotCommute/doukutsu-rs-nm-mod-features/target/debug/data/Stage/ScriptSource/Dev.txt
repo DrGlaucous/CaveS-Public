@@ -25,6 +25,10 @@
 
 //stage entry event (titlescreen preview)
 #0100
+
+//test: start X
+<BOA0001
+
 <CFG0152:0001:0010:0003
 <CFG0152:0002:0003:0000
 <MOV0015:0007
@@ -131,6 +135,10 @@
 
 //title event
 #1000
+
+//test: boss die
+<END
+
 <HMC<MOV0001:0001
 <FON0150:0001<KEY
 <FAI0004
