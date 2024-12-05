@@ -2,7 +2,7 @@
 //load event
 #0100
 <PSH0050//clear old meshes
-//<L3D0000:0001:Mesh/Bedroom/Bedroom.glb$
+<L3D0000:0001:Mesh/Residence/Residence.glb$
 <SAI0010
 <SAC0255:0100:0030
 <FAI0004
