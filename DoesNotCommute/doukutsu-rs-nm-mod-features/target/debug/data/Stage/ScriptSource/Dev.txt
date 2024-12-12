@@ -130,7 +130,8 @@
 
 //lock player
 #0450
-<KEY<NOD<END
+<ANP0451:0010:0000//amp curly boss
+<END//<KEY<NOD<END
 
 
 //title event
