@@ -2,7 +2,7 @@
 
 //entry event
 #0100
-<MOV0000:0000
+<MOV0016:0030
 <FAI0004<END
 
 

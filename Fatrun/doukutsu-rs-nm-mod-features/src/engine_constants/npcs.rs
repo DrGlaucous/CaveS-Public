@@ -4937,6 +4937,40 @@ fn default_n369_gclone_curly_clone() -> SafeNPCRect<20> {
     ])
 }
 
+fn default_n370_fatrunner() -> SafeNPCRect<18> {
+    SafeNPCRect([
+        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing
+        Rect { left: 32, top: 0, right: 64, bottom: 32 },
+        Rect { left: 64, top: 0, right: 96, bottom: 32 },
+
+        Rect { left: 96, top: 0, right: 64, bottom: 32 }, //walking
+        Rect { left: 128, top: 0, right: 128, bottom: 32 }, //flat
+        Rect { left: 160, top: 0, right: 160, bottom: 32 },
+        Rect { left: 192, top: 0, right: 192, bottom: 32 },
+        Rect { left: 224, top: 0, right: 256, bottom: 32 }, //flat
+        Rect { left: 256, top: 0, right: 288, bottom: 32 },
+
+
+        Rect { left: 0, top: 32, right: 32, bottom: 64 }, //standing
+        Rect { left: 32, top: 32, right: 64, bottom: 64 },
+        Rect { left: 64, top: 32, right: 96, bottom: 64 },
+
+        Rect { left: 96, top: 32, right: 64, bottom: 64 }, //walking
+        Rect { left: 128, top: 32, right: 128, bottom: 64 }, //flat
+        Rect { left: 160, top: 32, right: 160, bottom: 64 },
+        Rect { left: 192, top: 32, right: 192, bottom: 64 },
+        Rect { left: 224, top: 32, right: 256, bottom: 64 }, //flat
+        Rect { left: 256, top: 32, right: 288, bottom: 64 },
+
+
+    ])
+}
+
+
+
+
+
+
 fn default_b01_omega() -> SafeNPCRect<10> {
     SafeNPCRect([
         Rect { left: 0, top: 0, right: 80, bottom: 56 },
