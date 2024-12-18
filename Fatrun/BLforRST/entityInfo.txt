@@ -375,3 +375,7 @@
 #368	g	clone	gclone 	0:352:96:366	gclone 	CE:Misc ;
 #369	gclone	curly	gclone curly 	0:352:96:366	gclone curly 	CE:Misc ;
 #370	quote	2	quote 2	48:48:64:64	quote 2 (for rust)	;
+#371	F	Runner	Fatrunner	0:0:64:64	Fat and runs	ALL:ALL ;
+#372	Brick	Shard	Brick Shard	48:48:64:64	Spawned by fatrunner when you land on a breakable block	ALL:ALL ;
+#373	Soap	Shuttle	Soap Shuttle	0:128:80:176	Sweeps across the screen, drops off the fatrunner	ALL:ALL ;
+#374	NPC	Collider	NPC Collider	0:0:0:0	Runs event on NPC touch	ALL:ALL ;

@@ -2,7 +2,7 @@ use std::{cmp, ops::Div};
 
 use chrono::{Datelike, Local};
 
-use crate::common::{ControlFlags, Direction, FadeState};
+use crate::common::{ControlFlags, Direction, FadeState, Rect};
 use crate::components::draw_common::{draw_number, Alignment};
 use crate::data::vanilla::VanillaExtractor;
 #[cfg(feature = "discord-rpc")]
@@ -23,7 +23,7 @@ use crate::game::scripting::tsc::text_script::{
     ScriptMode, TextScript, TextScriptEncoding, TextScriptExecutionState, TextScriptVM,
 };
 use crate::game::settings::Settings;
-use crate::game::stage::StageData;
+use crate::game::stage::{StageData, Stage};
 use crate::graphics::bmfont::BMFont;
 use crate::graphics::texture_set::TextureSet;
 use crate::i18n::Locale;
@@ -935,4 +935,31 @@ impl SharedGameState {
     pub fn tt(&self, key: &str, args: &[(&str, &str)]) -> String {
         return self.loc.tt(key, args);
     }
+
+    /// returns rect relative to `Self.canvas_size` but offset by the size of letterboxes of the map
+    pub fn get_drawn_edge_rect(&self, stage: &Stage) -> Rect<f32> {
+
+        //we need the map size so we can account for the letterboxing/pillarboxing
+        let tile_size = match self.tile_size {
+            TileSize::Tile16x16 => 16,
+            TileSize::Tile8x8 => 8,
+        };
+        //size of the loaded stage in pixels
+        let map_pxl_width = stage.map.width * tile_size;
+        let map_pxl_height = stage.map.height * tile_size;
+        //actual size of a single letterbox (left or right)/(top or bottom)
+        let pilrbox_width = if self.canvas_size.0 > map_pxl_width as f32 {(self.canvas_size.0 - map_pxl_width as f32) / 2.0} else {0.0};
+        let ltrbox_height = if self.canvas_size.1 > map_pxl_height as f32 {(self.canvas_size.1 - map_pxl_height as f32) / 2.0} else {0.0};
+
+        //the new offsets that should be used 
+        let pb_canvas_width = if self.canvas_size.0 > map_pxl_width as f32 {pilrbox_width + map_pxl_width as f32} else {self.canvas_size.0};
+        let lb_canvas_height = if self.canvas_size.1 > map_pxl_width as f32 {ltrbox_height + map_pxl_height as f32} else {self.canvas_size.1};
+
+        //map edges if letterboxes are taken into account
+        let boxed_lim = Rect::new(pilrbox_width, ltrbox_height, pb_canvas_width, lb_canvas_height);
+
+        boxed_lim
+
+    }
+
 }

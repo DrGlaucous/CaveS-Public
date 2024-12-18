@@ -182,6 +182,7 @@ impl TextScript {
             | TSCOpCode::FR2
             | TSCOpCode::BKR
             | TSCOpCode::MS4
+            | TSCOpCode::KEp
             => {
                 put_varint(instr as i32, out);
             }
@@ -249,6 +250,7 @@ impl TextScript {
             | TSCOpCode::IpN
             | TSCOpCode::FFm
             | TSCOpCode::FNJ
+            | TSCOpCode::RAJ
             => {
                 let operand_a = read_number(iter)?;
                 if strict {
@@ -271,6 +273,8 @@ impl TextScript {
             | TSCOpCode::INJ
             | TSCOpCode::SML
             | TSCOpCode::BKP
+            | TSCOpCode::TCL
+            | TSCOpCode::ADT
             => {
                 let operand_a = read_number(iter)?;
                 if strict {
@@ -334,6 +338,7 @@ impl TextScript {
 
             // parses 1 operand + string delimited by $.
             TSCOpCode::CMF
+            | TSCOpCode::SLT
             =>
             {
 

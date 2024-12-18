@@ -62,6 +62,7 @@ impl TextScript {
                         | TSCOpCode::FR2
                         | TSCOpCode::BKR
                         | TSCOpCode::MS4
+                        | TSCOpCode::KEp
                         => {
                             writeln!(&mut result, "{:?}()", op).unwrap();
                         }
@@ -129,6 +130,7 @@ impl TextScript {
                         | TSCOpCode::IpN
                         | TSCOpCode::FFm
                         | TSCOpCode::FNJ
+                        | TSCOpCode::RAJ
                         => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;
@@ -136,7 +138,16 @@ impl TextScript {
                             writeln!(&mut result, "{:?}({}, {})", op, par_a, par_b).unwrap();
                         }
                         // Three operand codes
-                        TSCOpCode::ANP | TSCOpCode::CNP | TSCOpCode::INP | TSCOpCode::TAM | TSCOpCode::CMP | TSCOpCode::INJ | TSCOpCode::SML => {
+                        TSCOpCode::ANP
+                        | TSCOpCode::CNP
+                        | TSCOpCode::INP
+                        | TSCOpCode::TAM
+                        | TSCOpCode::CMP
+                        | TSCOpCode::INJ
+                        | TSCOpCode::SML
+                        | TSCOpCode::TCL
+                        | TSCOpCode::ADT
+                        => {
                             let par_a = read_cur_varint(&mut cursor)?;
                             let par_b = read_cur_varint(&mut cursor)?;
                             let par_c = read_cur_varint(&mut cursor)?;
@@ -160,6 +171,7 @@ impl TextScript {
                         // String code
                         TSCOpCode::BKG
                         | TSCOpCode::CMF
+                        | TSCOpCode::SLT
                         => {
                             writeln!(&mut result, "{:?} (String-based code: Not trying to decompile...)", op).unwrap();
                         }

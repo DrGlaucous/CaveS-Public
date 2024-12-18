@@ -193,6 +193,47 @@ impl NPC {
             Rect::new(192,208,208,224),
         ];
 
+        match self.action_num {
+            //wait with constant time before begining self-drive
+            //be "launched" from the cannon
+            0 | 1 => {
+                if self.action_num == 0 {
+                    self.action_num = 1;
+                    self.action_counter = self.rng.range(50..120) as u16;
+                }
+
+                if self.action_counter < 1 {
+                    self.action_num = 2; //begin taxicab homing
+                } else {
+                    self.action_counter -= 1;
+                }
+            }
+            //new direction
+            2 => {
+
+                let player = self.get_closest_pseudo_player_mut(players, npc_list);
+
+                //if closer on x dimension than y dimension
+                if (player.x() - self.x).abs() < (player.y() - self.y).abs() {
+                    self.vel_y = 0;
+                    self.vel_x = if player.x() - self.x < 0 {0x200} else {-0x200};
+                } else {
+                    self.vel_y = if player.y() - self.y < 0 {0x200} else {-0x200};
+                    self.vel_x = 0;
+                }
+
+                self.action_counter = self.rng.range(50..120) as u16;
+                self.action_num = 1; //return to wait
+            }
+
+            _ => {}
+        }
+
+        self.x += self.vel_x;
+        self.y += self.vel_y;
+
+        self.animate(5, 0, 1);
+        self.anim_rect = rc_homing_bead[self.anim_num as usize];
 
         Ok(())
     }
@@ -388,7 +429,14 @@ impl BossNPC {
     }
 
     //ticks the tv shuttle, tv screen, and tv noise
-    fn tick_b11_rice_tv_shuttle(&mut self, shuttle: usize, t_static: usize, screen: usize) {
+    fn tick_b11_rice_tv_shuttle(
+        &mut self,
+        npc_list: &NPCList,
+        state: &mut SharedGameState,
+        shuttle: usize,
+        t_static: usize,
+        screen: usize,
+    ) {
 
         let rc_tv_shuttle = [
             Rect::new(208,160,272,200), //unlit
@@ -402,7 +450,7 @@ impl BossNPC {
         let x_min = -(0x200 * 64);
 
         //location to the right offscreen
-        let x_max = (0x200 * (16 * 32 + 64));
+        let x_max = 0x200 * (16 * 32 + 64);
 
         match npc.action_num {
 
@@ -427,6 +475,26 @@ impl BossNPC {
                     //start moving at a decent speed
                     npc.vel_x = 0x400;
                     npc.action_num = 11;
+                }
+            }
+
+            //shoot at PC
+            12 => {
+                
+                npc.action_counter += 1;
+                if npc.action_counter > 40 {
+                    npc.action_counter2 += 1;
+
+                    let ball = NPC::create(392, &state.npc_table);
+                    
+                    //alternate between launch sides
+                    if npc.action_counter2 % 2 == 0 {
+                        //shoot from L
+                    } else {
+                        //shoot from R
+                    }
+
+                    npc_list.spawn(0x100, ball);
                 }
 
             }
@@ -1476,7 +1544,7 @@ impl BossNPC {
                     npc.x = X; //this is offset back immediately anyway: starting point doesn't matter here
 
                     self.parts[10].action_num = 0;
-                    self.tick_b11_rice_tv_shuttle(tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
+                    self.tick_b11_rice_tv_shuttle(npc_list, state, tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
 
                     //slide in
                     self.parts[10].action_num = 10;
@@ -1600,7 +1668,7 @@ impl BossNPC {
             self.tick_b11_rice_platform(platform_bottom_id, 1);
 
             //run tv
-            self.tick_b11_rice_tv_shuttle(tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
+            self.tick_b11_rice_tv_shuttle(npc_list, state, tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
 
             
             //run moving rails

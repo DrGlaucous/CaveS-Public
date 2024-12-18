@@ -708,7 +708,10 @@ pub trait PhysicalEntity {
             self.flags().set_hit_by_spike(true);
             if water {
                 self.flags().set_in_water(true);
-                self.flags().set_bloody_droplets(true);
+
+                if self.is_player() {
+                    self.flags().set_bloody_droplets(true);
+                }
             }
         }
     }
@@ -756,7 +759,8 @@ pub trait PhysicalEntity {
             let attrib = stage.map.get_attribute((x + ox) as usize, (y + oy) as usize);
             match attrib {
                 // Spikes
-                0x62 | 0x42 if self.is_player() => {
+                0x62 | 0x42 => {
+                    //player check moved inside function
                     self.test_hit_spike(state, x + ox, y + oy, attrib & 0x20 != 0);
                 }
 

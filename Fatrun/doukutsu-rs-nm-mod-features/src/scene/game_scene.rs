@@ -1342,7 +1342,7 @@ impl GameScene {
     fn tick_world(&mut self, state: &mut SharedGameState) -> GameResult {
 
 
-        self.nikumaru.tick(state, &self.player1)?;
+        self.nikumaru.tick(state, &mut self.player1)?;
         self.background.tick(state, &self.stage, &self.frame)?;
         self.hud_player1.visible = self.player1.cond.alive();
         self.hud_player2.visible = self.player2.cond.alive();
@@ -2027,7 +2027,8 @@ impl Scene for GameScene {
 
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
+        //don't draw snack tiles at all
+        //self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
         self.draw_npc_layer(state, ctx, NPCLayer::Foreground)?;
         self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?;
         self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front)?;

@@ -1,0 +1,20 @@
+
+
+
+//title event
+#0100
+<FAI0004<END
+
+
+
+//gameover event
+#0200
+<SOU0083
+<WAI0045
+<SOU0084
+<END
+
+
+
+
+

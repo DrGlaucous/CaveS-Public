@@ -13,10 +13,12 @@ use num_traits::{clamp, FromPrimitive};
 use crate::bitfield;
 use crate::common::Direction::{Left, Right};
 use crate::common::{Direction, FadeDirection, FadeState, Rect};
+use crate::components::nikumaru::NikumaruCounter;
 use crate::engine_constants::EngineConstants;
 use crate::entity::GameEntity;
 use crate::framework::context::Context;
 use crate::framework::error::GameResult;
+use crate::game::TimingMode;
 use crate::game::frame::UpdateTarget;
 use crate::game::npc::NPC;
 use crate::game::player::{ControlMode, TargetPlayer};
@@ -31,6 +33,7 @@ use crate::input::touch_controls::TouchControlType;
 use crate::scene::game_scene::GameScene;
 use crate::components::tilemap::TileLayer;
 use crate::sound::SongFormat;
+use crate::util::rng::RNG;
 
 const TSC_SUBSTITUTION_MAP_SIZE: usize = 1;
 
@@ -826,7 +829,11 @@ impl TextScriptVM {
             TSCOpCode::END => {
                 state.textscript_vm.flags.set_cutscene_skip(false);
                 state.control_flags.set_tick_world(true);
-                state.control_flags.set_control_enabled(true);
+
+                //don't free player if super keyed
+                if !state.control_flags.super_key() {
+                    state.control_flags.set_control_enabled(true);
+                }
 
                 state.textscript_vm.flags.set_render(false);
                 state.textscript_vm.flags.set_background_visible(false);
@@ -875,7 +882,12 @@ impl TextScriptVM {
 
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
-            TSCOpCode::KEY => {
+            TSCOpCode::KEp | TSCOpCode::KEY => {
+
+                if op == TSCOpCode::KEp {
+                    state.control_flags.set_super_key(true);
+                }
+
                 state.control_flags.set_tick_world(true);
                 state.control_flags.set_control_enabled(false);
 
@@ -888,6 +900,7 @@ impl TextScriptVM {
                 exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
             }
             TSCOpCode::FRE => {
+                state.control_flags.set_super_key(false);
                 state.control_flags.set_tick_world(true);
                 state.control_flags.set_control_enabled(true);
 
@@ -2078,7 +2091,68 @@ impl TextScriptVM {
 
             }
 
-        
+            TSCOpCode::TCL => {
+
+                let mode = match read_cur_varint(&mut cursor)? as usize {
+                    50 => TimingMode::_50Hz,
+                    60 => TimingMode::_60Hz,
+                    _ => state.settings.timing_mode,
+                };
+
+                let seconds = read_cur_varint(&mut cursor)? as usize;
+                game_scene.nikumaru.event = read_cur_varint(&mut cursor)? as u16;
+                game_scene.nikumaru.tick = NikumaruCounter::seconds_to_ticks(seconds, mode);
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+            TSCOpCode::ADT => {
+
+                let mode = match read_cur_varint(&mut cursor)? as usize {
+                    50 => TimingMode::_50Hz,
+                    60 => TimingMode::_60Hz,
+                    _ => state.settings.timing_mode,
+                };
+
+                let sign = read_cur_varint(&mut cursor)?;
+                let seconds = read_cur_varint(&mut cursor)? as usize;
+
+
+                let ticks = NikumaruCounter::seconds_to_ticks(seconds, mode);
+
+                if sign == 0 {
+                    game_scene.nikumaru.tick = game_scene.nikumaru.tick.saturating_add(ticks);
+                } else {
+                    game_scene.nikumaru.tick = game_scene.nikumaru.tick.saturating_sub(ticks);
+                }
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            }
+            TSCOpCode::SLT => {
+
+                //get mode
+                let is_read = (read_cur_varint(&mut cursor)? as usize) != 0;
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let timer_name = read_string_tsc(&mut cursor, len).unwrap();
+            
+                if is_read {
+                    //failure to read the file sets the time to 0
+                    game_scene.nikumaru.tick = NikumaruCounter::load_time(state, ctx, Some(&timer_name.as_str())).unwrap_or_else( |_| 0) as usize;
+                } else {
+                    let _ = game_scene.nikumaru.save_time(state, ctx, game_scene.nikumaru.tick as u32, Some(&timer_name.as_str()))?;
+                }
+
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+            
+            }
+            TSCOpCode::RAJ => {
+                let min_event = read_cur_varint(&mut cursor)? as i32;
+                let max_event = read_cur_varint(&mut cursor)? as i32;
+
+                //range is exclusive by default, so we add an additional number
+                let event_num = state.game_rng.range(min_event..(max_event));
+                exec_state = TextScriptExecutionState::Running(event_num as u16, 0);
+
+            }
         }
 
         Ok(exec_state)

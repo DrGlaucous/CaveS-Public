@@ -290,6 +290,20 @@ pub enum TSCOpCode {
     FNJ,
 
 
+    /// <TCLwwww:xxxx:yyyy, TimerControL, `<TCL[unit FPS: 0050, 0060, otherwise current]:[start time (seconds)]:[event to run when timer is 0]` (starting and stopping is part of the equp list: 0512)
+    TCL,
+    /// <ADTwwww:xxxx:yyyy, ADjustTime `<ADT[unit FPS: 0050, 0060, otherwise current]:[0000+/1-]:[time (seconds)]`, adds or subs time to the n. timer
+    ADT,
+    /// <SLTwwww:name_of_file$, SaveLoadTime, Saves the current time to the file specified by the name `<SLT[0000Save/1Load]:name_of_file`, starts in the user save directory
+    SLT,
+
+    /// Key+, locks the player to where <END will not free them (requires FRE), not guaranteed to be reset on game reset
+    #[strum(serialize = "KE+")]
+    KEp,
+    /// <RAJwwww:xxxx RAndom Jump, jump to a random event number between (inclusive) wwww and xxxx
+    RAJ,
+
+
 }
 
 #[derive(FromPrimitive, PartialEq, Copy, Clone)]

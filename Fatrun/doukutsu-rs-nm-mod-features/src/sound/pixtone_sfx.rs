@@ -3485,11 +3485,207 @@ pub static DEFAULT_PIXTONE_TABLE: [PixToneParameters; 160] = [
     PixToneParameters::empty(), // fx77
     PixToneParameters::empty(), // fx78
     PixToneParameters::empty(), // fx79
-    PixToneParameters::empty(), // fx80
-    PixToneParameters::empty(), // fx81
-    PixToneParameters::empty(), // fx82
-    PixToneParameters::empty(), // fx83
-    PixToneParameters::empty(), // fx84
+
+
+    //jump
+    PixToneParameters { // fx80
+        channels: [
+            Channel {
+                enabled: true,
+                length: 3800,
+                carrier: Waveform {
+                    waveform_type: 0,
+                    pitch: 65.000000,
+                    level: 32,
+                    offset: 0,
+                },
+                frequency: Waveform {
+                    waveform_type: 2,
+                    pitch: 1.000000,
+                    level: 37,
+                    offset: 0,
+                },
+                amplitude: Waveform {
+                    waveform_type: 0,
+                    pitch: 0.000000,
+                    level: 63,
+                    offset: 0,
+                },
+                envelope: Envelope {
+                    initial: 63,
+                    time_a: 63,
+                    value_a: 63,
+                    time_b: 128,
+                    value_b: 63,
+                    time_c: 255,
+                    value_c: 63,
+                },
+            },
+            Channel::disabled(),
+            Channel::disabled(),
+            Channel::disabled(),
+        ],
+    },
+    //die
+    PixToneParameters { // fx81
+        channels: [
+            Channel {
+                enabled: true,
+                length: 14600,
+                carrier: Waveform {
+                    waveform_type: 4,
+                    pitch: 37.62,
+                    level: 32,
+                    offset: 0,
+                },
+                frequency: Waveform {
+                    waveform_type: 3,
+                    pitch: 1.000000,
+                    level: 37,
+                    offset: 0,
+                },
+                amplitude: Waveform {
+                    waveform_type: 0,
+                    pitch: 0.000000,
+                    level: 32,
+                    offset: 0,
+                },
+                envelope: Envelope {
+                    initial: 63,
+                    time_a: 63,
+                    value_a: 63,
+                    time_b: 128,
+                    value_b: 63,
+                    time_c: 255,
+                    value_c: 63,
+                },
+            },
+            Channel::disabled(),
+            Channel::disabled(),
+            Channel::disabled(),
+        ],
+    },
+    //flap
+    PixToneParameters { // fx82
+        channels: [
+            Channel {
+                enabled: true,
+                length: 400,
+                carrier: Waveform {
+                    waveform_type: 0,
+                    pitch: 28.0,
+                    level: 32,
+                    offset: 0,
+                },
+                frequency: Waveform {
+                    waveform_type: 0,
+                    pitch: 1.000000,
+                    level: 24,
+                    offset: 0,
+                },
+                amplitude: Waveform {
+                    waveform_type: 0,
+                    pitch: 1.000000,
+                    level: 22,
+                    offset: 200,
+                },
+                envelope: Envelope {
+                    initial: 63,
+                    time_a: 63,
+                    value_a: 63,
+                    time_b: 128,
+                    value_b: 63,
+                    time_c: 255,
+                    value_c: 63,
+                },
+            },
+            Channel::disabled(),
+            Channel::disabled(),
+            Channel::disabled(),
+        ],
+    },
+
+    //door close
+    PixToneParameters { // fx83
+        channels: [
+            Channel {
+                enabled: true,
+                length: 14900,
+                carrier: Waveform {
+                    waveform_type: 4,
+                    pitch: 61.6,
+                    level: 32,
+                    offset: 0,
+                },
+                frequency: Waveform {
+                    waveform_type: 3,
+                    pitch: 0.5,
+                    level: 108,
+                    offset: 93,
+                },
+                amplitude: Waveform {
+                    waveform_type: 0,
+                    pitch: 0.000000,
+                    level: 63,
+                    offset: 0,
+                },
+                envelope: Envelope {
+                    initial: 63,
+                    time_a: 63,
+                    value_a: 63,
+                    time_b: 128,
+                    value_b: 63,
+                    time_c: 255,
+                    value_c: 63,
+                },
+            },
+            Channel::disabled(),
+            Channel::disabled(),
+            Channel::disabled(),
+        ],
+    },
+
+    //door latch
+    PixToneParameters { // fx84
+        channels: [
+            Channel {
+                enabled: true,
+                length: 7000,
+                carrier: Waveform {
+                    waveform_type: 5,
+                    pitch: 2.04,
+                    level: 32,
+                    offset: 0,
+                },
+                frequency: Waveform {
+                    waveform_type: 1,
+                    pitch: 0.5,
+                    level: 74,
+                    offset: 181,
+                },
+                amplitude: Waveform {
+                    waveform_type: 0,
+                    pitch: 0.000000,
+                    level: 63,
+                    offset: 0,
+                },
+                envelope: Envelope {
+                    initial: 63,
+                    time_a: 63,
+                    value_a: 63,
+                    time_b: 128,
+                    value_b: 63,
+                    time_c: 255,
+                    value_c: 63,
+                },
+            },
+            Channel::disabled(),
+            Channel::disabled(),
+            Channel::disabled(),
+        ],
+    },
+
+
     PixToneParameters::empty(), // fx85
     PixToneParameters::empty(), // fx86
     PixToneParameters::empty(), // fx87

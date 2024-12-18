@@ -1139,6 +1139,12 @@ pub struct NPCConsts {
     #[serde(default = "default_n369_gclone_curly_clone")]
     pub n369_gclone_curly_clone: SafeNPCRect<20>,
 
+    #[serde(default = "default_n371_fatrunner")]
+    pub n371_fatrunner: SafeNPCRect<26>,
+
+    #[serde(default = "default_n373_soap_shuttle")]
+    pub n373_soap_shuttle: SafeNPCRect<7>,
+
     // pub n370_second_quote: () // Same as n150_quote
     #[serde(default = "default_b01_omega")]
     pub b01_omega: SafeNPCRect<10>,
@@ -4937,37 +4943,61 @@ fn default_n369_gclone_curly_clone() -> SafeNPCRect<20> {
     ])
 }
 
-fn default_n370_fatrunner() -> SafeNPCRect<18> {
+fn default_n371_fatrunner() -> SafeNPCRect<26> {
     SafeNPCRect([
         Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing
         Rect { left: 32, top: 0, right: 64, bottom: 32 },
         Rect { left: 64, top: 0, right: 96, bottom: 32 },
 
-        Rect { left: 96, top: 0, right: 64, bottom: 32 }, //walking
-        Rect { left: 128, top: 0, right: 128, bottom: 32 }, //flat
-        Rect { left: 160, top: 0, right: 160, bottom: 32 },
-        Rect { left: 192, top: 0, right: 192, bottom: 32 },
+        Rect { left: 96, top: 0, right: 128, bottom: 32 }, //walking
+        Rect { left: 128, top: 0, right: 160, bottom: 32 }, //flat
+        Rect { left: 160, top: 0, right: 192, bottom: 32 },
+        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing
+
+        Rect { left: 192, top: 0, right: 224, bottom: 32 },
         Rect { left: 224, top: 0, right: 256, bottom: 32 }, //flat
         Rect { left: 256, top: 0, right: 288, bottom: 32 },
+        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing
+
+        Rect { left: 288, top: 0, right: 320, bottom: 32 }, //jump
+        Rect { left: 320, top: 0, right: 352, bottom: 32 }, //fall
 
 
         Rect { left: 0, top: 32, right: 32, bottom: 64 }, //standing
         Rect { left: 32, top: 32, right: 64, bottom: 64 },
         Rect { left: 64, top: 32, right: 96, bottom: 64 },
 
-        Rect { left: 96, top: 32, right: 64, bottom: 64 }, //walking
-        Rect { left: 128, top: 32, right: 128, bottom: 64 }, //flat
-        Rect { left: 160, top: 32, right: 160, bottom: 64 },
-        Rect { left: 192, top: 32, right: 192, bottom: 64 },
+        Rect { left: 96, top: 32, right: 128, bottom: 64 }, //walking
+        Rect { left: 128, top: 32, right: 160, bottom: 64 }, //flat
+        Rect { left: 160, top: 32, right: 192, bottom: 64 },
+        Rect { left: 0, top: 32, right: 32, bottom: 64 }, //standing
+
+        Rect { left: 192, top: 32, right: 224, bottom: 64 },
         Rect { left: 224, top: 32, right: 256, bottom: 64 }, //flat
         Rect { left: 256, top: 32, right: 288, bottom: 64 },
+        Rect { left: 0, top: 32, right: 32, bottom: 64 }, //standing
 
+        Rect { left: 288, top: 32, right: 320, bottom: 64 }, //jump
+        Rect { left: 320, top: 32, right: 352, bottom: 64 }, //fall
 
     ])
 }
 
+//tick_n373_soap_shuttle
+fn default_n373_soap_shuttle() -> SafeNPCRect<7> {
+    SafeNPCRect([
+        //l
+        Rect { left: 0, top: 64, right: 40, bottom: 88 }, //flap 1
+        Rect { left: 40, top: 64, right: 80, bottom: 88 }, //flap 2
+        Rect { left: 80, top: 64, right: 120, bottom: 88 }, //stand
+        //r
+        Rect { left: 0, top: 88, right: 40, bottom: 112 }, //flap 1
+        Rect { left: 40, top: 88, right: 80, bottom: 112 }, //flap 2
+        Rect { left: 80, top: 88, right: 120, bottom: 112 }, //stand
 
-
+        Rect { left: 0, top: 0, right: 0, bottom: 0 }, //invis
+    ])
+}
 
 
 

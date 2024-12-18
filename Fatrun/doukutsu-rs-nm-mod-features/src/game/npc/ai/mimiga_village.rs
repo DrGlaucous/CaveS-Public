@@ -187,53 +187,7 @@ impl NPC {
 
         Ok(())
     }
-
-    pub(crate) fn tick_n079_mahin(&mut self, state: &mut SharedGameState, players: [&mut Player; 2]) -> GameResult {
-        match self.action_num {
-            0 => {
-                self.action_num = 1;
-                self.anim_num = 2;
-                self.anim_counter = 0;
-            }
-            2 => {
-                self.anim_num = 0;
-                if self.rng.range(0..120) == 10 {
-                    self.action_num = 3;
-                    self.action_counter = 0;
-                    self.anim_num = 1;
-                }
-
-                let player = self.get_closest_player_mut(players);
-                if (self.x - (0x4000) < player.x)
-                    && (self.x + (0x4000) > player.x)
-                    && (self.y - (0x4000) < player.y)
-                    && (self.y + (0x2000) > player.y)
-                {
-                    self.face_player(player);
-                }
-            }
-            3 => {
-                self.action_counter += 1;
-                if self.action_counter > 8 {
-                    self.action_num = 2;
-                    self.anim_num = 0;
-                }
-            }
-            _ => (),
-        }
-
-        self.vel_y += 0x40;
-
-        self.clamp_fall_speed();
-
-        self.y += self.vel_y;
-
-        let dir_offset = if self.direction == Direction::Left { 0 } else { 3 };
-        self.anim_rect = state.constants.npc.n079_mahin[self.anim_num as usize + dir_offset];
-
-        Ok(())
-    }
-
+    
     pub(crate) fn tick_n080_gravekeeper(
         &mut self,
         state: &mut SharedGameState,

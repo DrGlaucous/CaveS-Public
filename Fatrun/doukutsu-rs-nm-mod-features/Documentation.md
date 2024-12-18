@@ -141,7 +141,7 @@ These files can have any name, and the bitmap they load is determined by the fie
 - `relative_to_pillarbox` / `relative_to_letterbox` - Changes what is regarded as an "edge" to the background layer. For small maps or wide screens, there may be black "strips" along the sides or bottom of the viewing window. If these settings are enabled, the background will align itself with the edge of this black strip instead of the actual edge of the window. Typically, these should be `true` if there is detail on a background layer that is only repeated a few times, or is at risk of being covered by the black "strips". *If you're unsure on how to use these, it's safer to set them to `true`.*
 
 Here's an example of a file:
-```
+```json
 {
   "version": 3,
   "bmp_filename": "bkBlue",
@@ -180,7 +180,7 @@ Here's an example of a file:
           "random_offset_y": false,
           "lock_to_x_axis": false,
           "lock_to_y_axis": false,
-          "randomize_all_parameters": false
+          "randomize_all_parameters": false,
           "add_screen_width": false,
           "add_screen_height": false,
           "relative_to_pillarbox": false,
@@ -221,7 +221,7 @@ Here's an example of a file:
           "random_offset_y": false,
           "lock_to_x_axis": false,
           "lock_to_y_axis": false,
-          "randomize_all_parameters": false
+          "randomize_all_parameters": false,
           "add_screen_width": false,
           "add_screen_height": false,
           "relative_to_pillarbox": false,

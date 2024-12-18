@@ -31,7 +31,7 @@ y	y coord
 Tab and newline are token delimeters...
 TSC List revised by Jackalope and Lace
 
-[CE_TSC]	109
+[CE_TSC]	112
 <AE+	0	----	Arms Energy +	Refill all weapon ammo.
 <AM+	2	aA--	ArMs +	Give weapon W with X ammo. Use 0000 for infinite ammo.
 <AM-	1	a---	ArMs -	Remove weapon W.
@@ -141,3 +141,10 @@ TSC List revised by Jackalope and Lace
 <BKE	1	#---	BacKground Enable	Enable background layer wwww (oob will be set to last layer)
 <BKP	3	###-	BacKground Parameter	Set BKG parameter xxxx for layer wwww to value yyyy (no negatives of FPs)
 <BKR	0	----	BacKground Reset	Resets BKG parameters back to defaults (same as TRA)
+<TCL	3	###-	Timer ControL	<TCL[unit FPS: 0050, 0060, otherwise current]:[start time (seconds)]:[event to run when timer is 0] (starting and stopping is part of the equp list: 0512)
+<ADT	3	###-	ADjust Time	<ADT[unit FPS: 0050, 0060, otherwise current]:[0000+/1-]:[time (seconds)]
+<SLT	1	#---	Save Load Time	<SLT[0000Save/1Load]:name_of_file
+
+
+
+
