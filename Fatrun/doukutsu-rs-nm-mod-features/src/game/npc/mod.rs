@@ -630,6 +630,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             372 => self.tick_n372_brick_shard(stage),
             373 => self.tick_n373_soap_shuttle(state, stage),
             374 => self.tick_n374_npc_collider(state, npc_list),
+            375 => self.tick_n375_store_door(state),
             _ => Ok(()),
         }?;
 

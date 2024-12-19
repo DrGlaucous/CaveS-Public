@@ -65,6 +65,11 @@ pub struct GameConsts {
     pub new_game_event: u16,
     pub new_game_player_pos: (i16, i16),
     pub tile_offset_x: i32,
+
+    pub title_stage: u16,
+    pub title_event: u16,
+    pub title_player_pos: (i16, i16),
+
 }
 
 #[derive(Debug, Clone)]
@@ -290,15 +295,20 @@ impl EngineConstants {
             is_demo: false,
             supports_og_textures: false,
             has_difficulty_menu: true,
-            supports_two_player: cfg!(not(target_os = "android")),
+            supports_two_player: false, //cfg!(not(target_os = "android")),
             game: GameConsts {
                 intro_stage: 1,
-                intro_event: 100,
+                intro_event: 120,
                 intro_player_pos: (3, 3),
                 new_game_stage: 1,
                 new_game_event: 100,
                 new_game_player_pos: (3, 3),
                 tile_offset_x: 0,
+
+                title_stage: 9,
+                title_event: 100, //when title is first entered
+                title_player_pos: (23, 22),
+
             },
             player: PlayerConsts {
                 life: 3,

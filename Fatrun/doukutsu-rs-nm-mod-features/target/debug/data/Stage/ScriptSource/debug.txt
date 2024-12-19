@@ -4,6 +4,7 @@
 #0100
 //goto real start
 <TRA0002:0100:0024:0018
+
 <MOV0011:0011
 <HMC<FON0200:0001
 <KE+//super key
@@ -24,8 +25,9 @@
 <EQ+0512
 <TCL0050:0060:0120
 
+//intro event
 #0120
-<KEY<MSGHi.<END
+<WAI0001<WAI9999<END
 
 
 
@@ -50,6 +52,11 @@
 <ANP0200:0003:0000//lockout
 <ANP0500:0010:0000//animate next soap shuttle
 <END
+
+//door
+#0420
+<END
+
 
 //soap shuttle 2
 #0500

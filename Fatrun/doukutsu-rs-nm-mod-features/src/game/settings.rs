@@ -100,7 +100,7 @@ fn current_version() -> u32 {
 
 #[inline(always)]
 fn default_timing() -> TimingMode {
-    TimingMode::_50Hz
+    TimingMode::_60Hz
 }
 
 #[inline(always)]

@@ -62,6 +62,9 @@
 #0400
 <DNP0400<DNP0400<DNP0400<DNP0400<DNP0400<DNP0400//delete them all
 <EQ-0512//stop countdown timer
+<CMU0000//stop music
+<WAI0050
+<SOU0011
 <KEY<MSGYou're winner!<NOD
 <END
 

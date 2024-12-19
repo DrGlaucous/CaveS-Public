@@ -4,10 +4,11 @@
 #0100
 <EQ+0256//counter
 <EQ+0512//start counting backwards
-<TCL0060:0060:0060//add time, run eve 60 on outtatime
+<TCL0060:0010:0060//add time, run eve 60 on outtatime
 //<MSGA<CLO
 <PSH0110//do retry
-<CMF0001:muIngame.ogg$
+<CMF0003:Resource/Misc/mindjunk_ingame.xm$
+//<CMF0001:Resource/Misc/muIngame.ogg$
 <FAI0004
 //<MSGB<CLO
 <END

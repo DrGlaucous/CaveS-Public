@@ -7,6 +7,7 @@ use crate::input::combined_menu_controller::CombinedMenuController;
 use crate::menu::MenuEntry;
 use crate::menu::{Menu, MenuSelectionResult};
 use crate::scene::title_scene::TitleScene;
+use crate::sound::SongFormat;
 
 use super::coop_menu::PlayerCountMenu;
 use super::settings_menu::SettingsMenu;
@@ -163,9 +164,12 @@ impl PauseMenu {
         }
     }
 
-    pub fn pause(&mut self, state: &mut SharedGameState) {
+    pub fn pause(&mut self, state: &mut SharedGameState, ctx: &mut Context) {
         self.is_paused = true;
         state.sound_manager.play_sfx(5);
+
+        //pause music
+        let _ = state.sound_manager.play_song_filepath(&format!("/Resource/Misc/mindjunk_title.xm"), SongFormat::Tracker, &state.constants, &state.settings, ctx, false);
     }
 
     pub fn is_paused(&mut self) -> bool {
@@ -197,6 +201,9 @@ impl PauseMenu {
                     if self.tick >= 3 {
                         self.tick = 0;
                         self.is_paused = false;
+
+                        //restart music
+                        state.sound_manager.restore_state()?;
                     }
                 }
                 MenuSelectionResult::Selected(PauseMenuEntry::Retry, _) => {
@@ -267,7 +274,7 @@ impl PauseMenu {
                     PauseMenuEntry::Title => {
                         state.stop_noise();
                         state.textscript_vm.flags.set_cutscene_skip(false);
-                        state.next_scene = Some(Box::new(TitleScene::new()));
+                        state.next_scene = Some(Box::new(TitleScene::new(state, ctx)));
                     }
                     PauseMenuEntry::Quit => {
                         state.shutdown();

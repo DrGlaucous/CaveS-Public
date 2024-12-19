@@ -30,6 +30,7 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::WeaponType;
 use crate::graphics::font::{Font, Symbols};
 use crate::input::touch_controls::TouchControlType;
+use crate::scene::game_scene::GameMode;
 use crate::scene::game_scene::GameScene;
 use crate::components::tilemap::TileLayer;
 use crate::sound::SongFormat;
@@ -715,6 +716,9 @@ impl TextScriptVM {
                         || game_scene.player1.controller.trigger_shoot()
                         || game_scene.player2.controller.trigger_jump()
                         || game_scene.player2.controller.trigger_shoot()
+                        //new for mahin mod: "UP" key
+                        || game_scene.player1.controller.trigger_up()
+                        || game_scene.player2.controller.trigger_up()
                     {
                         state.textscript_vm.state = TextScriptExecutionState::Running(event, ip);
                     }
@@ -1325,7 +1329,7 @@ impl TextScriptVM {
                 let pos_x = read_cur_varint(&mut cursor)? as i32 * block_size;
                 let pos_y = read_cur_varint(&mut cursor)? as i32 * block_size;
 
-                new_scene.intro_mode = game_scene.intro_mode;
+                new_scene.mode = game_scene.mode;
                 new_scene.inventory_player1 = game_scene.inventory_player1.clone();
                 new_scene.inventory_player2 = game_scene.inventory_player2.clone();
                 new_scene.player1 = game_scene.player1.clone();
@@ -1365,7 +1369,12 @@ impl TextScriptVM {
                 state.textscript_vm.line_2.clear();
                 state.textscript_vm.line_3.clear();
                 state.textscript_vm.suspend = true;
-                state.next_scene = Some(Box::new(new_scene));
+
+                if game_scene.mode == GameMode::Title {
+                    state.next_title_subscene = Some(Box::new(new_scene));
+                } else {
+                    state.next_scene = Some(Box::new(new_scene));
+                }
 
                 log::info!("Transitioning to stage {}, with script #{:04}", map_id, event_num);
                 exec_state = TextScriptExecutionState::Running(event_num, 0);
@@ -2152,6 +2161,16 @@ impl TextScriptVM {
                 let event_num = state.game_rng.range(min_event..(max_event));
                 exec_state = TextScriptExecutionState::Running(event_num as u16, 0);
 
+            }
+        
+            TSCOpCode::TIJ => {
+                let event_num = read_cur_varint(&mut cursor)? as u16;
+
+                if state.settings.timing_mode == TimingMode::_60Hz {
+                    exec_state = TextScriptExecutionState::Running(event_num, 0);
+                } else {
+                    exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+                }
             }
         }
 

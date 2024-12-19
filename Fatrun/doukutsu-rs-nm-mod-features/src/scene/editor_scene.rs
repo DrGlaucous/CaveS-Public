@@ -61,7 +61,7 @@ impl EditorScene {
     }
 
     fn exit_editor(&mut self, state: &mut SharedGameState) {
-        state.next_scene = Some(Box::new(TitleScene::new()));
+        state.next_scene = Some(Box::new(TitleScene::new(state, ctx)));
     }
 
     fn open_stage(&mut self, state: &mut SharedGameState, ctx: &mut Context, stage_id: usize) {

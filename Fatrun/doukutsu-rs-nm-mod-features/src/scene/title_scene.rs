@@ -1,4 +1,5 @@
-use crate::common::{Color, VERSION_BANNER};
+use core::mem;
+use crate::common::{Color, FadeState, Rect, VERSION_BANNER};
 use crate::components::background::Background;
 use crate::components::compact_jukebox::CompactJukebox;
 use crate::components::nikumaru::NikumaruCounter;
@@ -8,7 +9,7 @@ use crate::framework::error::GameResult;
 use crate::game::frame::Frame;
 use crate::game::map::Map;
 use crate::game::shared_game_state::{
-    GameDifficulty, MenuCharacter, ReplayKind, ReplayState, Season, SharedGameState, TileSize,
+    GameDifficulty, MenuCharacter, ReplayKind, ReplayState, Season, SharedGameState, TileSize, TimingMode,
 };
 use crate::game::stage::{BackgroundType, NpcType, Stage, StageData, StageTexturePaths, Tileset};
 use crate::graphics::font::Font;
@@ -20,6 +21,8 @@ use crate::menu::settings_menu::SettingsMenu;
 use crate::menu::{Menu, MenuEntry, MenuSelectionResult};
 use crate::scene::jukebox_scene::JukeboxScene;
 use crate::scene::Scene;
+use super::game_scene::{ GameScene, GameMode };
+use crate::game::scripting::tsc::text_script::TextScriptExecutionState;
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
@@ -92,10 +95,15 @@ pub struct TitleScene {
     compact_jukebox: CompactJukebox,
     stage: Stage,
     textures: StageTexturePaths,
+
+    pub game_scene: Option<Box<GameScene>>,
+
+    last_timing_mode: TimingMode,
+
 }
 
 impl TitleScene {
-    pub fn new() -> Self {
+    pub fn new(state: &mut SharedGameState, ctx: &mut Context) -> Self {
         let fake_stage = Stage {
             map: Map { width: 0, height: 0, tiles: vec![], attrib: vec![], tile_size: TileSize::Tile16x16, animation_config: None },
             data: StageData {
@@ -118,6 +126,28 @@ impl TitleScene {
         let mut settings_menu = SettingsMenu::new();
         settings_menu.on_title = true;
 
+        //prepare the background scene
+        let start_stage_id = state.constants.game.title_stage as usize;
+        let bk_stage = if state.stages.len() < start_stage_id {
+            log::warn!("Intro scene out of bounds in stage table, not using live background");
+            None            
+        } else {
+            if let Ok(mut next_scene) = GameScene::new(state, ctx, start_stage_id) {
+
+                next_scene.player1.cond.set_hidden(true);
+                let (pos_x, pos_y) = state.constants.game.title_player_pos;
+                next_scene.player1.x = pos_x as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
+                next_scene.player1.y = pos_y as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
+                next_scene.mode = GameMode::Title;
+
+                //TSC vm initialized in the 'init' section far below
+
+                Some(Box::new(next_scene))
+            } else {
+                None
+            }
+        };
+
         Self {
             tick: 0,
             controller: CombinedMenuController::new(),
@@ -134,6 +164,8 @@ impl TitleScene {
             compact_jukebox: CompactJukebox::new(),
             stage: fake_stage,
             textures,
+            last_timing_mode: state.settings.timing_mode,
+            game_scene: bk_stage
         }
     }
 
@@ -182,7 +214,8 @@ impl TitleScene {
             self.compact_jukebox.change_song(song_id, state, ctx)?;
         } else {
             if song_id != state.sound_manager.current_song().id {
-                state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
+                //we'll be using our own songs, thank you.
+                //state.sound_manager.play_song(song_id, &state.constants, &state.settings, ctx, false)?;
             }
         }
 
@@ -294,13 +327,43 @@ impl Scene for TitleScene {
         #[cfg(feature = "discord-rpc")]
         state.discord_rpc.set_idling()?;
 
+        if let Some(subscene) = &mut self.game_scene {
+            subscene.init(state, ctx)?;
+
+            //we need to init the TSC here because doing it in new() will result in it being run before its ready
+            state.reset_map_flags();
+            state.fade_state = FadeState::Visible;
+            state.textscript_vm.state = TextScriptExecutionState::Running(state.constants.game.title_event, 0);
+
+        }
+
         Ok(())
     }
 
     fn tick(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         state.touch_controls.control_type = TouchControlType::None;
 
-        self.background.tick(state, &self.stage, &self.frame)?;
+        //self.background.tick(state, &self.stage, &self.frame)?;
+        if let Some(subscene) = &mut self.game_scene {
+
+            //check for timing mode change and run subscene event if so
+            if state.settings.timing_mode != self.last_timing_mode {
+                //run event to update title background
+                state.textscript_vm.start_script(110);
+            }
+
+            subscene.tick(state, ctx)?;
+
+            //swap scenes if we hit a TRA
+            if let Some(_) = &state.next_title_subscene {
+                self.game_scene = mem::take(&mut state.next_title_subscene);
+                self.game_scene.as_mut().unwrap().mode = GameMode::Title;
+                self.game_scene.as_mut().unwrap().init(state, ctx).unwrap();
+                
+            }
+        }
+
+        self.last_timing_mode = state.settings.timing_mode;
 
         self.controller.update(state, ctx)?;
         self.controller.update_trigger();
@@ -333,10 +396,13 @@ impl Scene for TitleScene {
         match self.current_menu {
             CurrentMenu::MainMenu => match self.main_menu.tick(&mut self.controller, state) {
                 MenuSelectionResult::Selected(MainMenuEntry::Start, _) => {
-                    state.mod_path = None;
-                    self.save_select_menu.init(state, ctx)?;
-                    self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
-                    self.current_menu = CurrentMenu::SaveSelectMenu;
+                    // state.mod_path = None;
+                    // self.save_select_menu.init(state, ctx)?;
+                    // self.save_select_menu.set_skip_difficulty_menu(!state.constants.has_difficulty_menu);
+                    // self.current_menu = CurrentMenu::SaveSelectMenu;
+
+                    //skip load sequence, begin immediately
+                    state.load_or_start_game(ctx)?;
                 }
                 MenuSelectionResult::Selected(MainMenuEntry::Challenges, _) => {
                     self.current_menu = CurrentMenu::ChallengesMenu;
@@ -376,16 +442,16 @@ impl Scene for TitleScene {
                 }
             }
             CurrentMenu::SaveSelectMenu => {
-                let cm = &mut self.current_menu;
-                let rm = if state.mod_path.is_none() { CurrentMenu::MainMenu } else { CurrentMenu::ChallengesMenu };
-                self.save_select_menu.tick(
-                    &mut || {
-                        *cm = rm;
-                    },
-                    &mut self.controller,
-                    state,
-                    ctx,
-                )?;
+                // let cm = &mut self.current_menu;
+                // let rm = if state.mod_path.is_none() { CurrentMenu::MainMenu } else { CurrentMenu::ChallengesMenu };
+                // self.save_select_menu.tick(
+                //     &mut || {
+                //         *cm = rm;
+                //     },
+                //     &mut self.controller,
+                //     state,
+                //     ctx,
+                // )?;
             }
             CurrentMenu::ChallengesMenu => match self.challenges_menu.tick(&mut self.controller, state) {
                 MenuSelectionResult::Selected(ChallengesMenuEntry::Challenge(idx), _) => {
@@ -485,25 +551,40 @@ impl Scene for TitleScene {
         Ok(())
     }
 
+    fn draw_tick(&mut self, state: &mut SharedGameState) -> GameResult {
+        if let Some(subscene) = &mut self.game_scene {
+            subscene.draw_tick(state)?;
+        }
+        Ok(())
+    }
+
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
-        self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
+        //self.background.draw(state, ctx, &self.frame, &self.textures, &self.stage, false)?;
+        if let Some(subscene) = &self.game_scene {
+            subscene.draw(state, ctx)?;
+        }
+
 
         if self.current_menu == CurrentMenu::MainMenu {
-            let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
-            let logo_x_offset =
-                if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
 
-            batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor() + logo_x_offset,
-                40.0,
-                &state.constants.title.logo_rect,
-            );
-            batch.add_rect(
-                ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
-                88.0,
-                &state.constants.title.logo_splash_rect,
-            );
-            batch.draw(ctx)?;
+            //don't draw any of this anymore
+
+
+            // let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, "Title")?;
+            // let logo_x_offset =
+            //     if state.settings.original_textures && state.constants.supports_og_textures { 20.0 } else { 0.0 };
+
+            // batch.add_rect(
+            //     ((state.canvas_size.0 - state.constants.title.logo_rect.width() as f32) / 2.0).floor() + logo_x_offset,
+            //     40.0,
+            //     &state.constants.title.logo_rect,
+            // );
+            // batch.add_rect(
+            //     ((state.canvas_size.0 - state.constants.title.logo_splash_rect.width() as f32) / 2.0).floor() + 72.0,
+            //     88.0,
+            //     &state.constants.title.logo_splash_rect,
+            // );
+            // batch.draw(ctx)?;
         } else {
             let window_title = match self.current_menu {
                 CurrentMenu::ChallengesMenu => state.loc.t("menus.main_menu.challenges"),

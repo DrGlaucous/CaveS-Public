@@ -30,7 +30,7 @@ use crate::i18n::Locale;
 use crate::input::touch_controls::TouchControls;
 use crate::mod_list::ModList;
 use crate::mod_requirements::ModRequirements;
-use crate::scene::game_scene::GameScene;
+use crate::scene::game_scene::{GameMode, GameScene};
 use crate::scene::title_scene::TitleScene;
 use crate::scene::Scene;
 use crate::sound::SoundManager;
@@ -347,6 +347,9 @@ pub struct SharedGameState {
     #[cfg(feature = "discord-rpc")]
     pub discord_rpc: DiscordRPC,
     pub shutdown: bool,
+
+    //just like next_scene but for the title's nested game_scene
+    pub next_title_subscene: Option<Box<GameScene>>,
 }
 
 impl SharedGameState {
@@ -504,6 +507,8 @@ impl SharedGameState {
             #[cfg(feature = "discord-rpc")]
             discord_rpc: DiscordRPC::new(discord_rpc_app_id),
             shutdown: false,
+
+            next_title_subscene: None,
         })
     }
 
@@ -649,7 +654,7 @@ impl SharedGameState {
 
         if self.stages.len() < start_stage_id {
             log::warn!("Intro scene out of bounds in stage table, skipping to title...");
-            self.next_scene = Some(Box::new(TitleScene::new()));
+            self.next_scene = Some(Box::new(TitleScene::new(self, ctx)));
             return Ok(());
         }
 
@@ -658,7 +663,7 @@ impl SharedGameState {
         let (pos_x, pos_y) = self.constants.game.intro_player_pos;
         next_scene.player1.x = pos_x as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
         next_scene.player1.y = pos_y as i32 * next_scene.stage.map.tile_size.as_int() * 0x200;
-        next_scene.intro_mode = true;
+        next_scene.mode = GameMode::Intro;
 
         self.reset_map_flags();
         self.fade_state = FadeState::Hidden;

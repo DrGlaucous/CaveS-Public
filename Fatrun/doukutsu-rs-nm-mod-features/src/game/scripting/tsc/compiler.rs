@@ -228,6 +228,7 @@ impl TextScript {
             | TSCOpCode::PSH
             | TSCOpCode::BKD
             | TSCOpCode::BKE
+            | TSCOpCode::TIJ
             => {
                 let operand = read_number(iter)?;
                 put_varint(instr as i32, out);

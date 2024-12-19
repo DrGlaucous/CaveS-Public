@@ -300,8 +300,11 @@ pub enum TSCOpCode {
     /// Key+, locks the player to where <END will not free them (requires FRE), not guaranteed to be reset on game reset
     #[strum(serialize = "KE+")]
     KEp,
-    /// <RAJwwww:xxxx RAndom Jump, jump to a random event number between (inclusive) wwww and xxxx
+    /// <RAJwwww:xxxx, RAndom Jump, jump to a random event number between (inclusive) wwww and xxxx
     RAJ,
+
+    /// <TIJwwww, TIming Jump, Jumps to event wwww if the TPS mode is 60
+    TIJ,
 
 
 }

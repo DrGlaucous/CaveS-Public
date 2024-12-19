@@ -84,7 +84,8 @@ pub struct GameScene {
     pub boss: BossNPC,
     pub bullet_manager: BulletManager,
     pub lighting_mode: LightingMode,
-    pub intro_mode: bool,
+    //pub intro_mode: bool,
+    pub mode: GameMode,
     pub pause_menu: PauseMenu,
     pub stage_textures: Rc<RefCell<StageTexturePaths>>,
     pub replay: Replay,
@@ -112,6 +113,14 @@ impl From<u8> for LightingMode {
             }
         }
     }
+}
+
+//gameScene is now used for all main modes...
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub enum GameMode {
+    Normal = 0,
+    Intro = 1,
+    Title = 2,
 }
 
 const P2_OFFSCREEN_TEXT: &'static str = "P2";
@@ -190,7 +199,8 @@ impl GameScene {
             boss: BossNPC::new(),
             bullet_manager: BulletManager::new(),
             lighting_mode: LightingMode::None,
-            intro_mode: false,
+            //intro_mode: false,
+            mode: GameMode::Normal,
             pause_menu: PauseMenu::new(),
             stage_textures,
             map_name_counter: 0,
@@ -1622,6 +1632,37 @@ impl GameScene {
             batch.draw(ctx)?;
         }
 
+        {
+            //draw hit rect and display rect
+
+            //x and y relative to frame (screen coords)
+            let x = ((entity.x() + entity.offset_x()) - self.frame.x) as isize / 0x200;
+            let y = ((entity.y() + entity.offset_y()) - self.frame.y) as isize / 0x200;
+            let hit_bounds = entity.hit_bounds();
+            let disp_bounds = entity.display_bounds();
+
+            let scale = state.scale as isize;
+
+            //rect in the globalspace
+            let rel_hit_rc = Rect {
+                left: (x - (hit_bounds.left / 0x200) as isize) * scale,
+                right: (x + (hit_bounds.right / 0x200) as isize) * scale,
+                top: (y - (hit_bounds.top / 0x200) as isize) * scale,
+                bottom: (y + (hit_bounds.bottom / 0x200) as isize)* scale,
+            };
+
+            let rel_disp_rc = Rect {
+                left: (x - (disp_bounds.left / 0x200) as isize) * scale,
+                right: (x + (disp_bounds.right / 0x200) as isize) * scale,
+                top: (y - (disp_bounds.top / 0x200) as isize) * scale,
+                bottom: (y + (disp_bounds.bottom / 0x200) as isize)* scale,
+            };
+
+
+            graphics::draw_outline_rect(ctx, rel_hit_rc, 1, Color::from_rgb(255, 255, 0))?;
+            graphics::draw_outline_rect(ctx, rel_disp_rc, 1, Color::from_rgb(0, 255, 255))?;
+        }
+
         Ok(())
     }
 
@@ -1727,7 +1768,7 @@ impl Scene for GameScene {
         state.carets.clear();
 
         self.lighting_mode = match () {
-            _ if self.intro_mode => LightingMode::None,
+            _ if self.mode == GameMode::Intro => LightingMode::None,
             _ if !state.constants.is_switch
                 && (self.stage.data.background_type == BackgroundType::Black
                     || self.stage.data.background.name() == "bkBlack") =>
@@ -1800,20 +1841,20 @@ impl Scene for GameScene {
             state.touch_controls.interact_icon = false;
         }
 
-        if self.intro_mode {
+        if self.mode == GameMode::Intro {
             state.touch_controls.control_type = TouchControlType::Dialog;
 
             if let TextScriptExecutionState::WaitTicks(_, _, 9999) = state.textscript_vm.state {
-                state.next_scene = Some(Box::new(TitleScene::new()));
+                state.next_scene = Some(Box::new(TitleScene::new(state, ctx)));
             }
 
             if self.player1.controller.trigger_menu_ok() || self.player1.controller.trigger_menu_pause() {
-                state.next_scene = Some(Box::new(TitleScene::new()));
+                state.next_scene = Some(Box::new(TitleScene::new(state, ctx)));
             }
         }
 
-        if self.player1.controller.trigger_menu_pause() {
-            self.pause_menu.pause(state);
+        if self.mode != GameMode::Title && self.player1.controller.trigger_menu_pause() {
+            self.pause_menu.pause(state, ctx);
         }
 
         if self.pause_menu.is_paused() {

@@ -595,7 +595,92 @@ impl NPC {
 
 
 
+    pub(crate) fn tick_n375_store_door(
+        &mut self,
+        state: &mut SharedGameState,
+    ) -> GameResult {
 
+        let door_rect = Rect::new(112, 80, 144, 112);
+        
+        //let display_rect = Rect::new(16 * 0x200, 24 * 0x200, 16 * 0x200, 8 * 0x200);
+
+        //separate init (so it is guaranteed to run even on even if we set the action number to something different on the first tick)
+        //save starting location
+        if self.action_counter3 == 0 {
+            self.target_x = self.x;
+            self.target_y = self.y;
+
+            self.action_counter3 = 1;
+        }
+
+        let door_height = 0x200 * 16 * 2;
+
+        match self.action_num {
+
+            //idle open
+            0 => {
+                self.anim_rect = Rect::new(0, 0, 0, 0);
+            }
+            //idle closed
+            1 => {
+                self.anim_rect = door_rect;
+            }
+            //open
+            10 | 11 => {
+
+                if self.action_num == 10 {
+                    self.vel_y = -0x200;
+                    self.vel_y2 = self.target_y;
+                    self.action_num = 11;
+                }
+
+                self.vel_y2 += self.vel_y;
+
+                let dist = ((self.target_y - self.vel_y2) / 0x200).abs() as u16;
+
+                self.anim_rect = Rect {
+                    left: door_rect.left,
+                    top: door_rect.top + dist,
+                    right: door_rect.right,
+                    bottom: door_rect.bottom,
+                };
+
+                if self.target_y >= self.vel_y2 + door_height {
+                    self.action_num = 0;
+                }
+
+            }
+            //close
+            20 | 21 => {
+
+                if self.action_num == 20 {
+                    self.vel_y = 0x200;
+                    self.vel_y2 = self.target_y - door_height;
+                    self.action_num = 21;
+                }
+
+                self.vel_y2 += self.vel_y;
+
+                let dist = ((self.target_y - self.vel_y2) / 0x200).abs() as u16;
+
+                self.anim_rect = Rect {
+                    left: door_rect.left,
+                    top: door_rect.top + dist,
+                    right: door_rect.right,
+                    bottom: door_rect.bottom,
+                };
+
+                if self.target_y <= self.vel_y2 {
+                    self.action_num = 1;
+                }
+
+            }
+
+            _ => {}
+        }
+
+        Ok(())
+    }
 
 
 
