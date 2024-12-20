@@ -1,0 +1,82 @@
+
+
+//entry event
+#0100
+//<FAI0004<TRA0008:0110:0049:0013//test: skip to last level
+//goto real start
+<TRA0002:0100:0024:0018
+
+<MOV0011:0011
+<HMC<FON0200:0001
+<KE+//super key
+<ANP0300:0010:0000
+<FAI0004<END
+
+//entry event (no fadein)
+#0101
+<MOV0011:0011
+<HMC<FON0200:0001
+<KE+//super key
+<ANP0300:0010:0000
+<END
+
+//give and start timer
+#0110
+<EQ+0256
+<EQ+0512
+<TCL0050:0060:0120
+
+//intro event
+#0120
+<WAI0001<WAI9999<END
+
+
+
+//mahin (death event)
+#0200
+<WAI0020
+<TRA0001:0101:0011:0011<END
+
+
+//bus (dropoff sequence)
+#0300
+<ANP0200:0001:0000//start player control
+<END
+
+#0310
+<ANP0300:0010:0000<END
+
+//collider
+#0400
+//lock PC
+<DNP0400
+<ANP0200:0003:0000//lockout
+<ANP0500:0010:0000//animate next soap shuttle
+<END
+
+//door
+#0420
+<END
+
+
+//soap shuttle 2
+#0500
+<ANP0200:0000:0000//hide
+<WAI0060//wait, then TRA
+<TRA0001:0101:0011:0011//to "next" map
+<END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

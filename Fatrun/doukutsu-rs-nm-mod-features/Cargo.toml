@@ -38,7 +38,7 @@ category = "Game"
 osx_minimum_system_version = "10.12"
 
 [features]
-default = ["default-base", "backend-sdl", "render-opengl", "exe", "webbrowser", "discord-rpc", "tracker-playback"]
+default = ["default-base", "backend-glutin", "render-opengl", "exe", "webbrowser", "discord-rpc", "tracker-playback"]
 default-base = ["ogg-playback"]
 ogg-playback = ["lewton"]
 tracker-playback = ["libxmp-lite"]

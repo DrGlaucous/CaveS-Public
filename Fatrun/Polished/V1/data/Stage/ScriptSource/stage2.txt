@@ -1,0 +1,59 @@
+
+
+//entry (start, start timer + retry)
+#0100
+<EQ+0256//counter
+<EQ+0512//start counting backwards
+<TCL0050:0060:0120//add time
+<PSH0110//do retry
+<FAI0004
+<END
+
+
+//boilerplate retry
+#0110
+<MOV0017:0032//move PC to platform
+<HMC<FON0200:0001//focus on NPC
+<KE+//super key
+<ANP0300:0010:0000//start bus
+<PSH0050//select background
+<POP
+
+
+
+
+
+//mahin die
+#0200
+<WAI0020
+<TRA0003:0110:0017:0032<END
+
+//mahin fall trigger
+#0201
+
+//enter bus
+#0300
+<ANP0200:0001:0000//start player control
+<END
+
+
+//leave bus
+#0310
+<ANP0200:0000:0000//hide
+<WAI0060//wait, then TRA
+<TRA0004:0110:0025:0014//to "next" map
+
+//bus stop
+#0320
+<DNP0320
+<ANP0200:0003:0000//lockout
+<ANP0310:0010:0000//animate next soap shuttle
+<END
+
+
+
+
+
+
+
+

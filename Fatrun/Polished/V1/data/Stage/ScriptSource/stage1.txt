@@ -1,0 +1,65 @@
+
+
+//entry (start, start timer + retry)
+#0100
+<EQ+0256//counter
+<EQ+0512//start counting backwards
+<TCL0060:0060:0060//add time, run eve 60 on outtatime
+//<MSGA<CLO
+<PSH0110//do retry
+<CMF0003:Resource/Misc/mindjunk_ingame.xm$
+//<CMF0001:Resource/Misc/muIngame.ogg$
+<FAI0004
+//<MSGB<CLO
+<END
+
+
+//boilerplate retry
+#0110
+<MOV0024:0018//move PC to platform
+<HMC<FON0200:0001//focus on NPC
+<KE+//super key
+<ANP0300:0010:0000//start bus
+//<MSGC<CLO
+<PSH0050//select background
+//<MSGD<CLO
+<POP
+
+
+
+
+
+//mahin die
+#0200
+<WAI0020
+<TRA0002:0110:0024:0018<END
+
+//mahin fall trigger
+#0201
+
+//enter bus
+#0300
+<ANP0200:0001:0000//start player control
+<END
+
+
+//leave bus
+#0310
+<ANP0200:0000:0000//hide
+<WAI0060//wait, then TRA
+<TRA0003:0110:0017:0032//to "next" map
+
+//bus stop
+#0320
+<DNP0320
+<ANP0200:0003:0000//lockout
+<ANP0310:0010:0000//animate next soap shuttle
+<END
+
+
+
+
+
+
+
+

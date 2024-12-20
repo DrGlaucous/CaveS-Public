@@ -1,0 +1,51 @@
+
+
+
+//title event (fresh intro)
+#0100
+<EVE0110
+
+//TPS change event (runs each time the setting is changed from the title screen)
+#0110
+<FON0300:0001
+<CMF0003:Resource/Misc/mindjunk_title.xm$
+//jump if 60 FPS
+<TIJ0120
+<EVE0130
+
+//60 FPS setup
+#0120
+<BKGtitle_60$
+<END
+
+//50 FPS setup
+#0130
+<BKGtitle_50$
+<END
+
+
+//gameover event
+#0200
+<CMU0000//halt music
+<FON0301:0001
+<EQ-0512<EQ-0256//remove timer
+<SOU0081
+<WAI0040
+//close door
+<ANP0301:0020:0000
+<SOU0083
+<WAI0040
+<SOU0084
+<BKGtimes_up$
+<NOD
+<ESC
+<END
+
+//camera focus NPC
+#0300
+<END
+
+//store door
+#0301
+<END
+

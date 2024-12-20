@@ -1,0 +1,51 @@
+{
+    "version": 1,
+    "tiles": [
+        {
+            "tile_id": 176,
+            "animation_speed": 8,
+            "frame_start": 0,
+            "frame": [
+                176,
+                181
+            ]
+        },
+        {
+            "tile_id": 177,
+            "animation_speed": 8,
+            "frame_start": 0,
+            "frame": [
+                177,
+                182
+            ]
+        },
+        {
+            "tile_id": 178,
+            "animation_speed": 8,
+            "frame_start": 0,
+            "frame": [
+                178,
+                183
+            ]
+        },
+        {
+            "tile_id": 179,
+            "animation_speed": 8,
+            "frame_start": 0,
+            "frame": [
+                179,
+                184
+            ]
+        },
+        {
+            "tile_id": 180,
+            "animation_speed": 8,
+            "frame_start": 0,
+            "frame": [
+                180,
+                185
+            ]
+        }
+
+    ]
+}
