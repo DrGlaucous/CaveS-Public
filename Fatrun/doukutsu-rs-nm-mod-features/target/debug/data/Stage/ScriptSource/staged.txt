@@ -29,10 +29,12 @@
 <CMU0000//halt music
 <FON0301:0001
 <EQ-0512<EQ-0256//remove timer
+<SOU0081
+<WAI0040
 //close door
 <ANP0301:0020:0000
 <SOU0083
-<WAI0045
+<WAI0040
 <SOU0084
 <BKGtimes_up$
 <NOD

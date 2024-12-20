@@ -298,6 +298,33 @@ impl NPC {
             20 | 21 => {
 
             }
+
+            //walk in direction
+            30 => {
+
+                if self.direction == Direction::Left {
+                    self.vel_x = -0x300;
+                } else {
+                    self.vel_x = 0x300;
+                }
+    
+                if self.anim_num < 3 || self.anim_num > 10 {self.anim_num = 3;}
+                self.animate(3, 3, 10);
+            }
+            //stand in place
+            31 => {
+                //standing
+                self.vel_x = 0;
+    
+                if self.anim_num > 2 {self.anim_num = 3;}
+                self.animate(5, 0, 2);
+            }
+            //back turned
+            32 => {
+                self.vel_x = 0;
+                self.anim_num = 13;
+            }
+
             _ => {}
         }
 
@@ -313,7 +340,7 @@ impl NPC {
             self.x += self.vel_x;
             self.y += self.vel_y;
     
-            let rl_offset = if self.direction == Direction::Right {13} else {0};
+            let rl_offset = if self.direction == Direction::Right {14} else {0};
     
             self.anim_rect = state.constants.npc.n371_fatrunner[self.anim_num as usize + rl_offset];
         }
@@ -403,10 +430,124 @@ impl NPC {
     ) -> GameResult {
 
 
-        let frame_travel_count = 70; //number of frames it takes to travel from one end of the screen to the other (independant of screen size)
+        let frame_travel_count = 70; //number of frames it takes to travel from one end of the screen to the other (independent of screen size)
 
         //separate init (so it is guaranteed to run even on even if we set the action number to something different on the first tick)
-        //this is the "centerpoint" on the movement parabola
+        //this is the "centerpoint" on the movement semicircle
+        if self.action_counter3 == 0 {
+            self.target_x = self.x;
+            self.target_y = self.y;
+            self.layer = NPCLayer::Foreground;
+
+            self.action_counter3 = 1;
+        }
+
+
+        match self.action_num {
+            
+            //init
+            // 0 => {
+            //     //goto idle
+            //     self.anim_num = 6;
+            //     self.action_num = 1;
+            // }
+
+            //drop-off sequence (start in top left corner of screen, arc to center, then go to top right) when at "centerpoint", run self event
+            //"centerpoint" is where self event+1 is
+            10 | 11 => {
+
+                //init, snap to top left corner of frame
+                if self.action_num == 10 {
+
+                    self.action_num = 11;
+                    self.action_counter = 0;
+
+                    //the maximum cartesian distance the NPC is allowed to travel from the center of the frame
+                    let rect = state.get_drawn_edge_rect(stage);
+                    let max_x = rect.width() / 2.0 * 0x200 as f32;
+                    let max_y = rect.height() / 2.0 * 0x200 as f32;
+
+
+                    //position self in the top left corner of the centerpoint (0,0 is center here)
+                    let start_x = -max_x - (self.display_bounds.left + self.display_bounds.right) as f32;
+                    let start_y = -max_y - (self.display_bounds.top + self.display_bounds.bottom) as f32;
+
+                    //set target to the top right corner of the centerpoint
+                    let end_x = max_x + (self.display_bounds.left + self.display_bounds.right) as f32;
+                    let mid_x = (start_x + end_x) / 2.0;
+
+                    //no "+b" because our "center" is at 0,0
+                    // y = ax^2
+                    //  y/(x^2)=A
+                    //stow 'A' multiplier
+                    self.variable_1 = start_y / (start_x * start_x);
+
+                    //store step size
+                    self.vel_x = ((end_x - start_x) as f32 / frame_travel_count as f32).ceil() as i32;
+
+                    //store start offset
+                    self.vel_x2 = start_x as i32;
+                    //self.vel_y2 = start_y as i32;
+
+                    //<ANP0300:0010:0000
+                }
+
+                let x_ct = self.vel_x2 + self.vel_x * self.action_counter as i32;
+                
+                self.x =  self.target_x + x_ct;
+
+                self.y =  self.target_y + (self.variable_1 * x_ct as f32 * x_ct as f32) as i32;
+
+                self.action_counter += 1;
+
+
+
+
+                //hit midpoint, run event
+                if self.action_counter == frame_travel_count / 2 {
+                    state.textscript_vm.start_script(self.event_num);
+                }
+
+                //reached end of arc, goto idle
+                if self.action_counter > frame_travel_count {
+                    self.action_num = 1;
+                }
+
+                self.animate(1, 3, 4);
+
+                if self.anim_num == 3 && self.anim_counter == 0 {
+                    state.sound_manager.play_sfx(82); //flap sound
+                }
+
+            }
+
+            //idle
+            0 | 1 | _ => {
+                self.x = self.target_x;
+                self.y = self.target_y;
+                self.anim_num = 6;
+            }
+        }
+
+
+        self.anim_rect = state.constants.npc.n373_soap_shuttle[self.anim_num as usize];
+
+        Ok(())
+    }
+
+
+
+    pub(crate) fn tick_n373_soap_shuttle_circle(
+        &mut self,
+        state: &mut SharedGameState,
+        stage: &mut Stage,
+    ) -> GameResult {
+
+
+        let frame_travel_count = 70; //number of frames it takes to travel from one end of the screen to the other (independent of screen size)
+
+        //separate init (so it is guaranteed to run even on even if we set the action number to something different on the first tick)
+        //this is the "centerpoint" on the movement semicircle
         if self.action_counter3 == 0 {
             self.target_x = self.x;
             self.target_y = self.y;
@@ -537,6 +678,7 @@ impl NPC {
 
         Ok(())
     }
+
 
 
 

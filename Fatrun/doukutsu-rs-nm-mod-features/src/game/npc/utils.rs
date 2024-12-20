@@ -91,6 +91,7 @@ impl NPC {
             anchor_x: 0.0,
             anchor_y: 0.0,
             angle: 0.0,
+            variable_1: 0.0,
         }
     }
 

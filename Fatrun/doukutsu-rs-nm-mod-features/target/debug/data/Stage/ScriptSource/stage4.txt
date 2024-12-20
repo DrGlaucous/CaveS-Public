@@ -26,7 +26,7 @@
 //mahin die
 #0200
 <WAI0020
-<TRA0005:0110:0013:0026<END
+<TRA0005:0110:0031:0013<END
 
 //mahin fall trigger
 #0201

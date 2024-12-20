@@ -271,7 +271,7 @@ Here are the fields for the animated tile config file:
 - `frame` - list of tile RECTs to render in sequence, selected in the same manner as the `tile_id`. *(Note: this affects what the tile **looks like** only. It does not affect collision, which is still that of `tile_id`.)*
  
 Here's an example of a file:
-```
+```json
 {
   "version": 1,
   "tiles": [

@@ -1140,7 +1140,7 @@ pub struct NPCConsts {
     pub n369_gclone_curly_clone: SafeNPCRect<20>,
 
     #[serde(default = "default_n371_fatrunner")]
-    pub n371_fatrunner: SafeNPCRect<26>,
+    pub n371_fatrunner: SafeNPCRect<28>,
 
     #[serde(default = "default_n373_soap_shuttle")]
     pub n373_soap_shuttle: SafeNPCRect<7>,
@@ -4943,7 +4943,7 @@ fn default_n369_gclone_curly_clone() -> SafeNPCRect<20> {
     ])
 }
 
-fn default_n371_fatrunner() -> SafeNPCRect<26> {
+fn default_n371_fatrunner() -> SafeNPCRect<28> {
     SafeNPCRect([
         Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing
         Rect { left: 32, top: 0, right: 64, bottom: 32 },
@@ -4952,16 +4952,16 @@ fn default_n371_fatrunner() -> SafeNPCRect<26> {
         Rect { left: 96, top: 0, right: 128, bottom: 32 }, //walking
         Rect { left: 128, top: 0, right: 160, bottom: 32 }, //flat
         Rect { left: 160, top: 0, right: 192, bottom: 32 },
-        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing
+        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing (6)
 
         Rect { left: 192, top: 0, right: 224, bottom: 32 },
         Rect { left: 224, top: 0, right: 256, bottom: 32 }, //flat
         Rect { left: 256, top: 0, right: 288, bottom: 32 },
-        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing
+        Rect { left: 0, top: 0, right: 32, bottom: 32 }, //standing (10)
 
         Rect { left: 288, top: 0, right: 320, bottom: 32 }, //jump
         Rect { left: 320, top: 0, right: 352, bottom: 32 }, //fall
-
+        Rect { left: 352, top: 0, right: 384, bottom: 32 }, //back turned (13)
 
         Rect { left: 0, top: 32, right: 32, bottom: 64 }, //standing
         Rect { left: 32, top: 32, right: 64, bottom: 64 },
@@ -4979,6 +4979,7 @@ fn default_n371_fatrunner() -> SafeNPCRect<26> {
 
         Rect { left: 288, top: 32, right: 320, bottom: 64 }, //jump
         Rect { left: 320, top: 32, right: 352, bottom: 64 }, //fall
+        Rect { left: 352, top: 32, right: 384, bottom: 64 }, //back turned
 
     ])
 }

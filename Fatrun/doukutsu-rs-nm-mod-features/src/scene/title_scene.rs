@@ -228,9 +228,9 @@ impl TitleScene {
     }
 }
 
-static COPYRIGHT_PIXEL: &str = "2004.12  Studio Pixel";
+static COPYRIGHT_PIXEL: &str = "2024.12  Dr. G";
 // Freeware
-static COPYRIGHT_NICALIS: &str = "@2022 NICALIS INC."; // Nicalis font uses @ for copyright
+static COPYRIGHT_NICALIS: &str = "2024.12  Dr. G"; // Nicalis font uses @ for copyright
 
 impl Scene for TitleScene {
     fn init(&mut self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {

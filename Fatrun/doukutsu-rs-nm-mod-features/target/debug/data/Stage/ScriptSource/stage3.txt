@@ -42,7 +42,7 @@
 <ANP0200:0000:0000//hide
 <WAI0060//wait, then TRA
 //<TRA0006:0110:0012:0007 //we're skipping stage 4 for now
-<TRA0005:0110:0013:0026//to "next" map
+<TRA0005:0110:0031:0013//to "next" map
 
 //bus stop
 #0320

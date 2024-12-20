@@ -132,6 +132,10 @@ pub struct NPC {
     pub anchor_x: f32, //from corner of drawbox, pivot point
     pub anchor_y: f32,
     pub angle: f32, //angle in radians
+
+    //generic use float variable
+    pub variable_1: f32,
+
 }
 
 impl NPC {
@@ -179,6 +183,7 @@ impl NPC {
             anchor_x: 0.0,
             anchor_y: 0.0,
             angle: 0.0,
+            variable_1: 0.0,
         }
     }
 

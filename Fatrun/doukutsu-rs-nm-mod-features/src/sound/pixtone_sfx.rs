@@ -3612,26 +3612,26 @@ pub static DEFAULT_PIXTONE_TABLE: [PixToneParameters; 160] = [
                 enabled: true,
                 length: 14900,
                 carrier: Waveform {
-                    waveform_type: 4,
-                    pitch: 61.6,
+                    waveform_type: 5,
+                    pitch: 7.0,
                     level: 32,
                     offset: 0,
                 },
                 frequency: Waveform {
-                    waveform_type: 3,
-                    pitch: 0.5,
-                    level: 108,
-                    offset: 93,
+                    waveform_type: 0,
+                    pitch: 1.0,
+                    level: 0,
+                    offset: 0,
                 },
                 amplitude: Waveform {
-                    waveform_type: 0,
-                    pitch: 0.000000,
-                    level: 63,
+                    waveform_type: 3,
+                    pitch: 10.000000,
+                    level: 27,
                     offset: 0,
                 },
                 envelope: Envelope {
                     initial: 63,
-                    time_a: 63,
+                    time_a: 64,
                     value_a: 63,
                     time_b: 128,
                     value_b: 63,
@@ -3685,8 +3685,46 @@ pub static DEFAULT_PIXTONE_TABLE: [PixToneParameters; 160] = [
         ],
     },
 
+    //chime
+    PixToneParameters { // fx85
+        channels: [
+            Channel {
+                enabled: true,
+                length: 24000,
+                carrier: Waveform {
+                    waveform_type: 0,
+                    pitch: 1664.57,
+                    level: 32,
+                    offset: 0,
+                },
+                frequency: Waveform {
+                    waveform_type: 4,
+                    pitch: 0.5,
+                    level: 32,
+                    offset: 240,
+                },
+                amplitude: Waveform {
+                    waveform_type: 3,
+                    pitch: 1.000000,
+                    level: 78,
+                    offset: 0,
+                },
+                envelope: Envelope {
+                    initial: 63,
+                    time_a: 63,
+                    value_a: 63,
+                    time_b: 128,
+                    value_b: 63,
+                    time_c: 255,
+                    value_c: 63,
+                },
+            },
+            Channel::disabled(),
+            Channel::disabled(),
+            Channel::disabled(),
+        ],
+    },
 
-    PixToneParameters::empty(), // fx85
     PixToneParameters::empty(), // fx86
     PixToneParameters::empty(), // fx87
     PixToneParameters::empty(), // fx88

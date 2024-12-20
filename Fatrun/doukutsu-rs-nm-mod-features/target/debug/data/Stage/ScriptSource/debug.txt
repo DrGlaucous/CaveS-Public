@@ -2,6 +2,7 @@
 
 //entry event
 #0100
+//<FAI0004<TRA0008:0110:0049:0013//test: skip to last level
 //goto real start
 <TRA0002:0100:0024:0018
 

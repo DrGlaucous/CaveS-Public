@@ -266,10 +266,13 @@ pub enum TSCOpCode {
     FR2,
     // ---- Custom opcodes, for use by modders ----
 
-    /// <CMLwwww:xxxx:yyyy:zzzz, Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
+    /// <CMLwwww:xxxx:yyyy:zzzz, Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore] makes smoke
     CML,
     /// <SMLwwww:xxxx:yyyy, Subtracts 1 from tile type at (xxxx,yyyy) on layer wwww [0/back, 1/mid, 2/fore, 3/far fore]
     SML,
+
+    /// <MMLwwww:xxxx:yyyy:zzzz, Sets the tile at (xxxx,yyyy) to type zzzz, on layer wwww [0/back, 1/mid, 2/fore, 3/far fore] No smoke
+    MML,
 
 
     /// <BKGname_of_config$, Loads the BKG config file with name_of_config
