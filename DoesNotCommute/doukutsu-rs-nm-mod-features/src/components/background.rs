@@ -48,6 +48,10 @@ pub struct AnimationStyle {
     pub follow_speed_y: f32,
     pub autoscroll_speed_x: f32, //for automatic movement
     pub autoscroll_speed_y: f32,
+    #[serde(default = "default_add_width_percent")]
+    pub screen_width_add_percent: f32, //how much of the screen width to add with add_screen_width
+    #[serde(default = "default_add_height_percent")]
+    pub screen_height_add_percent: f32, //ditto for height
     pub scroll_flags: ScrollFlags,
 
     //internal only: do not save to or load from JSON
@@ -78,7 +82,11 @@ pub struct LayerConfig {
 
     pub animation_style: AnimationStyle,
 
+    ///////////
     //internal only: do not save to or load from JSON
+
+
+    //starting positions for each bitmap when drawn onscreen: 
     #[serde(skip)]
     pub layer_x_value: f32, //I think these are the starting positions for each bitmap when drawn on the screen
     #[serde(skip)]
@@ -119,6 +127,8 @@ impl LayerConfig {
                 follow_speed_y: 0.0,
                 autoscroll_speed_x: 0.0,
                 autoscroll_speed_y: 0.0,
+                screen_width_add_percent: 1.0,
+                screen_height_add_percent: 1.0,
                 scroll_flags: ScrollFlags{
                     follow_pc_x: false,
                     follow_pc_y: false,
@@ -163,18 +173,27 @@ pub struct BkgConfig {
 
 }
 
-#[inline(always)]
-fn current_version() -> u32 {
-    2
-}
-
 fn default_false() -> bool {
     false
 }
+
 fn default_true() -> bool {
     true
 }
 
+#[inline(always)]
+fn current_version() -> u32 {
+    3
+}
+
+#[inline(always)]
+fn default_add_width_percent() -> f32 {
+    1.0
+}
+#[inline(always)]
+fn default_add_height_percent() -> f32 {
+    1.0
+}
 
 
 impl BkgConfig {
@@ -207,6 +226,10 @@ impl BkgConfig {
 
         if self.version == 1 {
             self.version = 2;
+        }
+
+        if self.version == 2 {
+            self.version = 3;
         }
 
         if self.version != initial_version {
@@ -399,10 +422,42 @@ impl Background {
         self.tick = self.tick.wrapping_add(1);
 
 
+        //we need the map size so we can account for the letterboxing/pillarboxing
+        let tile_size = state.tile_size.as_int() as u16;
+
+        //Non-integer canvas size is not as important now becasue we use frame coordinates to find letterbox sizes
+        let canvas_size = (state.canvas_size.0, state.canvas_size.1);
+
+        //size of the loaded stage in pixels
+        let map_pxl_width = (stage.map.width * tile_size) as f32;
+        let map_pxl_height = (stage.map.height * tile_size) as f32;
+
+        //this works well, but it works differently than the tiles below it, so it doesn't always line up.
+        //actual size of a single letterbox (left or right)/(top or bottom)
+        //let floored_canvas_size = (state.canvas_size.0 as i32, state.canvas_size.1 as i32);
+        //let pilrbox_width = if floored_canvas_size.0 > map_pxl_width {(floored_canvas_size.0 - map_pxl_width) / 2} else {0};
+        //let ltrbox_height = if floored_canvas_size.1 > map_pxl_height {(floored_canvas_size.1 - map_pxl_height) / 2} else {0};
+
+        //different way to calculate the same thing because we need the front layer to align with the letter/pillarboxes (and this occasionally differs by 1)
+        let (frame_x, frame_y) = frame.xy_interpolated(state.frame_time);
+        let pilrbox_width = - (frame_x + state.tile_size.as_float() / 2.0);
+        let ltrbox_height = - (frame_y + state.tile_size.as_float() / 2.0);
+        //only use these width/heights if our screen is bigger than the level
+        let pilrbox_width = if canvas_size.0 > map_pxl_width {pilrbox_width} else {0.0};
+        let ltrbox_height = if canvas_size.1 > map_pxl_height {ltrbox_height} else {0.0};
+
+        //the new offsets that should be used (if canvas is larger than map size, use map size offset over by width of pillarbox)
+        let pb_canvas_width = if canvas_size.0 > map_pxl_width {pilrbox_width + map_pxl_width} else {canvas_size.0};
+        let lb_canvas_height = if canvas_size.1 > map_pxl_height {ltrbox_height + map_pxl_height} else {canvas_size.1};
+
+
         //map edges if letterboxes are taken into account
-        let boxed_lim = state.get_drawn_edge_rect(stage);
+        let boxed_lim = Rect::new(pilrbox_width as f32, ltrbox_height as f32, pb_canvas_width as f32, lb_canvas_height as f32);
+        
         //map edges relative to actual window size
-        let windowed_lim = Rect::new(0.0, 0.0, state.canvas_size.0, state.canvas_size.1);
+        let windowed_lim = Rect::new(0.0, 0.0, canvas_size.0 as f32, canvas_size.1 as f32);
+
+
 
 
         for layer in self.bk_config.layers.as_mut_slice() {
@@ -413,7 +468,7 @@ impl Background {
 
                 layer.animation_style.ani_wait += 1;
                 if layer.animation_style.ani_wait >= layer.animation_style.animation_speed {
-
+                    //use frame_start to control frame count. If frame_start is out of bounds, make it 0, otherwise increment it by 1 (make it base-1)
                     layer.animation_style.frame_start =
                     if layer.animation_style.frame_start < layer.animation_style.frame_count - 1 {layer.animation_style.frame_start + 1} else {0};
 
@@ -431,7 +486,7 @@ impl Background {
             let scroll_flags = &layer.animation_style.scroll_flags;
 
             //reset frame offsets so background location resets with no-flag conditions
-            let (frame_x, frame_y) = frame.xy_interpolated(state.frame_time);
+            let scale = state.scale;
 
             //handle edge relativity
             if scroll_flags.relative_to_pillarbox {
@@ -451,26 +506,26 @@ impl Background {
             layer.frame_y_offset = layer.edge_coords.top;
 
             if scroll_flags.follow_pc_x {
-                layer.frame_x_offset -= frame_x as f32 * layer.animation_style.follow_speed_x;
+                layer.frame_x_offset -= (frame_x as f32 * layer.animation_style.follow_speed_x * scale).floor() / scale;
             }
             if scroll_flags.lock_to_y_axis {
                 layer.frame_x_offset -= frame_x as f32;
             }
             if scroll_flags.add_screen_width {
-                layer.frame_x_offset += layer.edge_coords.width();
+                layer.frame_x_offset += layer.edge_coords.width() * layer.animation_style.screen_width_add_percent;
             }
 
             if scroll_flags.align_with_water_lvl {
                 layer.frame_y_offset += (state.water_level / 0x200) as f32 - frame_y;
             }
             if scroll_flags.follow_pc_y {
-                layer.frame_y_offset -= frame_y as f32 * layer.animation_style.follow_speed_y;
+                layer.frame_y_offset -= (frame_y as f32 * layer.animation_style.follow_speed_y * scale).floor() / scale;
             }
             if scroll_flags.lock_to_x_axis {
                 layer.frame_y_offset -= frame_y as f32;
             }
             if scroll_flags.add_screen_height {
-                layer.frame_y_offset += layer.edge_coords.height()
+                layer.frame_y_offset += layer.edge_coords.height() * layer.animation_style.screen_height_add_percent;
             }
 
 
@@ -514,7 +569,7 @@ impl Background {
             else if scroll_flags.autoscroll_x {
                 //layer.layer_x_value -= layer.animation_style.scroll_speed_x;
 
-                //if layer's right corner offset by the times it should be draw is less than 0, shift it over by one bitmap width and window width
+                //if layer's right corner offset by the times it should be drawn is less than 0, shift it over by one bitmap width and window width
                 if layer.layer_x_value + layer.draw_corner_offset_x +
                 (full_width * layer.draw_repeat_x as f32) +
                 layer.frame_x_offset < layer.edge_coords.left {
@@ -594,6 +649,19 @@ impl Background {
     }
 
     pub fn draw_tick(&mut self) -> GameResult<()> {
+
+        //draw_tick is called once per update.
+        //the game is guaranteed to have updated at least once at this time (tick is guaranteed to have changed),
+        //but can update more than once, I.E. during "skip mode" or with low FPS
+
+        //draw is called one or more (infinitely many) times between each update. It should never edit variables, only read them.
+
+        //update locations in tick()
+
+
+
+
+
         self.prev_tick = self.tick;
 
         Ok(())
@@ -751,6 +819,7 @@ impl Background {
                 //start with empty slate
                 if !is_front {graphics::clear(ctx, stage.data.background_color);}
 
+                //y values are reset with each layer, x values are reset with each row (think TV scanlines)
                 for layer in self.bk_config.layers.as_slice() {
                     if !layer.layer_enabled ||
                     (is_front && !layer.animation_style.scroll_flags.draw_above_foreground) || //layer is not flagged to draw above the foreground
@@ -758,7 +827,7 @@ impl Background {
                     (layer.bmp_height == 0 || layer.bmp_width == 0) //skip 0-width rects
                     {continue;}
 
-
+                    //get rect to draw to screen
                     let (xoff, yoff) = (layer.bmp_x_offset + layer.bmp_width * layer.animation_style.frame_start, layer.bmp_y_offset);
                     let layer_rc = Rect::new(
                         xoff as u16,
@@ -768,7 +837,7 @@ impl Background {
                     
 
 
-                    //not sure if we need these to be descrete
+                    //not sure if we need these to be descrete: repeat count
                     let (rep_x, rep_y) = (layer.draw_repeat_x, layer.draw_repeat_y);
 
                     //start here and draw bitmap, stepping each time by these coords
@@ -781,7 +850,7 @@ impl Background {
                     y_off += layer.draw_corner_offset_y;
 
                     let mut y = 0;
-                    while (y < rep_y || rep_y == 0) && y_off < layer.edge_coords.bottom { //(state.canvas_size.1 as f32) * 16.0 {
+                    while (y < rep_y || rep_y == 0) && y_off < layer.edge_coords.bottom {
                         
                         //need this to reset for each layer
                         let mut x_off = layer.layer_x_value as f32;
@@ -795,7 +864,7 @@ impl Background {
 
                         //while loop (x-axis)
                         let mut x = 0;
-                        while (x < rep_x || rep_x == 0) && x_off < layer.edge_coords.right { //(state.canvas_size.0 as f32) * 16.0 {
+                        while (x < rep_x || rep_x == 0) && x_off < layer.edge_coords.right {
 
                             //condition taken care of earler in the draw process
                             //if scroll_flags.draw_above_foreground {}

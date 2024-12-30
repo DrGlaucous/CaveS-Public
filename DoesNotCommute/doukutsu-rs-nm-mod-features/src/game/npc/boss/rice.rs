@@ -729,7 +729,7 @@ impl BossNPC {
         let rc_grav_gun = [
             Rect::new(208,64,272,96), //unlit
             Rect::new(208,96,272,128), //lit
-            Rect::new(208,128,272,160), //bottom
+            Rect::new(208,128,272,160), //shock
         ];
 
         let (npc, npc_beam) = unsafe {
@@ -780,9 +780,9 @@ impl BossNPC {
 
                 //accelerate toward player
                 if npc.x < target.x {
-                    npc.vel_x += 0x05;
+                    npc.vel_x += 0x10;
                 } else {
-                    npc.vel_x -= 0x05;
+                    npc.vel_x -= 0x10;
                 }
                 npc.vel_x = npc.vel_x.clamp(-0x200, 0x200);
 
@@ -802,6 +802,7 @@ impl BossNPC {
                 }
 
                 npc.x += npc.vel_x;
+
                 npc.anim_num = 0; //off
 
 
@@ -867,7 +868,10 @@ impl BossNPC {
 
         let rc_beam = [
             Rect::new(0,0,0,0), //unlit
-            Rect::new(184,280,256,400), //lit
+            Rect::new(272,320,352,456), //lit 1
+            Rect::new(352,320,432,456), //lit 2
+            Rect::new(432,320,512,456), //lit 3
+            Rect::new(512,320,592,456), //lit 4
         ];
 
         let npc = &mut self.parts[i];
@@ -875,7 +879,7 @@ impl BossNPC {
         //the beam is shaped like a trapezoid
         let top_width = 8 * 0x200 / 2;
         let bottom_width = rc_beam[1].width() * 0x200 / 2;
-        let height = rc_beam[1].height() * 0x200;
+        let height = rc_beam[1].height() as u32 * 0x200;
 
         //pre-calculate slope
         let slope = (height as f32) / (bottom_width - top_width) as f32; // "/"
@@ -895,6 +899,8 @@ impl BossNPC {
             //blink on, "suck" player to top
             1 => {
 
+                npc.animate(5, 1, 4);
+
                 for pc in players {
 
                     if !pc.cond.alive() {
@@ -912,21 +918,15 @@ impl BossNPC {
                     if pc.x > npc.x - hitbox_width as i32
                     && pc.x < npc.x {
                         //PC is on the left of the NPC, push the PC right
-                        //pc.vel_x += 0x20;
-                        //pc.vel_y -= 0x60;
-
-                        npc.anim_num = 1;
-
+                        pc.vel_x += 0x50;
+                        pc.vel_y -= 0x80;
 
                     } else if pc.x < npc.x + hitbox_width as i32
                     && pc.x > npc.x {
                         //pc is on the right of the NPC, push it left
-                        //pc.vel_x -= 0x20;
-                        //pc.vel_y -= 0x60;
+                        pc.vel_x -= 0x50;
+                        pc.vel_y -= 0x80;
 
-                        npc.anim_num = 1;
-                    } else {
-                        npc.anim_num = 0;
                     }
                 }
 
@@ -1707,6 +1707,8 @@ impl BossNPC {
 
 
         state.settings.noclip = true; //force this for now
+        state.settings.god_mode = true;
+        state.settings.infinite_booster = true;
 
 
         let rc_lightning = [
@@ -1957,10 +1959,10 @@ impl BossNPC {
                     let npc = &mut self.parts[grav_gun_id.1];
                     npc.cond.set_alive(true);
                     npc.display_bounds = Rect::new(
-                        0x200 * 36,
+                        0x200 * 40,
                         0x200 * 0,
-                        0x200 * 36,
-                        0x200 * 8 * 15,
+                        0x200 * 40,
+                        0x200 * 8 * 17,
                     );
                     npc.parent_id = grav_gun_id.0 as u16;
 
