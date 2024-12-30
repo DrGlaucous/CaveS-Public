@@ -1763,7 +1763,7 @@ impl GameScene {
     fn draw_debug_npc(&self, npc: &NPC, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         self.draw_debug_object(npc, state, ctx)?;
 
-        let text = format!("{}:{}:{}", npc.id, npc.npc_type, npc.action_num);
+        let text = format!("{}:{}:{}--{}", npc.id, npc.npc_type, npc.action_num, npc.action_counter3);
         state
             .font
             .builder()

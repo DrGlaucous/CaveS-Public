@@ -1,15 +1,16 @@
 use std::iter::{zip, IntoIterator};
-use std::ops::{Range, RangeInclusive, RangeBounds};
+use std::ops::{Range, RangeBounds, RangeInclusive, Shl};
+use std::slice::from_raw_parts;
 use cpal::platform;
 use num_traits::abs;
 
 use crate::common::{Direction, Rect};
 use crate::components::flash::Flash;
 use crate::framework::error::GameResult;
-use crate::game::caret::CaretType;
+use crate::game::caret::{Caret, CaretType};
 use crate::game::npc::boss::BossNPC;
 use crate::game::npc::list::NPCList;
-use crate::game::npc::NPC;
+use crate::game::npc::{self, NPC};
 use crate::game::npc::Flag;
 use crate::game::physics::PhysicalEntity;
 use crate::game::player::Player;
@@ -75,7 +76,7 @@ impl NPC {
 
 
     //forms part of a "ray" shot from the gravity gun, pulls the player in a certain direction (and towards the center of the NPC) >|<
-    pub(crate) fn tick_n391_gravity(
+    pub(crate) fn tick_nxxx_gravity(
         &mut self,
         players: [&mut Player; 2],
         npc_list: &NPCList,
@@ -171,7 +172,6 @@ impl NPC {
             }
         }
 
-
         //keep in line with boss parent, initial y is set on NPC creation
         self.x = boss.parts[self.parent_id as usize].x;
 
@@ -180,26 +180,34 @@ impl NPC {
 
 
     // shot by the monitor at the player, behaves simmilarly to those things jelly-things in the labyrinth
-    pub(crate) fn tick_n392_homing_bead(
+    pub(crate) fn tick_n391_homing_bead(
         &mut self,
+        state: &mut SharedGameState,
         players: [&mut Player; 2],
         npc_list: &NPCList,
         boss: &mut BossNPC,
     ) -> GameResult {
-
         
         let rc_homing_bead = [
             Rect::new(192,192,208,208),
             Rect::new(192,208,208,224),
         ];
 
+        //I have to do this dumb thing so that we can re-use p1 and p2 without "moving" them
+        let [p1, p2] = players;
+
+
         match self.action_num {
             //wait with constant time before begining self-drive
             //be "launched" from the cannon
             0 | 1 => {
                 if self.action_num == 0 {
+                    //so hp can still be set in the NPC table
+                    self.action_counter2 = self.life;
+                    self.life = 8000;
+
                     self.action_num = 1;
-                    self.action_counter = self.rng.range(50..120) as u16;
+                    self.action_counter = self.rng.range(20..60) as u16;
                 }
 
                 if self.action_counter < 1 {
@@ -211,29 +219,100 @@ impl NPC {
             //new direction
             2 => {
 
-                let player = self.get_closest_pseudo_player_mut(players, npc_list);
+                let player = self.get_closest_pseudo_player_mut([p1, p2], npc_list);
 
                 //if closer on x dimension than y dimension
-                if (player.x() - self.x).abs() < (player.y() - self.y).abs() {
+                if (player.x() - self.x).abs() > (player.y() - self.y).abs() {
                     self.vel_y = 0;
-                    self.vel_x = if player.x() - self.x < 0 {0x200} else {-0x200};
+                    self.vel_x = if self.x - player.x() < 0 {0x200} else {-0x200};
                 } else {
-                    self.vel_y = if player.y() - self.y < 0 {0x200} else {-0x200};
+                    self.vel_y = if self.y - player.y() < 0 {0x200} else {-0x200};
                     self.vel_x = 0;
                 }
 
-                self.action_counter = self.rng.range(50..120) as u16;
+                self.action_counter = self.rng.range(20..60) as u16;
                 self.action_num = 1; //return to wait
             }
 
+            //xplode
+            4 => {
+                self.cond.set_alive(false);
+
+                //make explosion NPC
+                let mut boom = NPC::create(392, &state.npc_table);
+                boom.x = self.x;
+                boom.y = self.y;
+                boom.cond.set_alive(true);
+                
+                npc_list.spawn(0x100, boom)?;
+
+            }
             _ => {}
+        }
+
+        //expire
+        let pc = self.get_closest_player_mut([p1, p2]);
+        self.action_counter3 += 1;
+        if self.action_counter3 > 500
+        || self.life < 8000 - self.action_counter2
+        || Self::test_hit_phys_entity_non_solid(self, pc).hit_anything() {
+            self.action_num = 4;
+            return Ok(());
         }
 
         self.x += self.vel_x;
         self.y += self.vel_y;
 
-        self.animate(5, 0, 1);
+        //animate + beep
+        self.anim_counter += 1;
+        if self.anim_counter > 5 {
+            self.anim_counter = 0;
+            self.anim_num += 1;
+
+            if self.anim_num > 1 {
+                self.anim_num = 0;
+            } else {
+                state.sound_manager.play_sfx(60);
+            }
+            
+        }
+
         self.anim_rect = rc_homing_bead[self.anim_num as usize];
+
+        Ok(())
+    }
+
+
+
+    pub(crate) fn tick_n392_xplosion(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
+
+        if self.action_num == 0 {
+            self.action_num = 1;
+
+            self.action_counter = 6;
+        }
+
+        if self.action_counter % 3 == 0 {
+            let radius = 10;
+
+            npc_list.create_death_smoke_up(
+                self.x + self.rng.range(-radius..radius) * 0x200,
+                self.y + self.rng.range(-radius..radius) * 0x200,
+                16 as usize,
+                2,
+                state,
+                &self.rng,
+            );
+        }
+
+        if self.action_counter == 0 {
+            self.cond.set_alive(false);
+
+            state.sound_manager.play_sfx(44);
+            //state.create_caret(self.x, self.y, CaretType::Explosion, Direction::Left);
+        }
+        self.action_counter = self.action_counter.saturating_sub(1);
+
 
         Ok(())
     }
@@ -334,7 +413,7 @@ impl BossNPC {
             Rect::new(360,192,448,256),
             Rect::new(448,192,536,256),
 
-            Rect::new(272,256,264,320), //shock (12)
+            Rect::new(272,256,360,320), //shock (12)
         ];
 
         //have to do this here to appease the borrow checker
@@ -438,19 +517,31 @@ impl BossNPC {
         screen: usize,
     ) {
 
+        let tv_life = 20;
+        let dummy_life = 8000; //some random number
+
         let rc_tv_shuttle = [
             Rect::new(208,160,272,200), //unlit
             Rect::new(208,200,272,240), //lit
             Rect::new(208,240,272,280), //shock
         ];
 
-        let npc = &mut self.parts[shuttle];
+        let (npc, npc_screen, npc_static) = unsafe {
+            let ptr = self.parts.as_mut_ptr();
+            let a = ptr.add(shuttle).as_mut().unwrap();
+            let b = ptr.add(screen).as_mut().unwrap();
+            let c = ptr.add(t_static).as_mut().unwrap();
+            (a, b, c)
+        };
+
+        
+        //let npc = &mut self.parts[shuttle];
 
         //location to the left offscreen
-        let x_min = -(0x200 * 64);
+        let x_min = X -(0x200 * 64);
 
         //location to the right offscreen
-        let x_max = 0x200 * (16 * 32 + 64);
+        let x_max = X + WIDTH + (0x200 * 64);
 
         match npc.action_num {
 
@@ -464,7 +555,7 @@ impl BossNPC {
             1 => {}
 
 
-            //slide in
+            //slide in, prep for offensive
             10 | 11 => {
 
                 if npc.action_num == 10 {
@@ -475,7 +566,13 @@ impl BossNPC {
                     //start moving at a decent speed
                     npc.vel_x = 0x400;
                     npc.action_num = 11;
+
+                    //make screen shootable
+                    npc_screen.npc_flags.set_shootable(true);
+                    npc_screen.cond.set_alive(true);
+                    npc_screen.life = 8000;
                 }
+            
             }
 
             //shoot at PC
@@ -484,19 +581,73 @@ impl BossNPC {
                 npc.action_counter += 1;
                 if npc.action_counter > 40 {
                     npc.action_counter2 += 1;
+                    npc.action_counter = 0;
 
-                    let ball = NPC::create(392, &state.npc_table);
+                    let mut ball = NPC::create(391, &state.npc_table);
+                    ball.x = npc.x;
+                    ball.y = npc.y;
+                    ball.cond.set_alive(true);
+                    state.sound_manager.play_sfx(47);
                     
                     //alternate between launch sides
                     if npc.action_counter2 % 2 == 0 {
                         //shoot from L
+                        ball.x += -0x200 * 16;
+                        ball.y += 0x200 * 16;
+
+                        ball.vel_x = -0x200;
+                        ball.vel_y = 0x200;
+
                     } else {
                         //shoot from R
+                        ball.x += 0x200 * 16;
+                        ball.y += 0x200 * 16;
+
+                        ball.vel_x = 0x200;
+                        ball.vel_y = 0x200;
                     }
 
-                    npc_list.spawn(0x100, ball);
+                    let _ = npc_list.spawn(0x100, ball);
                 }
 
+            }
+
+            //"die", speed forward, and crash into the puppet
+            20 => {
+
+                //let cutoff_width = X + WIDTH + npc_screen.hit_bounds.left as i32 + 0x200 * 16;
+                if npc.x < x_max {
+                    npc.vel_x += 0x16;
+                } else {
+                    npc.action_num = 0;
+                    npc_screen.life = dummy_life;
+                }
+
+                npc.action_counter += 1;
+                if npc.action_counter > 10 {
+
+                    let radius = 40;
+
+                    state.create_caret(
+                        npc.x + npc.rng.range(-radius..radius) * 0x200,
+                        npc.y + npc.rng.range(-radius..radius) * 0x200,
+                        CaretType::Explosion,
+                        Direction::Left
+                    );
+                    
+                    npc_list.create_death_smoke_up(
+                        npc.x + npc.rng.range(-radius..radius) * 0x200,
+                        npc.y + npc.rng.range(-radius..radius) * 0x200,
+                        16 as usize,
+                        2,
+                        state,
+                        &npc.rng,
+                    );
+
+                    state.sound_manager.play_sfx(44);
+                    npc.action_counter = 0;
+
+                }
             }
 
             _ => {}
@@ -505,7 +656,8 @@ impl BossNPC {
 
         //move the shuttle back and forth around the target
         if npc.action_num == 10
-        || npc.action_num == 11 {
+        || npc.action_num == 11
+        || npc.action_num == 12 {
 
             if npc.target_x < npc.x {
                 npc.vel_x -= 0x05;
@@ -518,12 +670,27 @@ impl BossNPC {
             npc.vel_x = npc.vel_x.clamp(-clamp_speed, clamp_speed);
             npc.vel_y = npc.vel_y.clamp(-clamp_speed, clamp_speed);
 
+
+            //force all shock values to be the same
+            npc_static.shock = npc_screen.shock;
+            npc.shock = npc_screen.shock;
+
+            //detect "death" and start death sequence
+            if npc_screen.life <= 8000 - tv_life {
+                npc_screen.npc_flags.set_shootable(false);
+                npc.action_num = 20;
+            }
+
+
         } else {
             //don't slide around
-            npc.vel_x = 0;
+            if npc.action_num != 20 {
+                npc.vel_x = 0;
+            }
         }
 
         npc.x += npc.vel_x;
+
 
         //move in,
         //leer at player,
@@ -552,7 +719,12 @@ impl BossNPC {
 
     }
 
-    fn tick_b11_rice_grav_gun(&mut self, i: usize) {
+    fn tick_b11_rice_grav_gun(
+        &mut self,
+        gun: usize,
+        beam: usize,
+        players: [&mut Player; 2],
+    ) {
 
         let rc_grav_gun = [
             Rect::new(208,64,272,96), //unlit
@@ -560,7 +732,13 @@ impl BossNPC {
             Rect::new(208,128,272,160), //bottom
         ];
 
-        let npc = &mut self.parts[i];
+        let (npc, npc_beam) = unsafe {
+            let ptr = self.parts.as_mut_ptr();
+            let a = ptr.add(gun).as_mut().unwrap();
+            let b = ptr.add(beam).as_mut().unwrap();
+            (a, b)
+        };
+
 
         //move in,
         //home towards player,
@@ -568,12 +746,201 @@ impl BossNPC {
         //repeat,
         //if life == 0, move forward and expose boss
 
+
+        //location to the left offscreen
+        let x_min = X -(0x200 * 64);
+
+        //location to the right offscreen
+        let x_max = X + WIDTH + (0x200 * 64);
+
+        let [p1, p2] = players;
+
         match npc.action_num {
+
+            //idle offscreen
+            0 => {
+                npc.x = x_min;
+                npc.target_x = x_min;
+            }
+
+            //idle
+            1 => {}
+
+            //slide towards player, prep for offensive (lights off)
+            10 | 11 => {
+
+                let target = npc.get_closest_player_mut([p1, p2]);
+
+                if npc.action_num == 10 {
+                    npc.action_num = 11;
+                    //npc.target_x = target.x;
+
+                    npc.action_counter = 0;
+                }
+
+                //accelerate toward player
+                if npc.x < target.x {
+                    npc.vel_x += 0x05;
+                } else {
+                    npc.vel_x -= 0x05;
+                }
+                npc.vel_x = npc.vel_x.clamp(-0x200, 0x200);
+
+
+                //if we cross over the player, increment counter (like monster X)
+                if (npc.x < target.x) != (npc.x < npc.target_x) {
+                    npc.action_counter += 1;
+                }
+
+                //cache player position
+                npc.target_x = target.x;
+
+
+                //we crossed over X times, goto next action
+                if npc.action_counter > 4 {
+                    //npc.action_num = 20;
+                }
+
+                npc.x += npc.vel_x;
+                npc.anim_num = 0; //off
+
+
+                //test: hold beam below gun
+                npc_beam.x = npc.x;
+                npc_beam.y = npc.y + 16 * 0x200;
+                npc_beam.vel_x = npc.vel_x;
+
+            }
+
+            //decelerate
+            20 => {
+                
+                if npc.vel_x > 40 {
+                    npc.vel_x -= 40;
+                } else if npc.vel_x < -40 {
+                    npc.vel_x += 40;
+                } else {
+                    //goto shoot
+                    npc.vel_x = 0;
+                    npc.action_num = 21;
+                }
+                
+                
+                
+                npc.x += npc.vel_x;
+            }
+
+            //shoot gravity well (lights on)
+            21 => {
+
+                npc.anim_num = 1; //on
+            }
+            
+            //shoot lightning (lights blink beforehand)
+            30 => {
+
+                npc.animate(5, 0, 1);
+            }
 
             _ => {}
         }
 
+
+        //factor in shock
+        if npc.shock % 2 == 1 {
+            npc.anim_num = 3;
+        }
+
+        npc.anim_rect = rc_grav_gun[npc.anim_num as usize];
+
+        self.tick_b11_rice_grav_gun_beam(beam, [p1, p2]);
+
+
     }
+
+    //sucks players toward the top of the beam
+    fn tick_b11_rice_grav_gun_beam(
+        &mut self,
+        i: usize,
+        players: [&mut Player; 2],
+    ) {
+
+        let rc_beam = [
+            Rect::new(0,0,0,0), //unlit
+            Rect::new(184,280,256,400), //lit
+        ];
+
+        let npc = &mut self.parts[i];
+
+        //the beam is shaped like a trapezoid
+        let top_width = 8 * 0x200 / 2;
+        let bottom_width = rc_beam[1].width() * 0x200 / 2;
+        let height = rc_beam[1].height() * 0x200;
+
+        //pre-calculate slope
+        let slope = (height as f32) / (bottom_width - top_width) as f32; // "/"
+
+        //let pc = npc.get_closest_player_mut(players);
+
+        match npc.action_num {
+
+            //idle off
+            0 => {
+                npc.anim_num = 0;
+
+                //temp. test
+                npc.action_num = 1;
+            }
+
+            //blink on, "suck" player to top
+            1 => {
+
+                for pc in players {
+
+                    if !pc.cond.alive() {
+                        continue;
+                    }
+                    
+                    //get hitbox width given player height
+                    let curr_height = pc.y - npc.y;
+                    let hitbox_width = curr_height as f32 / slope + top_width as f32;
+
+                    let readable_width = hitbox_width / (0x200 as f32);
+                    npc.action_counter3 = readable_width.abs() as u16;
+
+                    //is within x range of trapezoid
+                    if pc.x > npc.x - hitbox_width as i32
+                    && pc.x < npc.x {
+                        //PC is on the left of the NPC, push the PC right
+                        //pc.vel_x += 0x20;
+                        //pc.vel_y -= 0x60;
+
+                        npc.anim_num = 1;
+
+
+                    } else if pc.x < npc.x + hitbox_width as i32
+                    && pc.x > npc.x {
+                        //pc is on the right of the NPC, push it left
+                        //pc.vel_x -= 0x20;
+                        //pc.vel_y -= 0x60;
+
+                        npc.anim_num = 1;
+                    } else {
+                        npc.anim_num = 0;
+                    }
+                }
+
+
+            }
+
+            //do nothing
+            _ => {}
+        }
+
+        npc.anim_rect = rc_beam[npc.anim_num as usize];
+
+    }
+
 
     fn tick_b11_rice_platform(&mut self, i: usize, rc_no: usize) {
 
@@ -650,6 +1017,9 @@ impl BossNPC {
 
         10, 11, tension puppet, then lower top
 
+        20, 21, blast lower part and disable shield (then idle with shield off)
+
+
         */
 
 
@@ -662,19 +1032,55 @@ impl BossNPC {
                 self.parts[puppet].action_num = 0; //idle slouched
             }
 
-            10 => {
+            //move parts in, turn on shield when everything is in its place
+            10 | 11 => {
+
+                if self.parts[top].target_x == 10 {
+                    self.parts[top].action_num = 10; //move down
+                    self.parts[bottom].action_num = 10; //move in
+
+                    //set up puppet
+                    self.parts[puppet].action_num = 20; //puppet bob
+                    self.parts[puppet].vel_y = 0x80; //set movement speed
+                    self.parts[puppet].target_y = 0x200 * 8 * 8;
+    
+                    //idle, wait for shield
+                    self.parts[top].target_x = 11;
+                }
+
+                //top AND bottom have reached their spot, turn on the shield
+                if self.parts[top].action_num == 11
+                && self.parts[bottom].action_num == 11 {
+                    self.parts[shield].action_num = 20; //shield on
+
+                    self.parts[top].target_x = 12; //idle
+                }
 
 
-                self.parts[top].action_num = 10; //move down
-                self.parts[bottom].action_num = 10; //move in
-                self.parts[shield].action_num = 20; //shield on
-                self.parts[puppet].action_num = 20; //puppet
 
-                self.parts[puppet].vel_y = 0x80; //set movement speed
-                self.parts[puppet].target_y = 0x200 * 8 * 8;
+            }
+
+
+            //make vulnerable
+            20 => {
+
+                self.parts[shield].action_num = 0; //shield off
+                self.parts[puppet].action_num = 40; //puppet bob faster
+
+                //drop bottom arm
+                self.parts[bottom].action_num = 20;
+
+                //turn top arm off
+                self.parts[top].action_num = 20;
 
                 //idle
-                self.parts[top].target_x = 11;
+                self.parts[top].target_x = 21;
+
+            }
+
+            //regenerate lower bit (?)
+            30 => {
+
             }
             
             _ => {}
@@ -727,21 +1133,25 @@ impl BossNPC {
                     npc.y += 0x200;
                 } else {
                     npc.y = active_position;
-                    npc.action_num = 20; //idle
+                    npc.action_num = 11; //idle
                 }
 
             }
 
             //idle, animate
+            11 => {
+                npc.animate(4, 0, 1);
+            }
+
+            //sit off
             20 => {
+                npc.anim_num = 0;
             }
 
 
 
             _ => {}
         }
-
-        npc.animate(4, 0, 1);
 
         npc.anim_rect = rc_generator_top[npc.anim_num as usize];
 
@@ -804,11 +1214,21 @@ impl BossNPC {
 
 
             //explode, fall off, and get carried away by platform (we need to run the personalized physics code in main boss function to append xm)
-            20 => {
+            20 | 21 => {
+
+                if npc.action_num == 20 {
+                    npc.action_num = 21;
+
+                    //initial throw velocities
+                    npc.vel_y = -0x200;
+                    npc.vel_x = -0x400;
+                }
 
                 //append y momentum
-                npc.vel_y += 0x10;
-                npc.vel_y = npc.vel_y.clamp(-0x200, 0x200);
+                npc.vel_y += 0x40;
+                npc.clamp_fall_speed();
+
+
 
                 //halt the y momentum if we've made contact with the floor
                 if npc.flags.hit_bottom_wall() {
@@ -821,7 +1241,8 @@ impl BossNPC {
                 npc.anim_num = 0; //off
 
                 //if offscreen, return to idle state
-                if npc.x + 0x200 * 4 * 16 < X {
+                if npc.x + 0x200 * 4 * 16 < X
+                || npc.y - 0x200 * 4 * 16 > Y + HEIGHT {
                     npc.action_num = 0;
                 }
             }
@@ -832,7 +1253,7 @@ impl BossNPC {
         }
 
         //if not in the destroyed state, animate
-        if npc.action_num != 20 {
+        if npc.action_num != 21 {
             npc.animate(4, 0, 1);
         }
 
@@ -840,7 +1261,7 @@ impl BossNPC {
 
     }
 
-    //just the puppet
+    //just the puppet (TODO: fix bobbing speed)
     fn tick_b11_rice_puppet(&mut self, i: usize) {
 
         let rc_puppet: [Rect<u16>; 4] = [
@@ -925,8 +1346,8 @@ impl BossNPC {
             //goto position (requires vel_y be set)
             10 => {
 
+                //snap to tensioned rect
                 npc.anim_num = 2;
-
 
                 //guard against negative velocities
                 let absvel = abs(npc.vel_y);
@@ -947,7 +1368,6 @@ impl BossNPC {
             //bob
             20 | 21 => {
                 if npc.action_num == 20 {
-                    npc.anim_num = 2; //ensure correct rect
                     npc.vel_y = 0x20; //give some starting velocity
                     npc.action_num += 1;
                 }
@@ -960,13 +1380,39 @@ impl BossNPC {
                 }
                 npc.vel_y = npc.vel_y.clamp(-0x80, 0x80);
 
+                npc.anim_num = 2; //ensure correct rect (tensioned)
             }
 
+            //bob faster
+            40 | 41 => {
+                if npc.action_num == 40 {
+                    npc.vel_y = 0x20; //give some starting velocity
+                    npc.action_num += 1;
+                }
 
+                if parent_y + npc.target_y < npc.y {
+                    npc.vel_y -= 0x05;
+                }
+                if parent_y + npc.target_y > npc.y {
+                    npc.vel_y += 0x05;
+                }
+                npc.vel_y = npc.vel_y.clamp(-0xA0, 0xA0);
 
+                npc.anim_num = 2; //ensure correct rect (tensioned)
+            }
 
             _ => {}
         }
+
+
+        //ensure this NPC doesn't die
+        npc.life = 10000;
+
+        //factor in shock
+        if npc.shock % 2 == 1 {
+            npc.anim_num = 3;
+        }
+
 
 
         //add velocities
@@ -1055,10 +1501,10 @@ impl BossNPC {
 
     //helper functions
 
-    //sets the movement speed of the floor and roof
+    //sets the movement speed of the floor and roof (TODO: make this take an index list)
     fn set_rail_speed(&mut self, speed: i32) {
 
-        for i in 11..=16 {
+        for i in 12..=17 {
             self.parts[i].vel_x = speed;
         }
     }
@@ -1260,7 +1706,7 @@ impl BossNPC {
     ) {
 
 
-        //state.settings.noclip = true; //force this for now
+        state.settings.noclip = true; //force this for now
 
 
         let rc_lightning = [
@@ -1278,15 +1724,18 @@ impl BossNPC {
         //     0 * 0x200,
         // );
 
+        //main boss life
+        let boss_life = 200;
+
         //NPC id list for easy draw order switching
         let main_id = 0;
         let platform_top_id = 1;
-        let platform_bottom_id = 17;
+        let platform_bottom_id = 18;
         let puppet_parts_id = (3,4,5,6);
-        let grav_gun_id = 7;
-        let tv_parts_id = (8,9,10);
-        let rails_id = (11,12,13);
-        let floor_id = (14,15,16);
+        let grav_gun_id = (7, 8);
+        let tv_parts_id = (9,10,11);
+        let rails_id = (12,13,14);
+        let floor_id = (15,16,17);
 
 
 
@@ -1308,7 +1757,7 @@ impl BossNPC {
                     npc.action_num = 1; //idle mode
                     npc.npc_flags.set_event_when_killed(true);
                     npc.event_num = 1000;
-                    npc.life = 300;
+                    npc.life = boss_life;
                     npc.cond.set_alive(true);
 
                     npc.x = X;
@@ -1466,6 +1915,16 @@ impl BossNPC {
                     npc.parent_id = puppet_parts_id.0 as u16; //parent is top
                     npc.cond.set_alive(true);
 
+                    //this is the only NPC that actually counts toward the boss HP
+                    npc.cond.set_damage_boss(true);
+                    npc.npc_flags.set_shootable(true);
+
+                    npc.hit_bounds = Rect::new(
+                        0x200 * 8,
+                        0x200 * 8,
+                        0x200 * 8,
+                        0x200 * 8,
+                    );
 
 
 
@@ -1473,6 +1932,37 @@ impl BossNPC {
 
                 //gravity gun
                 {
+                    let npc = &mut self.parts[grav_gun_id.0];
+                    npc.cond.set_alive(true);
+
+                    npc.hit_bounds = Rect::new(
+                        0x200 * 3 * 8,
+                        0x200 * 8,
+                        0x200 * 3 * 8,
+                        0x200 * 8,
+                    );
+
+                    npc.display_bounds = Rect::new(
+                        0x200 * 4 * 8,
+                        0x200 * 16,
+                        0x200 * 4 * 8,
+                        0x200 * 24,
+                    );
+
+
+                    npc.y = Y + (3 * 16) * 0x200;
+                    npc.x = X;
+
+
+                    let npc = &mut self.parts[grav_gun_id.1];
+                    npc.cond.set_alive(true);
+                    npc.display_bounds = Rect::new(
+                        0x200 * 36,
+                        0x200 * 0,
+                        0x200 * 36,
+                        0x200 * 8 * 15,
+                    );
+                    npc.parent_id = grav_gun_id.0 as u16;
 
                 }
 
@@ -1543,11 +2033,9 @@ impl BossNPC {
                     npc.y = Y + (3 * 16) * 0x200;
                     npc.x = X; //this is offset back immediately anyway: starting point doesn't matter here
 
-                    self.parts[10].action_num = 0;
+                    self.parts[tv_parts_id.2].action_num = 0;
                     self.tick_b11_rice_tv_shuttle(npc_list, state, tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
 
-                    //slide in
-                    self.parts[10].action_num = 10;
 
 
                 }
@@ -1566,7 +2054,7 @@ impl BossNPC {
                         let npc = &mut self.parts[id];
                         
                         npc.cond.set_alive(true);
-                        npc.npc_flags.set_invulnerable(true);
+                        //npc.npc_flags.set_invulnerable(true);
                         npc.npc_flags.set_ignore_solidity(true);
 
                         //origin was in top left corner
@@ -1643,10 +2131,81 @@ impl BossNPC {
             }
 
 
+            //state: check for TV action 20 and if it's past the puppet.
+            //if so, break puppet floor and disable shield
+
+            //idle with screen, check for TV destruction
+            10 => {
+
+                //tv shuttle on action 20 and has moved past the top platform
+                if self.parts[tv_parts_id.2].action_num == 20
+                && self.parts[tv_parts_id.2].x > self.parts[puppet_parts_id.0].x {
+
+                    //to next action (disable shield and idle offline)
+                    self.parts[main_id].action_num = 20;
+                }
+
+            }
+            //wait x ammount of time (or until a certain ammount of health is depleted) before 
+            20 | 21 => {
+
+                if self.parts[main_id].action_num == 20 {
+                    //disable puppet shield (with target_x)
+                    self.parts[puppet_parts_id.0].target_x = 20;
+
+                    //prep for offline idle
+                    self.parts[main_id].action_counter = 0;
+                    self.parts[main_id].action_num = 21;
+
+                    //keep track of starting HP
+                    self.parts[main_id].action_counter2 = self.parts[main_id].life;
+                }
+
+
+                self.parts[main_id].action_counter += 1;
+
+                //did 20 damage or waited longer than 100 ticks
+                if self.parts[main_id].action_counter > 200
+                //todo: fix underflow error
+                || self.parts[main_id].life <= self.parts[main_id].action_counter2 - 30 {
+                    //goto shield restore
+                    self.parts[main_id].action_num = 30;
+                }
+
+            }
+
+            //restore shield, return to idle
+            30 => {
+                //restore puppet shield (with target_x)
+                self.parts[puppet_parts_id.0].target_x = 10;
+
+
+                //slide TV in
+                self.parts[tv_parts_id.2].action_num = 10;
+
+                //goto "wait for TV destroy"
+                self.parts[main_id].action_num = 10;
+
+            }
+
+
+
             //debug: ANP tube to move in
             200 => {
                 self.parts[puppet_parts_id.0].target_x = 10; //begin move-in (use 3's target_x to govern the states of the entire tube)
-                self.parts[main_id].action_num = 201; //idle
+
+                //slide TV in
+                self.parts[tv_parts_id.2].action_num = 10;
+
+                //slide ggun in 
+                self.parts[grav_gun_id.0].action_num = 10;
+
+                self.parts[main_id].action_num = 10; //idle
+            }
+            //tell TV to shoot
+            201 => {
+                self.parts[tv_parts_id.2].action_num = 12; //shoot mode
+                self.parts[main_id].action_num = 10; //idle
             }
 
 
@@ -1664,13 +2223,16 @@ impl BossNPC {
             // for i in [platform_top_id, platform_bottom_id] {
             //     self.tick_b11_rice_platform(i);
             // }
+            
             self.tick_b11_rice_platform(platform_top_id, 0);
             self.tick_b11_rice_platform(platform_bottom_id, 1);
 
             //run tv
             self.tick_b11_rice_tv_shuttle(npc_list, state, tv_parts_id.2, tv_parts_id.0, tv_parts_id.1);
 
-            
+            //run ggun
+            self.tick_b11_rice_grav_gun(grav_gun_id.0, grav_gun_id.1, [p1, p2]);
+
             //run moving rails
             for i in [rails_id.0, rails_id.1, rails_id.2] {
                 self.tick_b11_rice_rail(i);

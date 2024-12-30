@@ -773,8 +773,8 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             388 => self.tick_n385_8_tesla_shooter_ai(state, players, npc_list, frame, Direction::Bottom),
             389 => self.tick_n389_tesla_bullet(state),
             390 => self.tick_n390_raycast_light(),
-
-            391 => self.tick_n391_gravity(players, npc_list, boss),
+            391 => self.tick_n391_homing_bead(state, players, npc_list, boss),
+            392 => self.tick_n392_xplosion(state, npc_list),
 
             _ => Ok(()),
         }?;
