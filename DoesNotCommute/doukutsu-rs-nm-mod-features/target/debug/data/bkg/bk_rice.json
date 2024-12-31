@@ -90,6 +90,94 @@
     },
 
     {
+      "name": "bottom 1 (shapes)",
+      "layer_enabled": true,
+      "bmp_x_offset": 0,
+      "bmp_y_offset": 144,
+      "bmp_width": 128,
+      "bmp_height": 16,
+      "draw_repeat_x": 0,
+      "draw_repeat_y": 1,
+      "draw_repeat_gap_x": 0,
+      "draw_repeat_gap_y": 0,
+      "draw_corner_offset_x": 0.0,
+      "draw_corner_offset_y": 164.0,
+      "animation_style": {
+        "frame_count": 4,
+        "frame_start": 0,
+        "animation_speed": 5,
+        "follow_speed_x": 0.25,
+        "follow_speed_y": 1.0,
+        "autoscroll_speed_x": 0.25,
+        "autoscroll_speed_y": 0.1,
+        "screen_width_add_percent": 0.25,
+        "screen_height_add_percent": 1.0,
+        "scroll_flags": {
+          "follow_pc_x": true,
+          "follow_pc_y": false,
+          "autoscroll_x": true,
+          "autoscroll_y": false,
+          "align_with_water_lvl": false,
+          "draw_above_foreground": false,
+          "random_offset_x": false,
+          "random_offset_y": false,
+          "lock_to_x_axis": false,
+          "lock_to_y_axis": false,
+          "randomize_all_parameters": false,
+          "add_screen_width": false,
+          "add_screen_height": false,
+          "relative_to_pillarbox": true,
+          "relative_to_letterbox": true
+        }
+      }
+    },
+
+
+    {
+      "name": "pillars",
+      "layer_enabled": true,
+      "bmp_x_offset": 0,
+      "bmp_y_offset": 224,
+      "bmp_width": 32,
+      "bmp_height": 32,
+      "draw_repeat_x": 0,
+      "draw_repeat_y": 0,
+      "draw_repeat_gap_x": 160,
+      "draw_repeat_gap_y": 0,
+      "draw_corner_offset_x": 0.0,
+      "draw_corner_offset_y": 0.0,
+      "animation_style": {
+        "frame_count": 0,
+        "frame_start": 0,
+        "animation_speed": 5,
+        "follow_speed_x": 0.3,
+        "follow_speed_y": 1.0,
+        "autoscroll_speed_x": 0.3,
+        "autoscroll_speed_y": 0.1,
+        "screen_width_add_percent": 1.0,
+        "screen_height_add_percent": 1.0,
+        "scroll_flags": {
+          "follow_pc_x": true,
+          "follow_pc_y": false,
+          "autoscroll_x": true,
+          "autoscroll_y": false,
+          "align_with_water_lvl": false,
+          "draw_above_foreground": false,
+          "random_offset_x": false,
+          "random_offset_y": false,
+          "lock_to_x_axis": false,
+          "lock_to_y_axis": false,
+          "randomize_all_parameters": false,
+          "add_screen_width": false,
+          "add_screen_height": false,
+          "relative_to_pillarbox": true,
+          "relative_to_letterbox": true
+        }
+      }
+    },
+
+
+    {
       "name": "top 2",
       "layer_enabled": true,
       "bmp_x_offset": 0,
@@ -106,6 +194,49 @@
         "frame_count": 4,
         "frame_start": 0,
         "animation_speed": 8,
+        "follow_speed_x": 0.5,
+        "follow_speed_y": 1.0,
+        "autoscroll_speed_x": 0.5,
+        "autoscroll_speed_y": 0.1,
+        "screen_width_add_percent": 1.0,
+        "screen_height_add_percent": 1.0,
+        "scroll_flags": {
+          "follow_pc_x": true,
+          "follow_pc_y": false,
+          "autoscroll_x": true,
+          "autoscroll_y": false,
+          "align_with_water_lvl": false,
+          "draw_above_foreground": false,
+          "random_offset_x": false,
+          "random_offset_y": false,
+          "lock_to_x_axis": false,
+          "lock_to_y_axis": false,
+          "randomize_all_parameters": false,
+          "add_screen_width": false,
+          "add_screen_height": false,
+          "relative_to_pillarbox": true,
+          "relative_to_letterbox": true
+        }
+      }
+    },
+
+    {
+      "name": "bottom 2 (computers)",
+      "layer_enabled": true,
+      "bmp_x_offset": 0,
+      "bmp_y_offset": 160,
+      "bmp_width": 128,
+      "bmp_height": 32,
+      "draw_repeat_x": 0,
+      "draw_repeat_y": 1,
+      "draw_repeat_gap_x": 0,
+      "draw_repeat_gap_y": 0,
+      "draw_corner_offset_x": 0.0,
+      "draw_corner_offset_y": 172.0,
+      "animation_style": {
+        "frame_count": 4,
+        "frame_start": 0,
+        "animation_speed": 5,
         "follow_speed_x": 0.5,
         "follow_speed_y": 1.0,
         "autoscroll_speed_x": 0.5,
@@ -176,53 +307,10 @@
     },
 
     {
-      "name": "bottom 1",
+      "name": "bottom 3 (blinker shapes + wire)",
       "layer_enabled": true,
       "bmp_x_offset": 0,
-      "bmp_y_offset": 144,
-      "bmp_width": 128,
-      "bmp_height": 16,
-      "draw_repeat_x": 0,
-      "draw_repeat_y": 1,
-      "draw_repeat_gap_x": 0,
-      "draw_repeat_gap_y": 0,
-      "draw_corner_offset_x": 0.0,
-      "draw_corner_offset_y": -68.0,
-      "animation_style": {
-        "frame_count": 0,
-        "frame_start": 0,
-        "animation_speed": 5,
-        "follow_speed_x": 1.0,
-        "follow_speed_y": 1.0,
-        "autoscroll_speed_x": 0.25,
-        "autoscroll_speed_y": 0.1,
-        "screen_width_add_percent": 0.25,
-        "screen_height_add_percent": 1.0,
-        "scroll_flags": {
-          "follow_pc_x": true,
-          "follow_pc_y": false,
-          "autoscroll_x": true,
-          "autoscroll_y": false,
-          "align_with_water_lvl": false,
-          "draw_above_foreground": false,
-          "random_offset_x": false,
-          "random_offset_y": false,
-          "lock_to_x_axis": false,
-          "lock_to_y_axis": false,
-          "randomize_all_parameters": false,
-          "add_screen_width": false,
-          "add_screen_height": true,
-          "relative_to_pillarbox": true,
-          "relative_to_letterbox": true
-        }
-      }
-    },
-
-    {
-      "name": "bottom 2",
-      "layer_enabled": true,
-      "bmp_x_offset": 0,
-      "bmp_y_offset": 160,
+      "bmp_y_offset": 192,
       "bmp_width": 128,
       "bmp_height": 32,
       "draw_repeat_x": 0,
@@ -230,14 +318,14 @@
       "draw_repeat_gap_x": 0,
       "draw_repeat_gap_y": 0,
       "draw_corner_offset_x": 0.0,
-      "draw_corner_offset_y": -64.0,
+      "draw_corner_offset_y": 188.0,
       "animation_style": {
         "frame_count": 4,
         "frame_start": 0,
         "animation_speed": 5,
-        "follow_speed_x": 0.5,
+        "follow_speed_x": 1.0,
         "follow_speed_y": 1.0,
-        "autoscroll_speed_x": 0.5,
+        "autoscroll_speed_x": 1.0,
         "autoscroll_speed_y": 0.1,
         "screen_width_add_percent": 1.0,
         "screen_height_add_percent": 1.0,
@@ -254,12 +342,15 @@
           "lock_to_y_axis": false,
           "randomize_all_parameters": false,
           "add_screen_width": false,
-          "add_screen_height": true,
+          "add_screen_height": false,
           "relative_to_pillarbox": true,
           "relative_to_letterbox": true
         }
       }
     }
+
+
+
 
   ]
 }
