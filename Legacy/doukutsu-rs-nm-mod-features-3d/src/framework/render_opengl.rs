@@ -888,33 +888,52 @@ impl ThreeDModelSetup {
 
         let mut path_buffer = path::PathBuf::new();
         path_buffer.push(path);
-        let (parsed_scene, mut light_list) = deserialize_gltf(&self.context, &mut raw_assets, &path_buffer).unwrap();
-        let mut cpu_model: CpuModel = parsed_scene.into();
+        
+        let load_result = deserialize_gltf(&self.context, &mut raw_assets, &path_buffer);
 
-        //we may or may not need to recompute normals...
-        // cpu_model
-        //     .geometries
-        //     .iter_mut()
-        //     .for_each(|part| part.compute_normals());
+        match load_result {
+            Ok(e) => {
 
-        let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
+                let (parsed_scene, mut light_list) = e;
+                let mut cpu_model: CpuModel = parsed_scene.into();
+        
+                //we may or may not need to recompute normals...
+                cpu_model
+                    .geometries
+                    .iter_mut()
+                    .for_each(|part| part.compute_normals());
+                // cpu_model
+                //     .geometries
+                //     .iter_mut()
+                //     .for_each(|m| m.compute_tangents());
+        
+                let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
+        
+                let im_model = ImportedModel{
+                    model,
+                    time: 1.0,
+                    offset_time: 0.0,
+                    stop_time: -1.0, //<= 0 time means this setting is inactive
+                    play: false,
+                };
+        
+                let result = self.map_models.insert(key, im_model);
+        
+                //delete old lights and add new ones
+                if update_lights {
+                    self.lights = light_list;
+                }
+        
+                Ok(result.is_none())
 
-        let im_model = ImportedModel{
-            model,
-            time: 1.0,
-            offset_time: 0.0,
-            stop_time: -1.0, //<= 0 time means this setting is inactive
-            play: false,
-        };
-
-        let result = self.map_models.insert(key, im_model);
-
-        //delete old lights and add new ones
-        if update_lights {
-            self.lights = light_list;
+            }
+            Err(e) => {
+                log::warn!("{}", e);
+                Ok(true)
+            }
         }
+        
 
-        Ok(result.is_none())
 
     }
 
@@ -1156,9 +1175,9 @@ impl ThreeDModelSetup {
                 .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 0.0, 1.0))
                 .render(&self.camera, &self.skybox, &[]) //todo: add this to main "renderable things"
                 .render(
-                    &self.camera,
-                    renderable_things, //self.map_models.into_iter(), //iter().map(|x| x as &dyn Object),
-                    &lightable_things) //&self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
+                   &self.camera,
+                   renderable_things, //self.map_models.into_iter(), //iter().map(|x| x as &dyn Object),
+                   &lightable_things) //&self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
                 .render(&self.camera, &self.char_plane, &[]);
                 
 

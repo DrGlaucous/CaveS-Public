@@ -6,6 +6,7 @@ async fn main() {
 }
 
 use three_d::*;
+use three_d_asset::io::*;
 
 pub async fn run() {
     let window = Window::new(WindowSettings {
@@ -28,30 +29,30 @@ pub async fn run() {
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context);
 
-    let mut loaded = if let Ok(loaded) = three_d_asset::io::load_async(&[
-        "../assets/chinese_garden_4k.hdr", // Source: https://polyhaven.com/
-        "examples/assets/gltf/DamagedHelmet.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-    ])
-    .await
-    {
-        loaded
-    } else {
-        three_d_asset::io::load_async(&[
-            "https://asny.github.io/three-d/assets/chinese_garden_4k.hdr",
-            "examples/assets/gltf/DamagedHelmet.glb",
-        ])
-        .await
-        .expect("failed to download the necessary assets, to enable running this example offline, place the relevant assets in a folder called 'assets' next to the three-d source")
-    };
 
-    let environment_map = loaded.deserialize("chinese").unwrap();
+
+    //DamagedHelmet_re.glb
+    //untitled
+    let mut loaded: RawAssets = three_d_asset::io::load(&[
+        "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/pano4s.png", // Source: https://polyhaven.com/
+        "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/gltf/untitled.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+    ]).unwrap();
+
+    let environment_map = loaded.deserialize("pano4s").unwrap();
     let skybox = Skybox::new_from_equirectangular(&context, &environment_map);
 
-    let mut cpu_model: CpuModel = loaded.deserialize("DamagedHelmet").unwrap();
+    let mut cpu_model: CpuModel = loaded.deserialize("untitled").unwrap();
+
+    // cpu_model
+    //     .geometries
+    //     .iter_mut()
+    //     .for_each(|m| m.compute_normals());
+
     cpu_model
         .geometries
         .iter_mut()
         .for_each(|m| m.compute_tangents());
+
     let model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
         .unwrap()
         .remove(0);

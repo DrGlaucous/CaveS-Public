@@ -9,7 +9,6 @@ use three_d_asset::io::*;
 use three_d::renderer::light::{PointLight, SpotLight, DirectionalLight, Light as ThreeLight};
 use three_d::core::Context;
 
-
 use ::gltf::Gltf;
 use gltf::khr_lights_punctual::{Light, Kind};
 use std::collections::HashSet;
@@ -419,10 +418,18 @@ fn parse_texture<'a>(
             }
             #[allow(unused_variables)]
             let buffer = &buffers[view.buffer().index()];
-            #[cfg(not(feature = "image"))]
-            return Err(Error::FeatureMissing("image".to_string()));
-            #[cfg(feature = "image")]
-            super::img::deserialize_img("", &buffer[view.offset()..view.offset() + view.length()])?
+
+            //not needed for the local version of the gltf library
+            //#[cfg(not(feature = "image"))]
+            //return Err(Error::FeatureMissing("image".to_string()));
+            //#[cfg(feature = "image")]
+            //super::img::deserialize_img("", &buffer[view.offset()..view.offset() + view.length()])?
+
+
+            let aa = three_d_asset::io::deserialize::<Texture2D>(buffer[view.offset()..view.offset() + view.length()].to_vec());
+            return aa;
+
+
         }
     };
 

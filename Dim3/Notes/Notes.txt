@@ -5,3 +5,24 @@ glow "hello" example:
 https://github.com/grovesNL/glow/tree/main/examples/hello
 
 cargo run --features=sdl2
+
+
+
+
+
+three-d quirks:
+
+with GLTF import, all models must have computed tangents if textures are to be used
+
+to make tangents, you can either export them or make them in-code
+you need a UV map in order to make the tangents in-code (with the current iterative UV approach, all meshes need a UV map or else the program will crash)
+
+
+
+
+
+
+
+
+
+
