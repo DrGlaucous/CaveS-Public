@@ -38,26 +38,55 @@ pub async fn run() {
         "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/gltf/untitled.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
     ]).unwrap();
 
-    let environment_map = loaded.deserialize("pano4s").unwrap();
-    let skybox = Skybox::new_from_equirectangular(&context, &environment_map);
+    //let environment_map: CpuTexture = loaded.deserialize("pano4s").unwrap();
+    //let blank_map = CpuTexture::default();
+    //blank_map.
+
+    //let skybox = Skybox::new_from_equirectangular(&context, &environment_map);
+    // let skybox = Skybox::new(&context,
+    //     &blank_map, 
+    //     &blank_map,
+    //     &blank_map,
+    //     &blank_map, 
+    //     &blank_map, 
+    //     &blank_map, 
+    // );
+
+    //note: with textures, this takes waaay longer.
+    //potential solution: load the next map in the background while the current map is still running
+    //you'd have to have an extra trigger and command to start the preload, then a copy command
+    //and a wait-for-load-finish command that blocks until 
+
 
     let mut cpu_model: CpuModel = loaded.deserialize("untitled").unwrap();
 
-    // cpu_model
-    //     .geometries
-    //     .iter_mut()
-    //     .for_each(|m| m.compute_normals());
+    cpu_model
+        .geometries
+        .iter_mut()
+        .for_each(|m| m.compute_normals());
 
     cpu_model
         .geometries
         .iter_mut()
         .for_each(|m| m.compute_tangents());
 
+    let other_model = cpu_model.clone();
+
+
     let model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
         .unwrap()
-        .remove(0);
+        ;//.remove(1);
 
-    let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
+    //let ambient = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
+    let ambient = AmbientLight::new(&context, 1.0, Srgba::WHITE);
+
+    let mut spot0 = PointLight::new(
+        &context,
+        0.0,
+        Srgba::BLUE,
+        &vec3(0.0, 0.0, 0.0),
+        Attenuation { constant: 1.0, linear: 1.0, quadratic: 1.0 },
+    );
 
     // main loop
     let mut normal_map_enabled = true;
@@ -96,11 +125,21 @@ pub async fn run() {
         camera.set_viewport(viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
+
+        //let mut renderable_things = model.into_iter().chain(&skybox);
+
+        let lights = [
+            &ambient as &dyn Light,
+            &spot0,
+        ];
+
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.5, 0.5, 0.5, 1.0, 1.0))
-            .render(&camera, &skybox, &[])
-            .write(|| {
+            //.render(&camera, &skybox, &[])
+            .render(&camera, &model, &lights)
+            //.write(|| {
+                /*
                 let material = PhysicalMaterial {
                     name: model.material.name.clone(),
                     albedo: model.material.albedo,
@@ -144,11 +183,13 @@ pub async fn run() {
                         NormalDistributionFunction::TrowbridgeReitzGGX,
                         GeometryFunction::SmithSchlickGGX,
                     ),
-                };
-                model.render_with_material(&material, &camera, &[&light]);
-                gui.render()
-            })
-            .unwrap();
+                }; */
+
+                //model.render_with_material(&material, &camera, &[&light]);
+                //model.render_with_material(&material, &camera, &[&light]);
+                //gui.render()
+            //})
+            ;//.unwrap();
 
         FrameOutput::default()
     });

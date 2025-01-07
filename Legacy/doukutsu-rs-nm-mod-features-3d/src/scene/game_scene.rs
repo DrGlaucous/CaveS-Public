@@ -2254,7 +2254,7 @@ impl Scene for GameScene {
         }
 
         self.map_system.draw(state, ctx, &self.stage, [&self.player1, &self.player2])?;
-        self.fade.draw(state, ctx, &self.frame)?;
+        //self.fade.draw(state, ctx, &self.frame)?;
 
         if state.textscript_vm.mode == ScriptMode::Map || state.textscript_vm.mode == ScriptMode::Debug {
             self.nikumaru.draw(state, ctx, &self.frame)?;

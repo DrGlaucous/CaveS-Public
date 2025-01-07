@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::num::NonZeroU32;
 use std::any::Any;
 use std::cell::{RefCell, UnsafeCell};
@@ -646,6 +647,16 @@ struct ImportedModel {
     pub play: bool, //true if time should automatically increment with the game's ticks
 }
 
+//TEST
+struct TestItems {
+    pub vp: Viewport, //screen size
+    pub camera: Camera, //observation location of the 3D meshes
+    pub map_models: HashMap<i32, Model<PhysicalMaterial>>,
+    pub ambient_light: AmbientLight,
+    pub skybox: Skybox,
+    pub dummy_point_light: PointLight,
+}
+
 pub struct ThreeDModelSetup {
     vp: Viewport, //screen size
     context: ThreeDContext, //three_d::core::context constructed from "glow" context: three_d::context::Context 
@@ -660,7 +671,7 @@ pub struct ThreeDModelSetup {
 
     skybox: Option<Skybox>, //the skybox, black by default
     ambient_light: AmbientLight, //only one is needed (holds the texture for the skybox)
-
+    dummy_point_light: PointLight, //required if the model has textures and the skybox doesn't (for some reason...)
 
     midstep_surface: Texture2D,
     midstep_depth: DepthTexture2D,
@@ -668,6 +679,9 @@ pub struct ThreeDModelSetup {
 
     //clone of the one from RenderData, since we need to know where to put our drawn stuff if we're drawing to the default location
     surf_framebuffer: GLuint,
+
+
+    //test_items: TestItems,
 
 }
 
@@ -778,6 +792,95 @@ impl ThreeDModelSetup {
         
         log::info!("light count: {}", lights.len());
 
+
+        /* 
+        //test: set up test items
+        let test_items: TestItems = {
+
+            let vp2 = vp.clone();
+            let mut camera2 = Camera::new_perspective(
+                vp, //window.viewport(),
+                vec3(5.0, 2.0, 2.5),
+                vec3(0.0, 0.0, -0.5),
+                vec3(0.0, 1.0, 0.0),
+                degrees(45.0),
+                0.1,
+                1000.0,
+            );
+            let mut loaded: RawAssets = three_d_asset::io::load(&[
+                "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/pano4s.png", // Source: https://polyhaven.com/
+                "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/gltf/untitled.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+            ]).unwrap();
+
+            let mut path_buffer = path::PathBuf::new();
+            path_buffer.push("untitled");
+
+            let load_result = deserialize_gltf(&context, &mut loaded, &path_buffer);
+            let mut cpu_model: CpuModel = match load_result {
+                Ok(e) => {
+                    let (parsed_scene, mut light_list) = e;
+                    parsed_scene.into()
+                }
+                Err(e) => {
+                    log::warn!("{}", e);
+                    loaded.deserialize("untitled").unwrap()
+                }
+            };
+
+            let environment_map = loaded.deserialize("pano4s").unwrap();
+            let skybox = Skybox::new_from_equirectangular(&context, &environment_map);
+
+            //let mut cpu_model: CpuModel = loaded.deserialize("untitled").unwrap();
+
+            cpu_model
+                .geometries
+                .iter_mut()
+                .for_each(|m| m.compute_normals());
+    
+            cpu_model
+                .geometries
+                .iter_mut()
+                .for_each(|m| m.compute_tangents());
+
+            let model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
+                .unwrap()
+                ;//.remove(1);
+
+            //let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
+            let light = AmbientLight::new(&context, 0.5, Srgba::WHITE);
+
+            let dummy_point_light = PointLight::new(
+                &context,
+                0.0,
+                Srgba::WHITE,
+                &vec3(0.0, 0.0, 0.0),
+                Attenuation { constant: 1.0, linear: 1.0, quadratic: 1.0 },
+            );
+
+            //let mut model_list: HashMap<i32, ImportedModel> = HashMap::new();
+            let mut aa: HashMap<i32, Model<PhysicalMaterial>> = HashMap::new();
+
+            aa.insert(0, model);
+            let ti = TestItems {
+                vp: vp2,
+                camera: camera2,
+                map_models: aa,
+                ambient_light: light,
+                skybox,
+                dummy_point_light
+            };
+            ti
+        };
+        */
+
+        let dummy_point_light = PointLight::new(
+            &context,
+            0.0,
+            Srgba::WHITE,
+            &vec3(0.0, 0.0, 0.0),
+            Attenuation { constant: 1.0, linear: 1.0, quadratic: 1.0 },
+        );
+
         let mut mo = ThreeDModelSetup {
             vp,
             context,
@@ -791,6 +894,7 @@ impl ThreeDModelSetup {
 
             skybox: None,
             ambient_light,
+            dummy_point_light,
 
             midstep_surface,
             midstep_depth,
@@ -798,7 +902,7 @@ impl ThreeDModelSetup {
         };
 
 
-        /* 
+        /*
         //test: load object 1
         {
             let assets = three_d_asset::io::load(&["C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/meshes/testOrigin.glb"]);
@@ -866,6 +970,38 @@ impl ThreeDModelSetup {
         }
         */
 
+        /*
+        //test: following the pbr example
+        {
+            let mut loaded: RawAssets = three_d_asset::io::load(&[
+                "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/gltf/untitled.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+            ]).unwrap();
+            let mut cpu_model: CpuModel = loaded.deserialize("untitled").unwrap();
+
+            // cpu_model
+            //     .geometries
+            //     .iter_mut()
+            //     .for_each(|m| m.compute_normals());
+            // cpu_model
+            //     .geometries
+            //     .iter_mut()
+            //     .for_each(|m| m.compute_tangents());
+
+            let model = Model::<PhysicalMaterial>::new(&mo.context, &cpu_model)
+                .unwrap()
+                ;//.remove(0);
+            
+            let mmodel = ImportedModel{
+                model,
+                time: 0.0,
+                offset_time: 0.0,
+                stop_time: 0.0,
+                play: false,
+            };
+            mo.map_models.insert(0, mmodel);
+        }
+        */
+
 
 
         mo
@@ -875,7 +1011,11 @@ impl ThreeDModelSetup {
     }
 
     /// Loads a GLTF into the three-d backend to be rendered onscreen, returns "true" if the value was inserted, "false" if updated
-    pub fn load_gltf(&mut self, data: &[u8], key: i32, update_lights: bool) -> GameResult<bool> {
+    pub fn load_gltf(&mut self, data: &[u8], key: i32, update_lights: bool, q_index: usize) -> GameResult<bool> {
+
+        //temp: don't attempt to load anything for now
+        //return Ok(true);
+
 
         //used to store and get the data from the RawAssets container, which the gltf infrastructure uses
         //since raw_assets is no longer used after the deserialize operation, this pathname doesn't really matter
@@ -889,7 +1029,7 @@ impl ThreeDModelSetup {
         let mut path_buffer = path::PathBuf::new();
         path_buffer.push(path);
         
-        let load_result = deserialize_gltf(&self.context, &mut raw_assets, &path_buffer);
+        let load_result = deserialize_gltf(&self.context, &mut raw_assets, &path_buffer, q_index);
 
         match load_result {
             Ok(e) => {
@@ -897,15 +1037,87 @@ impl ThreeDModelSetup {
                 let (parsed_scene, mut light_list) = e;
                 let mut cpu_model: CpuModel = parsed_scene.into();
         
-                //we may or may not need to recompute normals...
+
+                for m in cpu_model.geometries.iter_mut() {
+                        
+                    //must separate the variables like this to appease the borrow checker
+                    let mut has_normals = false;
+                    let mut has_uvs = false;
+                    let mut has_tangents = false;
+                    let mut triangle_mesh = false;
+
+                    match &m.geometry {
+                        three_d_asset::Geometry::Triangles(a) => {
+                            triangle_mesh = true;
+                            has_normals = a.normals.is_some();
+                            has_uvs= a.uvs.is_some();
+                            has_tangents = a.tangents.is_some();
+                        }
+                        _ => {
+                            //do nothing for pointclouds
+                        }
+                    }
+
+                    //only try to do this if the geometry is a mesh
+                    if triangle_mesh {
+                        if !has_normals {
+                            m.compute_normals();
+                        }
+
+                        //we typically only need the tangents if we have a texture,
+                        //and that happens when we have a UV map
+                        if !has_tangents
+                        && has_uvs
+                        && has_normals {
+                            m.compute_tangents();
+                        }
+                    }
+
+                }
+                
+                /*
+                //compute any missing aux mesh data for each model in our scene
                 cpu_model
                     .geometries
                     .iter_mut()
-                    .for_each(|part| part.compute_normals());
-                // cpu_model
-                //     .geometries
-                //     .iter_mut()
-                //     .for_each(|m| m.compute_tangents());
+                    .for_each(|m| {
+                        
+                        //must separate the variables like this to appease the borrow checker
+                        let mut has_normals = false;
+                        let mut has_uvs = false;
+                        let mut has_tangents = false;
+                        let mut triangle_mesh = false;
+
+                        match &m.geometry {
+                            three_d_asset::Geometry::Triangles(a) => {
+                                triangle_mesh = true;
+                                has_normals = a.normals.is_some();
+                                has_uvs= a.normals.is_some();
+                                has_tangents = a.tangents.is_some();
+                            }
+                            _ => {
+                                //do nothing for pointclouds
+                            }
+                        }
+
+                        //only try to do this if the geometry is a mesh
+                        if triangle_mesh {
+                            if !has_normals {
+                                m.compute_normals();
+                            }
+    
+                            //we typically only need the tangents if we have a texture,
+                            //and that happens when we have a UV map
+                            if !has_tangents
+                            && has_uvs
+                            && has_normals {
+                                m.compute_tangents();
+                            }
+                        }
+
+                    });
+                */
+
         
                 let mut model = Model::<PhysicalMaterial>::new(&self.context, &cpu_model).unwrap();
         
@@ -1139,6 +1351,44 @@ impl ThreeDModelSetup {
         self.narc();
         
 
+        /*
+        //raw test
+        {
+            {
+                self.test_items.camera.set_viewport(self.test_items.vp);
+                //let scc = RenderTarget::screen(&self.context, vp.width, vp.height);
+
+                let renderable_things = self.test_items.map_models.iter().fold(
+                    Box::new(std::iter::empty()) as Box<dyn Iterator<Item = _>>,
+                    |acc, (key, model)| Box::new(acc.chain(model.into_iter()))
+                );
+                
+                let one_iter: std::iter::Once<&dyn Light> = std::iter::once(&self.test_items.ambient_light);
+                let two_iter: std::iter::Once<&dyn Light> = std::iter::once(&self.test_items.dummy_point_light);
+                let lightable_things  = self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>(); //.into_iter().chain(self.ambient_light.into()).collect::<Vec<_>>();
+    
+                // let lightable_things = [
+                //     &self.test_items.ambient_light as &dyn Light,
+                //     &self.test_items.dummy_point_light,
+                // ];
+
+                RenderTarget::new(
+                    self.midstep_surface.as_color_target(None),
+                    self.midstep_depth.as_depth_target())
+                    // Clear the color and depth of the screen render target
+                    .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                    .render(&self.test_items.camera, &self.test_items.skybox, &[])
+                    //.render(&self.test_items.camera, renderable_things, &[&self.test_items.ambient_light])
+                    .render(&self.test_items.camera, renderable_things, &lightable_things)
+                    .render(&self.camera, &self.char_plane, &[]);
+
+            }
+
+            //return Ok(());
+        }
+        */
+
+        
         //draw to midsurface
         {
             //no need to clear: the normal stuff already does this.
@@ -1154,7 +1404,7 @@ impl ThreeDModelSetup {
             //conglomerate all models into an iterator to be rendered by the render target
             // let mut renderable_things: Box<dyn Iterator<Item = _>> = Box::new(std::iter::empty());
             // for (key, model) in &self.map_models {
-            //     renderable_things = Box::new(renderable_things.chain(model.into_iter()));
+            //      renderable_things = Box::new(renderable_things.chain(model.into_iter()));
             // }
 
 
@@ -1166,7 +1416,8 @@ impl ThreeDModelSetup {
 
 
             let one_iter: std::iter::Once<&dyn Light> = std::iter::once(&self.ambient_light);
-            let lightable_things  = self.lights.iter().map(|l| l.as_ref()).chain(one_iter).collect::<Vec<_>>(); //.into_iter().chain(self.ambient_light.into()).collect::<Vec<_>>();
+            let two_iter: std::iter::Once<&dyn Light> = std::iter::once(&self.dummy_point_light);
+            let lightable_things  = self.lights.iter().map(|l| l.as_ref()).chain(one_iter).chain(two_iter).collect::<Vec<_>>(); //.into_iter().chain(self.ambient_light.into()).collect::<Vec<_>>();
 
             //render to mid-surface
             RenderTarget::new(
@@ -1179,10 +1430,10 @@ impl ThreeDModelSetup {
                    renderable_things, //self.map_models.into_iter(), //iter().map(|x| x as &dyn Object),
                    &lightable_things) //&self.lights.iter().map(|l| l.as_ref()).collect::<Vec<_>>())
                 .render(&self.camera, &self.char_plane, &[]);
-                
 
 
         }
+        
 
         //copy midsurface to output surface
         unsafe {

@@ -18,6 +18,11 @@ to make tangents, you can either export them or make them in-code
 you need a UV map in order to make the tangents in-code (with the current iterative UV approach, all meshes need a UV map or else the program will crash)
 
 
+models must have normals, tangents, and uv attributes to be used with a texture.
+
+models that will be used without textures don't need these.
+In general, it is good practice to have normals and tangents pre-exported
+
 
 
 

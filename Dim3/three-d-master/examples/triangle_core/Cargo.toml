@@ -13,7 +13,7 @@ default = ["sdl2"]
 
 [dependencies]
 three-d = { path = "../../" }
-three-d-asset = {version = "0.7"}
+three-d-asset = {path = "../pbr/three-d-asset-0.7.0", features = ["gltf", "hdr", "jpeg", "http", "png"] }
 sdl2 = { git = "https://github.com/doukutsu-rs/rust-sdl2.git", rev = "f2f1e29a416bcc22f2faf411866db2c8d9536308", optional = true, features = ["unsafe_textures", "bundled", "static-link"] }
 sdl2-sys = { git = "https://github.com/doukutsu-rs/rust-sdl2.git", rev = "f2f1e29a416bcc22f2faf411866db2c8d9536308", optional = true, features = ["bundled", "static-link"] }
 

@@ -12,10 +12,155 @@ use three_d::context::NativeFramebuffer;
 use three_d::context;
 
 use three_d::*;
+use three_d_asset::io::*;
 
 
 pub fn main() {
 
+    //high-level GLTF with SDL
+    {
+
+        let (gl, shader_version, window, mut events_loop, _context) = {
+            unsafe{
+                let sdl = sdl2::init().unwrap();
+                let video = sdl.video().unwrap();
+                let gl_attr = video.gl_attr();
+                gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
+                gl_attr.set_context_version(3, 0);
+                let window = video
+                    .window("Hello triangle!", 1024, 769)
+                    .opengl()
+                    .resizable()
+                    .build()
+                    .unwrap();
+                let gl_context = window.gl_create_context().unwrap();
+                
+                let gl =
+                    GContext::from_loader_function(|s| video.gl_get_proc_address(s) as *const _);
+                let event_loop = sdl.event_pump().unwrap();
+                (gl, "#version 130", window, event_loop, gl_context)
+            }
+        };
+
+        // Get the graphics context from the window
+        let context: Context = Context::from_gl_context(gl.into()).unwrap();
+
+        let window_size = window.size();
+
+        let vp = Viewport {
+            x: 0,
+            y: 0,
+            width: window_size.0,
+            height: window_size.1,
+        };
+
+        let mut camera = Camera::new_perspective(
+            vp, //window.viewport(),
+            vec3(5.0, 2.0, 2.5),
+            vec3(0.0, 0.0, -0.5),
+            vec3(0.0, 1.0, 0.0),
+            degrees(45.0),
+            0.1,
+            1000.0,
+        );
+        let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
+    
+    
+
+        //untitled
+        let mut loaded: RawAssets = three_d_asset::io::load(&[
+            "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/pano4s.png", // Source: https://polyhaven.com/
+            "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/gltf/untitled.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+        ]).unwrap();
+
+        let environment_map = loaded.deserialize("pano4s").unwrap();
+        let skybox = Skybox::new_from_equirectangular(&context, &environment_map);
+
+        let mut cpu_model: CpuModel = loaded.deserialize("untitled").unwrap();
+
+        cpu_model
+            .geometries
+            .iter_mut()
+            .for_each(|m| m.compute_normals());
+
+        cpu_model
+            .geometries
+            .iter_mut()
+            .for_each(|m| m.compute_tangents());
+
+        let model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
+            .unwrap()
+            ;//.remove(1);
+
+        let light = AmbientLight::new_with_environment(&context, 1.0, Srgba::WHITE, skybox.texture());
+
+
+
+        {
+            let mut running = true;
+            let mut time = 0.0;
+            window.gl_swap_window();
+            while running {
+                {
+                    for event in events_loop.poll_iter() {
+                        match event {
+                            sdl2::event::Event::Quit { .. } => running = false,
+                            _ => {}
+                        }
+                    }
+                }
+
+
+                //this is done for us by the scc
+                // unsafe {
+                //     context.clear_color(0.0, 0.0, 0.0, 1.0);
+                //     context.clear(context::COLOR_BUFFER_BIT | context::DEPTH_BUFFER_BIT);
+                //     //context.bind_buffer(target, buffer);
+                //     //context.set_blend(blend);
+                //     //context.bind_framebuffer(context::FRAMEBUFFER, Some(32));
+                // }
+                
+                // Ensure the viewport matches the current window viewport which changes if the window is resized
+                camera.set_viewport(vp);//(frame_input.viewport);
+
+                //update with events (todo: make an SDL converter for these)
+                //control.handle_events(&mut camera, &mut frame_input.events);
+
+
+                let scc = RenderTarget::screen(&context, vp.width, vp.height);
+
+                //we may be able to make use of this...
+                //RenderTarget::from_framebuffer(context, width, height, framebuffer)
+
+                // Get the screen render target to be able to render something on the screen
+                //frame_input.screen()
+                scc
+                    // Clear the color and depth of the screen render target
+                    .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+                    .render(&camera, &skybox, &[])
+                    .render(&camera, &model, &[&light]);
+
+                // Returns default frame output to end the frame
+                //FrameOutput::default()
+
+
+                window.gl_swap_window();
+
+                
+                if !running {
+                    // unsafe {
+                    //     context.delete_program(program);
+                    //     context.delete_vertex_array(vertex_array);
+                    // }
+                    
+                }
+            }
+        }
+
+
+
+    }
+    
 
     //high-level shapes with SDL
     /*
@@ -436,7 +581,7 @@ pub fn main() {
     */
 
     //low-level triangle
-    
+    /* 
     {
         //original "window" object before we tried out SDL2
         // Create a window (a canvas on web)
@@ -602,7 +747,7 @@ pub fn main() {
 
 
     }
-    
+    */
 
 
 

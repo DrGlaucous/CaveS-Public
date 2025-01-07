@@ -93,6 +93,7 @@ pub struct TitleScene {
     compact_jukebox: CompactJukebox,
     stage: Stage,
     textures: StageTexturePaths,
+    test_var: i32,
 }
 
 impl TitleScene {
@@ -135,6 +136,8 @@ impl TitleScene {
             compact_jukebox: CompactJukebox::new(),
             stage: fake_stage,
             textures,
+
+            test_var: 0,
         }
     }
 
@@ -366,6 +369,32 @@ impl Scene for TitleScene {
 
         self.controller.update(state, ctx)?;
         self.controller.update_trigger();
+
+        //TEST
+        if self.controller.trigger_up() || self.controller.trigger_down() || self.controller.trigger_left() || self.controller.trigger_right() {
+
+            let mut c1: i8 = (self.test_var % 128) as i8;
+            let mut c2: i8 = ((self.test_var / 128) % 128) as i8;
+            if self.controller.trigger_up() {
+                c1 += 1;
+            } else if self.controller.trigger_down() {
+                c1 -= 1;
+            }
+
+            if self.controller.trigger_right() {
+                c2 += 1;
+            } else if self.controller.trigger_left() {
+                c2 -= 1;
+            }
+            c1 = c1.clamp(0, 23);
+            c2 = c2.clamp(0, 15);
+
+            self.test_var = (c2 as i32 * 128) + c1 as i32;
+
+            state.load_gltf(ctx, &format!(""), true, 0)?;
+            state.load_gltf_test(ctx, &format!("Mesh/City9/City9.glb"), true, 0, self.test_var as usize)?;
+
+        }
 
         self.main_menu.update_width(state);
         self.main_menu.update_height(state);
