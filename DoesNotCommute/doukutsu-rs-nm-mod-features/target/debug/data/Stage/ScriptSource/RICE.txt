@@ -42,7 +42,11 @@
 <SNP0292:0000:0000:0000//make quaker
 <END
 
-
+//ideas:
+//rework lower platform to be on a stick so it can stay when the floor drops
+//add a spike plate array to the right side of the screen to bounce the player back
+//add a floor spike plate that comes into play when the floor drops out
+//potentially add omeaga-like spike balls?
 
 
 
