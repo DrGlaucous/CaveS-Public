@@ -185,6 +185,7 @@ impl TextScript {
                         | TSCOpCode::TIJ
                         | TSCOpCode::CMF
                         | TSCOpCode::UFC
+                        | TSCOpCode::LSU
                         => {
                             writeln!(&mut result, "{:?} (String-based code: Not trying to decompile...)", op).unwrap();
                         }

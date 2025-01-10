@@ -343,6 +343,9 @@ pub enum TSCOpCode {
     // <UCPname_of_src$:name_of_dst$ User File Copy: Copies file contents from src to dst in the user directory
     UFC,
 
+    // <LSUwwww:name_of_file$, Load SUrface: Loads the bitmap with name to surface ID wwww (because of the way d-rs handles spritesheets, only the values represented in StageTexturePaths can be changed)
+    LSU
+
 
 }
 

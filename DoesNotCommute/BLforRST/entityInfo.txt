@@ -397,3 +397,5 @@
 #390	Ceiling	Light	Ceiling Light	0:0:32:32	Cone light-making NPC that points down. Flag ID controls width of cone light (in degrees)	ALL:ALL ;
 #391	Home	Bead	Homing Bead	384:384:416:416	Homing bead NPC	;
 #392	bomb	b	Bomb	0:0:32:32	Explosion (ripped from super missile) that hurts the PC	ALL:ALL ;
+#393	Power	Pellet	Power Pellet	288:288:320:320	Shot by the RICE boss' shield (I need a better name for this)	ALL:ALL ;
+#394	Target	.	Target	0:0:32:32	Similar to the ballos ball target, but used with the RICE boss	ALL:ALL ;

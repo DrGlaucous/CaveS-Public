@@ -1,7 +1,14 @@
 
+//retry event
 #0100
+//move HV trigger(s) slightly offscreen
+<MNP0300:000.:0000:0001//V
+<MNP0301:0000:0016:0000//H
+
 <FAI0004
+<CMU0013
 <AM+0004:0000
+<AM+0014:0000<AML0014:0003:0010
 <BKGbk_rice$
 <BOA0200
 <BSL0000
@@ -9,6 +16,7 @@
 <BOA0201
 <END
 
+//fresh entry event
 #0104
 <PSH0100
 <END
@@ -16,3 +24,35 @@
 <WAI0200
 <BOA0200//test ANP
 <END
+
+
+
+//v trigger
+#0300
+
+//h trigger
+#0301
+
+
+//boss die event
+#1000
+<BOA0100
+<LSU0000:bkg/bk_rice_invert$
+<LSU0005:npc/NpcRICE_new_parts_black$
+<SNP0292:0000:0000:0000//make quaker
+<END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

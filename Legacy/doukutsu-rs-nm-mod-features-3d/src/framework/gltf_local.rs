@@ -1,8 +1,10 @@
+use std::any::Any;
+
 use std::f32::consts::PI;
 //use gltf::json::extensions::scene::khr_lights_punctual::Spot;
 use gltf::scene::Transform;
 
-use three_d::Attenuation;
+use three_d::{AmbientLight, Attenuation};
 //use three_d_asset::{animation::*, geometry::*, io::*, material::*, Error, Node, Result, Scene};
 use three_d_asset::*;
 use three_d_asset::io::*;
@@ -18,6 +20,102 @@ use std::path::{Path, PathBuf};
 //noted GLTF import problems:
 //lights are not supported (should be trivial to add, but they need to work with "scene" objects)
 //exported models set their origin to the world center
+
+
+
+//light wrappers so we can downcast them after upcast (why didn't three-d have this to begin with? all the sub-lights implement Any, but "light" itself does not...)
+pub trait LightWrapper {
+    fn get_light(&self) -> &dyn ThreeLight;
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+pub struct AmbientLightWrapper {
+    pub light: AmbientLight,
+}
+impl AmbientLightWrapper {
+    pub fn new(light: AmbientLight) -> AmbientLightWrapper {
+        AmbientLightWrapper {
+            light
+        }
+    }
+}
+impl LightWrapper for AmbientLightWrapper {
+    fn get_light(&self) -> &dyn ThreeLight {
+        &self.light
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+pub struct DirectionalLightWrapper {
+    pub light: DirectionalLight,
+}
+impl DirectionalLightWrapper {
+    pub fn new(light: DirectionalLight) -> DirectionalLightWrapper {
+        DirectionalLightWrapper {
+            light
+        }
+    }
+}
+impl LightWrapper for DirectionalLightWrapper {
+    fn get_light(&self) -> &dyn ThreeLight {
+        &self.light
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+pub struct PointLightWrapper {
+    pub light: PointLight,
+}
+impl PointLightWrapper {
+    pub fn new(light: PointLight) -> PointLightWrapper {
+        PointLightWrapper {
+            light
+        }
+    }
+}
+impl LightWrapper for PointLightWrapper {
+    fn get_light(&self) -> &dyn ThreeLight {
+        &self.light
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+pub struct SpotLightWrapper {
+    pub light: SpotLight,
+}
+impl SpotLightWrapper {
+    pub fn new(light: SpotLight) -> SpotLightWrapper {
+        SpotLightWrapper {
+            light
+        }
+    }
+}
+impl LightWrapper for SpotLightWrapper {
+    fn get_light(&self) -> &dyn ThreeLight {
+        &self.light
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+
+
 
 
 pub fn dependencies(raw_assets: &RawAssets, path: &PathBuf) -> HashSet<PathBuf> {
@@ -54,7 +152,7 @@ pub fn dependencies(raw_assets: &RawAssets, path: &PathBuf) -> HashSet<PathBuf> 
     dependencies
 }
 
-pub fn deserialize_gltf(context: &Context, raw_assets: &mut RawAssets, path: &PathBuf, q_index: usize) -> Result<(Scene, Vec<Box<dyn ThreeLight>>)> {
+pub fn deserialize_gltf(context: &Context, raw_assets: &mut RawAssets, path: &PathBuf) -> Result<(Scene, Vec<Box<dyn LightWrapper>>)> {
     let Gltf { document, mut blob } = Gltf::from_slice(&raw_assets.remove(path)?)?;
     let base_path = path.parent().unwrap_or(Path::new(""));
 
@@ -93,7 +191,7 @@ pub fn deserialize_gltf(context: &Context, raw_assets: &mut RawAssets, path: &Pa
 
 
     //new: parse lights
-    let mut light_vec: Vec<Box<dyn ThreeLight>> = Vec::new();
+    let mut light_vec: Vec<Box<dyn LightWrapper>> = Vec::new();
     // if let Some(light_iter) = document.lights() {
     //     for light in light_iter {
     //         light_vec.push(parse_lights(context, light));
@@ -108,7 +206,7 @@ pub fn deserialize_gltf(context: &Context, raw_assets: &mut RawAssets, path: &Pa
         if let Some(light) = gltf_node.light() {
             //parse lights (we need to do it here so we can get the light transform)
             let light_transform = gltf_node.transform();
-            light_vec.push(parse_lights(context, light, light_transform, q_index));
+            light_vec.push(parse_lights(context, light, light_transform));
 
             nodes.push(None); //todo: is this the best thing to do?
 
@@ -469,7 +567,7 @@ fn parse_transform(transform: ::gltf::scene::Transform) -> Mat4 {
 
 
 //todo: keyframe support for lights (we can do this later...)
-fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform, use_index: usize) -> Box<dyn ThreeLight> {
+fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform) -> Box<dyn LightWrapper> {
 
     let (translation, rotation, scale) = light_transform.decomposed();
 
@@ -480,7 +578,7 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform,
 
     //intensity is unitless with three-d, so we'll try to eyeball it compared to blender's intensity so we get close to the same results between softwares
     let point_multiplier = 1.0 / 1000.0;
-    let sun_multiplier = 1.0 / 100.0;
+    let sun_multiplier = 1.0 / 1000.0;
     let spot_multiplier = 1.0 / 1000.0;
 
     //let position = doc_light.
@@ -489,138 +587,8 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform,
 
     //let corrected_quaternion = Quaternion::new(w, xi, yj, zk)
 
-    //the XYZ rotation angle of the light (ass seen with blender)
-    let angle_direction = quaternion_to_euler(Vector4::<f32>{
-        w: rotation[0] as f32, //X
-        x: rotation[1] as f32, //Y
-        y: rotation[2] as f32, //Z
-        z: rotation[3] as f32, //W
-    }
-    );
-
-    let direction_vec = Vector3{
-        x: 0.0,
-        y: 0.0,
-        z: -1.0,
-    };
-
-    //matrix multiply, apply rotation
-    let final_rot = {
-        let aa: Rad<f32> = Rad(1.0);
-
-        let r_x: Matrix3<f32> = Matrix3::from_angle_x(Rad(angle_direction.x));
-        let r_y: Matrix3<f32> = Matrix3::from_angle_y(Rad(angle_direction.y));
-        let r_z: Matrix3<f32> = Matrix3::from_angle_z(Rad(angle_direction.z));
-        /*
-        let r_x = {
-            let theta = Rad(angle_direction.x);
-            let (s, c) = Rad::sin_cos(theta.into());
-
-            Matrix3::new(
-                f32::one(), f32::zero(), f32::zero(),
-                f32::zero(), c, -s,
-                f32::zero(), s, c,
-            )
-        };
-        let r_y = {
-            let theta = Rad(angle_direction.y);
-            let (s, c) = Rad::sin_cos(theta.into());
-
-            #[cfg_attr(rustfmt, rustfmt_skip)]
-            Matrix3::new(
-                c, f32::zero(), s,
-                f32::zero(), f32::one(), f32::zero(),
-                -s, f32::zero(), c,
-            )
-        };
-        let r_z = {
-            let theta = Rad(angle_direction.z);
-            let (s, c) = Rad::sin_cos(theta.into());
-
-            #[cfg_attr(rustfmt, rustfmt_skip)]
-            Matrix3::new(
-                c, -s, f32::zero(),
-                s, c, f32::zero(),
-                f32::zero(), f32::zero(), f32::one(),
-            )
-        };
-        */
-
-        let cb_rot = r_z * (r_x * r_y);
-        let mid_out = cb_rot * direction_vec;
-
-        Vector3::new(
-            mid_out.x,
-            mid_out.y,
-            mid_out.z
-        )
-
-    };
-
-
-
-    
-    let mult = [
-        [1,1,1,1],
-        [1,1,1,-1],
-        [1,1,-1,1],
-        [1,1,-1,-1],
-        [1,-1,1,1],
-        [1,-1,1,-1],
-        [1,-1,-1,1],
-        [1,-1,-1,-1],
-        [-1,1,1,1],
-        [-1,1,1,-1],
-        [-1,1,-1,1],
-        [-1,1,-1,-1],
-        [-1,-1,1,1],
-        [-1,-1,1,-1],
-        [-1,-1,-1,1],
-        [-1,-1,-1,-1],
-    ];
-    
-
-    
-    let mut c1 = (use_index % 128) as usize;
-    let mut c2 = ((use_index / 128) % 128) as usize;
-
-    let combo_array = [
-        [0,1,2,3,],
-        [0,1,3,2,],
-        [0,2,1,3,],
-        [0,2,3,1,],
-        [0,3,1,2,],
-        [0,3,2,1,],
-        [1,0,2,3,],
-        [1,0,3,2,],
-        [1,2,0,3,],
-        [1,2,3,0,],
-        [1,3,0,2,],
-        [1,3,2,0,],
-        [2,0,1,3,],
-        [2,0,3,1,],
-        [2,1,0,3,],
-        [2,1,3,0,],
-        [2,3,0,1,],
-        [2,3,1,0,],
-        [3,0,1,2,],
-        [3,0,2,1,],
-        [3,1,0,2,],
-        [3,1,2,0,],
-        [3,2,0,1,],
-        [3,2,1,0,],
-    ];
-
-    let ii = combo_array[c1];
-    let vv = mult[c2];
-    
-    //this is the correct angle
-    // let other_direct = quaternion_to_euler(Vector4::<f32>{
-    //     //w: rotation[ii[0]] * vv[0] as f32, //X
-    //     //x: rotation[ii[1]] * vv[1] as f32, //Y
-    //     //y: rotation[ii[2]] * vv[2] as f32, //Z
-    //     //z: rotation[ii[3]] * vv[3] as f32, //W
-
+    //the XYZ rotation angle of the light (as seen with blender)
+    // let angle_direction = quaternion_to_euler(Vector4::<f32>{
     //     w: rotation[0] as f32, //X
     //     x: rotation[1] as f32, //Y
     //     y: rotation[2] as f32, //Z
@@ -628,21 +596,25 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform,
     // }
     // );
 
-    //print!("Light X:{} Y:{} Z:{}\n", position.x, position.y, position.z);
-    //print!("ROTATION X:{} Y:{} Z:{}\n", other_direct.x, other_direct.y, other_direct.z);
-    //log::info!("used index: {} <-> {}, xyz: [{}, {}, {}] color: {}{}{}", c1,c2,  other_direct.x,other_direct.y,other_direct.z,  color.r, color.g, color.b);
-    
+    //direction is a directional vector relative to the light's origin
+    //From default camera location, X is (L->R), Y is up, Z is out of the screen
+    let direction_vec = Vector3{
+        x: 0.0,
+        y: 0.0,
+        z: -1.0,
+    };
 
 
+    //the contents of the rotation matrix:
     //let r = Quaternion::from_matrix(i);
     //let rotation = [r.v.x, r.v.y, r.v.z, r.s];
 
     let final_rot = {
         let qua = Quaternion::new(
-            rotation[3],// * vv[0] as f32,
-            rotation[0],// * vv[1] as f32,
-            rotation[1],// * vv[2] as f32,
-            rotation[2],// * vv[3] as f32,
+            rotation[3],
+            rotation[0],
+            rotation[1],
+            rotation[2],
         );
         let mid_out = qua.normalize().rotate_vector(direction_vec);
 
@@ -653,15 +625,6 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform,
         )
     };
 
-    // //direction is a "pont" relative to the light that it will point at.
-    // //From default camera location, X is (L->R), Y is up, Z is out of the screen
-    // let direction: Vector3<f32> = Vector3{
-    //     x: 0.0, //direction.x - PI,
-    //     y: -1.0, //direction.y,
-    //     z: -1.0, //direction.z + (PI * 0.5),
-    // };
-
-
 
     let atten = Attenuation{
         quadratic: 1.0,
@@ -670,21 +633,20 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform,
         ..Default::default()
     };
 
-    let light: Box<dyn ThreeLight> = match doc_light.kind() {
+    let light: Box<dyn LightWrapper> = match doc_light.kind() {
         Kind::Point => {
-            Box::new(PointLight::new(context, intensity * point_multiplier, color, &position, atten))
+            Box::new(PointLightWrapper::new(PointLight::new(context, intensity * point_multiplier, color, &position, atten)))
         }
         Kind::Directional => {
-            Box::new(DirectionalLight::new(context, intensity * sun_multiplier, color, &final_rot))
+            Box::new(DirectionalLightWrapper::new(DirectionalLight::new(context, intensity * sun_multiplier, color, &final_rot)))
         }
-        Kind::Spot { inner_cone_angle, outer_cone_angle: _ } => {
-            let cutoff = Rad(inner_cone_angle);
+        Kind::Spot { inner_cone_angle, outer_cone_angle } => {
+            let cutoff = Rad(outer_cone_angle);
 
-            log::info!("used index: {} <-> {} |||| COLOR: {}, {}, {} ||| ANGLE: {:.2}, {:.2}, {:.2} ||| FNR: {:.2}, {:.2}, {:.2}", c1,c2,   color.r, color.g, color.b,   angle_direction.x, angle_direction.y, angle_direction.z, final_rot.x, final_rot.y, final_rot.z);
-
+            //log::info!("COLOR: {}, {}, {} ||| ANGLE: {:.2}, {:.2}, {:.2} ||| FNR: {:.2}, {:.2}, {:.2}",  color.r, color.g, color.b,   angle_direction.x, angle_direction.y, angle_direction.z, final_rot.x, final_rot.y, final_rot.z);
 
             //todo: use outer_cone_angle to find attenuation (I actually don't think this is possible...)           
-            Box::new(SpotLight::new(context, intensity * spot_multiplier, color, &position, &final_rot, cutoff, atten))        
+            Box::new(SpotLightWrapper::new(SpotLight::new(context, intensity * spot_multiplier, color, &position, &final_rot, cutoff, atten)))        
         }
     };
 
@@ -693,7 +655,7 @@ fn parse_lights(context: &Context, doc_light: Light, light_transform: Transform,
 
 }
 
-
+//not really needed anymore (see above), but left in in case we need to debug
 fn quaternion_to_euler(input: Vector4<f32>) -> Vector3<f32> {
 
     let x = input.w; //x

@@ -280,16 +280,10 @@ pub fn update_frame_location(ctx: &mut Context, x: f32, y: f32) -> GameResult {
 
 }
 
-//TEST
-pub fn load_gltf_test(ctx: &mut Context, data: &[u8], key: i32, update_lights: bool, q_index: usize) -> GameResult<bool> {
-    let model = check_for_renderer(ctx).unwrap();
-    model.load_gltf(data, key, update_lights, q_index)
-}
-
 /// attempt to load a gltf into the 3d scene
 pub fn load_gltf(ctx: &mut Context, data: &[u8], key: i32, update_lights: bool) -> GameResult<bool> {
     let model = check_for_renderer(ctx).unwrap();
-    model.load_gltf(data, key, update_lights, 0)
+    model.load_gltf(data, key, update_lights)
 }
 
 /// delete the gltf loaded into this slot

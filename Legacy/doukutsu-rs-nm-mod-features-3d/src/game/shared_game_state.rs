@@ -955,25 +955,6 @@ impl SharedGameState {
         Ok(())
     }
 
-    //TEST
-    pub fn load_gltf_test(&mut self, ctx: &mut Context, path: &String, update_lights: bool, key: i32, q_index: usize) -> GameResult {
-
-        //file is valid
-        if let Ok(mut reader) = filesystem::open_find(ctx, &self.constants.base_paths, path) {
-
-            let mut data = Vec::new();
-            reader.read_to_end(&mut data)?;
-    
-            graphics::load_gltf_test(ctx, data.as_slice(), key, update_lights, q_index)?;
-        } else {
-            //unload gltf with invalid path
-            graphics::unload_gltf(ctx, key)?;
-        }
-
-        Ok(())
-    }
-
-
     /// Loads/unloads a skybox texture, optionally with pbr ambience
     pub fn load_skybox(&mut self, ctx: &mut Context, path: &String, have_ambient: bool) -> GameResult {
 

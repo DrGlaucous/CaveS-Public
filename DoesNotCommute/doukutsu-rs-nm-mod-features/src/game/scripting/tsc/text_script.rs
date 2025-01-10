@@ -2510,6 +2510,32 @@ impl TextScriptVM {
 
             }
 
+            TSCOpCode::LSU =>{
+                
+                //get mode
+                let spritesheet_id = read_cur_varint(&mut cursor)? as usize;
+
+                //get path
+                let len = read_cur_varint(&mut cursor)? as usize;
+                let filepath = read_string_tsc(&mut cursor, len).unwrap();
+
+                let mut stage_textures = game_scene.stage_textures.borrow_mut();                
+                match spritesheet_id {
+
+                    0 => {stage_textures.background = filepath}
+                    1 => {stage_textures.tileset_fg = filepath}
+                    2 => {stage_textures.tileset_mg = filepath}
+                    3 => {stage_textures.tileset_bg = filepath}
+                    4 => {stage_textures.npc1 = filepath}
+                    5 => {stage_textures.npc2 = filepath}
+                    _ => {}
+                }
+                
+                exec_state = TextScriptExecutionState::Running(event, cursor.position() as u32);
+
+
+            }
+
         }
 
         Ok(exec_state)

@@ -1,3 +1,5 @@
+use three_d_asset::io::RawAssets;
+
 // Entry point for non-wasm
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
@@ -34,25 +36,37 @@ pub async fn run() {
         vec3(0.0, 1.0, 0.0),
         degrees(45.0),
         0.1,
-        30.0,
+        900.0,
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
     let mut gui = three_d::GUI::new(&context);
 
+
+    let mut loaded: RawAssets = three_d_asset::io::load(&[
+        "C:/Users/EdwardStuckey/Documents/GitHub/CaveS-Public/Dim3/three-d-master/examples/assets/gltf/untitled_litest.glb", // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+    ]).unwrap();
+
+
     // Source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
-    let mut cpu_model: CpuModel =
-        three_d_asset::io::load_async(&["examples/assets/gltf/DamagedHelmet.glb"])
-            .await
-            .unwrap()
-            .deserialize("")
-            .unwrap();
+    // let mut cpu_model: CpuModel =
+    //     three_d_asset::io::load_async(&["examples/assets/gltf/DamagedHelmet.glb"])
+    //         .await
+    //         .unwrap()
+    //         .deserialize("")
+    //         .unwrap();
+    
+    let mut cpu_model: CpuModel = loaded.deserialize("untitled_litest").unwrap();
+
     cpu_model
         .geometries
         .iter_mut()
-        .for_each(|m| m.compute_tangents());
+        .for_each(|m| {
+            m.compute_normals();
+            m.compute_tangents();
+        });
     let mut model = Model::<PhysicalMaterial>::new(&context, &cpu_model)
         .unwrap()
-        .remove(0);
+        ;//.remove(0);
     let deferred_model = Model::<DeferredPhysicalMaterial>::new(&context, &cpu_model)
         .unwrap()
         .remove(0);
@@ -80,17 +94,17 @@ pub async fn run() {
         DeferredPhysicalMaterial::from_physical_material(&plane.material),
     );
 
-    let mut ambient = AmbientLight::new(&context, 0.2, Srgba::WHITE);
-    let mut directional0 = DirectionalLight::new(&context, 1.0, Srgba::RED, &vec3(0.0, -1.0, 0.0));
+    let mut ambient = AmbientLight::new(&context, 0.0, Srgba::WHITE);
+    let mut directional0 = DirectionalLight::new(&context, 0.0, Srgba::RED, &vec3(0.0, -1.0, 0.0));
     let mut directional1 =
-        DirectionalLight::new(&context, 1.0, Srgba::GREEN, &vec3(0.0, -1.0, 0.0));
+        DirectionalLight::new(&context, 0.0, Srgba::GREEN, &vec3(0.0, -1.0, 0.0));
     let mut spot0 = SpotLight::new(
         &context,
         2.0,
-        Srgba::BLUE,
+        Srgba::WHITE,
         &vec3(0.0, 0.0, 0.0),
         &vec3(0.0, -1.0, 0.0),
-        degrees(25.0),
+        degrees(45.0),
         Attenuation {
             constant: 0.1,
             linear: 0.001,
@@ -99,7 +113,7 @@ pub async fn run() {
     );
     let mut point0 = PointLight::new(
         &context,
-        1.0,
+        0.0,
         Srgba::GREEN,
         &vec3(0.0, 0.0, 0.0),
         Attenuation {
@@ -110,7 +124,7 @@ pub async fn run() {
     );
     let mut point1 = PointLight::new(
         &context,
-        1.0,
+        0.0,
         Srgba::RED,
         &vec3(0.0, 0.0, 0.0),
         Attenuation {
@@ -138,14 +152,14 @@ pub async fn run() {
                     ui.heading("Debug Panel");
 
                     ui.label("Surface parameters");
-                    ui.add(
-                        Slider::new::<f32>(&mut model.material.metallic, 0.0..=1.0)
-                            .text("Model Metallic"),
-                    );
-                    ui.add(
-                        Slider::new::<f32>(&mut model.material.roughness, 0.0..=1.0)
-                            .text("Model Roughness"),
-                    );
+                    // ui.add(
+                    //     Slider::new::<f32>(&mut model.material.metallic, 0.0..=1.0)
+                    //         .text("Model Metallic"),
+                    // );
+                    // ui.add(
+                    //     Slider::new::<f32>(&mut model.material.roughness, 0.0..=1.0)
+                    //         .text("Model Roughness"),
+                    // );
                     ui.add(
                         Slider::new(&mut plane.material.metallic, 0.0..=1.0).text("Plane Metallic"),
                     );
@@ -245,13 +259,13 @@ pub async fn run() {
         point0.position = vec3(-5.0 * c, 5.0, -5.0 * s);
         point1.position = vec3(5.0 * c, 5.0, 5.0 * s);
 
-        model.material.lighting_model = lighting_model;
+        //model.material.lighting_model = lighting_model;
 
         // Draw
         if shadows_enabled {
             directional0.generate_shadow_map(1024, &model);
             directional1.generate_shadow_map(1024, &model);
-            spot0.generate_shadow_map(1024, &model);
+            spot0.generate_shadow_map(2048, &model);
         }
 
         let lights = [
@@ -268,12 +282,13 @@ pub async fn run() {
         match material_type {
             MaterialType::Normal => {
                 screen
+                    .render(&camera, &model, &lights)
                     .write::<RendererError>(|| {
-                        model.render_with_material(
-                            &NormalMaterial::from_physical_material(&model.material),
-                            &camera,
-                            &lights,
-                        );
+                        // model.render_with_material(
+                        //     &NormalMaterial::from_physical_material(&model.material),
+                        //     &camera,
+                        //     &lights,
+                        // );
                         plane.render_with_material(
                             &NormalMaterial::from_physical_material(&plane.material),
                             &camera,
@@ -283,6 +298,8 @@ pub async fn run() {
                     })
                     .unwrap();
             }
+            _ => {}
+            /* 
             MaterialType::Depth => {
                 screen.render_with_material(
                     &DepthMaterial::default(),
@@ -351,7 +368,8 @@ pub async fn run() {
                     &lights,
                 );
             }
-        }
+            */
+    }
         screen.write(|| gui.render()).unwrap();
 
         FrameOutput::default()

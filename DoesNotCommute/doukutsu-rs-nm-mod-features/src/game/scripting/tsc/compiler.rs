@@ -355,6 +355,7 @@ impl TextScript {
             | TSCOpCode::DFJ
             | TSCOpCode::TIJ
             | TSCOpCode::CMF
+            | TSCOpCode::LSU
             =>
             {
 
