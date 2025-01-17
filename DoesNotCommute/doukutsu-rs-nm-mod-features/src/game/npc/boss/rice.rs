@@ -75,110 +75,6 @@ static HEIGHT: i32 = 0x200 * 16 * 16;
 impl NPC {
 
 
-    //forms part of a "ray" shot from the gravity gun, pulls the player in a certain direction (and towards the center of the NPC) >|<
-    pub(crate) fn tick_nxxx_gravity(
-        &mut self,
-        players: [&mut Player; 2],
-        npc_list: &NPCList,
-        boss: &mut BossNPC,
-    ) -> GameResult {
-
-
-        let rc_grav_particles_down = [
-            Rect::new(192,64,208,80),
-            Rect::new(192,80,208,96),
-            Rect::new(192,96,208,112),
-            Rect::new(192,112,208,128),
-        ];
-
-        let rc_grav_particles_up = [
-            Rect::new(192,128,208,144),
-            Rect::new(192,144,208,160),
-            Rect::new(192,160,208,176),
-            Rect::new(192,176,208,192),
-        ];
-
-        self.animate(5, 0, 3);
-
-
-        if self.direction == Direction::Bottom {
-            self.anim_rect = rc_grav_particles_down[self.anim_num as usize];
-        } else {
-            self.anim_rect = rc_grav_particles_up[self.anim_num as usize];
-        }
-
-        //from player mod.rs: 
-        /*
-        // wind / current forces
-        if self.flags.force_left() {
-            self.vel_x -= 0x88;
-        }
-        if self.flags.force_up() {
-            self.vel_y -= 0x88;
-        }
-        if self.flags.force_right() {
-            self.vel_x += 0x88;
-        }
-        if self.flags.force_down() {
-            self.vel_y += 0x55;
-        }
-        */
-
-        //check for NPCs/PCs inside NPC's hitbox
-        for p in players {
-            let result = Self::test_hit_phys_entity_non_solid(self, p);
-
-            if result.any_flag() {
-                //pull/push player
-
-                if self.direction == Direction::Bottom {
-                    p.vel_y += 0x55;
-                } else {
-                    p.vel_y -= 0x88;
-                }
-
-                //try to center player in the gravity
-                if p.x > self.x {
-                    p.vel_x -= 0x10;
-                } else {
-                    p.vel_x += 0x10;
-                }
-            }
-        }
-        for n in npc_list.iter_alive() {
-            //ignore collision with ourselves
-            if n.id == self.id {
-                continue;
-            }
-
-            let result = Self::test_hit_phys_entity_non_solid(self, n);
-
-            if result.any_flag() {
-                //pull/push NPC
-
-                if self.direction == Direction::Bottom {
-                    n.vel_y += 0x55;
-                } else {
-                    n.vel_y -= 0x88;
-                }
-
-                //try to center player in the gravity
-                if n.x > self.x {
-                    n.vel_x -= 0x10;
-                } else {
-                    n.vel_x += 0x10;
-                }
-
-            }
-        }
-
-        //keep in line with boss parent, initial y is set on NPC creation
-        self.x = boss.parts[self.parent_id as usize].x;
-
-        Ok(())
-    }
-
-
     // shot by the monitor at the player, behaves simmilarly to those things jelly-things in the labyrinth
     pub(crate) fn tick_n391_homing_bead(
         &mut self,
@@ -189,8 +85,8 @@ impl NPC {
     ) -> GameResult {
         
         let rc_homing_bead = [
-            Rect::new(192,192,208,208),
-            Rect::new(192,208,208,224),
+            Rect::new(192,64,208,80),
+            Rect::new(192,80,208,96),
         ];
 
         //I have to do this dumb thing so that we can re-use p1 and p2 without "moving" them
@@ -329,9 +225,9 @@ impl NPC {
         //x, y, vel_x, vel_y, action_counter2
 
         let rc_power_pellet = [
-            Rect::new(144,144,160,160),
-            Rect::new(160,144,176,160),
-            Rect::new(176,144,192,160),
+            Rect::new(192,96,208,112),
+            Rect::new(192,112,208,128),
+            Rect::new(192,128,208,144),
         ];
 
         self.action_counter += 1;
@@ -382,6 +278,35 @@ impl NPC {
     }
 
 
+    pub(crate) fn tick_n395_spike_wall_r(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+    ) -> GameResult {
+
+        let rc_power_pellet = [
+            Rect::new(240,280,272,296),
+            Rect::new(240,296,272,312),
+        ];
+
+
+        let left_bounce_rc = Rect::new(
+            0x200 * 16,
+            0x200 * 8,
+            0x200 * -8,
+            0x200 * 8
+        );
+
+
+        self.action_counter += 1;
+
+        self.animate(0, 0, 1);
+
+        self.anim_rect = rc_power_pellet[0];
+
+        Ok(())
+    }
 
 
 
@@ -428,6 +353,109 @@ impl NPC {
     }
 
 
+    //forms part of a "ray" shot from the gravity gun, pulls the player in a certain direction (and towards the center of the NPC) >|<
+    pub(crate) fn tick_nxxx_gravity(
+        &mut self,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+        boss: &mut BossNPC,
+    ) -> GameResult {
+
+
+        let rc_grav_particles_down = [
+            Rect::new(192,64,208,80),
+            Rect::new(192,80,208,96),
+            Rect::new(192,96,208,112),
+            Rect::new(192,112,208,128),
+        ];
+
+        let rc_grav_particles_up = [
+            Rect::new(192,128,208,144),
+            Rect::new(192,144,208,160),
+            Rect::new(192,160,208,176),
+            Rect::new(192,176,208,192),
+        ];
+
+        self.animate(5, 0, 3);
+
+
+        if self.direction == Direction::Bottom {
+            self.anim_rect = rc_grav_particles_down[self.anim_num as usize];
+        } else {
+            self.anim_rect = rc_grav_particles_up[self.anim_num as usize];
+        }
+
+        //from player mod.rs: 
+        /*
+        // wind / current forces
+        if self.flags.force_left() {
+            self.vel_x -= 0x88;
+        }
+        if self.flags.force_up() {
+            self.vel_y -= 0x88;
+        }
+        if self.flags.force_right() {
+            self.vel_x += 0x88;
+        }
+        if self.flags.force_down() {
+            self.vel_y += 0x55;
+        }
+        */
+
+        //check for NPCs/PCs inside NPC's hitbox
+        for p in players {
+            let result = Self::test_hit_phys_entity_non_solid(self, p);
+
+            if result.any_flag() {
+                //pull/push player
+
+                if self.direction == Direction::Bottom {
+                    p.vel_y += 0x55;
+                } else {
+                    p.vel_y -= 0x88;
+                }
+
+                //try to center player in the gravity
+                if p.x > self.x {
+                    p.vel_x -= 0x10;
+                } else {
+                    p.vel_x += 0x10;
+                }
+            }
+        }
+        for n in npc_list.iter_alive() {
+            //ignore collision with ourselves
+            if n.id == self.id {
+                continue;
+            }
+
+            let result = Self::test_hit_phys_entity_non_solid(self, n);
+
+            if result.any_flag() {
+                //pull/push NPC
+
+                if self.direction == Direction::Bottom {
+                    n.vel_y += 0x55;
+                } else {
+                    n.vel_y -= 0x88;
+                }
+
+                //try to center player in the gravity
+                if n.x > self.x {
+                    n.vel_x -= 0x10;
+                } else {
+                    n.vel_x += 0x10;
+                }
+
+            }
+        }
+
+        //keep in line with boss parent, initial y is set on NPC creation
+        self.x = boss.parts[self.parent_id as usize].x;
+
+        Ok(())
+    }
+
     //better, more generic version of the player-on-npc non-solid code
     pub(crate) fn test_hit_phys_entity_non_solid(npc_1: &dyn PhysicalEntity, npc_2: &dyn PhysicalEntity) -> Flag {
 
@@ -450,6 +478,36 @@ impl NPC {
 
         flags
     }
+
+
+    //check for player within this bounding box
+    fn test_hit_phys_entity_non_solid_bb(npc_1: &dyn PhysicalEntity, bounding_box: Option<Rect<u32>>, npc_2: &dyn PhysicalEntity) -> Flag {
+
+        let mut flags = Flag(0);
+        
+        let npc_1_coords = (npc_1.x(), npc_1.y());
+        let npc_2_coords = (npc_2.x(), npc_2.y());
+
+        let npc_1_hit_bounds = if let Some(bb) = bounding_box {
+            bb.clone()
+        } else {
+            npc_1.hit_bounds().clone()
+        };
+        let npc_2_hit_bounds = npc_2.hit_bounds();
+
+
+        if npc_1_coords.0 + (npc_1_hit_bounds.right as i32) > npc_2_coords.0 - (npc_2_hit_bounds.left as i32)
+            && npc_1_coords.0 - (npc_1_hit_bounds.left as i32) < npc_2_coords.0 + (npc_2_hit_bounds.right as i32)
+            && npc_1_coords.1 + (npc_1_hit_bounds.bottom as i32) > npc_2_coords.1 - (npc_2_hit_bounds.top as i32)
+            && npc_1_coords.1 - (npc_1_hit_bounds.top as i32) < npc_2_coords.1 + (npc_2_hit_bounds.bottom as i32)
+        {
+            //just set some flag
+            flags.set_hit_left_wall(true);
+        }
+
+        flags
+    }
+
 
 
 }
@@ -908,36 +966,7 @@ impl BossNPC {
         let dummy_life = 8000; //some random number
 
         let [p1, p2] = players;
-
-
-        //check for player within this bounding box
-        fn test_hit_phys_entity_non_solid_bb(npc_1: &dyn PhysicalEntity, bounding_box: Option<Rect<u32>>, npc_2: &dyn PhysicalEntity) -> Flag {
-
-            let mut flags = Flag(0);
-            
-            let npc_1_coords = (npc_1.x(), npc_1.y());
-            let npc_2_coords = (npc_2.x(), npc_2.y());
-
-            let npc_1_hit_bounds = if let Some(bb) = bounding_box {
-                bb.clone()
-            } else {
-                npc_1.hit_bounds().clone()
-            };
-            let npc_2_hit_bounds = npc_2.hit_bounds();
-    
-    
-            if npc_1_coords.0 + (npc_1_hit_bounds.right as i32) > npc_2_coords.0 - (npc_2_hit_bounds.left as i32)
-                && npc_1_coords.0 - (npc_1_hit_bounds.left as i32) < npc_2_coords.0 + (npc_2_hit_bounds.right as i32)
-                && npc_1_coords.1 + (npc_1_hit_bounds.bottom as i32) > npc_2_coords.1 - (npc_2_hit_bounds.top as i32)
-                && npc_1_coords.1 - (npc_1_hit_bounds.top as i32) < npc_2_coords.1 + (npc_2_hit_bounds.bottom as i32)
-            {
-                //just set some flag
-                flags.set_hit_left_wall(true);
-            }
-    
-            flags
-        }
-        
+ 
         let rc_player_at_top = Some(Rect::new(
             0x200 * 2 * 8,
             0x200 * 0,
@@ -952,6 +981,7 @@ impl BossNPC {
 
             //idle offscreen
             0 => {
+                npc.npc_flags.set_shootable(false);
                 npc.x = x_min;
                 npc.target_x = x_min;
 
@@ -961,7 +991,9 @@ impl BossNPC {
             }
 
             //idle
-            1 => {}
+            1 => {
+                npc.life = dummy_life;
+            }
 
             //slide towards player, prep for offensive (lights off)
             10 | 11 => {
@@ -1045,7 +1077,7 @@ impl BossNPC {
                 npc.action_counter += 1;
 
                 //shoot electricity if time expires or the player is sucked in
-                let r = test_hit_phys_entity_non_solid_bb(npc, rc_player_at_top, target);
+                let r = NPC::test_hit_phys_entity_non_solid_bb(npc, rc_player_at_top, target);
                 if npc.action_counter > 200 || r.any_flag() {
                     //zap
                     npc.action_num = 40;
@@ -1083,7 +1115,7 @@ impl BossNPC {
 
 
                 //(touch player to go to next state)
-                let r = test_hit_phys_entity_non_solid_bb(npc, rc_player_at_top, target);
+                let r = NPC::test_hit_phys_entity_non_solid_bb(npc, rc_player_at_top, target);
                 if r.any_flag() {
                     //zap
                     npc.action_num = 40;
@@ -1189,7 +1221,10 @@ impl BossNPC {
         && npc.action_num != 60 {
             //goto action 60 ("die")
             npc.life = dummy_life;
+            npc.npc_flags.set_shootable(false);
+            npc_beam.anim_num = 0; //beam off
             npc.action_num = 60;
+            
 
         }
 
@@ -1293,6 +1328,200 @@ impl BossNPC {
 
     }
 
+    fn tick_b11_rice_spike_plate(
+        &mut self,
+        state: &mut SharedGameState,
+        npc_list: &NPCList,
+        spike_plate_id: usize,
+        players: [&mut Player; 2],
+    ) {
+
+        let rc_spike_plate = [
+            Rect::new(0,400,48,464), //retract
+            Rect::new(48,400,96,464), //extend
+            Rect::new(96,400,144,464), //retract (shock)
+            Rect::new(144,400,192,464), //extend
+        ];
+
+        let npc = unsafe {
+            let ptr = self.parts.as_mut_ptr();
+            let a = ptr.add(spike_plate_id).as_mut().unwrap();
+            a
+        };
+
+
+        //move in,
+        //home towards player,
+        //shoot gravity,
+        //repeat,
+        //if life == 0, move forward and expose boss
+
+
+        //location to the left offscreen
+        let x_min = X -(0x200 * 64);
+        //location to the right offscreen
+        let x_max = X + WIDTH + (0x200 * 64);
+        //damage the spike does when the player touches it
+        let spike_damage = 20;
+
+        let sim_life = 20;
+        let dummy_life = 8000; //some random number
+
+        let [p1, p2] = players;
+
+
+        let rc_player_at_top = Rect::new(
+            0x200 * 3 * 8,
+            0x200 * 2 * 8,
+            0x200 * 3 * 8,
+            0x200 * 8,
+        );
+
+
+        let target = npc.get_closest_player_mut([p1, p2]);
+
+        match npc.action_num {
+
+            //idle offscreen
+            0 => {
+                npc.life = dummy_life;
+                npc.npc_flags.set_shootable(false);
+                npc.x = x_min;
+                npc.target_x = x_min;
+            }
+
+            //idle
+            1 => {}
+
+            //slide towards player
+            10 | 11 => {
+
+                //init
+                if npc.action_num == 10 {
+                    npc.action_num = 11;
+                    //npc.target_x = target.x;
+
+                    npc.action_counter = 0;
+                    npc.npc_flags.set_shootable(true);
+                    npc.cond.set_alive(true);
+                    npc.life = dummy_life;
+
+                    //get sign of current player location
+                    npc.target_x = (npc.x - target.x).signum();
+                }
+
+                //unit is off
+                npc.anim_num = 0;
+
+                //accelerate toward player
+                if npc.x < target.x {
+                    npc.vel_x += 0x10;
+                } else {
+                    npc.vel_x -= 0x10;
+                }
+                npc.vel_x = npc.vel_x.clamp(-0x200, 0x200);
+
+
+                //if we cross over the player, increment counter (like monster X)
+                let curr_pc_sign = (npc.x - target.x).signum();
+                if curr_pc_sign != npc.target_x
+                && curr_pc_sign != 0 {
+                    npc.action_counter += 1;
+
+                    //cache player position
+                    npc.target_x = curr_pc_sign;
+
+                }
+
+                npc.x += npc.vel_x;
+
+            }
+
+
+            //die
+            60 | 61 => {
+
+                //init
+                if npc.action_num == 60 {
+                    npc.action_num = 61;
+                    npc.action_counter = 0;
+
+                }
+
+                //accelerate until offscreen to the right
+                if npc.x < x_max {
+                    npc.vel_x += 0x16;
+                } else {
+                    npc.action_num = 0; //goto: idle offscreen
+                }
+                npc.x += npc.vel_x;
+
+
+                //create smoke around NPC
+                npc.action_counter += 1;
+                if npc.action_counter > 10 {
+
+                    let radius = 40;
+
+                    state.create_caret(
+                        npc.x + npc.rng.range(-radius..radius) * 0x200,
+                        npc.y + npc.rng.range(-radius..radius) * 0x200,
+                        CaretType::Explosion,
+                        Direction::Left
+                    );
+                    
+                    npc_list.create_death_smoke_up(
+                        npc.x + npc.rng.range(-radius..radius) * 0x200,
+                        npc.y + npc.rng.range(-radius..radius) * 0x200,
+                        16 as usize,
+                        2,
+                        state,
+                        &npc.rng,
+                    );
+
+                    state.sound_manager.play_sfx(44);
+                    npc.action_counter = 0;
+
+                }
+
+            }
+
+
+
+            _ => {}
+        }
+
+        //spring player back
+        let r = NPC::test_hit_phys_entity_non_solid_bb(npc, Some(rc_player_at_top), target);
+        if r.any_flag() && npc.action_counter2 == 0 {
+            target.vel_y -= 0x200 * 20; //todo: PC's vel_y is clamped vertically, limiting "springiness"
+            target.vel_x += npc.vel_x;
+            target.damage(spike_damage, state, npc_list);
+            npc.action_counter2 = 20;
+            state.sound_manager.play_sfx(47);
+        }
+        npc.action_counter2 = npc.action_counter2.saturating_sub(1);
+
+        //detect death
+        if dummy_life - npc.life >= sim_life
+        && npc.action_num != 60 {
+            //goto action 60 ("die")
+            npc.life = dummy_life;
+            npc.npc_flags.set_shootable(false);
+            npc.action_num = 60;
+        }
+
+        //for debugging current NPC state
+        npc.action_counter3 = npc.action_counter;
+
+
+        npc.anim_num = if npc.action_counter2 != 0 {1} else {0};
+
+        npc.anim_rect = rc_spike_plate[npc.anim_num as usize];
+
+
+    }
+
 
     fn tick_b11_rice_platform(&mut self, i: usize, rc_no: usize) {
 
@@ -1301,8 +1530,8 @@ impl BossNPC {
             Rect::new(72,208,144,304), //lit
         ];
         let rc_platform_bottom = [
-            Rect::new(96,304,184,352), //off
-            Rect::new(96,352,184,400), //lit
+            Rect::new(0,304,72,400), //off
+            Rect::new(72,304,144,400), //lit
         ];
 
         let npc = &mut self.parts[i];
@@ -1460,8 +1689,8 @@ impl BossNPC {
     fn tick_b11_rice_generator_top(&mut self, i: usize) {
 
         let rc_generator_top = [
-            Rect::new(0,304,96,328), //off
-            Rect::new(0,352,96,376), //lit
+            Rect::new(144,304,240,328), //off
+            Rect::new(144,352,240,376), //lit
         ];
 
         let npc = &mut self.parts[i];
@@ -1524,8 +1753,8 @@ impl BossNPC {
     fn tick_b11_rice_generator_bottom(&mut self, i: usize) {
 
         let rc_generator_bottom = [
-            Rect::new(0,328,96,352), //off
-            Rect::new(0,376,96,400), //lit
+            Rect::new(144,328,240,352), //off
+            Rect::new(144,376,240,400), //lit
         ];
 
         let parent_id = self.parts[i].parent_id;
@@ -2179,6 +2408,7 @@ impl BossNPC {
             16,
             17
         );
+        let spike_plate_id = 19;
 
 
 
@@ -2252,10 +2482,10 @@ impl BossNPC {
                     
                     //origin in center of solid part of the platform
                     npc.display_bounds = Rect::new(
-                        0x200 * 44,
+                        0x200 * 36,
                         0x200 * 8 * 1,
-                        0x200 * 44,
-                        0x200 * 8 * 5,
+                        0x200 * 36,
+                        0x200 * 8 * 11,
                     );
 
                     npc.hit_bounds = Rect::new(
@@ -2559,7 +2789,33 @@ impl BossNPC {
 
                 }
 
+                //mashy spike plate (vs. aristotle)
+                {
+                    let npc = &mut self.parts[spike_plate_id];
 
+                    //top
+                    npc.cond.set_alive(true);
+                    npc.npc_flags.set_solid_hard(true);
+                    npc.npc_flags.set_shootable(true);
+
+                    npc.hit_bounds = Rect::new(
+                        0x200 * 3 * 8,
+                        0x200 * 8,
+                        0x200 * 3 * 8,
+                        0x200 * 8,
+                    );
+
+                    npc.display_bounds = Rect::new(
+                        0x200 * 3 * 8,
+                        0x200 * 3 * 8,
+                        0x200 * 3 * 8,
+                        0x200 * 5 * 8,
+                    );
+
+
+                    npc.y = Y + HEIGHT - (2 * 16) * 0x200;
+                    npc.x = X;
+                }
 
                 //test starting ANPs
 
@@ -2692,6 +2948,9 @@ impl BossNPC {
                 if self.parts[main_id].action_num == 100 {
                     self.parts[main_id].action_counter = 0;
                     self.parts[main_id].action_num = 101;
+
+                    //slide spike plate in
+                    self.parts[spike_plate_id].action_num = 10;
                 }
 
 
@@ -2706,7 +2965,8 @@ impl BossNPC {
                     npc.y = Y + HEIGHT - (32) * 0x200 + y_mult;
                 }
 
-                self.parts[platform_bottom_id].y = 0x200 * 8 * 22 + Y + y_mult;
+                //lower platform is not lowered anymore
+                //self.parts[platform_bottom_id].y = 0x200 * 8 * 22 + Y + y_mult;
 
 
                 state.quake_counter = 10;
@@ -2767,6 +3027,9 @@ impl BossNPC {
             //run ggun
             self.tick_b11_rice_grav_gun(state, npc_list, grav_gun_id.0, grav_gun_id.1, [p1, p2]);
 
+            //run mashy plate
+            self.tick_b11_rice_spike_plate(state, npc_list, spike_plate_id, [p1, p2]);
+
             //run moving rails
             for i in [rails_id.0, rails_id.1, rails_id.2] {
                 self.tick_b11_rice_rail(i);
@@ -2785,9 +3048,6 @@ impl BossNPC {
 
 
     }
-
-
-
 
 
 
