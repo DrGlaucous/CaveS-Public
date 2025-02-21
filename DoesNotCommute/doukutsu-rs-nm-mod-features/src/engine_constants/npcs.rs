@@ -1174,13 +1174,14 @@ pub struct NPCConsts {
     #[serde(default = "default_n375_time_collectible")]
     pub n375_time_collectible: SafeNPCRect<4>, 
     
-    
     #[serde(default = "default_n376_direction_arrow")]
     pub n376_direction_arrow: SafeNPCRect<8>, 
     
     #[serde(default = "default_n377_door_outline")]
     pub n377_door_outline: SafeNPCRect<4>, 
 
+    #[serde(default = "default_n396_ravil_cyborg")]
+    pub n396_ravil_cyborg: SafeNPCRect<20>, 
 
 }
 
@@ -4170,19 +4171,21 @@ fn default_n283_misery_possessed() -> SafeNPCRect<22> {
 
 fn default_n284_sue_possessed() -> SafeNPCRect<26> {
     SafeNPCRect([
-        Rect { left: 0, top: 128, right: 32, bottom: 160 },
-        Rect { left: 32, top: 128, right: 64, bottom: 160 },
-        Rect { left: 64, top: 128, right: 96, bottom: 160 },
-        Rect { left: 96, top: 128, right: 128, bottom: 160 },
-        Rect { left: 128, top: 128, right: 160, bottom: 160 },
-        Rect { left: 160, top: 128, right: 192, bottom: 160 },
-        Rect { left: 192, top: 128, right: 224, bottom: 160 },
-        Rect { left: 224, top: 128, right: 256, bottom: 160 },
-        Rect { left: 0, top: 0, right: 0, bottom: 0 },
-        Rect { left: 256, top: 128, right: 288, bottom: 160 },
-        Rect { left: 288, top: 128, right: 320, bottom: 160 },
-        Rect { left: 224, top: 64, right: 256, bottom: 96 },
-        Rect { left: 208, top: 32, right: 224, bottom: 48 },
+        Rect { left: 0, top: 128, right: 32, bottom: 160 }, //stand a - 0
+        Rect { left: 32, top: 128, right: 64, bottom: 160 }, //stand b
+        Rect { left: 64, top: 128, right: 96, bottom: 160 }, //squat
+        Rect { left: 96, top: 128, right: 128, bottom: 160 }, //shoulder charge - 3
+        Rect { left: 128, top: 128, right: 160, bottom: 160 }, //twirl a
+        Rect { left: 160, top: 128, right: 192, bottom: 160 }, //twirl b
+        Rect { left: 192, top: 128, right: 224, bottom: 160 }, //twirl c
+        Rect { left: 224, top: 128, right: 256, bottom: 160 }, //twirl d - 7
+        Rect { left: 0, top: 0, right: 0, bottom: 0 }, //nothing - 8
+        Rect { left: 256, top: 128, right: 288, bottom: 160 }, //knockback
+        Rect { left: 288, top: 128, right: 320, bottom: 160 }, //lay, dead
+        Rect { left: 224, top: 64, right: 256, bottom: 96 }, //stand, gasp
+        Rect { left: 208, top: 32, right: 224, bottom: 48 }, //small, stand, gasp - 12
+
+        //ditto, face right
         Rect { left: 0, top: 160, right: 32, bottom: 192 },
         Rect { left: 32, top: 160, right: 64, bottom: 192 },
         Rect { left: 64, top: 160, right: 96, bottom: 192 },
@@ -4970,6 +4973,41 @@ fn default_n369_gclone_curly_clone() -> SafeNPCRect<20> {
         Rect { left: 288, top: 64, right: 304, bottom: 80 },
     ])
 }
+
+
+fn default_n396_ravil_cyborg() -> SafeNPCRect<20> {
+    SafeNPCRect([
+        Rect { left: 0, top: 0, right: 56, bottom: 40 }, //breathe A 0
+        Rect { left: 56, top: 0, right: 112, bottom: 40 }, //breathe B 1
+        Rect { left: 112, top: 0, right: 168, bottom: 40 }, //joust A 2
+        Rect { left: 168, top: 0, right: 224, bottom: 40 }, //joust B 3
+        Rect { left: 224, top: 0, right: 280, bottom: 40 }, //blade A 4
+        Rect { left: 280, top: 0, right: 336, bottom: 40 }, //blade B 5
+        Rect { left: 336, top: 0, right: 392, bottom: 40 }, //charge A 6
+        Rect { left: 392, top: 0, right: 448, bottom: 40 }, //charge B 7
+        Rect { left: 448, top: 0, right: 504, bottom: 40 }, //knockback 8
+        Rect { left: 0, top: 0, right: 0, bottom: 0 }, //invisible 9
+
+        //right-facing
+        Rect { left: 0, top: 40, right: 56, bottom: 80 }, //breathe A
+        Rect { left: 56, top: 40, right: 112, bottom: 80 }, //breathe B
+        Rect { left: 112, top: 40, right: 168, bottom: 80 }, //joust a
+        Rect { left: 168, top: 40, right: 224, bottom: 80 }, //joust b
+        Rect { left: 224, top: 40, right: 280, bottom: 80 }, //blade A
+        Rect { left: 280, top: 40, right: 336, bottom: 80 }, //blade B
+        Rect { left: 336, top: 40, right: 392, bottom: 80 }, //charge A
+        Rect { left: 392, top: 40, right: 448, bottom: 80 }, //charge B
+        Rect { left: 448, top: 40, right: 504, bottom: 80 }, //knockback
+        Rect { left: 0, top: 0, right: 0, bottom: 0 }, //invisible
+    ])
+}
+
+
+
+
+
+
+
 
 fn default_b01_omega() -> SafeNPCRect<10> {
     SafeNPCRect([

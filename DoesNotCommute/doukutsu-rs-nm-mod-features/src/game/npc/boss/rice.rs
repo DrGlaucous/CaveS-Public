@@ -16,6 +16,7 @@ use crate::game::physics::PhysicalEntity;
 use crate::game::player::Player;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::weapon::bullet::BulletManager;
+use crate::game::stage::Stage;
 use crate::util::rng::RNG;
 
 /*
@@ -299,7 +300,7 @@ impl NPC {
         );
 
 
-        self.action_counter += 1;
+        self.action_counter += 1; //err: overflow
 
         self.animate(0, 0, 1);
 
@@ -308,7 +309,315 @@ impl NPC {
         Ok(())
     }
 
+    /*
+    
+    cyborg, 2 attack ideas:
+    spin arms like a manhack
+    stick arms out in front like a spear
 
+    bonus:
+    shoot projectiles
+
+    */
+    
+
+    pub(crate) fn tick_n396_ravil_cyborg(
+        &mut self,
+        state: &mut SharedGameState,
+        players: [&mut Player; 2],
+        npc_list: &NPCList,
+        stage: &mut Stage,
+        boss: &mut BossNPC,
+    ) -> GameResult {
+
+        let life_const = 10000;
+
+        fn hover(npc: &mut NPC) {
+            {
+                if npc.x > npc.vel_x2 {
+                    npc.vel_x -= 20;
+                } else {
+                    npc.vel_x += 20;
+                }
+
+                if npc.y > npc.vel_y2 {
+                    npc.vel_y -= 20;
+                } else {
+                    npc.vel_y += 20;
+                }
+            }
+        }
+
+        let player = self.get_closest_player_mut(players);
+
+        match self.action_num {
+            0 => {
+                //init
+                self.life += life_const;
+                self.action_num = 1; //goto idle
+
+            }
+            1 => {
+                //slow down
+                self.vel_x = 7 * self.vel_x / 8;
+                self.vel_y = 7 * self.vel_y / 8;
+
+                self.animate(20, 0, 1);
+            }
+
+            //start attack
+            20 | 21 => {
+                if self.action_num == 20 {
+                    self.action_num = 21;
+                    self.action_counter = 0;
+                    self.anim_num = 0;
+                    self.anim_counter = 0;
+                    self.damage = 0;
+                    self.npc_flags.set_shootable(true);
+
+                    //save current location
+                    self.vel_x2 = self.x;
+                    self.vel_y2 = self.y;
+
+                    self.vel_x = self.rng.range(-0x400..0x400);
+                    self.vel_y = self.rng.range(-0x400..0x400);
+                }
+
+                //slow down
+                //self.vel_x = 7 * self.vel_x / 8;
+                //self.vel_y = 7 * self.vel_y / 8;
+
+                hover(self);
+
+
+
+                self.animate(20, 0, 1);
+
+                //wait for 80 ticks
+                self.action_counter += 1;
+                if self.action_counter > 80 {
+                    self.action_num = 30;
+                }
+
+                //face player
+                //let player = self.get_closest_player_ref(&players);
+
+                self.direction = if player.x > self.x { Direction::Right } else { Direction::Left };
+
+            }
+
+            //choose next action (action choices are a regular sequence)
+            30 | 31 => {
+                if self.action_num == 30 {
+                    self.action_num = 31;
+                    self.action_counter = 0;
+                    self.anim_num = 6; //raise hands
+                    self.vel_x = 0;
+                    self.vel_y = 0;
+                }
+
+                self.action_counter += 1;
+                if self.action_counter > 16 {
+                    self.action_counter2 += 1;
+                    self.action_counter2 %= 3;
+
+                    self.action_num = match self.action_counter2 {
+                        0 => 32,
+                        1 => 34,
+                        2 => 36,
+                        _ => self.action_num,
+                    };
+                }
+                
+                hover(self);
+
+            }
+
+            //joust charge action
+            32 | 33 => {
+                //let player = self.get_closest_player_ref(&players);
+
+                if self.action_num == 32 {
+                    self.action_num = 33;
+                    self.action_counter = 0;
+                    self.npc_flags.set_shootable(false);
+                    self.target_x = if player.x >= self.x { player.x + 0x14000 } else { player.x - 0x14000 };
+                    self.target_y = player.y;
+
+                    let angle = f64::atan2((self.y - self.target_y) as f64, (self.x - self.target_x) as f64);
+
+                    self.vel_x = (-1536.0 * angle.cos()) as i32;
+                    self.vel_y = (-1536.0 * angle.sin()) as i32;
+
+                    self.direction = if self.vel_x <= 0 { Direction::Left } else { Direction::Right };
+                
+                    state.sound_manager.play_sfx(29); //TP noise
+                }
+
+                self.action_counter += 1;
+                //self.anim_num = if self.action_counter & 2 != 0 { 2 } else { 3 }; //choose between shoulder charge or invisible
+                self.animate(1, 2, 3);
+
+                //timeout, goto choice again
+                if self.action_counter > 50 {
+                    self.action_num = 20;
+                }
+            }
+            //spin-blade attack
+            34 | 35 => {
+                //let player = self.get_closest_player_ref(&players);
+
+                if self.action_num == 34 {
+                    self.action_num = 35;
+                    self.action_counter = 0;
+                    self.damage = 4;
+                    self.target_x = player.x;
+                    self.target_y = player.y;
+
+                    let angle = f64::atan2((self.y - self.target_y) as f64, (self.x - self.target_x) as f64);
+
+                    self.vel_x = (-1536.0 * angle.cos()) as i32;
+                    self.vel_y = (-1536.0 * angle.sin()) as i32;
+
+                    let half_w = stage.map.width as i32 * state.tile_size.as_int() * 0x200 / 2;
+                    let half_h = stage.map.height as i32 * state.tile_size.as_int() * 0x200 / 2;
+
+
+                    self.direction = if self.vel_x <= 0 { Direction::Left } else { Direction::Right };
+                }
+
+                self.action_counter += 1;
+                if self.action_counter > 20 && self.shock != 0 {
+                    self.action_num = 40;
+                } else if self.action_counter > 50 || (self.flags.hit_right_wall() || self.flags.hit_left_wall()) {
+                    self.action_num = 20;
+                }
+
+                //animate twirl
+                self.animate(1, 4, 5);
+
+                //sound
+                if self.action_counter % 5 == 1 {
+                    state.sound_manager.play_sfx(109); //critter fly
+                }
+            }
+            
+            //charge + shoot
+            36 | 37 => {
+                //make target, flicker shot
+                self.animate(1, 6, 7);
+
+                if self.action_num == 36 {
+
+                    self.action_num = 37;
+
+                    self.target_x = player.x;
+                    self.target_y = player.y;
+    
+                    let mut tgt = NPC::create(394, &state.npc_table);
+                    tgt.cond.set_alive(true);
+                    tgt.x = self.target_x;
+                    tgt.y = self.target_y;
+                    tgt.action_counter2 = 50; //alive for 50 ticks
+                    let _ = npc_list.spawn(0x100, tgt);
+    
+                    state.sound_manager.play_sfx(103); //chg sound
+                }
+
+                //shoot
+                self.action_counter += 1;
+                if self.action_counter > 50 //after 50 ticks
+                {
+                    //we may potentially use another sound here (custom)
+                    state.sound_manager.play_sfx(58);
+
+                    if (self.action_counter as i32 - 50) % 5 == 0 //every 5 ticks from then on
+                    {
+                        //starting framerect offset for the shot so we get a "ripple" effect when shooting
+                        let ct_offset = (self.action_counter as i32 - 50) % 3;
+    
+                        let mut shot = NPC::create(393, &state.npc_table);
+                        shot.cond.set_alive(true);
+                        shot.npc_flags.set_ignore_solidity(true);
+                        shot.x = self.x;
+                        shot.y = self.y;
+                        shot.anim_num = ct_offset as u16;
+                        shot.action_counter2 = 50;
+    
+                        //target player
+                        let mut angle = f64::atan2((self.y - self.target_y) as f64, (self.x - self.target_x) as f64);
+                        angle += self.rng.range(-100..100) as f64 * 0.001;
+                        shot.vel_x = (angle.cos() * -2048.0 * 1.0) as i32;
+                        shot.vel_y = (angle.sin() * -2048.0 * 1.0) as i32;
+    
+                        let _ = npc_list.spawn(0x100, shot);
+    
+                    }
+                }
+
+                if self.action_counter > 80 {//after 400 ticks, reset to target
+                    self.action_num = 20;
+                }
+
+                hover(self);
+
+            }
+
+            //knock back and slow down
+            40 | 41 => {
+                if self.action_num == 40 {
+                    self.action_num = 41;
+                    self.action_counter = 0;
+                    self.anim_num = 8;
+                    self.damage = 0;
+
+                    //get location relative to player
+
+
+                    //let mut angle = f64::atan2((player.y - self.y) as f64, (player.x - self.x) as f64);
+                    //angle += self.rng.range(-100..100) as f64 * 0.001;
+                    //self.vel_x = (angle.cos() * -2048.0 * 3.0) as i32;
+                    //self.vel_y *= -1; (angle.sin() * -2048.0 * 3.0) as i32;
+
+                    self.vel_y *= -1;
+                    self.vel_x *= -1;
+
+                }
+
+                //slow down
+                self.vel_x = 11 * self.vel_x / 12;
+                self.vel_y = 11 * self.vel_y / 12;
+
+                self.action_counter += 1;
+                if self.action_counter > 40 {
+                    self.action_num = 20;
+                    self.action_counter = 0;
+                }
+            }
+            _ => (),
+        }
+
+        //death event
+        if self.life < life_const {
+            self.cond.set_alive(false);
+            //explode
+            npc_list.create_death_smoke(self.x, self.y, 0x200 * 16, 4, state, &self.rng);
+
+            state.sound_manager.play_sfx(35); //sound: big boom
+        }
+
+        self.x += self.vel_x; //if self.shock > 0 { self.vel_x / 2 } else { self.vel_x };
+        self.y += self.vel_y;
+
+        let dir_offset = if self.direction == Direction::Left { 0 } else { 10 };
+
+        self.anim_rect = state.constants.npc.n396_ravil_cyborg[self.anim_num as usize + dir_offset];
+
+        Ok(())
+    }
+
+
+    
 
 
     //note: potentially unused

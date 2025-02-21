@@ -8,4 +8,4 @@
 7 - Parallax scroll (clouds)
 8 - Outside (clone)
 9 - Waterway
-10 - Split layered parallax (Hangar)
+10 - BKG

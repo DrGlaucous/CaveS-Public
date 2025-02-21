@@ -400,3 +400,4 @@
 #393	Power	Pellet	Power Pellet	288:288:320:320	Shot by the RICE boss' shield (I need a better name for this)	ALL:ALL ;
 #394	Target	.	Target	0:0:32:32	Similar to the ballos ball target, but used with the RICE boss	ALL:ALL ;
 #395	Spike	Wall R	Spike Wall R	464:560:544:592	Bumps the player to the left	ALL:ALL ;
+#396	ravil	cyborg	ravil cyborg	0:0:112:80	Part of the RICE boss	ALL:ALL ;

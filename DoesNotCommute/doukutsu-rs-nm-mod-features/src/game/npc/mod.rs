@@ -778,6 +778,7 @@ impl GameEntity<([&mut Player; 2], &NPCList, &mut Stage, &mut BulletManager, &mu
             393 => self.tick_n393_power_pellet(state, players, npc_list),
             394 => self.tick_n394_target(state, players, npc_list),
             395 => self.tick_n395_spike_wall_r(state, players, npc_list),
+            396 => self.tick_n396_ravil_cyborg(state, players, npc_list, stage, boss),
             
             _ => Ok(()),
         }?;
