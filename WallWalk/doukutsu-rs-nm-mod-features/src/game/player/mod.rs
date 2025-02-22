@@ -1,4 +1,5 @@
 use std::clone::Clone;
+use std::f64::consts::PI;
 
 use num_derive::FromPrimitive;
 use num_traits::clamp;
@@ -18,6 +19,8 @@ use crate::game::shared_game_state::SharedGameState;
 use crate::input::dummy_player_controller::DummyPlayerController;
 use crate::input::player_controller::PlayerController;
 use crate::util::rng::RNG;
+
+use super::frame::GameRotation;
 
 mod player_hit;
 pub mod skin;
@@ -193,7 +196,7 @@ impl Player {
         self.hit_bounds = self.skin.get_hit_bounds();
     }
 
-    fn tick_normal(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
+    fn tick_normal(&mut self, state: &mut SharedGameState, npc_list: &NPCList, game_rotation: &mut GameRotation) -> GameResult {
         if !state.control_flags.interactions_disabled() && state.control_flags.control_enabled() {
             if self.equip.has_air_tank() {
                 self.air = 1000;
@@ -623,6 +626,15 @@ impl Player {
 
         self.y += self.vel_y;
 
+
+        if self.controller.trigger_left() {
+            game_rotation.set_next_view_angle(PI / 2.0, 30);
+        }
+        if self.controller.trigger_right() {
+            game_rotation.set_next_view_angle(0.0, 30);
+        }
+
+
         Ok(())
     }
 
@@ -927,8 +939,12 @@ impl Player {
     }
 }
 
-impl GameEntity<&NPCList> for Player {
-    fn tick(&mut self, state: &mut SharedGameState, npc_list: &NPCList) -> GameResult {
+impl GameEntity<(&NPCList, &mut GameRotation)> for Player {
+    fn tick(&mut self, state: &mut SharedGameState, aa: (&NPCList, &mut GameRotation)) -> GameResult {
+
+        let npc_list = aa.0;
+        let game_rotation = aa.1;
+
         if !self.cond.alive() {
             if self.life == 0 {
                 self.damage_popup.x = self.x;
@@ -955,7 +971,7 @@ impl GameEntity<&NPCList> for Player {
 
         match (self.control_mode, state.settings.noclip) {
             (_, true) => self.tick_ironhead(state)?,
-            (ControlMode::Normal, _) => self.tick_normal(state, npc_list)?,
+            (ControlMode::Normal, _) => self.tick_normal(state, npc_list, game_rotation)?,
             (ControlMode::IronHead, _) => self.tick_ironhead(state)?,
         }
 

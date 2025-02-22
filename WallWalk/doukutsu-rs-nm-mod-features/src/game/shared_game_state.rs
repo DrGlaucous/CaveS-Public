@@ -350,6 +350,10 @@ pub struct SharedGameState {
     #[cfg(feature = "discord-rpc")]
     pub discord_rpc: DiscordRPC,
     pub shutdown: bool,
+
+    //new canvases
+    pub char_plane_canvas: Option<Box<dyn SpriteBatch>>, //layer that holds 2d items to be drawn on the canvas
+
 }
 
 impl SharedGameState {
@@ -508,6 +512,8 @@ impl SharedGameState {
             #[cfg(feature = "discord-rpc")]
             discord_rpc: DiscordRPC::new(discord_rpc_app_id),
             shutdown: false,
+
+            char_plane_canvas: None,
         })
     }
 
@@ -807,6 +813,20 @@ impl SharedGameState {
             real_height: size.1,
         });
         self.lightmap_canvas = Some(spb);
+
+        let longest_size = (self.screen_size.0.powi(2) + self.screen_size.1.powi(2)).powf(0.5); //get size of the screen diagonal
+
+        self.char_plane_canvas = Some(Box::new(SubBatch {
+                batch: create_texture_mutable(ctx, longest_size as u16, longest_size as u16)?,
+                width: longest_size as u16,
+                height: longest_size as u16,
+                scale_x: 1.0 / self.scale,
+                scale_y: 1.0 / self.scale,
+                real_width:longest_size as u16,
+                real_height: longest_size as u16,
+            }
+        ));
+
 
         Ok(())
     }

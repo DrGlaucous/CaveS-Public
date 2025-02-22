@@ -1,4 +1,5 @@
 use crate::common::{fix9_scale, interpolate_fix9_scale};
+use crate::framework::error::GameResult;
 use crate::game::shared_game_state::SharedGameState;
 use crate::game::stage::Stage;
 use crate::util::rng::RNG;
@@ -171,3 +172,61 @@ impl Frame {
         }
     }
 }
+
+
+pub struct GameRotation {
+    angle: f64,
+    last_angle: f64,
+    angle_step_size: f64,
+    angle_step_count: u32,
+}
+
+impl GameRotation {
+
+    pub fn new() -> GameRotation {
+        GameRotation {
+            angle: 0.0,
+            last_angle: 0.0,
+            angle_step_size: 0.0,
+            angle_step_count: 0,
+        }
+    }
+
+    /// angle is in radians
+    pub fn set_next_view_angle(&mut self, target_angle: f64, ticks_to_dest: u32) {
+
+        //stop div/0 errors
+        let ticks_to_dest = if ticks_to_dest == 0 {
+            1
+        } else {
+            ticks_to_dest
+        };
+
+        self.angle_step_count = ticks_to_dest;
+        self.angle_step_size = (target_angle - self.angle) / ticks_to_dest as f64;
+
+    }
+
+    pub fn get_view_angle(&self) -> f64 {
+        self.angle
+    }
+
+    pub fn get_view_angle_lerp(&self, state: &SharedGameState) -> f64 {
+        self.angle * (1.0 - state.frame_time) + self.last_angle * state.frame_time
+    }
+
+    pub fn tick(&mut self) {
+        if self.angle_step_count > 0 {
+            self.angle += self.angle_step_size;
+            self.angle_step_count -= 1;
+        }
+    }
+
+    pub fn draw_tick(&mut self) {
+        self.last_angle = self.angle;
+    }
+
+
+}
+
+

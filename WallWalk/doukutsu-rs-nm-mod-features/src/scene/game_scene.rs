@@ -1,8 +1,10 @@
 use std::cell::RefCell;
+use std::f64::consts::PI;
 use std::ops::{Deref, Range};
 use std::rc::Rc;
 
 use log::info;
+use num_traits::Pow;
 
 use crate::common::{interpolate_fix9_scale, Color, Direction, Rect};
 use crate::components::background::Background;
@@ -30,14 +32,14 @@ use crate::framework::keyboard::ScanCode;
 use crate::framework::ui::Components;
 use crate::framework::{filesystem, gamepad, graphics};
 use crate::game::caret::CaretType;
-use crate::game::frame::{Frame, UpdateTarget};
+use crate::game::frame::{Frame, UpdateTarget, GameRotation};
 use crate::game::inventory::{Inventory, TakeExperienceResult};
 use crate::game::map::WaterParams;
 use crate::game::npc::boss::BossNPC;
 use crate::game::npc::list::NPCList;
 use crate::game::npc::{NPCLayer, NPC};
 use crate::game::physics::{PhysicalEntity, OFFSETS};
-use crate::game::player::{ControlMode, Player, TargetPlayer};
+use crate::game::player::{self, ControlMode, Player, TargetPlayer};
 use crate::game::scripting::tsc::credit_script::CreditScriptVM;
 use crate::game::scripting::tsc::text_script::{ScriptMode, TextScriptExecutionState, TextScriptVM};
 use crate::game::settings::ControllerType;
@@ -90,6 +92,8 @@ pub struct GameScene {
     map_name_counter: u16,
     skip_counter: u16,
     inventory_dim: f32,
+
+    pub game_rotation: GameRotation,
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -206,6 +210,8 @@ impl GameScene {
             skip_counter: 0,
             inventory_dim: 0.0,
             replay: Replay::new(),
+
+            game_rotation: GameRotation::new(),
         })
     }
 
@@ -1657,8 +1663,8 @@ impl GameScene {
                 0
             }
         };
-        self.player1.tick(state, &self.npc_list)?;
-        self.player2.tick(state, &self.npc_list)?;
+        self.player1.tick(state, (&self.npc_list, &mut self.game_rotation))?;
+        self.player2.tick(state, (&self.npc_list, &mut self.game_rotation))?;
         state.textscript_vm.reset_invicibility = false;
 
         self.whimsical_star.tick(state, (&self.player1, &mut self.bullet_manager))?;
@@ -1987,6 +1993,134 @@ impl GameScene {
 
         Ok(())
     }
+
+    
+    fn draw_chars(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
+
+
+
+
+        //set target to the 3d surface's 2D plane
+        //if this fails or the canvas does not exist, this will simply draw to the screen instead (original behavior)
+        {
+            let maybe_canvas = state.char_plane_canvas.as_ref();
+
+            if let Some(maybe_canvas) = maybe_canvas {
+                graphics::set_render_target(ctx, maybe_canvas.get_texture())?;
+            } else {
+                return Ok(());
+            }
+        }
+
+        graphics::clear(ctx, Color::from_rgba(0, 0, 0, 0));
+
+        //todo: fix shade
+        {
+
+            if self.player1.control_mode == ControlMode::IronHead {
+                self.set_ironhead_clip(state, ctx)?;
+            }
+    
+            let stage_textures_ref = &*self.stage_textures.deref().borrow();
+            self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, false)?;
+
+            graphics::clear(ctx, Color::from_rgb(255, 0, 0));
+
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Background, stage_textures_ref, &self.stage)?;
+            self.draw_npc_layer(state, ctx, NPCLayer::Background)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Middleground, stage_textures_ref, &self.stage)?;
+    
+            // if state.settings.shader_effects && self.lighting_mode == LightingMode::BackgroundOnly {
+            //     self.draw_light_map(state, ctx)?;
+            // }
+    
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::ForegroundBack, stage_textures_ref, &self.stage)?;
+    
+            self.boss.draw(state, ctx, &self.frame)?;
+            self.draw_npc_layer(state, ctx, NPCLayer::Middleground)?;
+            self.draw_bullets(state, ctx)?;
+            self.player2.draw(state, ctx, &self.frame)?;
+            self.player1.draw(state, ctx, &self.frame)?;
+    
+            if !self.player1.cond.hidden() {
+                self.whimsical_star.draw(state, ctx, &self.frame)?;
+            }
+    
+            //self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
+            self.draw_npc_layer(state, ctx, NPCLayer::Foreground)?;
+            self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?;
+            //self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front)?;
+            self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, true)?;
+            self.draw_carets(state, ctx)?;
+            self.player1.exp_popup.draw(state, ctx, &self.frame)?;
+            self.player1.damage_popup.draw(state, ctx, &self.frame)?;
+            self.player2.exp_popup.draw(state, ctx, &self.frame)?;
+            self.player2.damage_popup.draw(state, ctx, &self.frame)?;
+            self.draw_npc_popup(state, ctx)?;
+            self.draw_boss_popup(state, ctx)?;
+    
+            if !state.control_flags.credits_running()
+                && state.settings.shader_effects
+                && self.lighting_mode == LightingMode::Ambient
+            {
+                self.draw_light_map(state, ctx)?;
+            }
+
+        }
+
+        //let diagonal = state.char_plane_canvas.as_ref().unwrap().width() as isize;
+        //graphics::draw_rect(ctx, Rect::new(0, 0, diagonal, diagonal), Color::from_rgb(255, 0, 0))?;
+        //graphics::clear(ctx, Color::from_rgb(255, 0, 0));
+
+        graphics::set_render_target(ctx, None)?;
+
+        let angle = self.game_rotation.get_view_angle();//_lerp(&state);
+        let scale = state.scale as u16;
+        if let Some(cc) = &mut state.char_plane_canvas {
+
+            //the char plane's width and height is the window's diagonal
+            let diagonal = cc.width() as u16;
+            let width = f32::powf(0.5, 0.5) * diagonal as f32;
+
+            let c_x = (state.screen_size.0 - width) * 0.5;
+            let c_y = (state.screen_size.1 - width) * 0.5;
+
+            let test_scale = 0.5;
+
+
+            let anchor_x = (diagonal / 2) as f32;
+            let anchor_y = (diagonal / 2) as f32;
+
+            let anchor_x = (self.player1.x - self.frame.x) as f32 / 512.0;
+            let anchor_y = (self.player1.y - self.frame.y) as f32 / 512.0;
+
+            cc.as_mut().add_rect_flip_scaled_tinted_rotated(
+                20.0,
+                20.0,
+                false,
+                false,
+                angle,
+                anchor_x as f32, //note: anchor points are relative to pre-scaled coordiantes
+                anchor_y as f32,
+                (255, 255, 255, 255),
+                test_scale,
+                test_scale,
+                &Rect::new(0, 0, diagonal / scale, diagonal  / scale)
+            );
+            
+            cc.as_mut().draw(ctx)?;
+        }
+
+
+        Ok(())
+
+
+    }
+
+
+
 }
 
 impl Scene for GameScene {
@@ -2259,6 +2393,8 @@ impl Scene for GameScene {
             state.super_quake_rumble_counter = 0;
         }
 
+        self.game_rotation.tick();
+
         Ok(())
     }
 
@@ -2332,56 +2468,11 @@ impl Scene for GameScene {
     fn draw(&self, state: &mut SharedGameState, ctx: &mut Context) -> GameResult {
         //graphics::set_canvas(ctx, Some(&state.game_canvas));
 
-        if self.player1.control_mode == ControlMode::IronHead {
-            self.set_ironhead_clip(state, ctx)?;
-        }
+        self.draw_chars(state, ctx)?;
 
-        let stage_textures_ref = &*self.stage_textures.deref().borrow();
-        self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, false)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Background, stage_textures_ref, &self.stage)?;
-        self.draw_npc_layer(state, ctx, NPCLayer::Background)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Middleground, stage_textures_ref, &self.stage)?;
-
-        if state.settings.shader_effects && self.lighting_mode == LightingMode::BackgroundOnly {
-            self.draw_light_map(state, ctx)?;
-        }
-
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::ForegroundBack, stage_textures_ref, &self.stage)?;
-
-        self.boss.draw(state, ctx, &self.frame)?;
-        self.draw_npc_layer(state, ctx, NPCLayer::Middleground)?;
-        self.draw_bullets(state, ctx)?;
-        self.player2.draw(state, ctx, &self.frame)?;
-        self.player1.draw(state, ctx, &self.frame)?;
-
-        if !self.player1.cond.hidden() {
-            self.whimsical_star.draw(state, ctx, &self.frame)?;
-        }
-
-        self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Back)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Foreground, stage_textures_ref, &self.stage)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::Snack, stage_textures_ref, &self.stage)?;
-        self.draw_npc_layer(state, ctx, NPCLayer::Foreground)?;
-        self.tilemap.draw(state, ctx, &self.frame, TileLayer::FarForeground, stage_textures_ref, &self.stage)?;
-        self.water_renderer.draw(state, ctx, &self.frame, WaterLayer::Front)?;
-        self.background.draw(state, ctx, &self.frame, stage_textures_ref, &self.stage, true)?;
-        self.draw_carets(state, ctx)?;
-        self.player1.exp_popup.draw(state, ctx, &self.frame)?;
-        self.player1.damage_popup.draw(state, ctx, &self.frame)?;
-        self.player2.exp_popup.draw(state, ctx, &self.frame)?;
-        self.player2.damage_popup.draw(state, ctx, &self.frame)?;
-        self.draw_npc_popup(state, ctx)?;
-        self.draw_boss_popup(state, ctx)?;
-
-        if !state.control_flags.credits_running()
-            && state.settings.shader_effects
-            && self.lighting_mode == LightingMode::Ambient
-        {
-            self.draw_light_map(state, ctx)?;
-        }
         self.flash.draw(state, ctx, &self.frame)?;
 
-        self.draw_black_bars(state, ctx)?;
+        //self.draw_black_bars(state, ctx)?;
 
         if self.player1.control_mode == ControlMode::IronHead {
             graphics::set_clip_rect(ctx, None)?;

@@ -110,11 +110,13 @@ impl Tilemap {
         let batch = state.texture_set.get_or_load_batch(ctx, &state.constants, tex)?;
         let mut rect = Rect::new(0, 0, tile_size as u16, tile_size as u16);
 
+        let longest_size = (state.ratioed_size.0.powi(2) + state.ratioed_size.1.powi(2)).powf(0.5); //get size of the screen diagonal
+
         //variables that relate to fixed ratios
-        let mut screen_width = state.ratioed_size.0;
-        let screen_height = state.ratioed_size.1;
-        let canvas_offset_x = (state.canvas_size.0 - screen_width) / 2.0;
-        let canvas_offset_y = (state.canvas_size.1 - screen_height) / 2.0;
+        let screen_width = longest_size;//state.ratioed_size.0;
+        let screen_height = longest_size;//state.ratioed_size.1;
+        let canvas_offset_x = 0.0;//(state.canvas_size.0 - screen_width) / 2.0;
+        let canvas_offset_y = 0.0;//(state.canvas_size.1 - screen_height) / 2.0;
         
         let (mut frame_x_r, mut frame_y_r) = frame.xy_interpolated(state.frame_time);
 
