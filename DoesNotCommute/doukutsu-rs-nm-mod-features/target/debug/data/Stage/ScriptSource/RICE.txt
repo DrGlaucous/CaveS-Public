@@ -29,17 +29,22 @@
 
 //v trigger
 #0300
+<END
 
 //h trigger
 #0301
+<END
 
+//spike NPC
+#333
+<END
 
 //boss die event
 #1000
 <BOA0100
 <LSU0000:bkg/bk_rice_invert$
 <LSU0005:npc/NpcRICE_new_parts_black$
-<SNP0292:0000:0000:0000//make quaker
+//<SNP0292:0000:0000:0000//make quaker
 <END
 
 //ideas:

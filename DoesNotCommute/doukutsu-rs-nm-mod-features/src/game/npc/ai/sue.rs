@@ -340,18 +340,21 @@ impl NPC {
         stage: &mut Stage,
         boss: &mut BossNPC,
     ) -> GameResult {
+
+        //"die", goto death script
         if self.action_num < 100 && (!boss.parts[0].cond.alive() || self.life < 500) {
             self.action_num = 100;
         }
 
         match self.action_num {
+            //offset up
             0 | 1 => {
                 if self.action_num == 0 {
                     self.action_num = 1;
                     self.y -= 0x800;
-                    self.action_counter3 = self.life;
+                    self.action_counter3 = self.life; //save current life
 
-                    state.sound_manager.play_sfx(29);
+                    state.sound_manager.play_sfx(29); //tp noise
                 }
 
                 self.action_counter += 1;
@@ -371,6 +374,8 @@ impl NPC {
                     self.action_num = 10;
                 }
             }
+
+            //change display bounds to final (sue-hands-on-face), then idle
             10 => {
                 self.action_num = 11;
                 self.anim_num = 11;
@@ -378,8 +383,10 @@ impl NPC {
                 self.display_bounds.right = 0x2000;
                 self.display_bounds.left = 0x2000;
 
-                npc_list.kill_npcs_by_type(257, true, state);
+                npc_list.kill_npcs_by_type(257, true, state); //destroy the red crystal
             }
+
+            //start attack
             20 | 21 => {
                 if self.action_num == 20 {
                     self.action_num = 21;
@@ -391,30 +398,36 @@ impl NPC {
                     self.npc_flags.set_ignore_solidity(false);
                 }
 
+                //slow down
                 self.vel_x = 7 * self.vel_x / 8;
                 self.vel_y = 7 * self.vel_y / 8;
 
                 self.animate(20, 0, 1);
 
+                //wait for 80 ticks
                 self.action_counter += 1;
                 if self.action_counter > 80 {
                     self.action_num = 30;
                 }
 
+                //face player
                 let player = self.get_closest_player_ref(&players);
 
                 self.direction = if player.x > self.x { Direction::Right } else { Direction::Left };
 
+                //damage is more than 50, snap superposition to... 10?
                 if self.life + 50 < self.action_counter3 {
                     self.action_counter3 = self.life;
                     state.npc_super_pos.0 = 10;
                 }
             }
+
+            //wait in squat position, choose next action (action choices are a regular sequence)
             30 | 31 => {
                 if self.action_num == 30 {
                     self.action_num = 31;
                     self.action_counter = 0;
-                    self.anim_num = 2;
+                    self.anim_num = 2; //squat
                     self.vel_x = 0;
                     self.vel_y = 0;
                 }
@@ -431,6 +444,8 @@ impl NPC {
                     };
                 }
             }
+
+            //shoulder charge action
             32 | 33 => {
                 let player = self.get_closest_player_ref(&players);
 
@@ -450,6 +465,7 @@ impl NPC {
                     let half_w = stage.map.width as i32 * state.tile_size.as_int() * 0x200 / 2;
                     let half_h = stage.map.height as i32 * state.tile_size.as_int() * 0x200 / 2;
 
+                    //ignore solid if in a certain part of the map (center, I assume?)
                     if ((self.x < half_w && self.vel_x > 0) || (self.x > half_w && self.vel_x < 0))
                         && ((self.y < half_h && self.vel_y > 0) || (self.y > half_h && self.vel_y < 0))
                     {
@@ -460,12 +476,14 @@ impl NPC {
                 }
 
                 self.action_counter += 1;
-                self.anim_num = if self.action_counter & 2 != 0 { 3 } else { 8 };
+                self.anim_num = if self.action_counter & 2 != 0 { 3 } else { 8 }; //choose between shoulder charge or invisible
 
+                //hit wall or timeout, goto choice again
                 if self.action_counter > 50 || (self.flags.hit_right_wall() || self.flags.hit_left_wall()) {
                     self.action_num = 20;
                 }
             }
+            //twirl attack
             34 | 35 => {
                 let player = self.get_closest_player_ref(&players);
 
@@ -485,6 +503,7 @@ impl NPC {
                     let half_w = stage.map.width as i32 * state.tile_size.as_int() * 0x200 / 2;
                     let half_h = stage.map.height as i32 * state.tile_size.as_int() * 0x200 / 2;
 
+                    //clip through walls on certain conditions
                     if ((self.x < half_w && self.vel_x > 0) || (self.x > half_w && self.vel_x < 0))
                         && ((self.y < half_h && self.vel_y > 0) || (self.y > half_h && self.vel_y < 0))
                     {
@@ -501,12 +520,15 @@ impl NPC {
                     self.action_num = 20;
                 }
 
+                //animate twirl
                 self.animate(1, 4, 7);
 
+                //sound
                 if self.action_counter % 5 == 1 {
-                    state.sound_manager.play_sfx(109);
+                    state.sound_manager.play_sfx(109); //critter fly
                 }
             }
+            //display squat, then fall backwards
             40 | 41 => {
                 if self.action_num == 40 {
                     self.action_num = 41;
@@ -516,6 +538,7 @@ impl NPC {
                     self.npc_flags.set_ignore_solidity(false);
                 }
 
+                //slow down
                 self.vel_x = 7 * self.vel_x / 8;
                 self.vel_y = 7 * self.vel_y / 8;
 
@@ -528,6 +551,7 @@ impl NPC {
                     self.vel_y = -0x200;
                 }
             }
+            //fall to the floor
             42 => {
                 self.anim_num = 9;
                 if self.flags.hit_bottom_wall() {
@@ -542,18 +566,21 @@ impl NPC {
                 self.vel_y += 0x20;
                 self.clamp_fall_speed();
             }
+            //wait on floor, then goto idle breathe
             43 => {
                 self.action_counter += 1;
                 if self.action_counter > 16 {
                     self.action_num = 20;
                 }
             }
+            //freeze in place with knockback
             99 => {
                 self.vel_x = 0;
                 self.vel_y = 0;
                 self.anim_num = 9;
                 self.npc_flags.set_shootable(false);
             }
+            //fall dead to hardcoded floor
             100 | 101 => {
                 if self.action_num == 100 {
                     self.action_num = 101;
