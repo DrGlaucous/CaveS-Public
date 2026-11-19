@@ -3,7 +3,7 @@
 <panel>
 	<field type="info">
 		This edits the framerects of the alternate menu characters to be in PIXEL.bmp,
-		which is hidden in the exe (use a resource hacker to edit) instead of
+		which is hidden in the exe (use a resource hacker or [Resource Cracker](https://www.pelock.com/products/resource-cracker) to edit) instead of
 		all over NpcRegu. Look at "alternatemenus_example.bmp" in the /hacks/bitmap/
 		folder for how to set it up.
 	</field>
